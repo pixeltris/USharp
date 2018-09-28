@@ -1,0 +1,18 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+
+#pragma warning disable 649 // Field is never assigned
+
+namespace UnrealEngine.Runtime.Native
+{
+    static class Native_TStatId
+    {
+        public delegate void Del_GetStatDescriptionANSI(ref TStatId instance, ref FScriptArray result);
+        public delegate void Del_GetStatDescriptionWIDE(ref TStatId instance, ref FScriptArray result);
+
+        public static Del_GetStatDescriptionANSI GetStatDescriptionANSI;
+        public static Del_GetStatDescriptionWIDE GetStatDescriptionWIDE;
+    }
+}

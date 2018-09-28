@@ -1,0 +1,410 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{61FD3B78-387B-4B61-A9DA-FCC5B9B80E5B}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>UnrealEngine.Runtime</RootNamespace>
+    <AssemblyName>UnrealEngine.Runtime</AssemblyName>
+    <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>TRACE;DEBUG;WITH_EDITORONLY_DATA</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <DocumentationFile>
+    </DocumentationFile>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE;WITH_EDITORONLY_DATA</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="envdte, Version=8.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+      <EmbedInteropTypes>True</EmbedInteropTypes>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Net.Http" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="AssetRegistry\FAssetData.cs" />
+    <Compile Include="CoreUObject\Enums\EClassCastFlags.cs" />
+    <Compile Include="CoreUObject\Enums\EClassFlags.cs" />
+    <Compile Include="CoreUObject\Enums\EDuplicateMode.cs" />
+    <Compile Include="CoreUObject\Enums\EFunctionFlags.cs" />
+    <Compile Include="CoreUObject\Enums\EInternalObjectFlags.cs" />
+    <Compile Include="CoreUObject\Enums\ELoadFlags.cs" />
+    <Compile Include="CoreUObject\Enums\EObjectMark.cs" />
+    <Compile Include="CoreUObject\Enums\EPackageFlags.cs" />
+    <Compile Include="CoreUObject\Enums\EPropertyFlags.cs" />
+    <Compile Include="CoreUObject\Enums\ERenameFlags.cs" />
+    <Compile Include="CoreUObject\Enums\EStructFlags.cs" />
+    <Compile Include="CoreUObject\FCoreNet.cs" />
+    <Compile Include="CoreUObject\FCoreUObjectDelegates.cs" />
+    <Compile Include="CoreUObject\FFrame.cs" />
+    <Compile Include="CoreUObject\FindTypeHelpers.cs" />
+    <Compile Include="CoreUObject\FLinkerLoad.cs" />
+    <Compile Include="CoreUObject\FObjectInitializer.cs" />
+    <Compile Include="CoreUObject\CollectionHelpers\FScriptArrayHelper.cs" />
+    <Compile Include="CoreUObject\FReferenceFinder.cs" />
+    <Compile Include="CoreUObject\FScriptInterface.cs" />
+    <Compile Include="CoreUObject\CollectionHelpers\FScriptMapHelper.cs" />
+    <Compile Include="CoreUObject\CollectionHelpers\FScriptSetHelper.cs" />
+    <Compile Include="CoreUObject\ICppStructOps.cs" />
+    <Compile Include="CoreUObject\Properties\USetProperty.cs" />
+    <Compile Include="CoreUObject\TSoftClass.cs" />
+    <Compile Include="CoreUObject\TFieldIterator.cs" />
+    <Compile Include="CoreUObject\TObjectIterator.cs" />
+    <Compile Include="CoreUObject\TSubclassOf.cs" />
+    <Compile Include="CoreUObject\TSubclassOfInterface.cs" />
+    <Compile Include="CoreUObject\UDelegateFunction.cs" />
+    <Compile Include="CoreUObject\UInterface.cs" />
+    <Compile Include="CoreUObject\UMetaData.cs" />
+    <Compile Include="CoreUObject\UObjectBaseStatics.cs" />
+    <Compile Include="Core\CollectionDebugView.cs" />
+    <Compile Include="Core\ConsoleManager\EConsoleVariableFlags.cs" />
+    <Compile Include="Core\ConsoleManager\IConsoleCommand.cs" />
+    <Compile Include="Core\ConsoleManager\IConsoleObject.cs" />
+    <Compile Include="Core\ConsoleManager\IConsoleVariable.cs" />
+    <Compile Include="Core\ELogTimes.cs" />
+    <Compile Include="Core\Enums\EBuildConfiguration.cs" />
+    <Compile Include="Core\FApp.cs" />
+    <Compile Include="Core\FBuild.cs" />
+    <Compile Include="CoreUObject\FCoreRedirects.cs" />
+    <Compile Include="Core\FGlobals.cs" />
+    <Compile Include="Core\FMemory.cs" />
+    <Compile Include="Core\FModuleManager.cs" />
+    <Compile Include="Core\FModuleStatus.cs" />
+    <Compile Include="Core\FPackageName.cs" />
+    <Compile Include="Core\FPlatformProperties.cs" />
+    <Compile Include="Core\FThreading.cs" />
+    <Compile Include="Core\FTicker.cs" />
+    <Compile Include="Core\ConsoleManager\IConsoleManager.cs" />
+    <Compile Include="Core\TArray.cs" />
+    <Compile Include="Core\TFixedArray.cs" />
+    <Compile Include="Core\TMap.cs" />
+    <Compile Include="Core\TSet.cs" />
+    <Compile Include="Core\TStatId.cs" />
+    <Compile Include="Engine\Enums\ETravelType.cs" />
+    <Compile Include="Engine\Enums\EWorldType.cs" />
+    <Compile Include="Engine\FTimerHandle.cs" />
+    <Compile Include="Engine\FTimerManager.cs" />
+    <Compile Include="Engine\FURLPtr.cs" />
+    <Compile Include="Engine\FWorldContextPtr.cs" />
+    <Compile Include="Engine\UBlueprintFunctionLibrary.cs" />
+    <Compile Include="Engine\UUserDefinedEnum.cs" />
+    <Compile Include="Internal\Attributes\AttributeExtensions.cs" />
+    <Compile Include="Internal\Attributes\BlueprintGetterSetterAttribute.cs" />
+    <Compile Include="Internal\Attributes\ManagedUnrealAttributeBase.cs" />
+    <Compile Include="Internal\Attributes\MiscAttributes.cs" />
+    <Compile Include="Internal\Attributes\UClassAttribute.cs" />
+    <Compile Include="Internal\Attributes\UDelegateAttribute.cs" />
+    <Compile Include="Internal\Attributes\UEnumAttribute.cs" />
+    <Compile Include="Internal\Attributes\UFunctionAttribute.cs" />
+    <Compile Include="Internal\Attributes\UFunctionInvokerAttribute.cs" />
+    <Compile Include="Internal\Attributes\UInterfaceAttribute.cs" />
+    <Compile Include="Internal\Attributes\UMetaAttribute.cs" />
+    <Compile Include="Internal\Attributes\UPropertyAttribute.cs" />
+    <Compile Include="Internal\Classes.cs" />
+    <Compile Include="Internal\EventNotRewrittenException.cs" />
+    <Compile Include="Internal\IInterface.cs" />
+    <Compile Include="Internal\ManagedUnrealTypeInfo.Exception.cs" />
+    <Compile Include="Internal\ManagedUnrealTypeInfo.Validation.cs" />
+    <Compile Include="Internal\ManagedUnrealTypes.Builder.cs" />
+    <Compile Include="Internal\ManagedUnrealTypes.MetaData.cs" />
+    <Compile Include="Internal\ManagedUnrealVisibility.cs" />
+    <Compile Include="Internal\NativeReflectionCached.cs" />
+    <Compile Include="Internal\StructAsClass.cs" />
+    <Compile Include="Internal\StructDefault.cs" />
+    <Compile Include="Internal\UFieldAddress.cs" />
+    <Compile Include="Internal\CodeGenerator\CodeGenerator.cs" />
+    <Compile Include="Internal\CodeGenerator\CodeGenerator.Documentation.cs" />
+    <Compile Include="Internal\CodeGenerator\CodeGenerator.Enums.cs" />
+    <Compile Include="Internal\CodeGenerator\CodeGenerator.Game.cs" />
+    <Compile Include="Internal\CodeGenerator\CodeGenerator.Modules.cs" />
+    <Compile Include="Internal\CodeGenerator\CodeGenerator.StructInfo.cs" />
+    <Compile Include="Internal\CodeGenerator\CodeGeneratorSettings.cs" />
+    <Compile Include="Internal\CodeGenerator\CodeManagers\CodeManager.cs" />
+    <Compile Include="Internal\CodeGenerator\CodeManagers\VisualStudioCodeManager.cs" />
+    <Compile Include="Internal\CodeGenerator\CSharpTextBuilder.cs" />
+    <Compile Include="Internal\CodeGenerator\Exporters\CodeGenerator.EnumExporter.cs" />
+    <Compile Include="Internal\CodeGenerator\Exporters\CodeGenerator.FunctionExporter.cs" />
+    <Compile Include="Internal\CodeGenerator\Exporters\CodeGenerator.PropertyExporter.cs" />
+    <Compile Include="Internal\CodeGenerator\Exporters\CodeGenerator.StructExporter.cs" />
+    <Compile Include="Internal\ContainerHashValidator.cs" />
+    <Compile Include="Internal\Coroutines\Invoker.Initializers.cs" />
+    <Compile Include="Internal\Coroutines\InvokerPool.cs" />
+    <Compile Include="Internal\Coroutines\SetCoroutineGroup.cs" />
+    <Compile Include="Internal\Coroutines\YieldInstructionComparable.cs" />
+    <Compile Include="Internal\Coroutines\Coroutine.PoolFunctions.cs" />
+    <Compile Include="Internal\Coroutines\Coroutine.cs" />
+    <Compile Include="Internal\Coroutines\CoroutinePool.cs" />
+    <Compile Include="Internal\Coroutines\Coroutine.Update.cs" />
+    <Compile Include="Internal\Coroutines\Invoker.cs" />
+    <Compile Include="Internal\Coroutines\WaitAny.cs" />
+    <Compile Include="Internal\Coroutines\WaitFor.cs" />
+    <Compile Include="Internal\Coroutines\WaitForCoroutine.cs" />
+    <Compile Include="Internal\Coroutines\WaitForever.cs" />
+    <Compile Include="Internal\Coroutines\WaitForFrame.cs" />
+    <Compile Include="Internal\Coroutines\WaitForGroup.cs" />
+    <Compile Include="Internal\Coroutines\WaitForTick.cs" />
+    <Compile Include="Internal\Coroutines\WaitAll.cs" />
+    <Compile Include="Internal\Coroutines\WaitUntil.cs" />
+    <Compile Include="Internal\Coroutines\WaitWhile.cs" />
+    <Compile Include="Internal\Coroutines\YieldInstruction.cs" />
+    <Compile Include="Internal\Coroutines\YieldInstructionPool.cs" />
+    <Compile Include="Internal\Coroutines\YieldPools.cs" />
+    <Compile Include="Internal\Delegate.cs" />
+    <Compile Include="Internal\EngineLoop.cs" />
+    <Compile Include="Internal\FModulesPaths.cs" />
+    <Compile Include="Internal\HotReload.cs" />
+    <Compile Include="Internal\ManagedUnrealTypes.cs" />
+    <Compile Include="Internal\ManagedUnrealTypeInfo.cs" />
+    <Compile Include="Internal\ManagedUnrealTypeInfo.Serialization.Gen.cs" />
+    <Compile Include="Internal\ManagedUnrealTypeInfo.Serialization.cs" />
+    <Compile Include="Internal\ManagedUnrealTypeInfo.Statics.cs" />
+    <Compile Include="Internal\Marshalers.cs" />
+    <Compile Include="Internal\NativeReflection.cs" />
+    <Compile Include="Internal\ObjectOuter.cs" />
+    <Compile Include="CoreUObject\Properties\EPropertyType.cs" />
+    <Compile Include="CoreUObject\Properties\UDelegateProperty.cs" />
+    <Compile Include="CoreUObject\Properties\UEnumProperty.cs" />
+    <Compile Include="CoreUObject\Properties\UMulticastDelegateProperty.cs" />
+    <Compile Include="CoreUObject\Properties\UStructProperty.cs" />
+    <Compile Include="CoreUObject\Properties\UTextProperty.cs" />
+    <Compile Include="CoreUObject\TSoftObject.cs" />
+    <Compile Include="CoreUObject\SmartPointers\FSharedPtr.cs" />
+    <Compile Include="CoreUObject\SmartPointers\FLazyObjectPtr.cs" />
+    <Compile Include="CoreUObject\SmartPointers\FWeakObjectPtr.cs" />
+    <Compile Include="CoreUObject\Properties\NumericProperties\UDoubleProperty.cs" />
+    <Compile Include="CoreUObject\Properties\NumericProperties\UFloatProperty.cs" />
+    <Compile Include="CoreUObject\Properties\NumericProperties\UUInt32Property.cs" />
+    <Compile Include="CoreUObject\Properties\NumericProperties\UUInt64Property.cs" />
+    <Compile Include="CoreUObject\Properties\UArrayProperty.cs" />
+    <Compile Include="CoreUObject\Properties\ObjectProperties\USoftClassProperty.cs" />
+    <Compile Include="CoreUObject\Properties\ObjectProperties\USoftObjectProperty.cs" />
+    <Compile Include="CoreUObject\Properties\ObjectProperties\UClassProperty.cs" />
+    <Compile Include="CoreUObject\Properties\NumericProperties\UInt16Property.cs" />
+    <Compile Include="CoreUObject\Properties\NumericProperties\UInt64Property.cs" />
+    <Compile Include="CoreUObject\Properties\NumericProperties\UInt8Property.cs" />
+    <Compile Include="CoreUObject\Properties\UBoolProperty.cs" />
+    <Compile Include="CoreUObject\Properties\UInterfaceProperty.cs" />
+    <Compile Include="CoreUObject\Properties\NumericProperties\UIntProperty.cs" />
+    <Compile Include="CoreUObject\Properties\ObjectProperties\ULazyObjectProperty.cs" />
+    <Compile Include="CoreUObject\Properties\UMapProperty.cs" />
+    <Compile Include="CoreUObject\Properties\UNameProperty.cs" />
+    <Compile Include="CoreUObject\Properties\NumericProperties\UNumericProperty.cs" />
+    <Compile Include="CoreUObject\Properties\ObjectProperties\UObjectProperty.cs" />
+    <Compile Include="CoreUObject\Properties\UStrProperty.cs" />
+    <Compile Include="CoreUObject\Properties\NumericProperties\UUInt16Property.cs" />
+    <Compile Include="CoreUObject\Properties\ObjectProperties\UWeakObjectProperty.cs" />
+    <Compile Include="CoreUObject\SmartPointers\FSoftObjectPath.cs" />
+    <Compile Include="CoreUObject\SmartPointers\FUniqueObjectGuid.cs" />
+    <Compile Include="CoreUObject\SmartPointers\TPersistentObjectPtr.cs" />
+    <Compile Include="Engine\UBlueprintGeneratedClass.cs" />
+    <Compile Include="CoreUObject\UEnum.cs" />
+    <Compile Include="CoreUObject\FImplementedInterface.cs" />
+    <Compile Include="CoreUObject\FNativeFunctionLookup.cs" />
+    <Compile Include="CoreUObject\UClass.cs" />
+    <Compile Include="CoreUObject\UField.cs" />
+    <Compile Include="CoreUObject\UFunction.cs" />
+    <Compile Include="CoreUObject\Properties\ObjectProperties\UObjectPropertyBase.cs" />
+    <Compile Include="CoreUObject\UProperty.cs" />
+    <Compile Include="CoreUObject\Properties\NumericProperties\UByteProperty.cs" />
+    <Compile Include="CoreUObject\UScriptStruct.cs" />
+    <Compile Include="CoreUObject\UStruct.cs" />
+    <Compile Include="Engine\UUserDefinedStruct.cs" />
+    <Compile Include="CoreUObject\UObject.cs" />
+    <Compile Include="CoreUObject\UObjectGlobals.cs" />
+    <Compile Include="CoreUObject\UObjectHash.cs" />
+    <Compile Include="CoreUObject\UPackage.cs" />
+    <Compile Include="Core\FCoreDelegates.cs" />
+    <Compile Include="Core\FMessage.cs" />
+    <Compile Include="Core\FPaths.cs" />
+    <Compile Include="CoreUObject\Enums\EObjectFlags.cs" />
+    <Compile Include="Core\FScriptDelegate.cs" />
+    <Compile Include="Core\FScriptMap.cs" />
+    <Compile Include="Core\FScriptSet.cs" />
+    <Compile Include="Engine\UBlueprint.cs" />
+    <Compile Include="Engine\UBlueprintCore.cs" />
+    <Compile Include="Internal\CachedUObject.cs" />
+    <Compile Include="Core\FName.cs" />
+    <Compile Include="Core\FScriptArray.cs" />
+    <Compile Include="Core\FStringUnsafe.cs" />
+    <Compile Include="Core\FText.cs" />
+    <Compile Include="Internal\NativeDelegate.cs" />
+    <Compile Include="Internal\PropertyAccessor.cs" />
+    <Compile Include="Internal\SizeOf.cs" />
+    <Compile Include="Internal\SlnMerger.cs" />
+    <Compile Include="Internal\StructValidator.cs" />
+    <Compile Include="Internal\GCHelper.cs" />
+    <Compile Include="Internal\UnrealBinaryHeap.cs" />
+    <Compile Include="Internal\UnrealBinaryHeapEx.cs" />
+    <Compile Include="Internal\UnrealTypes.cs" />
+    <Compile Include="Internal\UObjectDestroyedException.cs" />
+    <Compile Include="Internal\USharpClass.cs" />
+    <Compile Include="Internal\Attributes\UStructAttribute.cs" />
+    <Compile Include="Internal\USharpStruct.cs" />
+    <Compile Include="Native\ConsoleManager\Native_IConsoleVariable.cs" />
+    <Compile Include="Native\ConsoleManager\Native_IConsoleObject.cs" />
+    <Compile Include="Native\ConsoleManager\Native_IConsoleCommand.cs" />
+    <Compile Include="Native\Internal\Native_Classes.cs" />
+    <Compile Include="Native\Internal\Native_ManagedUnrealType.cs" />
+    <Compile Include="Native\Internal\Native_SharpHotReloadUtils.cs" />
+    <Compile Include="Native\Internal\Native_USharpStruct.cs" />
+    <Compile Include="Native\Native_AActor.cs" />
+    <Compile Include="Native\Native_FApp.cs" />
+    <Compile Include="Native\Native_FAsync.cs" />
+    <Compile Include="Native\Native_FBitReference.cs" />
+    <Compile Include="Native\Native_FBuildGlobals.cs" />
+    <Compile Include="Native\Native_FCoreRedirectObjectName.cs" />
+    <Compile Include="Native\Native_FCoreRedirects.cs" />
+    <Compile Include="Native\Native_FDelegateHandle.cs" />
+    <Compile Include="Native\Native_FFrame.cs" />
+    <Compile Include="Native\Native_FFrameRef.cs" />
+    <Compile Include="Native\Native_FGlobals.cs" />
+    <Compile Include="Native\Native_FCoreNet.cs" />
+    <Compile Include="Native\Native_FMemory.cs" />
+    <Compile Include="Native\Native_FMulticastScriptDelegate.cs" />
+    <Compile Include="Native\Native_FARFilter.cs" />
+    <Compile Include="Native\Native_FAssetData.cs" />
+    <Compile Include="Native\Native_FReferenceFinder.cs" />
+    <Compile Include="Native\Native_FScriptDelegate.cs" />
+    <Compile Include="Native\Native_FSoftObjectPtr.cs" />
+    <Compile Include="Native\Native_FAssetRegistryModule.cs" />
+    <Compile Include="Native\Native_FCoreDelegates.cs" />
+    <Compile Include="Native\Native_FCoreUObjectDelegates.cs" />
+    <Compile Include="Native\Native_FLazyObjectPtr.cs" />
+    <Compile Include="Native\Native_FLinkerLoad.cs" />
+    <Compile Include="Native\Native_FMessageDialog.cs" />
+    <Compile Include="Native\Native_FModuleManager.cs" />
+    <Compile Include="Native\Internal\Native_FModulePaths.cs" />
+    <Compile Include="Native\Native_FObjectInitializer.cs" />
+    <Compile Include="Native\Native_FPackageName.cs" />
+    <Compile Include="Native\Native_FPaths.cs" />
+    <Compile Include="Internal\Attributes\UUnrealTypePathAttribute.cs" />
+    <Compile Include="Internal\UnrealModuleType.cs" />
+    <Compile Include="Native\NativeFunctions.cs" />
+    <Compile Include="Native\Native_FName.cs" />
+    <Compile Include="Native\Native_FPlatformProperties.cs" />
+    <Compile Include="Native\Native_FScriptArray.cs" />
+    <Compile Include="Native\Native_FScriptBitArray.cs" />
+    <Compile Include="Native\Native_FScriptMap.cs" />
+    <Compile Include="Native\Native_FScriptSet.cs" />
+    <Compile Include="Native\Native_FScriptSparseArray.cs" />
+    <Compile Include="Native\Native_FString.cs" />
+    <Compile Include="Native\Native_FSoftObjectPath.cs" />
+    <Compile Include="Native\Native_FThreading.cs" />
+    <Compile Include="Native\Native_FTicker.cs" />
+    <Compile Include="Native\Native_FTimerManager.cs" />
+    <Compile Include="Native\Native_FUObjectArray.cs" />
+    <Compile Include="Native\Native_FURL.cs" />
+    <Compile Include="Native\Native_FWeakObjectPtr.cs" />
+    <Compile Include="Native\Internal\Native_GCHelper.cs" />
+    <Compile Include="Internal\EntryPoint.cs" />
+    <Compile Include="Native\ConsoleManager\Native_IConsoleManager.cs" />
+    <Compile Include="Native\Internal\Native_SizeOfStruct.cs" />
+    <Compile Include="Native\Native_FWorldContext.cs" />
+    <Compile Include="Native\Native_ICppStructOps.cs" />
+    <Compile Include="Native\Native_TStatId.cs" />
+    <Compile Include="Native\Native_UEditorEngine.cs" />
+    <Compile Include="Native\Native_UEngine.cs" />
+    <Compile Include="Native\Native_UGameEngine.cs" />
+    <Compile Include="Native\Native_UGameInstance.cs" />
+    <Compile Include="Native\Internal\Native_USharpClass.cs" />
+    <Compile Include="Native\Properties\Native_UArrayProperty.cs" />
+    <Compile Include="Native\Properties\Native_USoftClassProperty.cs" />
+    <Compile Include="Native\Native_UBlueprint.cs" />
+    <Compile Include="Native\Native_UBlueprintCore.cs" />
+    <Compile Include="Native\Native_UBlueprintGeneratedClass.cs" />
+    <Compile Include="Native\Properties\Native_UBoolProperty.cs" />
+    <Compile Include="Native\Properties\Native_UByteProperty.cs" />
+    <Compile Include="Native\Native_UClass.cs" />
+    <Compile Include="Native\Properties\Native_UClassProperty.cs" />
+    <Compile Include="Native\Properties\Native_UDelegateProperty.cs" />
+    <Compile Include="Native\Native_UEnum.cs" />
+    <Compile Include="Native\Properties\Native_UEnumProperty.cs" />
+    <Compile Include="Native\Native_UField.cs" />
+    <Compile Include="Native\Native_UFunction.cs" />
+    <Compile Include="Native\Properties\Native_UInterfaceProperty.cs" />
+    <Compile Include="Native\Native_ULevel.cs" />
+    <Compile Include="Native\Properties\Native_UMapProperty.cs" />
+    <Compile Include="Native\Native_UMetaData.cs" />
+    <Compile Include="Native\Properties\Native_UMulticastDelegateProperty.cs" />
+    <Compile Include="Native\Native_UObject.cs" />
+    <Compile Include="Native\Native_UObjectBase.cs" />
+    <Compile Include="Native\Native_UObjectBaseUtility.cs" />
+    <Compile Include="Native\Native_UObjectGlobals.cs" />
+    <Compile Include="Native\Native_UObjectHash.cs" />
+    <Compile Include="Native\Properties\Native_UObjectPropertyBase.cs" />
+    <Compile Include="Native\Native_UPackage.cs" />
+    <Compile Include="Native\Native_UProperty.cs" />
+    <Compile Include="Native\Native_UScriptStruct.cs" />
+    <Compile Include="Native\Properties\Native_USetProperty.cs" />
+    <Compile Include="Native\Native_UStruct.cs" />
+    <Compile Include="Native\Properties\Native_UStructProperty.cs" />
+    <Compile Include="Native\Native_UUserDefinedStruct.cs" />
+    <Compile Include="Native\Properties\Native_UNumericProperty.cs" />
+    <Compile Include="Native\Native_UWorld.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Internal\Extensions.cs" />
+    <Compile Include="Core\TArrayUnsafe.cs" />
+    <Compile Include="Tests\ClassTests.cs" />
+    <Compile Include="Tests\CollectionFunctionParamTests.cs" />
+    <Compile Include="Tests\CollectionsTests.cs" />
+    <Compile Include="Tests\DelegateTests.cs" />
+    <Compile Include="Tests\EnumTests.cs" />
+    <Compile Include="Tests\FixedSizeArrayTests.cs" />
+    <Compile Include="Tests\SimpleFunctionParamTests.cs" />
+    <Compile Include="Tests\StructTests.cs" />
+    <Compile Include="Tests\Tests.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Internal\CodeGenerator\CodeGenerator.AvailableTypes.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Internal\CodeGenerator\CodeGenerator.Properties.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Internal\CodeGenerator\CodeGenerator.Attributes.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Internal\CodeGenerator\CodeGenerator.Commands.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Internal\CodeGenerator\CodeGenerator.Names.cs" />
+  </ItemGroup>
+  <ItemGroup />
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <PropertyGroup>
+    <PostBuildEvent>
+    </PostBuildEvent>
+  </PropertyGroup>
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

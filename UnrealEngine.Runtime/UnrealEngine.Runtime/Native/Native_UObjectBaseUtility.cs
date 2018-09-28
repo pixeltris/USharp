@@ -1,0 +1,118 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+
+#pragma warning disable 649 // Field is never assigned
+
+namespace UnrealEngine.Runtime.Native
+{
+    static class Native_UObjectBaseUtility
+    {
+        public delegate void Del_SetFlags(IntPtr instance, EObjectFlags newFlags);
+        public delegate void Del_ClearFlags(IntPtr instance, EObjectFlags newFlags);
+        public delegate csbool Del_HasAnyFlags(IntPtr instance, EObjectFlags flagsToCheck);
+        public delegate csbool Del_HasAllFlags(IntPtr instance, EObjectFlags flagsToCheck);
+        public delegate EObjectFlags Del_GetMaskedFlags(IntPtr instance, EObjectFlags mask);
+        public delegate void Del_Mark(IntPtr instance, EObjectMark marks);
+        public delegate void Del_UnMark(IntPtr instance, EObjectMark marks);
+        public delegate csbool Del_HasAnyMarks(IntPtr instance, EObjectMark marks);
+        public delegate csbool Del_HasAllMarks(IntPtr instance, EObjectMark marks);
+        public delegate csbool Del_IsPendingKill(IntPtr instance);
+        public delegate void Del_MarkPendingKill(IntPtr instance);
+        public delegate void Del_ClearPendingKill(IntPtr instance);
+        public delegate void Del_AddToRoot(IntPtr instance);
+        public delegate void Del_RemoveFromRoot(IntPtr instance);
+        public delegate csbool Del_IsRooted(IntPtr instance);
+        public delegate csbool Del_ThisThreadAtomicallyClearedRFUnreachable(IntPtr instance);
+        public delegate csbool Del_IsUnreachable(IntPtr instance);
+        public delegate csbool Del_IsPendingKillOrUnreachable(IntPtr instance);
+        public delegate csbool Del_IsNative(IntPtr instance);
+        public delegate void Del_SetInternalFlags(IntPtr instance, EInternalObjectFlags flagsToSet);
+        public delegate EInternalObjectFlags Del_GetInternalFlags(IntPtr instance);
+        public delegate csbool Del_HasAnyInternalFlags(IntPtr instance, EInternalObjectFlags flagsToCheck);
+        public delegate void Del_ClearInternalFlags(IntPtr instance);
+        public delegate csbool Del_AtomicallyClearInternalFlags(IntPtr instance, EInternalObjectFlags flagsToCheck);
+        public delegate void Del_GetFullName(IntPtr instance, IntPtr stopOuter, ref FScriptArray result);
+        public delegate void Del_GetPathName(IntPtr instance, IntPtr stopOuter, ref FScriptArray result);
+        public delegate csbool Del_CanBeClusterRoot(IntPtr instance);
+        public delegate csbool Del_CanBeInCluster(IntPtr instance);
+        public delegate void Del_CreateCluster(IntPtr instance);
+        public delegate void Del_OnClusterMarkedAsPendingKill(IntPtr instance);
+        public delegate void Del_AddToCluster(IntPtr instance, IntPtr clusterRootOrObjectFromCluster, csbool addAsMutableObject);
+        public delegate void Del_GetFullGroupName(IntPtr instance, csbool startWithOuter, ref FScriptArray result);
+        public delegate void Del_GetName(IntPtr instance, ref FScriptArray result);
+        public delegate void Del_GetNameOut(IntPtr instance, ref FScriptArray resultString);        
+        public delegate void Del_AppendName(IntPtr instance, ref FScriptArray resultString);
+        public delegate IntPtr Del_GetOutermost(IntPtr instance);
+        public delegate csbool Del_MarkPackageDirty(IntPtr instance);
+        public delegate csbool Del_IsTemplate(IntPtr instance, EObjectFlags templateTypes);
+        public delegate IntPtr Del_GetTypedOuter(IntPtr instance, IntPtr target);
+        public delegate csbool Del_IsIn(IntPtr instance, IntPtr someOuter);
+        public delegate csbool Del_IsInA(IntPtr instance, IntPtr someBaseClass);
+        public delegate csbool Del_RootPackageHasAnyFlags(IntPtr instance, EPackageFlags checkFlagMask);
+        public delegate csbool Del_IsA(IntPtr instance, IntPtr someBaseClass);
+        public delegate IntPtr Del_FindNearestCommonBaseClass(IntPtr instance, IntPtr testClass);
+        public delegate IntPtr Del_GetInterfaceAddress(IntPtr instance, IntPtr interfaceClass);
+        public delegate IntPtr Del_GetNativeInterfaceAddress(IntPtr instance, IntPtr interfaceClass);
+        public delegate csbool Del_IsDefaultSubobject(IntPtr instance);
+        public delegate IntPtr Del_GetLinker(IntPtr instance);
+        public delegate int Del_GetLinkerIndex(IntPtr instance);
+        public delegate int Del_GetLinkerUE4Version(IntPtr instance);
+        public delegate int Del_GetLinkerLicenseeUE4Version(IntPtr instance);
+        public delegate int Del_GetLinkerCustomVersion(IntPtr instance, ref Guid customVersionKey);
+
+        public static Del_SetFlags SetFlags;
+        public static Del_ClearFlags ClearFlags;
+        public static Del_HasAnyFlags HasAnyFlags;
+        public static Del_HasAllFlags HasAllFlags;
+        public static Del_GetMaskedFlags GetMaskedFlags;
+        public static Del_Mark Mark;
+        public static Del_UnMark UnMark;
+        public static Del_HasAnyMarks HasAnyMarks;
+        public static Del_HasAllMarks HasAllMarks;
+        public static Del_IsPendingKill IsPendingKill;
+        public static Del_MarkPendingKill MarkPendingKill;
+        public static Del_ClearPendingKill ClearPendingKill;
+        public static Del_AddToRoot AddToRoot;
+        public static Del_RemoveFromRoot RemoveFromRoot;
+        public static Del_IsRooted IsRooted;
+        public static Del_ThisThreadAtomicallyClearedRFUnreachable ThisThreadAtomicallyClearedRFUnreachable;
+        public static Del_IsUnreachable IsUnreachable;
+        public static Del_IsPendingKillOrUnreachable IsPendingKillOrUnreachable;
+        public static Del_IsNative IsNative;
+        public static Del_SetInternalFlags SetInternalFlags;
+        public static Del_GetInternalFlags GetInternalFlags;
+        public static Del_HasAnyInternalFlags HasAnyInternalFlags;
+        public static Del_ClearInternalFlags ClearInternalFlags;
+        public static Del_AtomicallyClearInternalFlags AtomicallyClearInternalFlags;
+        public static Del_GetFullName GetFullName;
+        public static Del_GetPathName GetPathName;
+        public static Del_CanBeClusterRoot CanBeClusterRoot;
+        public static Del_CanBeInCluster CanBeInCluster;
+        public static Del_CreateCluster CreateCluster;
+        public static Del_OnClusterMarkedAsPendingKill OnClusterMarkedAsPendingKill;
+        public static Del_AddToCluster AddToCluster;
+        public static Del_GetFullGroupName GetFullGroupName;
+        public static Del_GetName GetName;
+        public static Del_GetNameOut GetNameOut;
+        public static Del_AppendName AppendName;
+        public static Del_GetOutermost GetOutermost;
+        public static Del_MarkPackageDirty MarkPackageDirty;
+        public static Del_IsTemplate IsTemplate;
+        public static Del_GetTypedOuter GetTypedOuter;
+        public static Del_IsIn IsIn;
+        public static Del_IsInA IsInA;
+        public static Del_RootPackageHasAnyFlags RootPackageHasAnyFlags;
+        public static Del_IsA IsA;
+        public static Del_FindNearestCommonBaseClass FindNearestCommonBaseClass;
+        public static Del_GetInterfaceAddress GetInterfaceAddress;
+        public static Del_GetNativeInterfaceAddress GetNativeInterfaceAddress;
+        public static Del_IsDefaultSubobject IsDefaultSubobject;
+        public static Del_GetLinker GetLinker;
+        public static Del_GetLinkerIndex GetLinkerIndex;
+        public static Del_GetLinkerUE4Version GetLinkerUE4Version;
+        public static Del_GetLinkerLicenseeUE4Version GetLinkerLicenseeUE4Version;
+        public static Del_GetLinkerCustomVersion GetLinkerCustomVersion;
+    }
+}
