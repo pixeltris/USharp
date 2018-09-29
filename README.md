@@ -58,7 +58,7 @@ _This is a very rough guide. TODO: Improve once the code generator is fixed. (Al
 - You can call the C# project whatever. The output assembly name must be ProjectName-Managed and the output type should be Class Library (dll).
 - The output path of the C# project should point to the Managed/Binaries path as seen below.
 - Add UnrealEngine.Runtime.dll as a reference from the USharp unreal engine plugins folder.
-- **TODO: References to generated engine dlls / generated C++ game code wrappers for C# **
+- **TODO: References to generated engine dlls / generated C++ game code wrappers for C#**
 
 **Managed game project folder structure**
 ```
