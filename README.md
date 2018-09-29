@@ -20,6 +20,7 @@ _This project currently isn't usable for most use cases as the code generator is
 - There is currently too much marshaling on structs / collections (list, map, set). Marshaling needs to be redesigned to avoid copies of entire collections / structs on trivial calls between C# / native code. Additionally marshaling of delegates needs to be redesigned (various issues such as being referenced as a copy of the delegate).
 - There currently isn't a seperate editor/runtime module which may have a variety of issues (code generator output, differences in shipping / editor builds). USharp.uplugin "Type" would need to be manually changed to "Runtime" for a shipping build.
 - **The code generator is currently broken (so no access to AActor or anything that isn't inside the UnrealEngine.Runtime project)**
+- FText currently isn't supported (TODO)
 
 # Setup
 
@@ -70,6 +71,14 @@ _This is a very rough guide. TODO: Improve once the code generator is fixed. (Al
 |      +-- Binaries
 |      +-- ProjectName - Create a C# project in this folder
 ```
+
+# TODO
+
+- Add a build tool helper for automatically building the C++/C# projects
+- Fix the code generator
+- Add FText
+- Lots of work to do on improving marshaling
+- ???
 
 ---
 
