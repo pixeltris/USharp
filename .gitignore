@@ -5,6 +5,8 @@
 
 #USharp
 /USharp/Build
+/USharp/Binaries
+/USharp/Intermediate
 
 # User-specific files
 *.suo
