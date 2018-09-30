@@ -24,7 +24,7 @@ namespace UnrealEngine.Runtime
 
         public VisualStudioCodeManager()
         {
-            //AddVisualStudioVersion(15);// Visual Studio 2017
+            AddVisualStudioVersion(15);// Visual Studio 2017
             AddVisualStudioVersion(14);// Visual Studio 2015
             AddVisualStudioVersion(12);// Visual Studio 2013
         }
