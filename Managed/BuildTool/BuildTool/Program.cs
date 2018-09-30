@@ -9,6 +9,13 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
+// TODO:
+// - Set build path to outside of engine folder (%appdata%/USharp/) if building from an engine sub folder
+// - Temporarily modify the existing USharp .uplugin file extension to avoid the duplicate plugin error
+// - Modify the .uplugin for editor/shipping (until we seperate things into editor/runtime modules)
+// - Copy the entire folder of Binaries / Intermediate instead of individual files?
+// - Exception handling for various actions which could fail (file handles being held etc)
+
 namespace BuildTool
 {
     class Program
@@ -308,7 +315,7 @@ namespace BuildTool
             // If we are in the engine folder we shouldn't have to do anything as the content should be where it needs to be.
             // If we are outside of the engine folder we need to copy the files over.
             string currentFolderEnginePath = GetEnginePathFromCurrentFolder();
-            if (!string.IsNullOrEmpty(currentFolderEnginePath) && Directory.Exists(settings.EnginePath))
+            if (string.IsNullOrEmpty(currentFolderEnginePath) && Directory.Exists(settings.EnginePath))
             {
                 string usharpPluginsDir = GetUSharpPluginDirectory(settings.EnginePath);
                 if (!Directory.Exists(usharpPluginsDir))
@@ -392,7 +399,7 @@ namespace BuildTool
             // If we are in the engine folder we shouldn't have to do anything as the binaries should be in the correct location.
             // If we are outside of the engine folder we need to copy the binaries over to the engine plugins folder.
             string currentFolderEnginePath = GetEnginePathFromCurrentFolder();
-            if (!string.IsNullOrEmpty(currentFolderEnginePath) && Directory.Exists(settings.EnginePath))
+            if (string.IsNullOrEmpty(currentFolderEnginePath) && Directory.Exists(settings.EnginePath))
             {
                 string relativeBinariesDir = Path.Combine(GetCurrentDirectory(), "../../USharp/Binaries/Managed");
                 if (Directory.Exists(relativeBinariesDir))
@@ -554,28 +561,59 @@ namespace BuildTool
                 return;
             }
 
-            using (Process process = new Process())
-            {
-                process.StartInfo = new ProcessStartInfo()
-                {
-                    FileName = batchPath,
-                    UseShellExecute = false,
+            // If we are in the engine folder we have to have a build target of outside of the /Engine/ folder (limitation of UBT)
+            string currentFolderEnginePath = GetEnginePathFromCurrentFolder();
+            bool isInsideEngineFolder = !string.IsNullOrEmpty(currentFolderEnginePath);
 
-                    // The -Platform arg is ignored? It instead compiles based on whitelisted/blacklisted? (or for all platforms if no list)
-                    Arguments = string.Format("BuildPlugin -Plugin=\"{0}\" -Package=\"{1}\" -Rocket -Platform=Win64", pluginPath, outputDir)
-                };
-                process.Start();
-                process.WaitForExit();
+            // In 4.20 if it detects that the plugin already exists our compilation will fail (even if we are compiling in-place!)
+            // Therefore we need to rename the existing .uplugin file to have a different extension so that UBT doesn't complain.
+            // NOTE: For reference the build error is "Found 'USharp' plugin in two locations" ... "Plugin names must be unique."
+            string existingPluginFile = Path.Combine(projectBaseDirEngine, pluginName + ".uplugin");
+            string tempExistingPluginFile = null;
+            if (File.Exists(existingPluginFile))
+            {
+                tempExistingPluginFile = Path.ChangeExtension(existingPluginFile, ".uplugin_temp");
+                File.Move(existingPluginFile, tempExistingPluginFile);
             }
 
-            if (!skipCopy)
+            if (isInsideEngineFolder)
             {
-                // Copy files to the engine plugins dir (may be different to plugin dir)
-                CopyPluginFile(pluginName, projectBaseDirEngine, outputDir, "dll", targetPrefix);
-                CopyPluginFile(pluginName, projectBaseDirEngine, outputDir, "pdb", targetPrefix);
-                CopyPluginFile("UE4-" + pluginName, projectBaseDirEngine, outputDir, "lib", targetPrefix, false);
-                CopyPluginFile("UE4-" + pluginName + "-Win64-Shipping", projectBaseDirEngine, outputDir, "lib", targetPrefix, false);
-                CopyPluginFile(targetPrefix, projectBaseDirEngine, outputDir, "modules", targetPrefix, false);
+                // Since we are compiling from within the engine plugin folder make sure to use temp changed .plugin_temp file
+                pluginPath = tempExistingPluginFile;
+            }
+
+            try
+            {
+                using (Process process = new Process())
+                {
+                    process.StartInfo = new ProcessStartInfo()
+                    {
+                        FileName = batchPath,
+                        UseShellExecute = false,
+
+                        // The -Platform arg is ignored? It instead compiles based on whitelisted/blacklisted? (or for all platforms if no list)
+                        Arguments = string.Format("BuildPlugin -Plugin=\"{0}\" -Package=\"{1}\" -Rocket -Platform=Win64", pluginPath, outputDir)
+                    };
+                    process.Start();
+                    process.WaitForExit();
+                }
+
+                if (!skipCopy)
+                {
+                    // Copy files to the engine plugins dir (may be different to plugin dir)
+                    CopyPluginFile(pluginName, projectBaseDirEngine, outputDir, "dll", targetPrefix);
+                    CopyPluginFile(pluginName, projectBaseDirEngine, outputDir, "pdb", targetPrefix);
+                    CopyPluginFile("UE4-" + pluginName, projectBaseDirEngine, outputDir, "lib", targetPrefix, false);
+                    CopyPluginFile("UE4-" + pluginName + "-Win64-Shipping", projectBaseDirEngine, outputDir, "lib", targetPrefix, false);
+                    CopyPluginFile(targetPrefix, projectBaseDirEngine, outputDir, "modules", targetPrefix, false);
+                }
+            }
+            finally
+            {
+                if (!string.IsNullOrEmpty(tempExistingPluginFile))
+                {
+                    File.Move(tempExistingPluginFile, existingPluginFile);
+                }
             }
         }
 
