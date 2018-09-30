@@ -1,3 +1,5 @@
+#include "SharpClass.h"
+
 // typedef void (FNativeFuncPtr)(UObject* Context, FFrame* TheStack, RESULT_DECL);
 void FallbackFunctionInvoker(UObject* Context, FFrame& Stack, RESULT_DECL)
 {

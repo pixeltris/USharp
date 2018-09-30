@@ -74,6 +74,12 @@ namespace UnrealEngine.Runtime
         {
             get
             {
+                // if STATS
+                if (Native_TStatId.GetStatDescriptionANSI == null)
+                {
+                    return null;
+                }
+
                 if (statIdPtr == IntPtr.Zero)
                 {
                     return null;
@@ -96,6 +102,12 @@ namespace UnrealEngine.Runtime
         {
             get
             {
+                // if STATS
+                if (Native_TStatId.GetStatDescriptionWIDE == null)
+                {
+                    return null;
+                }
+
                 if (statIdPtr == IntPtr.Zero)
                 {
                     return null;

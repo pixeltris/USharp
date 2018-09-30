@@ -125,7 +125,13 @@ CSharpLoader* CSharpLoader::GetInstance()
 void CSharpLoader::SetupPaths()
 {
 	// This gives up "/Binaries/XXXX/" where XXXX is the platform (Win32, Win64, Android, etc)
+#if !IS_MONOLITHIC
 	FString PluginsBaseDir = FPaths::GetPath(FModuleManager::Get().GetModuleFilename("USharp"));
+#else
+	// In monolithic builds there are no plugins (and such FModuleManager::GetModuleFilename doesn't exist)
+	// FPlatformProcess::BaseDir() should be the binaries are?
+	FString PluginsBaseDir = FPlatformProcess::BaseDir();
+#endif
 	// Move this up to "/Binaries/"
 	PluginsBaseDir = FPaths::Combine(*PluginsBaseDir, TEXT("../"));
 

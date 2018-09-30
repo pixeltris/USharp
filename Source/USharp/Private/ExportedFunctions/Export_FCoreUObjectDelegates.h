@@ -1,3 +1,4 @@
+#if WITH_EDITOR
 CSEXPORT void CSCONV Export_FCoreUObjectDelegates_Reg_OnObjectPropertyChanged(void(*handler)(UObject*, struct FPropertyChangedEvent&), FDelegateHandle* handle, csbool enable)
 {
 	REGISTER_DELEGATE(FCoreUObjectDelegates::OnObjectPropertyChanged);
@@ -8,7 +9,6 @@ CSEXPORT void CSCONV Export_FCoreUObjectDelegates_Reg_OnPreObjectPropertyChanged
 	REGISTER_DELEGATE(FCoreUObjectDelegates::OnPreObjectPropertyChanged);
 }
 
-#if WITH_EDITOR
 CSEXPORT void CSCONV Export_FCoreUObjectDelegates_Reg_OnObjectModified(void(*handler)(UObject*), FDelegateHandle* handle, csbool enable)
 {
 	REGISTER_DELEGATE(FCoreUObjectDelegates::OnObjectModified);
@@ -52,9 +52,9 @@ CSEXPORT void CSCONV Export_FCoreUObjectDelegates_Reg_PostGarbageCollect(void(*h
 
 CSEXPORT void CSCONV Export_FCoreUObjectDelegates(RegisterFunc registerFunc)
 {
+#if WITH_EDITOR
 	REGISTER_FUNC(Export_FCoreUObjectDelegates_Reg_OnObjectPropertyChanged);
 	REGISTER_FUNC(Export_FCoreUObjectDelegates_Reg_OnPreObjectPropertyChanged);
-#if WITH_EDITOR
 	REGISTER_FUNC(Export_FCoreUObjectDelegates_Reg_OnObjectModified);
 	REGISTER_FUNC(Export_FCoreUObjectDelegates_Reg_OnAssetLoaded);
 	REGISTER_FUNC(Export_FCoreUObjectDelegates_Reg_OnObjectSaved);

@@ -1,3 +1,5 @@
+#if WITH_EDITOR
+
 #include "SharpHotReloadClassReinstancer.h"
 #include "Serialization/MemoryWriter.h"
 #include "UObject/UObjectHash.h"
@@ -744,4 +746,6 @@ void FSharpHotReloadClassReinstancer::BlueprintWasRecompiled(UBlueprint* BP, boo
 	FBlueprintCompileReinstancer::BlueprintWasRecompiled(BP, bBytecodeOnly);
 }
 
-#endif
+#endif // WITH_ENGINE
+
+#endif // WITH_EDITOR

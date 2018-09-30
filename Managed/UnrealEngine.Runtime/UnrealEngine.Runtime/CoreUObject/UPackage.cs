@@ -31,7 +31,16 @@ namespace UnrealEngine.Runtime
         /// </summary>
         public UMetaData MetaData
         {
-            get { return GCHelper.Find<UMetaData>(Native_UPackage.GetMetaData(Address)); }
+            get
+            {
+                // WITH_EDITORONLY_DATA
+                if (Native_UPackage.GetMetaData == null)
+                {
+                    return null;
+                }
+
+                return GCHelper.Find<UMetaData>(Native_UPackage.GetMetaData(Address));
+            }
         }
 
         /// <summary>
@@ -49,6 +58,12 @@ namespace UnrealEngine.Runtime
         {
             get
             {
+                // WITH_EDITORONLY_DATA
+                if (Native_UPackage.GetFolderName == null)
+                {
+                    return default(FName);
+                }
+
                 FName result;
                 Native_UPackage.GetFolderName(Address, out result);
                 return result;

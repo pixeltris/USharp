@@ -8,20 +8,24 @@ CSEXPORT void CSCONV Export_UPackage_Set_FileName(UPackage* instance, const FNam
 	instance->FileName = value;
 }
 
+#if WITH_EDITORONLY_DATA
 CSEXPORT class UMetaData* CSCONV Export_UPackage_Get_MetaData(UPackage* instance)
 {
 	return instance->MetaData;
 }
+#endif
 
 CSEXPORT float CSCONV Export_UPackage_GetLoadTime(UPackage* instance)
 {
 	return instance->GetLoadTime();
 }
 
+#if WITH_EDITORONLY_DATA
 CSEXPORT void CSCONV Export_UPackage_GetFolderName(UPackage* instance, FName& result)
 {
 	result = instance->GetFolderName();
 }
+#endif
 
 CSEXPORT void CSCONV Export_UPackage_SetDirtyFlag(UPackage* instance, csbool bIsDirty)
 {
@@ -112,9 +116,13 @@ CSEXPORT void CSCONV Export_UPackage(RegisterFunc registerFunc)
 {
 	REGISTER_FUNC(Export_UPackage_Get_FileName);
 	REGISTER_FUNC(Export_UPackage_Set_FileName);
+#if WITH_EDITORONLY_DATA
 	REGISTER_FUNC(Export_UPackage_Get_MetaData);
+#endif
 	REGISTER_FUNC(Export_UPackage_GetLoadTime);
+#if WITH_EDITORONLY_DATA
 	REGISTER_FUNC(Export_UPackage_GetFolderName);
+#endif
 	REGISTER_FUNC(Export_UPackage_SetDirtyFlag);
 	REGISTER_FUNC(Export_UPackage_IsDirty);
 	REGISTER_FUNC(Export_UPackage_MarkAsFullyLoaded);

@@ -105,20 +105,24 @@ CSEXPORT void CSCONV Export_FModuleManager_GetGameBinariesDirectory(FModuleManag
 	result = instance->GetGameBinariesDirectory();
 }
 
+#if !IS_MONOLITHIC
 CSEXPORT csbool CSCONV Export_FModuleManager_IsModuleUpToDate(FModuleManager* instance, const FName& InModuleName)
 {
 	return instance->IsModuleUpToDate(InModuleName);
 }
+#endif
 
 CSEXPORT csbool CSCONV Export_FModuleManager_DoesLoadedModuleHaveUObjects(FModuleManager* instance, const FName& ModuleName)
 {
 	return instance->DoesLoadedModuleHaveUObjects(ModuleName);
 }
 
+#if !IS_MONOLITHIC
 CSEXPORT void CSCONV Export_FModuleManager_GetModuleFilename(FModuleManager* instance, const FName& ModuleName, FString& result)
 {
 	result = instance->GetModuleFilename(ModuleName);
 }
+#endif
 
 CSEXPORT void CSCONV Export_FModuleManager(RegisterFunc registerFunc)
 {
@@ -140,7 +144,11 @@ CSEXPORT void CSCONV Export_FModuleManager(RegisterFunc registerFunc)
 	REGISTER_FUNC(Export_FModuleManager_AddBinariesDirectory);
 	REGISTER_FUNC(Export_FModuleManager_SetGameBinariesDirectory);
 	REGISTER_FUNC(Export_FModuleManager_GetGameBinariesDirectory);
+#if !IS_MONOLITHIC
 	REGISTER_FUNC(Export_FModuleManager_IsModuleUpToDate);
+#endif
 	REGISTER_FUNC(Export_FModuleManager_DoesLoadedModuleHaveUObjects);
+#if !IS_MONOLITHIC
 	REGISTER_FUNC(Export_FModuleManager_GetModuleFilename);
+#endif
 }
