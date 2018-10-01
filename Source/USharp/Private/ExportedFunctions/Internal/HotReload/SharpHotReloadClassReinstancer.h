@@ -1,5 +1,7 @@
 #pragma once
 
+#if WITH_EDITOR
+
 #include "CoreMinimal.h"
 #if WITH_ENGINE
 #include "Kismet2/KismetReinstanceUtilities.h"
@@ -140,3 +142,5 @@ protected:
 };
 
 #endif // WITH_ENGINE
+
+#endif // WITH_EDITOR

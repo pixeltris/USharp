@@ -230,6 +230,13 @@ namespace UnrealEngine.Runtime
         /// <returns>true if module exists and is up to date, false otherwise.</returns>
         public bool IsModuleUpToDate(FName inModuleName)
         {
+            // !IS_MONOLITHIC
+            if (Native_FModuleManager.IsModuleUpToDate == null)
+            {
+                // Default to true or false?
+                return false;
+            }
+
             return Native_FModuleManager.IsModuleUpToDate(Address, ref inModuleName);
         }
 
@@ -249,6 +256,12 @@ namespace UnrealEngine.Runtime
         /// </summary>
         public string GetModuleFilename(FName moduleName)
         {
+            // !IS_MONOLITHIC
+            if (Native_FModuleManager.IsModuleUpToDate == null)
+            {
+                return null;
+            }
+
             using (FStringUnsafe resultUnsafe = new FStringUnsafe())
             {
                 Native_FModuleManager.GetModuleFilename(Address, ref moduleName, ref resultUnsafe.Array);

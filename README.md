@@ -78,6 +78,7 @@ _This is a very rough guide. TODO: Improve once the code generator is fixed. (Al
 - Fix the code generator
 - Add FText
 - Lots of work to do on improving marshaling
+- Create seperate editor / runtime modules (this will simplify creating shipping builds)
 - ???
 
 ---
