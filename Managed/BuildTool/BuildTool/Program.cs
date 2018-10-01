@@ -43,7 +43,7 @@ namespace BuildTool
             }
             if (_updatePath || (string.IsNullOrEmpty(settings.EnginePath) || !Directory.Exists(settings.EnginePath)))
             {
-                UpdateEnginePath();
+                UpdateEnginePath(_logToConsole : false);
             }
 
             Console.WriteLine("Engine path: '{0}' \n", settings.EnginePath);
@@ -260,7 +260,7 @@ namespace BuildTool
             return null;
         }
 
-        private static void UpdateEnginePath(string enginePath = null)
+        private static void UpdateEnginePath(string enginePath = null, bool _logToConsole = true)
         {
             if (string.IsNullOrEmpty(enginePath))
             {
@@ -300,6 +300,10 @@ namespace BuildTool
             {
                 settings.EnginePath = enginePath;
                 settings.Save();
+                if (_logToConsole)
+                {
+                    Console.WriteLine("New path: '{0}'", enginePath);
+                }
             }
         }
 
