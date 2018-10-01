@@ -212,7 +212,12 @@ namespace BuildTool
             }
             foreach (FileInfo file in source.GetFiles())
             {
-                file.CopyTo(Path.Combine(target.FullName, file.Name), overwrite);
+                //Fixes an Exception that happens when a file already
+                //exists and you don't allow the copyto method to overwrite a file
+                if (overwrite || !File.Exists(Path.Combine(target.FullName, file.Name)))
+                {
+                    file.CopyTo(Path.Combine(target.FullName, file.Name), overwrite);
+                }
             }
         }
 
@@ -327,15 +332,24 @@ namespace BuildTool
 
                 const string resourcesFolder = "Resources";
                 const string pluginFile = "USharp.uplugin";
-                const string sourcesDir = "Sources/USharp";
+                const string sourcesDir = "Source/USharp";
                 const string buildFile = "USharp.Build.cs";
 
                 // Copy the Resources folder
-                CopyFilesRecursive(new DirectoryInfo(Path.Combine(relativeUSharpDir, resourcesFolder)), 
-                    new DirectoryInfo(Path.Combine(usharpPluginsDir, resourcesFolder)), forceUpdate);
+                CopyFilesRecursive(new DirectoryInfo(Path.Combine(usharpPluginsDir, resourcesFolder)),
+                    new DirectoryInfo(Path.Combine(relativeUSharpDir, resourcesFolder)), forceUpdate);
 
-                // Copy the USharp.plugin file
-                File.Copy(Path.Combine(relativeUSharpDir, pluginFile), Path.Combine(usharpPluginsDir, pluginFile), forceUpdate);
+                //Fixes an Exception that happens when a file already
+                //exists and you don't allow the copyto method to overwrite a file
+                if (forceUpdate || !File.Exists(Path.Combine(relativeUSharpDir, pluginFile)))
+                {
+                    if (!Directory.Exists(Path.Combine(relativeUSharpDir)))
+                    {
+                        Directory.CreateDirectory(Path.Combine(relativeUSharpDir));
+                    }
+                    // Copy the USharp.plugin file
+                    File.Copy(Path.Combine(usharpPluginsDir, pluginFile), Path.Combine(relativeUSharpDir, pluginFile), forceUpdate);
+                }
 
                 string targetSourcesDir = Path.Combine(usharpPluginsDir, sourcesDir);
                 if (!Directory.Exists(targetSourcesDir))
@@ -343,8 +357,17 @@ namespace BuildTool
                     Directory.CreateDirectory(targetSourcesDir);
                 }
 
-                // Copy the USharp.Build.cs file
-                File.Copy(Path.Combine(relativeUSharpDir, sourcesDir, buildFile), Path.Combine(targetSourcesDir, buildFile), forceUpdate);
+                //Fixes an Exception that happens when a file already
+                //exists and you don't allow the copyto method to overwrite a file
+                if (forceUpdate || !File.Exists(Path.Combine(relativeUSharpDir, sourcesDir, buildFile)))
+                {
+                    if(!Directory.Exists(Path.Combine(relativeUSharpDir, sourcesDir)))
+                    {
+                        Directory.CreateDirectory(Path.Combine(relativeUSharpDir, sourcesDir));
+                    }
+                    // Copy the USharp.Build.cs file
+                    File.Copy(Path.Combine(targetSourcesDir, buildFile), Path.Combine(relativeUSharpDir, sourcesDir, buildFile), forceUpdate);
+                }
             }
         }
 
