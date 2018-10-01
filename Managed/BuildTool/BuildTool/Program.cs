@@ -35,19 +35,28 @@ namespace BuildTool
                 settings.EnginePath = currentFolderEnginePath;
             }
 
-            if (string.IsNullOrEmpty(settings.EnginePath) || Directory.Exists(settings.EnginePath))
+            //Determine If We Need to Update The Engine Path
+            bool _updatePath = false;
+            foreach (var _arg in args)
+            {
+                if (_arg == "updatepath") _updatePath = true;
+            }
+            if (_updatePath || (string.IsNullOrEmpty(settings.EnginePath) || !Directory.Exists(settings.EnginePath)))
             {
                 UpdateEnginePath();
-
-                // This is likely a first run, print the help
-                if (!string.IsNullOrEmpty(settings.EnginePath) && Directory.Exists(settings.EnginePath))
-                {
-                    Console.WriteLine();
-                    PrintHelp();
-                    Console.WriteLine();
-                }
             }
-            
+
+            Console.WriteLine("Engine path: '{0}' \n", settings.EnginePath);
+            Console.WriteLine("Run BuildTool With Arg 'updatepath' to Reinitialize Engine Path." + "\n");
+
+            // print the help
+            if (!string.IsNullOrEmpty(settings.EnginePath) && Directory.Exists(settings.EnginePath))
+            {
+                Console.WriteLine();
+                PrintHelp();
+                Console.WriteLine();
+            }
+
             if (!string.IsNullOrEmpty(settings.EnginePath))
             {                
                 Console.WriteLine("Targeting engine version '" + new DirectoryInfo(settings.EnginePath).Name + "'");
@@ -291,7 +300,6 @@ namespace BuildTool
             {
                 settings.EnginePath = enginePath;
                 settings.Save();
-                Console.WriteLine("New path: '{0}'", enginePath);
             }
         }
 
@@ -691,11 +699,16 @@ namespace BuildTool
 
         public static Settings Load()
         {
-            return new Settings();
+            return new Settings
+            {
+                EnginePath = Properties.Settings.Default.EnginePath
+            };
         }
 
         public void Save()
         {
+            Properties.Settings.Default.EnginePath = EnginePath;
+            Properties.Settings.Default.Save();
         }
     }
 }
