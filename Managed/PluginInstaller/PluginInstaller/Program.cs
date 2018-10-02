@@ -41,16 +41,12 @@ namespace PluginInstaller
             if (string.IsNullOrEmpty(settings.EnginePath) || !Directory.Exists(settings.EnginePath))
             {
                 UpdateEnginePath();
-
-                // This is likely a first run, print the help
-                if (!string.IsNullOrEmpty(settings.EnginePath) && Directory.Exists(settings.EnginePath))
-                {
-                    Console.WriteLine();
-                    PrintHelp();
-                    Console.WriteLine();
-                }
+                Console.WriteLine();
             }
             
+            PrintHelp();
+            Console.WriteLine();
+
             if (!string.IsNullOrEmpty(settings.EnginePath))
             {                
                 Console.WriteLine("Targeting engine version '" + new DirectoryInfo(settings.EnginePath).Name + "'");
@@ -147,7 +143,7 @@ namespace PluginInstaller
             Console.WriteLine("- fullbuild   builds C# and C++ projects and updates content files");
             Console.WriteLine("- buildcs     builds C# projects (Loader, AssemblyRewriter, Runtime)");
             Console.WriteLine("- buildcpp    builds C++ projects");
-            Console.WriteLine("- update      copies the local content to the USharp engine plugin folder");
+            Console.WriteLine("- update      copies content files to the USharp engine plugin folder");
             Console.WriteLine("- engine      set the target engine path for current engine version (e.g. '{0}')", ExampleEnginePath);
         }
 
@@ -382,7 +378,7 @@ namespace PluginInstaller
 
         private static void CompileCs(string[] args)
         {
-            string slnDir = Path.Combine(GetCurrentDirectory(), "../../../Managed/UnrealEngine.Runtime/");
+            string slnDir = Path.Combine(GetCurrentDirectory(), "../../../Managed/UnrealEngine.Runtime");
             if (!Directory.Exists(slnDir))
             {
                 Console.WriteLine("Failed to find the UnrealEngine.Runtime directory");
@@ -420,7 +416,7 @@ namespace PluginInstaller
                 if (!BuildCs(slnPath, projPath, !shippingBuild, x86Build, customDefines))
                 {
                     Console.WriteLine("Failed to build " + Path.GetFileName(projPath));
-                    break;
+                    return;
                 }
                 else
                 {
@@ -433,7 +429,7 @@ namespace PluginInstaller
             string currentFolderEnginePath = GetEnginePathFromCurrentFolder();
             if (string.IsNullOrEmpty(currentFolderEnginePath) && Directory.Exists(settings.EnginePath))
             {
-                string relativeBinariesDir = Path.Combine(GetCurrentDirectory(), "../../USharp/Binaries/Managed");
+                string relativeBinariesDir = Path.Combine(GetCurrentDirectory(), "../");
                 if (Directory.Exists(relativeBinariesDir))
                 {                    
                     string usharpBinariesDir = Path.Combine(GetUSharpPluginDirectory(settings.EnginePath), "Binaries/Managed");
