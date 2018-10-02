@@ -589,7 +589,7 @@ namespace UnrealEngine.Runtime
             // Add the native type info initializer to get the offsets
             builder.AppendLine("static void " + Settings.VarNames.LoadNativeType + "()");
             builder.OpenBrace();
-            builder.AppendLine(functionName + Settings.VarNames.FunctionAddress + " = " + Names.NativeReflectionCached_GetFunction +
+            builder.AppendLine(functionName + Settings.VarNames.FunctionAddress + " = " + Names.NativeReflection_GetFunction +
                "(\"" + function.GetPathName() + "\");");
             builder.AppendLine(functionName + Settings.VarNames.ParamsSize + " = " + Names.NativeReflection_GetFunctionParamsSize +
                 "(" + functionName + Settings.VarNames.FunctionAddress + ");");
@@ -711,10 +711,7 @@ namespace UnrealEngine.Runtime
             bool perInstanceFunctionAddress, List<string> namespaces)
         {
             string functionName = GetFunctionName(function);
-            UProperty blueprintReturnProperty = function.GetBlueprintReturnProperty();
-            
-            string functionAddressName = functionName + (perInstanceFunctionAddress ? Settings.VarNames.InstanceFunctionAddress :
-                Settings.VarNames.FunctionAddress);
+            UProperty blueprintReturnProperty = function.GetBlueprintReturnProperty();           
 
             bool isDelegate = function.HasAnyFunctionFlags(EFunctionFlags.Delegate | EFunctionFlags.MulticastDelegate);
             bool isStatic = function.HasAnyFunctionFlags(EFunctionFlags.Static);
@@ -730,6 +727,9 @@ namespace UnrealEngine.Runtime
             {
                 functionName += "_setter";
             }
+
+            string functionAddressName = functionName + (perInstanceFunctionAddress ? Settings.VarNames.InstanceFunctionAddress :
+                Settings.VarNames.FunctionAddress);
 
             Dictionary<UProperty, string> paramNames = GetParamNames(function);
             if (isSetter)

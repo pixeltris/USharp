@@ -227,7 +227,14 @@ namespace PluginInstaller
         {
             if ((overwrite || !File.Exists(destFileName)) && File.Exists(sourceFileName))
             {
-                File.Copy(sourceFileName, destFileName, overwrite);
+                try
+                {
+                    File.Copy(sourceFileName, destFileName, overwrite);
+                }
+                catch
+                {
+                    Console.WriteLine("Failed to copy to '{0}'", destFileName);
+                }
             }
         }
 

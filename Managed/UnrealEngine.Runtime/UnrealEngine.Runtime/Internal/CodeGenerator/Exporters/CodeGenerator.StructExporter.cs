@@ -7,10 +7,23 @@ namespace UnrealEngine.Runtime
 {
     public partial class CodeGenerator
     {
+        private static HashSet<string> projectDefinedClasses = new HashSet<string>()
+        {
+            "/Script/CoreUObject.Object",
+            "/Script/CoreUObject.Interface",
+            "/Script/Engine.TimerHandle"
+        };
+
         private bool CanExportStruct(UStruct unrealStruct)
         {
             // Ignore UProperty all classes
             if (unrealStruct.IsChildOf<UProperty>())
+            {
+                return false;
+            }
+
+            // Skip classes which are already defined in this project
+            if (projectDefinedClasses.Contains(unrealStruct.GetPathName()))
             {
                 return false;
             }
@@ -532,13 +545,13 @@ namespace UnrealEngine.Runtime
                     builder.CloseBrace();
                     builder.AppendLine();
 
-                    builder.AppendLine("public static " + typeName + " FromNative(IntPtr nativeBuffer, int arrayIndex, IntPtr prop, UObject owner)");
+                    builder.AppendLine("public static " + typeName + " FromNative(IntPtr nativeBuffer, int arrayIndex, IntPtr prop)");
                     builder.OpenBrace();
                     builder.AppendLine("return new " + typeName + "(nativeBuffer + (arrayIndex * " + typeName + Settings.VarNames.StructSize + "));");
                     builder.CloseBrace();
                     builder.AppendLine();
 
-                    builder.AppendLine("public static void ToNative(IntPtr nativeBuffer, int arrayIndex, IntPtr prop, UObject owner, " + typeName + " value)");
+                    builder.AppendLine("public static void ToNative(IntPtr nativeBuffer, int arrayIndex, IntPtr prop, " + typeName + " value)");
                     builder.OpenBrace();
                     builder.AppendLine("value.ToNative(nativeBuffer + (arrayIndex * " + typeName + Settings.VarNames.StructSize + "));");
                     builder.CloseBrace();

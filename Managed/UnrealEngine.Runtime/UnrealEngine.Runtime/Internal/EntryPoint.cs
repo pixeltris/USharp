@@ -22,6 +22,10 @@ namespace UnrealEngine
         /// </summary>
         public static string[] HotReloadAssemblyPaths;
         
+        /// <summary>
+        /// If true the preloader is currently running.
+        /// Preloading allows for hotreload to queue up a second instance and complete initialization before the next hotreload.
+        /// </summary>
         public static bool Preloading { get; private set; }
         public static bool Preloaded { get; private set; }
 

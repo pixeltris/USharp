@@ -166,7 +166,7 @@ namespace UnrealEngine.Runtime
                 collapsedMember.Getter, collapsedMember.Setter);
 
             AppendDocComment(builder, fieldForDocumentation, isBlueprintType);
-            AppendAttribute(builder, field, module);
+            AppendAttribute(builder, field, module, true);
             builder.AppendLine(modifiers + GetTypeName(collapsedMember.Property, namespaces) + " " + propertyName);
             builder.OpenBrace();
 
