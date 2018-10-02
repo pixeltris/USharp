@@ -557,6 +557,7 @@ namespace PluginInstaller
             bool shippingBuild = keyValues.ContainsKey("shipping");
             bool x86Build = keyValues.ContainsKey("x86");
             bool skipCopy = keyValues.ContainsKey("nocopy");
+            bool skipCleanup = keyValues.ContainsKey("noclean");
 
             string pluginName = "USharp";
             //string targetPrefix = "UE4Editor";
@@ -679,15 +680,18 @@ namespace PluginInstaller
                 {
                 }
 
-                try
+                if (!skipCleanup)
                 {
-                    if (!Directory.Exists(outputDir))
+                    try
                     {
-                        Directory.Delete(outputDir);
+                        if (!Directory.Exists(outputDir))
+                        {
+                            Directory.Delete(outputDir);
+                        }
                     }
-                }
-                catch
-                {
+                    catch
+                    {
+                    }
                 }
             }
         }
