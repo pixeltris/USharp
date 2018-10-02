@@ -8,15 +8,17 @@ using System.Reflection;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Xml;
+using System.Xml.Serialization;
 
 // TODO:
-// - Set build path to outside of engine folder (%appdata%/USharp/) if building from an engine sub folder
-// - Temporarily modify the existing USharp .uplugin file extension to avoid the duplicate plugin error
-// - Modify the .uplugin for editor/shipping (until we seperate things into editor/runtime modules)
-// - Copy the entire folder of Binaries / Intermediate instead of individual files?
-// - Exception handling for various actions which could fail (file handles being held etc)
+// [X] Set build path to outside of engine folder (%appdata%/USharp/) if building from an engine sub folder
+// [X] Temporarily modify the existing USharp .uplugin file extension to avoid the duplicate plugin error
+// [X] Copy the entire folder of Binaries / Intermediate instead of individual files?
+// [ ] Modify the .uplugin for editor/shipping (until we seperate things into editor/runtime modules)
+// [ ] Exception handling for various actions which could fail (file handles being held etc)
 
-namespace BuildTool
+namespace PluginInstaller
 {
     class Program
     {
@@ -33,9 +35,10 @@ namespace BuildTool
             if (!string.IsNullOrEmpty(currentFolderEnginePath))
             {
                 settings.EnginePath = currentFolderEnginePath;
+                settings.Save();
             }
 
-            if (string.IsNullOrEmpty(settings.EnginePath) || Directory.Exists(settings.EnginePath))
+            if (string.IsNullOrEmpty(settings.EnginePath) || !Directory.Exists(settings.EnginePath))
             {
                 UpdateEnginePath();
 
@@ -140,9 +143,11 @@ namespace BuildTool
         private static void PrintHelp()
         {
             Console.WriteLine("Available commands:");            
-            Console.WriteLine("- build       builds both C# and C++ parts of USharp");
-            Console.WriteLine("- buildcs     builds the C# part of USharp (Loader, AssemblyRewriter, Runtime)");
-            Console.WriteLine("- buildcpp    builds the C++ part of USharp");
+            Console.WriteLine("- build       builds C# and C++ projects");
+            Console.WriteLine("- fullbuild   builds C# and C++ projects and updates content files");
+            Console.WriteLine("- buildcs     builds C# projects (Loader, AssemblyRewriter, Runtime)");
+            Console.WriteLine("- buildcpp    builds C++ projects");
+            Console.WriteLine("- update      copies the local content to the USharp engine plugin folder");
             Console.WriteLine("- engine      set the target engine path for current engine version (e.g. '{0}')", ExampleEnginePath);
         }
 
@@ -206,13 +211,26 @@ namespace BuildTool
 
         private static void CopyFilesRecursive(DirectoryInfo source, DirectoryInfo target, bool overwrite)
         {
+            if (!target.Exists)
+            {
+                target.Create();
+            }
+
             foreach (DirectoryInfo dir in source.GetDirectories())
             {
-                CopyFilesRecursive(source, target.CreateSubdirectory(dir.Name), overwrite);
+                CopyFilesRecursive(dir, target.CreateSubdirectory(dir.Name), overwrite);
             }
             foreach (FileInfo file in source.GetFiles())
             {
-                file.CopyTo(Path.Combine(target.FullName, file.Name), overwrite);
+                CopyFile(file.FullName, Path.Combine(target.FullName, file.Name), overwrite);
+            }
+        }
+
+        private static void CopyFile(string sourceFileName, string destFileName, bool overwrite)
+        {
+            if ((overwrite || !File.Exists(destFileName)) && File.Exists(sourceFileName))
+            {
+                File.Copy(sourceFileName, destFileName, overwrite);
             }
         }
 
@@ -323,28 +341,42 @@ namespace BuildTool
                     Directory.CreateDirectory(usharpPluginsDir);
                 }
 
-                string relativeUSharpDir = Path.Combine(GetCurrentDirectory(), "../../USharp");
+                string relativeUSharpDir = Path.Combine(GetCurrentDirectory(), "../../../");
 
                 const string resourcesFolder = "Resources";
                 const string pluginFile = "USharp.uplugin";
-                const string sourcesDir = "Sources/USharp";
-                const string buildFile = "USharp.Build.cs";
+                const string sourceDir = "Source";
+                string[] sources = { "USharp", "USharpEditor" };
+                string buildFileExtension = ".Build.cs";
 
                 // Copy the Resources folder
                 CopyFilesRecursive(new DirectoryInfo(Path.Combine(relativeUSharpDir, resourcesFolder)), 
                     new DirectoryInfo(Path.Combine(usharpPluginsDir, resourcesFolder)), forceUpdate);
 
                 // Copy the USharp.plugin file
-                File.Copy(Path.Combine(relativeUSharpDir, pluginFile), Path.Combine(usharpPluginsDir, pluginFile), forceUpdate);
+                CopyFile(Path.Combine(relativeUSharpDir, pluginFile), Path.Combine(usharpPluginsDir, pluginFile), forceUpdate);
 
-                string targetSourcesDir = Path.Combine(usharpPluginsDir, sourcesDir);
-                if (!Directory.Exists(targetSourcesDir))
+                foreach (string source in sources)
                 {
-                    Directory.CreateDirectory(targetSourcesDir);
-                }
+                    string relativeSourceDir = Path.Combine(relativeUSharpDir, sourceDir, source);
+                    if (Directory.Exists(relativeSourceDir))
+                    {
+                        string relativeBuildFile = Path.Combine(relativeSourceDir, source + buildFileExtension);
+                        if (File.Exists(relativeBuildFile))
+                        {
+                            string targetSourceDir = Path.Combine(usharpPluginsDir, sourceDir, source);
+                            if (!Directory.Exists(targetSourceDir))
+                            {
+                                Directory.CreateDirectory(targetSourceDir);
+                            }
 
-                // Copy the USharp.Build.cs file
-                File.Copy(Path.Combine(relativeUSharpDir, sourcesDir, buildFile), Path.Combine(targetSourcesDir, buildFile), forceUpdate);
+                            string targetBuildFile = Path.Combine(targetSourceDir, source + buildFileExtension);
+
+                            // Copy the USharp.Build.cs file
+                            CopyFile(relativeBuildFile, targetBuildFile, forceUpdate);
+                        }
+                    }
+                }
             }
         }
 
@@ -542,37 +574,63 @@ namespace BuildTool
             bool skipCopy = keyValues.ContainsKey("nocopy");
 
             string pluginName = "USharp";
-            string targetPrefix = "UE4Editor";
+            //string targetPrefix = "UE4Editor";
 
             string batchFileName = "RunUAT.bat";
-            string pluginDir = Path.Combine(GetCurrentDirectory(), "../../USharp/");
-            string enginePluginsDir = Path.Combine(settings.EnginePath, "Engine/Plugins/");
             string batchFilesDir = Path.Combine(settings.EnginePath, "Engine/Build/BatchFiles/");
             string batchPath = Path.Combine(batchFilesDir, batchFileName);
 
-            string projectBaseDir = Path.Combine(pluginDir, pluginName);
-            string projectBaseDirEngine = Path.Combine(enginePluginsDir, pluginName);
-            string pluginPath = Path.Combine(projectBaseDir, pluginName + ".uplugin");
-            string outputDir = Path.Combine(projectBaseDir, "Build");
+            string localPluginDir = Path.Combine(GetCurrentDirectory(), "../../../");
+            string enginePluginDir = Path.Combine(settings.EnginePath, "Engine/Plugins/", pluginName);
+            string pluginPath = Path.Combine(localPluginDir, pluginName + ".uplugin");
+            //string outputDir = Path.Combine(projectBaseDir, "Build");
+
+            string currentFolderEnginePath = GetEnginePathFromCurrentFolder();
+            bool isInsideEngineFolder = !string.IsNullOrEmpty(currentFolderEnginePath);
+
+            try
+            {
+                if (!File.Exists(pluginPath) && isInsideEngineFolder)
+                {
+                    // We might have a temp plugin file extension due to a partial previous build
+                    string tempPluginPath = Path.ChangeExtension(pluginPath, ".plugin_temp");
+                    if (File.Exists(tempPluginPath))
+                    {
+                        File.Move(tempPluginPath, pluginPath);
+                    }
+                }
+            }
+            catch
+            {
+            }
 
             if (!File.Exists(pluginPath))
             {
-                Console.WriteLine("Failed to compile C++ project. Couldn't find the plugin '{0}'", pluginPath);
+                Console.WriteLine("Failed to compile C++ project. Couldn't find the plugin '{0}'", Path.GetFullPath(pluginPath));
                 return;
             }
 
-            // If we are in the engine folder we have to have a build target of outside of the /Engine/ folder (limitation of UBT)
-            string currentFolderEnginePath = GetEnginePathFromCurrentFolder();
-            bool isInsideEngineFolder = !string.IsNullOrEmpty(currentFolderEnginePath);
+            // Use an appdata folder instead of a local Build folder as we may be building from inside the engine folder
+            // which doesn't allow compile output to be within a sub folder of /Engine/
+            string usharpAppData = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "USharp");
+            if (!Directory.Exists(usharpAppData))
+            {
+                Directory.CreateDirectory(usharpAppData);
+            }            
+            string outputDir = Path.Combine(usharpAppData, "Build");
 
             // In 4.20 if it detects that the plugin already exists our compilation will fail (even if we are compiling in-place!)
             // Therefore we need to rename the existing .uplugin file to have a different extension so that UBT doesn't complain.
             // NOTE: For reference the build error is "Found 'USharp' plugin in two locations" ... "Plugin names must be unique."
-            string existingPluginFile = Path.Combine(projectBaseDirEngine, pluginName + ".uplugin");
+            string existingPluginFile = Path.Combine(enginePluginDir, pluginName + ".uplugin");
             string tempExistingPluginFile = null;
             if (File.Exists(existingPluginFile))
             {
                 tempExistingPluginFile = Path.ChangeExtension(existingPluginFile, ".uplugin_temp");
+                if (File.Exists(tempExistingPluginFile))
+                {
+                    File.Delete(tempExistingPluginFile);
+                }
                 File.Move(existingPluginFile, tempExistingPluginFile);
             }
 
@@ -600,19 +658,48 @@ namespace BuildTool
 
                 if (!skipCopy)
                 {
+                    // Copy the entire contents of /Binaries/ and /Intermediate/
+                    string[] copyDirs = { "Binaries", "Intermediate" };
+                    foreach (string dir in copyDirs)
+                    {
+                        CopyFilesRecursive(new DirectoryInfo(Path.Combine(outputDir, dir)),
+                            new DirectoryInfo(Path.Combine(enginePluginDir, dir)), true);
+                    }
+
                     // Copy files to the engine plugins dir (may be different to plugin dir)
-                    CopyPluginFile(pluginName, projectBaseDirEngine, outputDir, "dll", targetPrefix);
-                    CopyPluginFile(pluginName, projectBaseDirEngine, outputDir, "pdb", targetPrefix);
-                    CopyPluginFile("UE4-" + pluginName, projectBaseDirEngine, outputDir, "lib", targetPrefix, false);
-                    CopyPluginFile("UE4-" + pluginName + "-Win64-Shipping", projectBaseDirEngine, outputDir, "lib", targetPrefix, false);
-                    CopyPluginFile(targetPrefix, projectBaseDirEngine, outputDir, "modules", targetPrefix, false);
+                    //CopyPluginFile(pluginName, projectBaseDirEngine, outputDir, "dll", targetPrefix);
+                    //CopyPluginFile(pluginName, projectBaseDirEngine, outputDir, "pdb", targetPrefix);
+                    //CopyPluginFile("UE4-" + pluginName, projectBaseDirEngine, outputDir, "lib", targetPrefix, false);
+                    //CopyPluginFile("UE4-" + pluginName + "-Win64-Shipping", projectBaseDirEngine, outputDir, "lib", targetPrefix, false);
+                    //CopyPluginFile(targetPrefix, projectBaseDirEngine, outputDir, "modules", targetPrefix, false);
                 }
             }
             finally
             {
-                if (!string.IsNullOrEmpty(tempExistingPluginFile))
+                try
                 {
-                    File.Move(tempExistingPluginFile, existingPluginFile);
+                    if (!string.IsNullOrEmpty(tempExistingPluginFile) && File.Exists(tempExistingPluginFile))
+                    {
+                        if (File.Exists(existingPluginFile))
+                        {
+                            File.Delete(existingPluginFile);
+                        }
+                        File.Move(tempExistingPluginFile, existingPluginFile);
+                    }
+                }
+                catch
+                {
+                }
+
+                try
+                {
+                    if (!Directory.Exists(outputDir))
+                    {
+                        Directory.Delete(outputDir);
+                    }
+                }
+                catch
+                {
                 }
             }
         }
@@ -662,17 +749,52 @@ namespace BuildTool
     }
 
     // Save the engine path so we don't have to prompt for it each time
-    class Settings
+    public class Settings
     {
-        public string EnginePath { get; set; }
+        const string settingsFile = "Settings.xml";
+
+        public string EnginePath { get; set; }        
 
         public static Settings Load()
         {
+            try
+            {
+                if (File.Exists(settingsFile))
+                {
+                    using (XmlReader reader = XmlReader.Create(settingsFile))
+                    {
+                        XmlSerializer serializer = new XmlSerializer(typeof(Settings));
+                        return (Settings)serializer.Deserialize(reader);
+                    }
+                }
+            }
+            catch
+            {                
+            }
             return new Settings();
         }
 
         public void Save()
         {
+            try
+            {
+                XmlWriterSettings xmlSettings = new XmlWriterSettings()
+                {
+                    Indent = true,
+                    IndentChars = "  ",
+                    NewLineOnAttributes = true,
+                    OmitXmlDeclaration = true
+                };
+
+                using (XmlWriter writer = XmlWriter.Create(settingsFile, xmlSettings))
+                {
+                    XmlSerializer serializer = new XmlSerializer(typeof(Settings));
+                    serializer.Serialize(writer, this);
+                }
+            }
+            catch
+            {
+            }
         }
     }
 }
