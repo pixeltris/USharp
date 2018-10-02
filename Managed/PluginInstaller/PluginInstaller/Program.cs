@@ -647,6 +647,10 @@ namespace PluginInstaller
                     string[] copyDirs = { "Binaries", "Intermediate" };
                     foreach (string dir in copyDirs)
                     {
+                        if(!Directory.Exists(Path.Combine(outputDir, dir)))
+                        {
+                            Directory.CreateDirectory(Path.Combine(outputDir, dir));
+                        }
                         CopyFilesRecursive(new DirectoryInfo(Path.Combine(outputDir, dir)),
                             new DirectoryInfo(Path.Combine(enginePluginDir, dir)), true);
                     }
