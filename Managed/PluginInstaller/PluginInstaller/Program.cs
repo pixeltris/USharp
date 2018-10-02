@@ -15,6 +15,7 @@ using System.Xml.Serialization;
 // [X] Set build path to outside of engine folder (%appdata%/USharp/) if building from an engine sub folder
 // [X] Temporarily modify the existing USharp .uplugin file extension to avoid the duplicate plugin error
 // [X] Copy the entire folder of Binaries / Intermediate instead of individual files?
+// [ ] Fix broken build of UnrealEngine.Runtime (FSoftObjectPath error)
 // [ ] Modify the .uplugin for editor/shipping (until we seperate things into editor/runtime modules)
 // [ ] Exception handling for various actions which could fail (file handles being held etc)
 
