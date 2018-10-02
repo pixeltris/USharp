@@ -415,12 +415,12 @@ namespace PluginInstaller
 
                 if (!BuildCs(slnPath, projPath, !shippingBuild, x86Build, customDefines))
                 {
-                    Console.WriteLine("Failed to build " + Path.GetFileName(projPath));
+                    Console.WriteLine("Failed to build (see build.log) - " + Path.GetFileName(projPath));
                     return;
                 }
                 else
                 {
-                    Console.WriteLine("Build successful");
+                    Console.WriteLine("Build successful - " + Path.GetFileName(projPath));
                 }
             }
 
