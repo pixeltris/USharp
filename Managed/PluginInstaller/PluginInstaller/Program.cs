@@ -244,11 +244,6 @@ namespace PluginInstaller
                 {
                     return null;
                 }
-                if (i == 1 && !Directory.Exists(Path.Combine(dir.FullName, "USharp")))
-                {
-                    // Couldn't find a USharp sub folder, this likely isn't the expected folder setup
-                    return null;
-                }
                 dir = dir.Parent;
             }
 
@@ -306,19 +301,11 @@ namespace PluginInstaller
         }
 
         /// <summary>
-        /// Returns the main USharp directory from the engine path.
-        /// If the USharp content has been dumped straight into the plugins folder this will be /Engine/Plugins/USharp/USharp/.
-        /// If the USharp folder is clean this will be /Engine/Plugins/USharp/.
+        /// Returns the main USharp plugin directory from the engine path
         /// </summary>
         private static string GetUSharpPluginDirectory(string enginePath)
         {
-            string pluginFolder = Path.Combine(enginePath, "Engine", "Plugins", "USharp");
-            if (Directory.Exists(Path.Combine(pluginFolder, "USharp")) &&
-                Directory.Exists(Path.Combine(pluginFolder, "UnrealEngine.Runtime")))
-            {
-                return Path.Combine(pluginFolder, "USharp");// /Engine/Plugins/USharp/USharp/
-            }
-            return pluginFolder;// /Engine/Plugins/USharp/
+            return Path.Combine(enginePath, "Engine", "Plugins", "USharp");
         }
 
         /// <summary>
@@ -430,18 +417,19 @@ namespace PluginInstaller
             string currentFolderEnginePath = GetEnginePathFromCurrentFolder();
             if (string.IsNullOrEmpty(currentFolderEnginePath) && Directory.Exists(settings.EnginePath))
             {
+                // Copy the entire "Binaries/Managed" folder to the engine plugins folder
                 string relativeBinariesDir = Path.Combine(GetCurrentDirectory(), "../");
                 if (Directory.Exists(relativeBinariesDir))
                 {                    
-                    string usharpBinariesDir = Path.Combine(GetUSharpPluginDirectory(settings.EnginePath), "Binaries/Managed");
-                    if (!Directory.Exists(usharpBinariesDir))
+                    string engineBinariesDir = Path.Combine(GetUSharpPluginDirectory(settings.EnginePath), "Binaries/Managed");
+                    if (!Directory.Exists(engineBinariesDir))
                     {
                         // Make sure the target binaries folder exists
-                        Directory.CreateDirectory(usharpBinariesDir);
+                        Directory.CreateDirectory(engineBinariesDir);
                     }
 
                     // Copy the files recursively (hopefully this doesn't cause any issues - maybe limit to 1 level deep for AssemblyRewriter)
-                    CopyFilesRecursive(new DirectoryInfo(relativeBinariesDir), new DirectoryInfo(usharpBinariesDir), true);
+                    CopyFilesRecursive(new DirectoryInfo(relativeBinariesDir), new DirectoryInfo(engineBinariesDir), true);
                 }
             }
         }
