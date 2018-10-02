@@ -648,10 +648,17 @@ namespace PluginInstaller
                     string[] copyDirs = { "Binaries", "Intermediate" };
                     foreach (string dir in copyDirs)
                     {
-                        if(!Directory.Exists(Path.Combine(outputDir, dir)))
+                        if (Directory.Exists(Path.Combine(outputDir, dir)))
                         {
                             CopyFilesRecursive(new DirectoryInfo(Path.Combine(outputDir, dir)),
-                            new DirectoryInfo(Path.Combine(enginePluginDir, dir)), true);
+                                new DirectoryInfo(Path.Combine(enginePluginDir, dir)), true);
+
+                            // Also copy to the local path if outside of the engine?
+                            //if (!isInsideEngineFolder)
+                            //{
+                            //    CopyFilesRecursive(new DirectoryInfo(Path.Combine(outputDir, dir)),
+                            //        new DirectoryInfo(Path.Combine(localPluginDir, dir)), true);
+                            //}
                         }
                     }
 
