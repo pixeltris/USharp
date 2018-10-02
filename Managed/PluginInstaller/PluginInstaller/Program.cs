@@ -237,7 +237,7 @@ namespace PluginInstaller
         static string GetEnginePathFromCurrentFolder()
         {
             // Check upwards for /Epic Games/ENGINE_VERSION/Engine/Plugins/USharp/ and extract the path from there
-            string[] parentFolders = { "BuildTool", "USharp", "Plugins", "Engine" };
+            string[] parentFolders = { "Managed", "Binaries", "USharp", "Plugins", "Engine" };
             string currentPath = GetCurrentDirectory();
 
             DirectoryInfo dir = Directory.GetParent(currentPath);
@@ -382,7 +382,7 @@ namespace PluginInstaller
 
         private static void CompileCs(string[] args)
         {
-            string slnDir = Path.Combine(GetCurrentDirectory(), "../UnrealEngine.Runtime/");
+            string slnDir = Path.Combine(GetCurrentDirectory(), "../../../Managed/UnrealEngine.Runtime/");
             if (!Directory.Exists(slnDir))
             {
                 Console.WriteLine("Failed to find the UnrealEngine.Runtime directory");
