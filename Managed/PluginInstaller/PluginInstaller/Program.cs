@@ -647,8 +647,11 @@ namespace PluginInstaller
                     string[] copyDirs = { "Binaries", "Intermediate" };
                     foreach (string dir in copyDirs)
                     {
-                        CopyFilesRecursive(new DirectoryInfo(Path.Combine(outputDir, dir)),
+                        if(!Directory.Exists(Path.Combine(outputDir, dir)))
+                        {
+                            CopyFilesRecursive(new DirectoryInfo(Path.Combine(outputDir, dir)),
                             new DirectoryInfo(Path.Combine(enginePluginDir, dir)), true);
+                        }
                     }
 
                     // Copy files to the engine plugins dir (may be different to plugin dir)
