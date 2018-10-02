@@ -649,10 +649,9 @@ namespace PluginInstaller
                     {
                         if(!Directory.Exists(Path.Combine(outputDir, dir)))
                         {
-                            Directory.CreateDirectory(Path.Combine(outputDir, dir));
-                        }
-                        CopyFilesRecursive(new DirectoryInfo(Path.Combine(outputDir, dir)),
+                            CopyFilesRecursive(new DirectoryInfo(Path.Combine(outputDir, dir)),
                             new DirectoryInfo(Path.Combine(enginePluginDir, dir)), true);
+                        }
                     }
 
                     // Copy files to the engine plugins dir (may be different to plugin dir)
