@@ -310,8 +310,11 @@ namespace UnrealEngine.Runtime
             return false;
         }
 
-        private static string GetProjectFileContents(string version, string projectName)
+        private string GetProjectFileContents(string version, string projectName)
         {
+            string _ue4RuntimePath = Settings.EngineProjMerge ==
+                CodeGeneratorSettings.ManagedEngineProjMerge.EngineAndPluginsCombined ?
+                @"..\UnrealEngine.Runtime.dll" : @"..\..\..\UnrealEngine.Runtime.dll";
             Guid projectGuid = Guid.NewGuid();
             return @"<?xml version=""1.0"" encoding=""utf-8""?>
 <Project ToolsVersion=""" + version + @""" DefaultTargets=""Build"" xmlns=""http://schemas.microsoft.com/developer/msbuild/2003"">
@@ -327,6 +330,11 @@ namespace UnrealEngine.Runtime
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
   </PropertyGroup>
   <ItemGroup>
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include=""" + "UnrealEngine.Runtime" + @""">
+      <HintPath>"+_ue4RuntimePath+@"</HintPath>
+    </Reference>
   </ItemGroup>
   <Import Project=""$(MSBuildToolsPath)\Microsoft.CSharp.targets"" />
 </Project>";
