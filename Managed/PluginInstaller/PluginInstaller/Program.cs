@@ -445,6 +445,26 @@ namespace PluginInstaller
         {
             try
             {
+                string baseMicrosoftKeyPath = @"SOFTWARE\WOW6432Node\Microsoft";
+                string visualStudioRegistryKeyPath = baseMicrosoftKeyPath + @"\VisualStudio\SxS\VS7";
+
+                //Try Obtaining the VS version of MSBuild First
+                using (RegistryKey key = Registry.LocalMachine.OpenSubKey(visualStudioRegistryKeyPath))
+                {
+                    if (key != null)
+                    {
+                        string path = key.GetValue("15.0") as string;
+                        if (!string.IsNullOrEmpty(path))
+                        {
+                            path = Path.Combine(path, "MSBuild", "15.0", "Bin", "msbuild.exe");
+                            if (File.Exists(path))
+                            {
+                                return path;
+                            }
+                        }
+                    }
+                }
+
                 using (RegistryKey key = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Microsoft\MSBUILD\ToolsVersions\4.0"))
                 {
                     string path = key.GetValue("MSBuildToolsPath") as string;
