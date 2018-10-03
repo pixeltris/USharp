@@ -5,12 +5,15 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 
 namespace UnrealEngine.Runtime
 {
     class Program
     {
+        static string additionalAssemblySearchPath;
+
         public static void Main(string[] args)
         {
             Stopwatch stopwatch = new Stopwatch();
@@ -25,14 +28,27 @@ namespace UnrealEngine.Runtime
                 //RunTests(rewriter);
             }
 
+            AppDomain.CurrentDomain.AssemblyResolve += CurrentDomain_AssemblyResolve;
+
             foreach (string filePath in args)
             {
                 ProcessAssembly(rewriter, filePath);
+                additionalAssemblySearchPath = null;
             }
 
             stopwatch.Stop();
             Console.WriteLine("AssemblyRewriter finished " + stopwatch.Elapsed);
             Console.ReadLine();
+        }
+
+        private static Assembly CurrentDomain_AssemblyResolve(object sender, ResolveEventArgs args)
+        {
+            string assemblyPath = Path.Combine(additionalAssemblySearchPath, new AssemblyName(args.Name).Name + ".dll");
+            if (File.Exists(assemblyPath))
+            {
+                return Assembly.LoadFrom(assemblyPath);
+            }
+            return null;
         }
 
         private static void RunTests(AssemblyRewriter rewriter)
@@ -63,8 +79,10 @@ namespace UnrealEngine.Runtime
                 }
                 else
                 {
-                    assembly = System.Reflection.Assembly.Load(File.ReadAllBytes(filePath));
+                    assembly = System.Reflection.Assembly.Load(File.ReadAllBytes(filePath));                    
                 }
+
+                additionalAssemblySearchPath = Path.GetDirectoryName(filePath);
 
                 if (ManagedUnrealModuleInfo.AssemblyHasSerializedModuleInfo(assembly))
                 {
