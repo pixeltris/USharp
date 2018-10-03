@@ -327,7 +327,8 @@ namespace UnrealEngine.Runtime
     <OutputPath>bin\$(Configuration)\</OutputPath>
     <RootNamespace>" + projectName + @"</RootNamespace>
     <AssemblyName>" + projectName + @"</AssemblyName>
-    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <ItemGroup>
   </ItemGroup>";
