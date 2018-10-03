@@ -290,8 +290,6 @@ namespace UnrealEngine.Runtime
 
         public CodeGeneratorSettings()
         {
-            GameProjMerge = new ManagedGameProjMerge();
-            EngineProjMerge = new ManagedEngineProjMerge();
             Prefixes = new TypePrefixes();
             Namespaces = new ManagedNamespaces();
             FolderEmulation = new ManagedFolderEmulation();

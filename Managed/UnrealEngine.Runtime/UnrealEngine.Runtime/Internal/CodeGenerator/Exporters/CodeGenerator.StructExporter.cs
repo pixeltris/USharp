@@ -11,6 +11,7 @@ namespace UnrealEngine.Runtime
         {
             "/Script/CoreUObject.Object",
             "/Script/CoreUObject.Interface",
+            "/Script/CoreUObject.SoftObjectPath",
             "/Script/Engine.TimerHandle"
         };
 

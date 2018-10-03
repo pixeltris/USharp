@@ -430,6 +430,21 @@ namespace UnrealEngine.Runtime
                 get { return NameOf(typeof(UnrealEngine.Runtime.StructAsClassMarshaler<>)); }
             }
 
+            public static string FDelegateMarshaler
+            {
+                get { return NameOf(typeof(UnrealEngine.Runtime.FDelegateMarshaler<>)); }
+            }
+
+            public static string FMulticastDelegateMarshaler
+            {
+                get { return NameOf(typeof(UnrealEngine.Runtime.FMulticastDelegateMarshaler<>)); }
+            }
+
+            public static string FSoftObjectPathMarshaler
+            {
+                get { return NameOf<FSoftObjectPathMarshaler>(); }
+            }
+
             public static string CachedMarshalingDelegates
             {
                 get { return NameOf(typeof(UnrealEngine.Runtime.CachedMarshalingDelegates<,>)); }

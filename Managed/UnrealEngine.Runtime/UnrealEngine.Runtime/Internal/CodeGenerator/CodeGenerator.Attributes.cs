@@ -132,7 +132,7 @@ namespace UnrealEngine.Runtime
 
                 attributes.Add("UMetaPath(\"" + field.GetPathName() + "\", \"" + moduleName +
                     "\", UnrealModuleType." + GetUnrealModuleTypeString(moduleType, moduleAssetType) + 
-                    (isInterface ? ", InterfaceImpl=typeof(" + GetTypeName(unrealClass) + "Impl" + ")" : string.Empty) + ")");
+                    (isInterface ? ", InterfaceImpl=typeof(" + GetTypeName(unrealClass, null) + "Impl" + ")" : string.Empty) + ")");
 
             }
             else
