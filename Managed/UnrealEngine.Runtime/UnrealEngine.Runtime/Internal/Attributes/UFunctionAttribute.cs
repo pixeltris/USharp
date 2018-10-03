@@ -27,6 +27,23 @@ namespace UnrealEngine.Runtime
     }
 
     /// <summary>
+    /// Used by generated code where a function is collapsed into a C# property getter/setter
+    /// </summary>
+    public class UFunctionAsPropAttribute : ManagedUnrealAttributeBase
+    {
+        /// <summary>
+        /// Used by generated code to state the function flags.
+        /// </summary>
+        public uint Flags { get; set; }
+
+        public override void ProcessFunction(ManagedUnrealFunctionInfo functionInfo)
+        {
+            functionInfo.AdditionalFlags |= ManagedUnrealFunctionFlags.UFunction;
+            functionInfo.Flags |= (EFunctionFlags)Flags;
+        }
+    }
+
+    /// <summary>
     /// Ignores this function from being processed as an Unreal function.
     /// </summary>
     [AttributeUsage(AttributeTargets.Method)]

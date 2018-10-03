@@ -76,10 +76,10 @@ namespace UnrealEngine.Runtime
                 get { return NativeReflection + ".GetFunctionFromInstance"; }
             }
 
-            //public static string NativeReflection_GetFunction
-            //{
-            //    get { return NativeReflection + ".GetFunction"; }
-            //}
+            public static string NativeReflection_GetFunction
+            {
+                get { return NativeReflection + ".GetFunction"; }
+            }
 
             public static string NativeReflection_GetFunctionParamsSize
             {

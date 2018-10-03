@@ -162,7 +162,7 @@ namespace UnrealEngine.Engine
         /// <param name="looping">true to keep firing at Rate intervals, false to fire only once.</param>
         /// <param name="firstDelay">The time for the first iteration of a looping timer. If &lt; 0.f inRate will be used.</param>
         /// <returns>The handle for the timer.</returns>
-        public FTimerHandle SetTimer(UObject obj, FTimerDynamicDelegate function, float time, bool looping = false, float firstDelay = -1.0f)
+        public FTimerHandle SetTimer(UObject obj, FSimpleDelegate function, float time, bool looping = false, float firstDelay = -1.0f)
         {
             FTimerHandle handle = default(FTimerHandle);
             SetTimer(ref handle, obj, GetFunctionName(obj, function), time, looping, firstDelay);
@@ -214,7 +214,7 @@ namespace UnrealEngine.Engine
         /// <param name="time">The amount of time between set and firing. If &lt;= 0.f, clears existing timers.</param>
         /// <param name="looping">true to keep firing at Rate intervals, false to fire only once.</param>
         /// <param name="firstDelay">The time for the first iteration of a looping timer. If &lt; 0.f inRate will be used.</param>
-        public void SetTimer(ref FTimerHandle inOutHandle, UObject obj, FTimerDynamicDelegate function, float time, bool looping = false, float firstDelay = -1.0f)
+        public void SetTimer(ref FTimerHandle inOutHandle, UObject obj, FSimpleDelegate function, float time, bool looping = false, float firstDelay = -1.0f)
         {
             SetTimer(ref inOutHandle, obj, GetFunctionName(obj, function), time, looping, firstDelay);
         }
@@ -245,7 +245,7 @@ namespace UnrealEngine.Engine
         /// </summary>
         /// <param name="obj">Object to call the timer function on.</param>
         /// <param name="function">Method to call when timer fires.</param>
-        public void SetTimerForNextTick(UObject obj, FTimerDynamicDelegate function)
+        public void SetTimerForNextTick(UObject obj, FSimpleDelegate function)
         {
             SetTimerForNextTick(obj, GetFunctionName(obj, function));
         }
@@ -392,7 +392,7 @@ namespace UnrealEngine.Engine
             return FindTimerHandle(obj, new FName(functionName));
         }
 
-        public FTimerHandle FindTimerHandle(UObject obj, FTimerDynamicDelegate function)
+        public FTimerHandle FindTimerHandle(UObject obj, FSimpleDelegate function)
         {
             return FindTimerHandle(obj, GetFunctionName(obj, function));
         }
@@ -455,7 +455,7 @@ namespace UnrealEngine.Engine
             return true;
         }
 
-        private static FName GetFunctionName(UObject obj, FTimerDynamicDelegate function)
+        private static FName GetFunctionName(UObject obj, FSimpleDelegate function)
         {
             Delegate del = function as Delegate;
             if (del != null)
@@ -645,6 +645,4 @@ namespace UnrealEngine.Engine
             FCoreUObjectDelegates.PostGarbageCollect.Bind(OnPostGarbageCollect);
         }
     }
-
-    public delegate void FTimerDynamicDelegate();
 }

@@ -227,7 +227,14 @@ namespace PluginInstaller
         {
             if ((overwrite || !File.Exists(destFileName)) && File.Exists(sourceFileName))
             {
-                File.Copy(sourceFileName, destFileName, overwrite);
+                try
+                {
+                    File.Copy(sourceFileName, destFileName, overwrite);
+                }
+                catch
+                {
+                    Console.WriteLine("Failed to copy to '{0}'", destFileName);
+                }
             }
         }
 
@@ -577,6 +584,7 @@ namespace PluginInstaller
             bool shippingBuild = keyValues.ContainsKey("shipping");
             bool x86Build = keyValues.ContainsKey("x86");
             bool skipCopy = keyValues.ContainsKey("nocopy");
+            bool skipCleanup = keyValues.ContainsKey("noclean");
 
             string pluginName = "USharp";
             //string targetPrefix = "UE4Editor";
@@ -667,10 +675,17 @@ namespace PluginInstaller
                     string[] copyDirs = { "Binaries", "Intermediate" };
                     foreach (string dir in copyDirs)
                     {
-                        if(!Directory.Exists(Path.Combine(outputDir, dir)))
+                        if (Directory.Exists(Path.Combine(outputDir, dir)))
                         {
                             CopyFilesRecursive(new DirectoryInfo(Path.Combine(outputDir, dir)),
-                            new DirectoryInfo(Path.Combine(enginePluginDir, dir)), true);
+                                new DirectoryInfo(Path.Combine(enginePluginDir, dir)), true);
+
+                            // Also copy to the local path if outside of the engine?
+                            //if (!isInsideEngineFolder)
+                            //{
+                            //    CopyFilesRecursive(new DirectoryInfo(Path.Combine(outputDir, dir)),
+                            //        new DirectoryInfo(Path.Combine(localPluginDir, dir)), true);
+                            //}
                         }
                     }
 
@@ -699,15 +714,18 @@ namespace PluginInstaller
                 {
                 }
 
-                try
+                if (!skipCleanup)
                 {
-                    if (!Directory.Exists(outputDir))
+                    try
                     {
-                        Directory.Delete(outputDir);
+                        if (!Directory.Exists(outputDir))
+                        {
+                            Directory.Delete(outputDir);
+                        }
                     }
-                }
-                catch
-                {
+                    catch
+                    {
+                    }
                 }
             }
         }

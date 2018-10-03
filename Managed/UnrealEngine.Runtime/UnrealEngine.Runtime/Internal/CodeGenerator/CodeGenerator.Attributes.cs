@@ -18,6 +18,11 @@ namespace UnrealEngine.Runtime
 
         private void AppendAttribute(CSharpTextBuilder builder, UField field, UnrealModuleInfo module)
         {
+            AppendAttribute(builder, field, module, false);
+        }
+
+        private void AppendAttribute(CSharpTextBuilder builder, UField field, UnrealModuleInfo module, bool isCollapsedMember)
+        {
 			UnrealModuleType moduleType;
 			UnrealModuleType moduleAssetType;
 			string moduleName = GetModuleName(field, out moduleType, out moduleAssetType);
@@ -37,7 +42,23 @@ namespace UnrealEngine.Runtime
             UFunction unrealFunction = field as UFunction;
             if (unrealFunction != null)
             {
-                attributes.Add("UFunction(Flags=0x" + ((uint)unrealFunction.FunctionFlags).ToString("X8") + ")");
+                if (unrealFunction.HasAnyFunctionFlags(EFunctionFlags.Delegate))
+                {
+                    attributes.Add("UDelegate");
+                }
+                else
+                {
+                    if (isCollapsedMember)
+                    {
+                        // The Flags here might not contain too useful information if there is both a get/set function.
+                        // Maybe include a second flags var?
+                        attributes.Add("UFunctionAsProp(Flags=0x" + ((uint)unrealFunction.FunctionFlags).ToString("X8") + ")");
+                    }
+                    else
+                    {
+                        attributes.Add("UFunction(Flags=0x" + ((uint)unrealFunction.FunctionFlags).ToString("X8") + ")");
+                    }
+                }
             }
 
             UProperty unrealProperty = field as UProperty;
@@ -100,7 +121,7 @@ namespace UnrealEngine.Runtime
                 {
                     attributes.Add(UMeta.GetKey(MDClass.BlueprintType));
                 }
-                if (blueprintable)
+                if (unrealClass != null && blueprintable)
                 {
                     attributes.Add(UMeta.GetKey(MDClass.Blueprintable));
                 }
