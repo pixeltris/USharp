@@ -22,40 +22,16 @@ _This project currently isn't usable for most use cases as the code generator is
 - **The code generator is currently broken (so no access to AActor or anything that isn't inside the UnrealEngine.Runtime project)**
 - FText currently isn't supported (TODO)
 
-# Setup
+# Plugin Setup
 
-_This is a very rough guide. TODO: Improve once the code generator is fixed. (Also create a better build process)._
+_This is a very rough guide. TODO: Improve_
 
-- As noted above **the code generator is currently broken** so the usefulness of this project is currently slim.
-- USharp is currently set up to work as an engine plugin (as opposed to a game plugin). Build USharp _(TODO: show how)_. Build the managed code (UnrealEngine.Runtime.sln). Create a USharp folder in the engine plugins folder and copy the nessesary files from the built projects to create the below folder structure. _(TODO: Explain where things are ouputted or change the build process to output to a common location)_.
+- Create a USharp folder under "C:/Program Files/Epic Games/UE_4.XX/Engine/Plugins/"
+- Copy all of the UShap files into that folder so that the USharp.uplugin file inside the top level USharp folder
+- Compile "Managed/PluginInstaller/PluginInstaller.sln", run it and type "build" to build the C# / C++ projects. If the C# projects fail to compile manually compile them through "Managed/UnrealEngine.Runtime/UnrealEngine.Runtime.sln"
 - The USharp plugin should now be available in the editor Edit->Plugins->Programming->USharp
 
-**USharp engine plugins folder structure** (C:/Program Files/Epic Games/UE_4.XX/Engine/Plugins/USharp - replace the "XX" with the engine version)
-```
-+-- Binaries
-|   +-- Win64
-|      +-- UE4Editor.modules
-|      +-- UE4Editor-USharp.dll
-|      +-- UE4Editor-USharp.pdb
-|   +-- Managed
-|      +-- AssemblyRewriter
-|         +-- UnrealEngine.AssemblyRewriter.exe
-|         +-- UnrealEngine.Runtime.dll
-|         +-- Mono.Cecil.dll
-|         +-- Mono.Cecil.Mdb.dll
-|         +-- Mono.Cecil.Pdb.dll
-|         +-- Mono.Cecil.Rocks.dll
-|      +-- Modules (optional - generated code for engine modules will go here)
-|      +-- Settings (optional - files will be put here for configuring USharp)
-|      +-- Loader.dll
-|      +-- UnrealEngine.Runtime.dll
-+-- Resources
-|   +-- Icon128.png
-+-- Sources
-|   +-- USharp
-|      +-- USharp.Build.cs (I think this is the minimum requirement for source, but you could copy all of it if you want)
-+-- USharp.uplugin
-```
+# Game Setup
 
 - To add C# game code add a "Managed" folder in your game project and copy the folder structure below.
 - You can call the C# project whatever. The output assembly name must be ProjectName-Managed and the output type should be Class Library (dll).
@@ -74,9 +50,10 @@ _This is a very rough guide. TODO: Improve once the code generator is fixed. (Al
 
 # TODO
 
-- Add a build tool helper for automatically building the C++/C# projects
 - Fix the code generator
 - Add FText
+- Add equivalents of MonoUE's InjectedClasses
+- Fix hotreload bug on AActor (possible object reinstancer issue)
 - Lots of work to do on improving marshaling
 - Create seperate editor / runtime modules (this will simplify creating shipping builds)
 - ???
