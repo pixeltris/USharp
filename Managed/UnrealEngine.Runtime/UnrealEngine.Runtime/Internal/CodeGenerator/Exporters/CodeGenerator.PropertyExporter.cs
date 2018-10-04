@@ -604,7 +604,8 @@ namespace UnrealEngine.Runtime
                     if (isCollection)
                     {
                         string collectionVarName = propertyName + Settings.VarNames.CollectionMarshaler;
-                        if (!property.HasAnyPropertyFlags(EPropertyFlags.ReferenceParm) || toNative)
+                        if (!property.HasAnyPropertyFlags(EPropertyFlags.ReferenceParm) ||
+                            property.HasAnyPropertyFlags(EPropertyFlags.ReturnParm) || toNative)
                         {
                             builder.AppendLine(marshalerName + " " + collectionVarName + collectionInstantiation);
                         }
