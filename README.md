@@ -1,5 +1,7 @@
 # USharp
 
+[![Join the chat at https://gitter.im/USharp/Lobby](https://badges.gitter.im/USharp/Lobby.svg)](https://gitter.im/USharp/Lobby?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
 USharp is a plugin for Unreal Engine 4 which allows for programming in C#.
 
 This project adapts various parts of mono-ue https://mono-ue.github.io/ and is roughly similar but has support for both mono and the .NET Framework. The C++ code used is mostly PInvoke methods and the equivalent mono-ue backend code is [mostly written in C#](https://github.com/pixeltris/USharp/tree/master/UnrealEngine.Runtime/UnrealEngine.Runtime/Internal).
