@@ -914,7 +914,7 @@ namespace UnrealEngine.Runtime
             }
 
             structInfo = new StructInfo(this, unrealStruct, isBlueprintType);
-            foreach (UFunction function in unrealStruct.GetFields<UFunction>(false))
+            foreach (UFunction function in unrealStruct.GetFields<UFunction>(false, true, true))
             {
                 structInfo.AddFunction(function, CanExportFunction(function, isBlueprintType));
             }

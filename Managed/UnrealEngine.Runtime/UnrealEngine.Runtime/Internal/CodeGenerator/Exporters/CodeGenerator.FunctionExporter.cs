@@ -351,14 +351,24 @@ namespace UnrealEngine.Runtime
                         }
                         else
                         {
-                            // This have should been filtered out in CanExportFunction()
-                            Debug.Assert(originalOwner == owner || isInterfaceImplementation);
-
-                            // Explicit will have the _Implementation as virtual and the function declaration as
-                            // non-virtual (which is the same as C++)
-                            if (!Settings.UseExplicitImplementationMethods || isImplementationMethod)
+                            if (originalOwner != owner && !isInterfaceImplementation &&
+                                originalOwner.HasAnyClassFlags(EClassFlags.Interface))
                             {
-                                modifiers.Append(" virtual");
+                                // For classes which implement interfaces they do not have their own UFunction entry and therefore the
+                                // target UFunction will belong to the implemented interface UClass.                            
+                                // TODO: Virtual functions possible here?
+                            }
+                            else
+                            {
+                                // This have should been filtered out in CanExportFunction()
+                                Debug.Assert(originalOwner == owner || isInterfaceImplementation);
+
+                                // Explicit will have the _Implementation as virtual and the function declaration as
+                                // non-virtual (which is the same as C++)
+                                if (!Settings.UseExplicitImplementationMethods || isImplementationMethod)
+                                {
+                                    modifiers.Append(" virtual");
+                                }
                             }
                         }
                     }
@@ -903,7 +913,7 @@ namespace UnrealEngine.Runtime
                     Settings.VarNames.ParamsBuffer + ");");
             }
 
-                if (hasReturn)
+            if (hasReturn)
             {
                 builder.AppendLine("return " + Settings.VarNames.ReturnResult + ";");
             }
