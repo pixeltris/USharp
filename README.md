@@ -29,7 +29,7 @@ Join the gitter chat room for quick help / discussion https://gitter.im/USharp/L
 _This is a very rough guide. TODO: Improve_
 
 - Create a USharp folder under "C:/Program Files/Epic Games/UE_4.XX/Engine/Plugins/" (replace the "XX" with the engine version)
-- Copy all of the UShap files into that folder so that the USharp.uplugin file is inside the top level USharp folder
+- Copy all of the USharp files into that folder so that the USharp.uplugin file is inside the top level USharp folder
 - Compile "Managed/PluginInstaller/PluginInstaller.sln", run it and type "build" to build the C# / C++ projects. If the C# projects fail to compile manually compile them through "Managed/UnrealEngine.Runtime/UnrealEngine.Runtime.sln"
 - The USharp plugin should now be available in the editor Edit->Plugins->Programming->USharp
 
