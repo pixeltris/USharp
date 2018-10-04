@@ -6,6 +6,8 @@ This project adapts various parts of mono-ue https://mono-ue.github.io/ and is r
 
 _This project currently isn't usable for most use cases as the code generator is broken._
 
+Join the gitter chat room for quick help / discussion https://gitter.im/USharp/Lobby
+
 # Features
 
 - Hotreload
@@ -27,7 +29,7 @@ _This project currently isn't usable for most use cases as the code generator is
 _This is a very rough guide. TODO: Improve_
 
 - Create a USharp folder under "C:/Program Files/Epic Games/UE_4.XX/Engine/Plugins/"
-- Copy all of the UShap files into that folder so that the USharp.uplugin file inside the top level USharp folder
+- Copy all of the UShap files into that folder so that the USharp.uplugin file is inside the top level USharp folder
 - Compile "Managed/PluginInstaller/PluginInstaller.sln", run it and type "build" to build the C# / C++ projects. If the C# projects fail to compile manually compile them through "Managed/UnrealEngine.Runtime/UnrealEngine.Runtime.sln"
 - The USharp plugin should now be available in the editor Edit->Plugins->Programming->USharp
 
