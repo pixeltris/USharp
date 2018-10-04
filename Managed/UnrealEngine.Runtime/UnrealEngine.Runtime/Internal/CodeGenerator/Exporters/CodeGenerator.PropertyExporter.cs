@@ -677,11 +677,6 @@ namespace UnrealEngine.Runtime
                 // TODO
                 return null;
             }
-            if (property.PropertyType == EPropertyType.Interface)
-            {
-                // TODO "/Script/UnrealEd.PropertyEditorTestObject:BlendableInterface"
-                return null;
-            }
 
             switch (property.PropertyType)
             {
@@ -783,6 +778,7 @@ namespace UnrealEngine.Runtime
                         }
                         return subclassOfMarshalerName + "<" + GetTypeName(targetClass, namespaces) + ">";
                     }
+                case EPropertyType.Interface: return Names.InterfaceMarshaler + "<" + GetTypeName((property as UInterfaceProperty).InterfaceClass, namespaces) + ">";
                 case EPropertyType.Object: return Names.UObjectMarshaler + "<" + GetTypeName((property as UObjectProperty).PropertyClass, namespaces) + ">";                
                 case EPropertyType.WeakObject: return Names.TWeakObjectMarshaler + "<" + GetTypeName((property as UWeakObjectProperty).PropertyClass, namespaces) + ">";
                 case EPropertyType.LazyObject: return Names.TLazyObjectMarshaler + "<" + GetTypeName((property as ULazyObjectProperty).PropertyClass, namespaces) + ">";

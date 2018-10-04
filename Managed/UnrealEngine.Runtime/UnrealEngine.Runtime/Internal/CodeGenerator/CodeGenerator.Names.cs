@@ -385,6 +385,11 @@ namespace UnrealEngine.Runtime
                 get { return NameOf<UnrealEngine.Runtime.TMapReadOnlyMarshaler<object, object>>(); }
             }
 
+            public static string InterfaceMarshaler
+            {
+                get { return NameOf(typeof(UnrealEngine.Runtime.InterfaceMarshaler<>)); }
+            }
+
             public static string UObjectMarshaler
             {
                 get { return NameOf(typeof(UnrealEngine.Runtime.UObjectMarshaler<>)); }
