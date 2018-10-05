@@ -127,14 +127,17 @@ namespace UnrealEngine
 
                 foreach (string assemblyPath in newAssemblyPaths)
                 {
-                    FileSystemWatcher assemblyWatcher = new FileSystemWatcher();
-                    assemblyWatcher.Path = Path.GetDirectoryName(assemblyPath);
-                    assemblyWatcher.Filter = Path.GetFileName(assemblyPath);
-                    assemblyWatcher.NotifyFilter = NotifyFilters.LastWrite;//NotifyFilters.CreationTime;
-                    assemblyWatcher.EnableRaisingEvents = true;
-                    assemblyWatcher.Changed += AssemblyWatcher_Changed;
+                    if (Directory.Exists(Path.GetDirectoryName(assemblyPath)))
+                    {
+                        FileSystemWatcher assemblyWatcher = new FileSystemWatcher();
+                        assemblyWatcher.Path = Path.GetDirectoryName(assemblyPath);
+                        assemblyWatcher.Filter = Path.GetFileName(assemblyPath);
+                        assemblyWatcher.NotifyFilter = NotifyFilters.LastWrite;//NotifyFilters.CreationTime;
+                        assemblyWatcher.EnableRaisingEvents = true;
+                        assemblyWatcher.Changed += AssemblyWatcher_Changed;
 
-                    assemblyWatchers.Add(assemblyPath, assemblyWatcher);
+                        assemblyWatchers.Add(assemblyPath, assemblyWatcher);
+                    }
                 }
             }
         }
