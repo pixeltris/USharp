@@ -268,6 +268,10 @@ namespace UnrealEngine.Runtime.Native
             {
                 projectFileName = Path.GetFileNameWithoutExtension(projectFileName);
                 string projectManagedBinDir = Path.Combine(FPaths.ProjectDir, "Managed", "Binaries");
+                if (FBuild.WithEditor && !Directory.Exists(projectManagedBinDir))
+                {
+                    Directory.CreateDirectory(projectManagedBinDir);
+                }
                 string assemblyPath = Path.GetFullPath(Path.Combine(projectManagedBinDir, projectFileName + gameAssemblySuffix));
                 if (File.Exists(assemblyPath))
                 {
