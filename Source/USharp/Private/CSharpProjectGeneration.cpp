@@ -5,7 +5,7 @@
 
 #include "Core.h"
 
-FString pluginsBaseDir;
+FString pluginsBinariesDir;
 FString managedGameSolutionTemplateDir;
 FString managedGameSolutionFinalDir;
 FString genFileFullPath;
@@ -14,9 +14,10 @@ FString projectGeneratedVariablesFullFilePath;
 bool CSharpProjectGeneration::GenerateProject() {
 	//All this should only be done at edit time not in player builds
 #if WITH_EDITOR
-	pluginsBaseDir = CSharpLoader::GetPluginBinariesDir();
+	pluginsBinariesDir = FPaths::GetPath(FModuleManager::Get().GetModuleFilename("USharp"));
+	pluginsBinariesDir = FPaths::ConvertRelativePathToFull(FPaths::Combine(*pluginsBinariesDir, TEXT("..")));
 
-	managedGameSolutionTemplateDir = FPaths::Combine(*pluginsBaseDir, TEXT("../") TEXT("ManagedGameSolutionTemplate"));
+	managedGameSolutionTemplateDir = FPaths::Combine(*pluginsBinariesDir, TEXT(".."), TEXT("ManagedGameSolutionTemplate"));
 	managedGameSolutionFinalDir = FPaths::Combine(FPaths::ProjectDir(), TEXT("Managed"));
 
 	managedGameSolutionTemplateDir = FPaths::ConvertRelativePathToFull(managedGameSolutionTemplateDir);
@@ -25,11 +26,12 @@ bool CSharpProjectGeneration::GenerateProject() {
 	projectGeneratedVariablesFullFilePath = FPaths::Combine(managedGameSolutionFinalDir, TEXT("USharp.ProjectGeneratedVariables.props"));
 
 	CopySolutionTemplate();
-#endif // IS_MONOLITHIC
+#endif
 	return true;
 }
 
 bool CSharpProjectGeneration::CopySolutionTemplate() {
+	auto sucess = true;
 
 	if (!FPaths::FileExists(genFileFullPath)) {
 		auto & fileManager = IFileManager::Get();
@@ -37,22 +39,23 @@ bool CSharpProjectGeneration::CopySolutionTemplate() {
 			fileManager.MakeDirectory(*managedGameSolutionFinalDir);
 		}
 		auto & platfromFileHandler = FPlatformFileManager::Get().GetPlatformFile();
-		
-		auto sucess = true;
 
 		sucess = sucess && platfromFileHandler.CopyDirectoryTree(*managedGameSolutionFinalDir, *managedGameSolutionTemplateDir, false);
 		sucess = sucess && GenerateProjectVariablesFile();
 
 		if (sucess) {
 			auto & fileStream = *fileManager.CreateFileWriter(*genFileFullPath, EFileWrite::FILEWRITE_None);
-			//TODO: write something meaningfull
+			//TODO: write something meaningfull into the file
 			auto text = FString("generated\n");
 			fileStream << text;
 			fileStream.Close();
 		}
+	} else {
+		//always regenerate the path variables. those may be different from case to case for each developer and engine installation
+		sucess = sucess && GenerateProjectVariablesFile();
 	}
 
-	return true;
+	return sucess;
 }
 
 bool CSharpProjectGeneration::GenerateProjectVariablesFile() {
@@ -61,10 +64,12 @@ bool CSharpProjectGeneration::GenerateProjectVariablesFile() {
 
 	auto projectPath = FPaths::GameDir();
 	auto projectFileName = FPaths::GetBaseFilename(FPaths::GetProjectFilePath());
+	auto pluginPath = FPaths::ConvertRelativePathToFull(FPaths::Combine(pluginsBinariesDir, TEXT("..")));
 
 	//TODO: add optional Constants
 	allLines = allLines.Replace(TEXT("#Constants#"), TEXT(""), ESearchCase::IgnoreCase);
 
+	allLines = allLines.Replace(TEXT("#PluginPath#"), *pluginPath, ESearchCase::IgnoreCase);
 	allLines = allLines.Replace(TEXT("#GamePath#"), *projectPath, ESearchCase::IgnoreCase);
 	allLines = allLines.Replace(TEXT("#GameName#"), *projectFileName, ESearchCase::IgnoreCase);
 

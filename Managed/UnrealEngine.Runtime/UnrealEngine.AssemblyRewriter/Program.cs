@@ -16,12 +16,13 @@ namespace UnrealEngine.Runtime
 
         public static void Main(string[] args)
         {
-	        if (!args.Any()){
-		        Console.Error.WriteLine($"Error: No input files. Add file path to dll as argument.");
-		        Environment.Exit(2);
-	        }
-	        
-	        Stopwatch stopwatch = new Stopwatch();
+            if (!args.Any())
+            {
+                Console.Error.WriteLine($"Error: No input files. Add file path to dll as argument.");
+                Environment.Exit(2);
+            }
+        
+            Stopwatch stopwatch = new Stopwatch();
             stopwatch.Start();
 
             UnrealTypes.Load();
@@ -32,19 +33,19 @@ namespace UnrealEngine.Runtime
                 ManagedUnrealReflectionBase.UpdateSerializerCode();
                 //RunTests(rewriter);
             }
-	        
+
 
             AppDomain.CurrentDomain.AssemblyResolve += CurrentDomain_AssemblyResolve;
-	        Console.WriteLine($"Processing file:");
+            Console.WriteLine($"Processing file:");
 
             foreach (string filePath in args)
             {
-	            Console.WriteLine($"Processing file: {filePath}");
-	            var success = ProcessAssembly(rewriter, filePath);
-	            if (!success) 
-				{
-		            Environment.ExitCode = 3;
-	            }
+                Console.WriteLine($"Processing file: {filePath}");
+                var success = ProcessAssembly(rewriter, filePath);
+                if (!success)
+                {
+                    Environment.ExitCode = 3;
+                }
                 additionalAssemblySearchPath = null;
             }
 
@@ -109,41 +110,45 @@ namespace UnrealEngine.Runtime
                 Stopwatch stopwatch = new Stopwatch();
                 stopwatch.Start();
                 ManagedUnrealModuleInfo moduleInfo = null;
-	            try {
-		            Debugger.Launch();
-		            moduleInfo = ManagedUnrealModuleInfo.CreateModuleFromAssembly(assembly);
-	            } catch (Exception e) {
-		            Console.WriteLine("Error while parsing module \"" + assembly.GetName().Name + "\"");
-		            Console.WriteLine();
-		            Console.WriteLine(e.Message);
-		            Console.WriteLine();
-		            Console.WriteLine(e.ToString());
-	            }
-	            
-	            stopwatch.Stop();
-	            Console.WriteLine("Read \"" + assembly.GetName().Name + "\" " + stopwatch.Elapsed);
+                try 
+                {
+                    moduleInfo = ManagedUnrealModuleInfo.CreateModuleFromAssembly(assembly);
+                } catch (Exception e) 
+                {
+                    Console.WriteLine("Error while parsing module \"" + assembly.GetName().Name + "\"");
+                    Console.WriteLine();
+                    Console.WriteLine(e.Message);
+                    Console.WriteLine();
+                    Console.WriteLine(e.ToString());
+                }
+                
+                stopwatch.Stop();
+                Console.WriteLine("Read \"" + assembly.GetName().Name + "\" " + stopwatch.Elapsed);
 
                 if (moduleInfo != null)
                 {
                     stopwatch.Reset();
                     stopwatch.Start();
 
-	                var noError = true;
+                    var noError = true;
 
-	                try {
-		                rewriter.RewriteModule(moduleInfo, filePath);
-		                Console.WriteLine("Write \"" + assembly.GetName().Name + "\" " + stopwatch.Elapsed);
-	                } catch (Exception e) {
-		                Console.WriteLine("Error when rewriting module \"" + assembly.GetName().Name + "\" " + stopwatch.Elapsed);
-		                Console.WriteLine();
-		                Console.WriteLine(e.Message);
-		                Console.WriteLine();
-		                Console.WriteLine(e.ToString());
-		                noError = false;
-	                } finally {
-		                stopwatch.Stop();
-	                }
-					
+                    try 
+                    {
+                        rewriter.RewriteModule(moduleInfo, filePath);
+                        Console.WriteLine("Write \"" + assembly.GetName().Name + "\" " + stopwatch.Elapsed);
+                    } catch (Exception e) 
+                    {
+                        Console.WriteLine("Error when rewriting module \"" + assembly.GetName().Name + "\" " + stopwatch.Elapsed);
+                        Console.WriteLine();
+                        Console.WriteLine(e.Message);
+                        Console.WriteLine();
+                        Console.WriteLine(e.ToString());
+                        noError = false;
+                    } finally 
+                    {
+                        stopwatch.Stop();
+                    }
+                    
                     return noError;
                 }
             }

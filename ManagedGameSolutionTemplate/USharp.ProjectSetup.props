@@ -1,12 +1,17 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="$(MSBuildStartupDirectory)/USharp.ProjectGeneratedVariables.props" />
 
-  <PropertyGroup>
-    <USharpPluginPath>$(MSBuildStartupDirectory)/../Plugins/USharp</USharpPluginPath>
-  </PropertyGroup>
+  <Choose>
+    <!--Fallback: This sets up the plugin path when it is used as a game plugin and USharpPluginPath failes to resolve. This sould only happen during development since USharpPluginPath sould always point to the correct path however we may not have ncountered all circumstances yet-->
+    <When Condition="!Exists('$(USharpPluginPath)')">
+      <PropertyGroup>
+        <USharpPluginPath>$(MSBuildStartupDirectory)/../Plugins/USharp</USharpPluginPath>
+      </PropertyGroup>
+    </When>
+  </Choose>
 
 
-  <!--for dev purpose only. it allows to inspect the settings in the template .sln/.csprj-->
+  <!--Fallback: for dev purpose only. it allows to inspect the settings in the template .sln/.csprj-->
   <Choose>
     <When Condition="!Exists('$(USharpPluginPath)')">
       <PropertyGroup>

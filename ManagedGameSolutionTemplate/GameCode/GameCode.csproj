@@ -1,14 +1,14 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <!--This should and can not be added to the props file-->
   <PropertyGroup>
-    <!--
     <TargetFramework>netstandard2.0</TargetFramework>
-    -->
-    <TargetFramework>net4.5.2</TargetFramework>
   </PropertyGroup>
 
   <!--This should and can not be added to the props file-->
+  <!--ISSUE like described here https://github.com/Fody/Costura/issues/235 -->
   <PropertyGroup>
+    <DebugType>pdbonly</DebugType>
+    <DebugSymbols>true</DebugSymbols>
     <OutputPath>$(OutDir)</OutputPath>
   </PropertyGroup>
 </Project>

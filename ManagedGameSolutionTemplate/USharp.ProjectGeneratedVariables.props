@@ -1,6 +1,12 @@
+<!--GENERATED. 
+    Do not modify. Modifications will be lost.
+    This file should be ignored in any SCM (i.e. Git or SVN)
+-->
+<!--This file is modifyed by the plugin whenit is loading by the editor-->
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <UE4Defines>#Constants#</UE4Defines>
+    <USharpPluginPath>#PluginPath#</USharpPluginPath>
     <UE4GamePath>#GamePath#</UE4GamePath>
     <UE4GameName>#GameName#</UE4GameName>
   </PropertyGroup>

@@ -24,7 +24,7 @@ namespace UnrealEngine.Runtime
 
     partial class AssemblyRewriter
     {
-        public const bool UpdatePdb = false;
+        public const bool UpdatePdb = true;
 
         // These collections are only the available types which need updating, additional lookups required for other types
         Dictionary<TypeDefinition, ManagedUnrealTypeInfo> classesByType = new Dictionary<TypeDefinition, ManagedUnrealTypeInfo>();
@@ -157,6 +157,11 @@ namespace UnrealEngine.Runtime
 
             ReaderParameters readerParams = new ReaderParameters();
             WriterParameters writerParams = new WriterParameters();
+
+            var resolver = readerParams.AssemblyResolver as DefaultAssemblyResolver ?? new DefaultAssemblyResolver();
+            readerParams.AssemblyResolver = resolver;
+
+            resolver.AddSearchDirectory(Path.GetDirectoryName(assemblyPath));
 
             if (File.Exists(pdbFile) && UpdatePdb)
             {
