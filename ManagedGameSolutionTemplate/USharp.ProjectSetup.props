@@ -1,0 +1,29 @@
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildStartupDirectory)/USharp.ProjectGeneratedVariables.props" />
+
+  <PropertyGroup>
+    <USharpPluginPath>$(MSBuildStartupDirectory)/../Plugins/USharp</USharpPluginPath>
+  </PropertyGroup>
+
+
+  <!--for dev purpose only. it allows to inspect the settings in the template .sln/.csprj-->
+  <Choose>
+    <When Condition="!Exists('$(USharpPluginPath)')">
+      <PropertyGroup>
+        <USharpPluginPath>$(MSBuildStartupDirectory)/../../USharp</USharpPluginPath>
+      </PropertyGroup>
+    </When>
+  </Choose>
+  <!--end-->
+
+
+  <PropertyGroup>
+    <USharpRunntimeDllPath>$(USharpPluginPath)/Binaries/Managed/UnrealEngine.Runtime.dll</USharpRunntimeDllPath>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Reference Include="UnrealEngine.Runtime">
+      <HintPath>$(USharpRunntimeDllPath)</HintPath>
+    </Reference>
+  </ItemGroup>
+</Project>

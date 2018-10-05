@@ -24,7 +24,7 @@ namespace UnrealEngine.Runtime
 
     partial class AssemblyRewriter
     {
-        public const bool UpdatePdb = true;
+        public const bool UpdatePdb = false;
 
         // These collections are only the available types which need updating, additional lookups required for other types
         Dictionary<TypeDefinition, ManagedUnrealTypeInfo> classesByType = new Dictionary<TypeDefinition, ManagedUnrealTypeInfo>();

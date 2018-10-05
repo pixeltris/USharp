@@ -1,0 +1,14 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <!--This should and can not be added to the props file-->
+  <PropertyGroup>
+    <!--
+    <TargetFramework>netstandard2.0</TargetFramework>
+    -->
+    <TargetFramework>net4.5.2</TargetFramework>
+  </PropertyGroup>
+
+  <!--This should and can not be added to the props file-->
+  <PropertyGroup>
+    <OutputPath>$(OutDir)</OutputPath>
+  </PropertyGroup>
+</Project>
