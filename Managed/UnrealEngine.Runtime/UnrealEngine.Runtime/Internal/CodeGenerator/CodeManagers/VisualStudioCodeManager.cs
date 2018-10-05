@@ -330,11 +330,11 @@ namespace UnrealEngine.Runtime
                 if (_runtimeDir != null) _referencePath = _runtimeDir.FullName;
                 //Inside Project-Managed-Source Folder
                 _outputPath = @"..\Binaries\";
-                var _assemblyDirInfo = new DirectoryInfo(Path.Combine(_modulesFullPath, @"..\..\..", "Binaries", "Managed", "AssemblyRewriter", "UnrealEngine.AssemblyRewriter" + ".exe"));
-                if(_assemblyDirInfo != null)
+                var _assemblyDirInfo = new FileInfo(Path.Combine(_modulesFullPath, @"..\..\..", "Binaries", "Managed", "AssemblyRewriter", "UnrealEngine.AssemblyRewriter" + ".exe"));
+                var _outputDirInfo = new FileInfo(Path.Combine(GameProjPath, @"..\", _outputPath, Settings.GetProjectName() + "-Managed" + ".dll"));
+                if(_assemblyDirInfo != null && _outputDirInfo != null)
                 {
-                    string _assemblyrewriterpath = _assemblyDirInfo.FullName;
-                    _postBuildEvent = @"""" + _assemblyrewriterpath + @""" ""$(TargetPath)""";
+                    _postBuildEvent = @"""" + _assemblyDirInfo.FullName + @""" """+ _outputDirInfo.FullName + @"""";
                 }
             }
             else
