@@ -79,7 +79,7 @@ namespace UnrealEngine.Runtime
             return null;
         }
 
-        public override bool AddSourceFile(string slnPath, string projPath, string sourceFilePath, string code)
+        public override bool AddSourceFile(string slnPath, string projPath, string sourceFilePath, string code, bool saveSln = false)
         {
             EnvDTE.DTE dte = FindOrCreateDTE(slnPath);
             if (dte == null)
@@ -104,7 +104,10 @@ namespace UnrealEngine.Runtime
             CreateFileDirectoryIfNotExists(sourceFilePath);
             File.WriteAllText(sourceFilePath, code);
             project.ProjectItems.AddFromFile(sourceFilePath);
-
+            if (saveSln)
+            {
+                dte.Solution.SaveAs(slnPath);
+            }
             return true;
         }
 
@@ -312,18 +315,31 @@ namespace UnrealEngine.Runtime
 
         private string GetProjectFileContents(string version, string projectName, bool insideEngine, bool insideManagedFolder)
         {
-            string _ue4RuntimePath = "";
+            var _modulesDir = new DirectoryInfo(Settings.GetManagedModulesDir());
+            string _modulesFullPath = "";
+            if(_modulesDir != null) _modulesFullPath = _modulesDir.FullName;
+
+            string _hintPath = "";
+            string _referencePath = "";
             string _outputPath = "";
+            string _postBuildEvent = "";
             if (insideEngine == false && insideManagedFolder)
             {
                 //Creating CSProj Inside Game Project Managed Folder
-                _ue4RuntimePath = Path.Combine(Settings.GetManagedModulesDir(), @"..\..\..\Binaries\Managed\UnrealEngine.Runtime.dll");
+                var _runtimeDir = new DirectoryInfo(Path.Combine(_modulesFullPath, @"..\..\..\Binaries\Managed\"));
+                if (_runtimeDir != null) _referencePath = _runtimeDir.FullName;
                 //Inside Project-Managed-Source Folder
                 _outputPath = @"..\Binaries\";
+                var _assemblyDirInfo = new DirectoryInfo(Path.Combine(_modulesFullPath, @"..\..\..", "Binaries", "Managed", "AssemblyRewriter", "UnrealEngine.AssemblyRewriter" + ".exe"));
+                if(_assemblyDirInfo != null)
+                {
+                    string _assemblyrewriterpath = _assemblyDirInfo.FullName;
+                    _postBuildEvent = @"""" + _assemblyrewriterpath + @""" ""$(TargetPath)""";
+                }
             }
             else
             {
-                _ue4RuntimePath = Settings.EngineProjMerge ==
+                _hintPath = Settings.EngineProjMerge ==
     CodeGeneratorSettings.ManagedEngineProjMerge.EngineAndPluginsCombined ?
     @"..\UnrealEngine.Runtime.dll" : @"..\..\..\UnrealEngine.Runtime.dll";
                 _outputPath = @"bin\$(Configuration)\";
@@ -342,13 +358,15 @@ namespace UnrealEngine.Runtime
     <AssemblyName>" + projectName + @"</AssemblyName>
     <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <PostBuildEvent>" + _postBuildEvent + @"</PostBuildEvent>
+    <ReferencePath>" + _referencePath + @"</ReferencePath>
   </PropertyGroup>
   <ItemGroup>
   </ItemGroup>";
             _fileContents +=
 @"<ItemGroup>
     <Reference Include=""" + "UnrealEngine.Runtime" + @""">
-      <HintPath>" + _ue4RuntimePath + @"</HintPath>
+      <HintPath>" + _hintPath + @"</HintPath>
     </Reference>
   </ItemGroup>";
             _fileContents +=

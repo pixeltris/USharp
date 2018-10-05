@@ -41,7 +41,23 @@ namespace UnrealEngine.Runtime
             codeManager.OnBeginGenerateModules();
             if(codeManager.AddProjectFile(codeManager.GameSlnPath, codeManager.GameProjPath))
             {
-                
+                var _modulesDir = new System.IO.DirectoryInfo(codeManager.Settings.GetManagedModulesDir());
+                string _modulesFullPath = "";
+                if (_modulesDir != null)
+                {
+                    _modulesFullPath = _modulesDir.FullName;
+                }
+                string _exampleScriptCopyFromPath = System.IO.Path.Combine(_modulesFullPath, @"..\..\..\Managed\Examples\", "Test" + ".cs");
+                if (System.IO.File.Exists(_exampleScriptCopyFromPath))
+                {
+                    string _exampleCode;
+                    using(System.IO.StreamReader _reader = new System.IO.StreamReader(_exampleScriptCopyFromPath))
+                    {
+                        _exampleCode = _reader.ReadToEnd();
+                    }
+                    string _exampleScriptCopyToPath = System.IO.Path.Combine(codeManager.Settings.GetManagedDir(), "Source", "Test" + ".cs");
+                    codeManager.AddSourceFile(codeManager.GameSlnPath, codeManager.GameProjPath, _exampleScriptCopyToPath, _exampleCode, true);
+                }
             }
         }
 

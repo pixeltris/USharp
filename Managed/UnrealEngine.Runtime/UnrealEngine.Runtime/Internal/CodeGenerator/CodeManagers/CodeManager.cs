@@ -295,7 +295,7 @@ namespace UnrealEngine.Runtime
             return true;
         }
 
-        public virtual bool AddSourceFile(string slnPath, string projPath, string sourceFilePath, string code)
+        public virtual bool AddSourceFile(string slnPath, string projPath, string sourceFilePath, string code, bool saveSln = false)
         {
             return true;
         }
