@@ -11,6 +11,7 @@ namespace UnrealEngine.Runtime
         {
             "/Script/CoreUObject.Object",
             "/Script/CoreUObject.Interface",
+            "/Script/CoreUObject.SoftObjectPath",
             "/Script/Engine.TimerHandle"
         };
 
@@ -565,6 +566,24 @@ namespace UnrealEngine.Runtime
 
                     builder.AppendLine("public " + typeName + "(IntPtr nativeStruct)");
                     builder.OpenBrace();
+                    if (Settings.UObjectAsBlittableType)
+                    {
+                        // UObject types will have an additional backing field which needs to be assigned before being able to
+                        // assign the property 
+                        // - The alternative would be to modify the property assignment code to target the backing field instead of
+                        //   the property. This is probably the ideal way of doing it but we would need to use a different marshaler
+                        //   (BlittableTypeMarshaler<> instead of UObjectMarshaler<>) and ensure the marshaler change doesn't impact
+                        //   other generated code elsewhere.
+                        foreach (UProperty property in structInfo.GetProperties())
+                        {
+                            UObjectProperty objectProperty = property as UObjectProperty;
+                            if (objectProperty != null)
+                            {
+                                string propertyName = GetMemberName(property, structInfo.GetPropertyName(property));
+                                builder.AppendLine(propertyName + Settings.VarNames.UObjectBlittableName + " = IntPtr.Zero;");
+                            }
+                        }
+                    }
                     AppendStructMarshalerBody(builder, typeName, structInfo, parentStruct, false, namespaces);
                     builder.CloseBrace();
                     builder.AppendLine();

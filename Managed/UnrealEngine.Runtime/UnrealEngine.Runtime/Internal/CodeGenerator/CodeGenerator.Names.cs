@@ -385,6 +385,11 @@ namespace UnrealEngine.Runtime
                 get { return NameOf<UnrealEngine.Runtime.TMapReadOnlyMarshaler<object, object>>(); }
             }
 
+            public static string InterfaceMarshaler
+            {
+                get { return NameOf(typeof(UnrealEngine.Runtime.InterfaceMarshaler<>)); }
+            }
+
             public static string UObjectMarshaler
             {
                 get { return NameOf(typeof(UnrealEngine.Runtime.UObjectMarshaler<>)); }
@@ -428,6 +433,21 @@ namespace UnrealEngine.Runtime
             public static string StructAsClassMarshaler
             {
                 get { return NameOf(typeof(UnrealEngine.Runtime.StructAsClassMarshaler<>)); }
+            }
+
+            public static string FDelegateMarshaler
+            {
+                get { return NameOf(typeof(UnrealEngine.Runtime.FDelegateMarshaler<>)); }
+            }
+
+            public static string FMulticastDelegateMarshaler
+            {
+                get { return NameOf(typeof(UnrealEngine.Runtime.FMulticastDelegateMarshaler<>)); }
+            }
+
+            public static string FSoftObjectPathMarshaler
+            {
+                get { return NameOf<FSoftObjectPathMarshaler>(); }
             }
 
             public static string CachedMarshalingDelegates

@@ -506,6 +506,13 @@ namespace UnrealEngine.Runtime
 
         private string GetTypePath(Type type, EPropertyType typeCode)
         {
+            // This check might be overkill here but in order to ensure types are visible in UnrealTypes
+            // the assembly must be loaded at this point or GetNativePathAttribute will return null on first access
+            if (!seenAssemblies.Contains(type.Assembly))
+            {
+                CreateModuleFromAssembly(type.Assembly);
+            }
+
             UMetaPathAttribute pathAttribute = UnrealTypes.GetNativePathAttribute(type);
             if (pathAttribute != null)
             {

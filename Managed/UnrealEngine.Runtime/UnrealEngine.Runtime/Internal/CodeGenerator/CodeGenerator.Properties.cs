@@ -731,8 +731,7 @@ namespace UnrealEngine.Runtime
             }
 
             if (withNamespace)
-            {
-                functionName = UpdateTypeNameNamespace(functionName, fullyQualifiedName, namespaces, GetModuleNamespace(function));
+            {                
                 UClass unrealClass = function.GetOuter() as UClass;
                 if (unrealClass != null)
                 {
@@ -740,6 +739,7 @@ namespace UnrealEngine.Runtime
                     // to ensure Namespace gets correctly added to the Namespaces collection)
                     functionName = GetTypeName(unrealClass) + "." + functionName;
                 }
+                functionName = UpdateTypeNameNamespace(functionName, fullyQualifiedName, namespaces, GetModuleNamespace(function));
             }
 
             return functionName;

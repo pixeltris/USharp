@@ -77,7 +77,7 @@ namespace UnrealEngine.Runtime
             interfaceIndex = -1;
             this.includeSuper = includeSuper;
             this.includeDeprecated = includeDeprecated;
-            this.includeInterface = includeInterface;
+            this.includeInterface = includeInterface && unrealStruct as UClass != null;
             first = true;
         }
 

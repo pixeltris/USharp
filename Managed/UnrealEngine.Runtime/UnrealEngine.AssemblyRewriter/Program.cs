@@ -5,12 +5,15 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 
 namespace UnrealEngine.Runtime
 {
     class Program
     {
+        static string additionalAssemblySearchPath;
+
         public static void Main(string[] args)
         {
 	        if (!args.Any()){
@@ -31,19 +34,33 @@ namespace UnrealEngine.Runtime
             }
 	        
 
+            AppDomain.CurrentDomain.AssemblyResolve += CurrentDomain_AssemblyResolve;
 	        Console.WriteLine($"Processing file:");
 
-            foreach (string filePath in args) {
+            foreach (string filePath in args)
+            {
 	            Console.WriteLine($"Processing file: {filePath}");
 	            var success = ProcessAssembly(rewriter, filePath);
-	            if (!success) {
+	            if (!success) 
+				{
 		            Environment.ExitCode = 3;
 	            }
+                additionalAssemblySearchPath = null;
             }
 
             stopwatch.Stop();
             Console.WriteLine("AssemblyRewriter finished " + stopwatch.Elapsed);
             Console.ReadLine();
+        }
+
+        private static Assembly CurrentDomain_AssemblyResolve(object sender, ResolveEventArgs args)
+        {
+            string assemblyPath = Path.Combine(additionalAssemblySearchPath, new AssemblyName(args.Name).Name + ".dll");
+            if (File.Exists(assemblyPath))
+            {
+                return Assembly.LoadFrom(assemblyPath);
+            }
+            return null;
         }
 
         private static void RunTests(AssemblyRewriter rewriter)
@@ -74,8 +91,10 @@ namespace UnrealEngine.Runtime
                 }
                 else
                 {
-                    assembly = System.Reflection.Assembly.Load(File.ReadAllBytes(filePath));
+                    assembly = System.Reflection.Assembly.Load(File.ReadAllBytes(filePath));                    
                 }
+
+                additionalAssemblySearchPath = Path.GetDirectoryName(filePath);
 
                 if (ManagedUnrealModuleInfo.AssemblyHasSerializedModuleInfo(assembly))
                 {
