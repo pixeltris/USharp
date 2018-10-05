@@ -54,7 +54,7 @@ namespace UnrealEngine.Runtime
                 try
                 {
                     CreateFileDirectoryIfNotExists(projPath);
-                    File.WriteAllText(projPath, GetProjectFileContents(dte.Version, Path.GetFileNameWithoutExtension(projPath), GetEnginePathFromCurrentFolder(projPath) != null));
+                    File.WriteAllText(projPath, GetProjectFileContents(dte.Version, Path.GetFileNameWithoutExtension(projPath), GetEnginePathFromCurrentFolder(projPath) != null, projPath == GameProjPath));
                 }
                 catch
                 {
@@ -79,7 +79,7 @@ namespace UnrealEngine.Runtime
             return null;
         }
 
-        public override bool AddSourceFile(string slnPath, string projPath, string sourceFilePath, string code)
+        public override bool AddSourceFile(string slnPath, string projPath, string sourceFilePath, string code, bool saveSln = false)
         {
             EnvDTE.DTE dte = FindOrCreateDTE(slnPath);
             if (dte == null)
@@ -104,7 +104,10 @@ namespace UnrealEngine.Runtime
             CreateFileDirectoryIfNotExists(sourceFilePath);
             File.WriteAllText(sourceFilePath, code);
             project.ProjectItems.AddFromFile(sourceFilePath);
-
+            if (saveSln)
+            {
+                dte.Solution.SaveAs(slnPath);
+            }
             return true;
         }
 
@@ -310,11 +313,46 @@ namespace UnrealEngine.Runtime
             return false;
         }
 
-        private string GetProjectFileContents(string version, string projectName, bool insideEngine)
+        private string GetProjectFileContents(string version, string projectName, bool insideEngine, bool insideManagedFolder)
         {
-            string _ue4RuntimePath = Settings.EngineProjMerge ==
-                CodeGeneratorSettings.ManagedEngineProjMerge.EngineAndPluginsCombined ?
-                @"..\UnrealEngine.Runtime.dll" : @"..\..\..\UnrealEngine.Runtime.dll";
+            var _modulesDir = new DirectoryInfo(Settings.GetManagedModulesDir());
+            string _modulesFullPath = "";
+            if(_modulesDir != null) _modulesFullPath = _modulesDir.FullName;
+
+            string _hintPath = "";
+            string _referencePath = "";
+            string _outputPath = "";
+            string _postBuildEvent = "";
+            FileInfo _generatedUE4Module = new FileInfo(Path.Combine(_modulesFullPath, "bin", "Debug", "UnrealEngine" + ".dll"));
+
+            bool _generatedModuleExists = false;
+
+            if (insideEngine == false && insideManagedFolder)
+            {
+                //Creating CSProj Inside Game Project Managed Folder
+                var _runtimeDir = new DirectoryInfo(Path.Combine(_modulesFullPath, @"..\..\..\Binaries\Managed\"));
+                if (_runtimeDir != null) _referencePath = _runtimeDir.FullName;
+                //Inside Project-Managed-Source Folder
+                _outputPath = @"..\Binaries\";
+                var _assemblyDirInfo = new FileInfo(Path.Combine(_modulesFullPath, @"..\..\..", "Binaries", "Managed", "AssemblyRewriter", "UnrealEngine.AssemblyRewriter" + ".exe"));
+                var _outputDirInfo = new FileInfo(Path.Combine(GameProjPath, @"..\", _outputPath, Settings.GetProjectName() + "-Managed" + ".dll"));
+                if(_assemblyDirInfo != null && _outputDirInfo != null)
+                {
+                    _postBuildEvent = @"""" + _assemblyDirInfo.FullName + @""" """+ _outputDirInfo.FullName + @"""";
+                }
+
+                if (_generatedUE4Module.Exists)
+                {
+                    _generatedModuleExists = true;
+                }
+            }
+            else
+            {
+                _hintPath = Settings.EngineProjMerge ==
+    CodeGeneratorSettings.ManagedEngineProjMerge.EngineAndPluginsCombined ?
+    @"..\UnrealEngine.Runtime.dll" : @"..\..\..\UnrealEngine.Runtime.dll";
+                _outputPath = @"bin\$(Configuration)\";
+            }
             Guid projectGuid = Guid.NewGuid();
             string _fileContents = @"<?xml version=""1.0"" encoding=""utf-8""?>
 <Project ToolsVersion=""" + version + @""" DefaultTargets=""Build"" xmlns=""http://schemas.microsoft.com/developer/msbuild/2003"">
@@ -324,20 +362,43 @@ namespace UnrealEngine.Runtime
     <Platform Condition="" '$(Platform)' == '' "">AnyCPU</Platform>
     <ProjectGuid>{" + projectGuid + @"}</ProjectGuid>
     <OutputType>Library</OutputType>
-    <OutputPath>bin\$(Configuration)\</OutputPath>
+    <OutputPath>" + _outputPath + @"</OutputPath>
     <RootNamespace>" + projectName + @"</RootNamespace>
     <AssemblyName>" + projectName + @"</AssemblyName>
     <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-  </PropertyGroup>
+    <PostBuildEvent>" + _postBuildEvent + @"</PostBuildEvent>
+    <ReferencePath>" + _referencePath + @"</ReferencePath>";
+            if (_generatedModuleExists)
+            {
+                _fileContents +=
+    @"<ReferencePath>" + _generatedUE4Module.FullName + @"</ReferencePath>";
+            }
+
+            _fileContents +=
+  @"</PropertyGroup>
   <ItemGroup>
   </ItemGroup>";
             _fileContents +=
 @"<ItemGroup>
-    <Reference Include=""" + "UnrealEngine.Runtime" + @""">
-      <HintPath>" + _ue4RuntimePath + @"</HintPath>
-    </Reference>
-  </ItemGroup>";
+    <Reference Include = ""System"" />
+    <Reference Include = ""System.Core"" />
+     <Reference Include = ""System.Xml.Linq"" /> 
+      <Reference Include = ""System.Data.DataSetExtensions"" />  
+       <Reference Include = ""Microsoft.CSharp"" />  
+        <Reference Include = ""System.Data"" />  
+         <Reference Include = ""System.Net.Http"" />   
+          <Reference Include = ""System.Xml"" /> 
+           <Reference Include=""" + "UnrealEngine.Runtime" + @""">
+      <HintPath>" + _hintPath + @"</HintPath>
+    </Reference>";
+            if (_generatedModuleExists)
+            {
+                _fileContents += 
+    @"<Reference Include=""" + "UnrealEngine" + @""">
+    </Reference>""";
+            }
+  _fileContents += @"</ItemGroup>";
             _fileContents +=
   @"<Import Project=""$(MSBuildToolsPath)\Microsoft.CSharp.targets"" />
 </Project>";

@@ -17,6 +17,7 @@ namespace UnrealEngine.Runtime
             //IConsoleManager.Get().RegisterConsoleCommand("USharpGenSliced", "USharp generate C# code", GenerateCodeTimeSliced);
 
             IConsoleManager.Get().RegisterConsoleCommand("USharpMinHotReload", "USharp hotreload will skip reintancing / CDO checks", SetMinimalHotReload);
+            IConsoleManager.Get().RegisterConsoleCommand("USharpCreateManagedSolution", "USharp Generate Managed Solution For Game Project", GenerateManagedSolutionForGameProject);
         }
 
         private static void SetMinimalHotReload(string[] args)
@@ -31,6 +32,33 @@ namespace UnrealEngine.Runtime
             }
             Native_SharpHotReloadUtils.Set_MinimalHotReload(value);
             FMessage.Log("USharpMinHotReload: " + (value ? "Enabled" : "Disabled"));
+        }
+
+        private static void GenerateManagedSolutionForGameProject(string[] args)
+        {
+            CodeGenerator codeGenerator = new CodeGenerator(false);
+            CodeManager codeManager = CodeManager.Create(codeGenerator);
+            codeManager.OnBeginGenerateModules();
+            if(codeManager.AddProjectFile(codeManager.GameSlnPath, codeManager.GameProjPath))
+            {
+                var _modulesDir = new System.IO.DirectoryInfo(codeManager.Settings.GetManagedModulesDir());
+                string _modulesFullPath = "";
+                if (_modulesDir != null)
+                {
+                    _modulesFullPath = _modulesDir.FullName;
+                }
+                string _exampleScriptCopyFromPath = System.IO.Path.Combine(_modulesFullPath, @"..\..\..\Managed\Examples\", "Test" + ".cs");
+                if (System.IO.File.Exists(_exampleScriptCopyFromPath))
+                {
+                    string _exampleCode;
+                    using(System.IO.StreamReader _reader = new System.IO.StreamReader(_exampleScriptCopyFromPath))
+                    {
+                        _exampleCode = _reader.ReadToEnd();
+                    }
+                    string _exampleScriptCopyToPath = System.IO.Path.Combine(codeManager.Settings.GetManagedDir(), "Source", "Test" + ".cs");
+                    codeManager.AddSourceFile(codeManager.GameSlnPath, codeManager.GameProjPath, _exampleScriptCopyToPath, _exampleCode, true);
+                }
+            }
         }
 
         private static void GenerateCode(string[] args)
