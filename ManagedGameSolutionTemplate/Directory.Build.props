@@ -1,0 +1,9 @@
+<!--
+    MSBuild special user file which defines the props which should be used by any project. 
+    It is picked up by msbuild itself
+-->
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildStartupDirectory)/USharp.ProjectSetup.props" />
+
+  <Import Project="$(MSBuildStartupDirectory)/USharp.ProjectSetup.targets" />
+</Project>

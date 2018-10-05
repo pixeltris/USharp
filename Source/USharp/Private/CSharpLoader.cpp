@@ -1,6 +1,8 @@
 #include "CSharpLoader.h"
 #include "USharpPCH.h"
 #include "ExportedFunctions/ExportedFunctions.h"
+#include "CSharpProjectGeneration.h"
+
 
 //#define FORCE_MONO 1
 //#define MONO_SGEN 1
@@ -124,16 +126,7 @@ CSharpLoader* CSharpLoader::GetInstance()
 
 void CSharpLoader::SetupPaths()
 {
-	// This gives up "/Binaries/XXXX/" where XXXX is the platform (Win32, Win64, Android, etc)
-#if !IS_MONOLITHIC
-	FString PluginsBaseDir = FPaths::GetPath(FModuleManager::Get().GetModuleFilename("USharp"));
-#else
-	// In monolithic builds there are no plugins (and such FModuleManager::GetModuleFilename doesn't exist)
-	// FPlatformProcess::BaseDir() should be the binaries are?
-	FString PluginsBaseDir = FPlatformProcess::BaseDir();
-#endif
-	// Move this up to "/Binaries/"
-	PluginsBaseDir = FPaths::Combine(*PluginsBaseDir, TEXT("../"));
+	FString PluginsBaseDir = GetPluginBinariesDir();
 
 	// Managed plugins should be under "/Binaries/Managed/"
 	csharpPaths.Add(FPaths::Combine(*PluginsBaseDir, TEXT("Managed")));
@@ -428,6 +421,8 @@ bool CSharpLoader::Load(FString assemblyPath, FString customArgs, FString loader
 		}
 	}
 
+	CSharpProjectGeneration::GenerateProject();
+
 	TCHAR* entryPointClass = TEXT("UnrealEngine.EntryPoint");
 	TCHAR* entryPointMethod = TEXT("DllMain");
 
@@ -544,4 +539,20 @@ void CSharpLoader::LogLoaderError(FString error)
 {
 	FText title = FText::FromString(TEXT("C# Loader Error"));
 	FMessageDialog::Open(EAppMsgType::Ok, FText::FromString(error), &title);
+}
+
+FString CSharpLoader::GetPluginBinariesDir()
+{
+	// This gives up "/Binaries/XXXX/" where XXXX is the platform (Win32, Win64, Android, etc)
+#if !IS_MONOLITHIC
+	FString PluginsBaseDir = FPaths::GetPath(FModuleManager::Get().GetModuleFilename("USharp"));
+#else
+	// In monolithic builds there are no plugins (and such FModuleManager::GetModuleFilename doesn't exist)
+	// FPlatformProcess::BaseDir() should be the binaries are?
+	FString PluginsBaseDir = FPlatformProcess::BaseDir();
+#endif
+	// Move this up to "/Binaries/"
+	PluginsBaseDir = FPaths::Combine(*PluginsBaseDir, TEXT("../"));
+
+	return PluginsBaseDir;
 }

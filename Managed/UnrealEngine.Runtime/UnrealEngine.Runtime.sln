@@ -1,13 +1,18 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 14
-VisualStudioVersion = 14.0.25420.1
+# Visual Studio 15
+VisualStudioVersion = 15.0.28010.2041
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UnrealEngine.Runtime", "UnrealEngine.Runtime\UnrealEngine.Runtime.csproj", "{61FD3B78-387B-4B61-A9DA-FCC5B9B80E5B}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UnrealEngine.AssemblyRewriter", "UnrealEngine.AssemblyRewriter\UnrealEngine.AssemblyRewriter.csproj", "{CBD90449-5FE1-4366-A6D1-14B05F3FBA0D}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Loader", "Loader\Loader.csproj", "{C284889D-AA3A-4EC1-B4EA-FAA4A3A92C33}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{F98E80EC-0F91-42F0-9E1D-0FE57BDC924A}"
+	ProjectSection(SolutionItems) = preProject
+		.editorconfig = .editorconfig
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -29,5 +34,8 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {E3B49CA2-52F1-46DB-87F1-4D9A01AEF990}
 	EndGlobalSection
 EndGlobal

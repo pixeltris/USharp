@@ -158,6 +158,11 @@ namespace UnrealEngine.Runtime
             ReaderParameters readerParams = new ReaderParameters();
             WriterParameters writerParams = new WriterParameters();
 
+            var resolver = readerParams.AssemblyResolver as DefaultAssemblyResolver ?? new DefaultAssemblyResolver();
+            readerParams.AssemblyResolver = resolver;
+
+            resolver.AddSearchDirectory(Path.GetDirectoryName(assemblyPath));
+
             if (File.Exists(pdbFile) && UpdatePdb)
             {
                 readerParams.SymbolReaderProvider = new PdbReaderProvider();

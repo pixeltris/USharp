@@ -48,4 +48,5 @@ public:
 	bool Load(FString assemblyPath, FString customArgs, FString loaderAssemblyPath, bool loaderEnabled);
 	bool IsLoaded();
 	void LogLoaderError(FString error);
+	static FString GetPluginBinariesDir();
 };

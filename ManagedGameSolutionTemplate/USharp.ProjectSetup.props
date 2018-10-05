@@ -1,0 +1,34 @@
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildStartupDirectory)/USharp.ProjectGeneratedVariables.props" />
+
+  <Choose>
+    <!--Fallback: This sets up the plugin path when it is used as a game plugin and USharpPluginPath failes to resolve. This sould only happen during development since USharpPluginPath sould always point to the correct path however we may not have ncountered all circumstances yet-->
+    <When Condition="!Exists('$(USharpPluginPath)')">
+      <PropertyGroup>
+        <USharpPluginPath>$(MSBuildStartupDirectory)/../Plugins/USharp</USharpPluginPath>
+      </PropertyGroup>
+    </When>
+  </Choose>
+
+
+  <!--Fallback: for dev purpose only. it allows to inspect the settings in the template .sln/.csprj-->
+  <Choose>
+    <When Condition="!Exists('$(USharpPluginPath)')">
+      <PropertyGroup>
+        <USharpPluginPath>$(MSBuildStartupDirectory)/../../USharp</USharpPluginPath>
+      </PropertyGroup>
+    </When>
+  </Choose>
+  <!--end-->
+
+
+  <PropertyGroup>
+    <USharpRunntimeDllPath>$(USharpPluginPath)/Binaries/Managed/UnrealEngine.Runtime.dll</USharpRunntimeDllPath>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Reference Include="UnrealEngine.Runtime">
+      <HintPath>$(USharpRunntimeDllPath)</HintPath>
+    </Reference>
+  </ItemGroup>
+</Project>
