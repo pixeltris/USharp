@@ -46,8 +46,8 @@ namespace UnrealEngine.Runtime
 
             // Cache some strings we will be needing
             string projectName = Settings.GetProjectName();
-            GameSlnPath = Path.Combine(Settings.GetManagedDir(), projectName + ".sln");
-            GameProjPath = Path.Combine(Settings.GetManagedDir(), projectName + ".csproj");
+            GameSlnPath = Path.Combine(Settings.GetManagedDir(), "Source", projectName + "-Managed" + ".sln");
+            GameProjPath = Path.Combine(Settings.GetManagedDir(), "Source", projectName + "-Managed" + ".csproj");
 
             OnBegin();
         }

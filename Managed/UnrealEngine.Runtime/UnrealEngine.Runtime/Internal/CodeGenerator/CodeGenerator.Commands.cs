@@ -17,6 +17,7 @@ namespace UnrealEngine.Runtime
             //IConsoleManager.Get().RegisterConsoleCommand("USharpGenSliced", "USharp generate C# code", GenerateCodeTimeSliced);
 
             IConsoleManager.Get().RegisterConsoleCommand("USharpMinHotReload", "USharp hotreload will skip reintancing / CDO checks", SetMinimalHotReload);
+            IConsoleManager.Get().RegisterConsoleCommand("USharpCreateManagedSolution", "USharp Generate Managed Solution For Game Project", GenerateManagedSolutionForGameProject);
         }
 
         private static void SetMinimalHotReload(string[] args)
@@ -31,6 +32,17 @@ namespace UnrealEngine.Runtime
             }
             Native_SharpHotReloadUtils.Set_MinimalHotReload(value);
             FMessage.Log("USharpMinHotReload: " + (value ? "Enabled" : "Disabled"));
+        }
+
+        private static void GenerateManagedSolutionForGameProject(string[] args)
+        {
+            CodeGenerator codeGenerator = new CodeGenerator(false);
+            CodeManager codeManager = CodeManager.Create(codeGenerator);
+            codeManager.OnBeginGenerateModules();
+            if(codeManager.AddProjectFile(codeManager.GameSlnPath, codeManager.GameProjPath))
+            {
+                
+            }
         }
 
         private static void GenerateCode(string[] args)

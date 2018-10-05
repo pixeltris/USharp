@@ -54,7 +54,7 @@ namespace UnrealEngine.Runtime
                 try
                 {
                     CreateFileDirectoryIfNotExists(projPath);
-                    File.WriteAllText(projPath, GetProjectFileContents(dte.Version, Path.GetFileNameWithoutExtension(projPath), GetEnginePathFromCurrentFolder(projPath) != null));
+                    File.WriteAllText(projPath, GetProjectFileContents(dte.Version, Path.GetFileNameWithoutExtension(projPath), GetEnginePathFromCurrentFolder(projPath) != null, projPath == GameProjPath));
                 }
                 catch
                 {
@@ -310,11 +310,24 @@ namespace UnrealEngine.Runtime
             return false;
         }
 
-        private string GetProjectFileContents(string version, string projectName, bool insideEngine)
+        private string GetProjectFileContents(string version, string projectName, bool insideEngine, bool insideManagedFolder)
         {
-            string _ue4RuntimePath = Settings.EngineProjMerge ==
-                CodeGeneratorSettings.ManagedEngineProjMerge.EngineAndPluginsCombined ?
-                @"..\UnrealEngine.Runtime.dll" : @"..\..\..\UnrealEngine.Runtime.dll";
+            string _ue4RuntimePath = "";
+            string _outputPath = "";
+            if (insideEngine == false && insideManagedFolder)
+            {
+                //Creating CSProj Inside Game Project Managed Folder
+                _ue4RuntimePath = Path.Combine(Settings.GetManagedModulesDir(), @"..\..\..\Binaries\Managed\UnrealEngine.Runtime.dll");
+                //Inside Project-Managed-Source Folder
+                _outputPath = @"..\Binaries\";
+            }
+            else
+            {
+                _ue4RuntimePath = Settings.EngineProjMerge ==
+    CodeGeneratorSettings.ManagedEngineProjMerge.EngineAndPluginsCombined ?
+    @"..\UnrealEngine.Runtime.dll" : @"..\..\..\UnrealEngine.Runtime.dll";
+                _outputPath = @"bin\$(Configuration)\";
+            }
             Guid projectGuid = Guid.NewGuid();
             string _fileContents = @"<?xml version=""1.0"" encoding=""utf-8""?>
 <Project ToolsVersion=""" + version + @""" DefaultTargets=""Build"" xmlns=""http://schemas.microsoft.com/developer/msbuild/2003"">
@@ -324,7 +337,7 @@ namespace UnrealEngine.Runtime
     <Platform Condition="" '$(Platform)' == '' "">AnyCPU</Platform>
     <ProjectGuid>{" + projectGuid + @"}</ProjectGuid>
     <OutputType>Library</OutputType>
-    <OutputPath>bin\$(Configuration)\</OutputPath>
+    <OutputPath>" + _outputPath + @"</OutputPath>
     <RootNamespace>" + projectName + @"</RootNamespace>
     <AssemblyName>" + projectName + @"</AssemblyName>
     <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
