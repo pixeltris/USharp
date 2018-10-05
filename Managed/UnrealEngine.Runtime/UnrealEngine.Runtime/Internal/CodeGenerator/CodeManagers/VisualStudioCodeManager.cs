@@ -323,6 +323,10 @@ namespace UnrealEngine.Runtime
             string _referencePath = "";
             string _outputPath = "";
             string _postBuildEvent = "";
+            FileInfo _generatedUE4Module = new FileInfo(Path.Combine(_modulesFullPath, "bin", "Debug", "UnrealEngine" + ".dll"));
+
+            bool _generatedModuleExists = false;
+
             if (insideEngine == false && insideManagedFolder)
             {
                 //Creating CSProj Inside Game Project Managed Folder
@@ -335,6 +339,11 @@ namespace UnrealEngine.Runtime
                 if(_assemblyDirInfo != null && _outputDirInfo != null)
                 {
                     _postBuildEvent = @"""" + _assemblyDirInfo.FullName + @""" """+ _outputDirInfo.FullName + @"""";
+                }
+
+                if (_generatedUE4Module.Exists)
+                {
+                    _generatedModuleExists = true;
                 }
             }
             else
@@ -359,16 +368,37 @@ namespace UnrealEngine.Runtime
     <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <PostBuildEvent>" + _postBuildEvent + @"</PostBuildEvent>
-    <ReferencePath>" + _referencePath + @"</ReferencePath>
-  </PropertyGroup>
+    <ReferencePath>" + _referencePath + @"</ReferencePath>";
+            if (_generatedModuleExists)
+            {
+                _fileContents +=
+    @"<ReferencePath>" + _generatedUE4Module.FullName + @"</ReferencePath>";
+            }
+
+            _fileContents +=
+  @"</PropertyGroup>
   <ItemGroup>
   </ItemGroup>";
             _fileContents +=
 @"<ItemGroup>
-    <Reference Include=""" + "UnrealEngine.Runtime" + @""">
+    <Reference Include = ""System"" />
+    <Reference Include = ""System.Core"" />
+     <Reference Include = ""System.Xml.Linq"" /> 
+      <Reference Include = ""System.Data.DataSetExtensions"" />  
+       <Reference Include = ""Microsoft.CSharp"" />  
+        <Reference Include = ""System.Data"" />  
+         <Reference Include = ""System.Net.Http"" />   
+          <Reference Include = ""System.Xml"" /> 
+           <Reference Include=""" + "UnrealEngine.Runtime" + @""">
       <HintPath>" + _hintPath + @"</HintPath>
-    </Reference>
-  </ItemGroup>";
+    </Reference>";
+            if (_generatedModuleExists)
+            {
+                _fileContents += 
+    @"<Reference Include=""" + "UnrealEngine" + @""">
+    </Reference>""";
+            }
+  _fileContents += @"</ItemGroup>";
             _fileContents +=
   @"<Import Project=""$(MSBuildToolsPath)\Microsoft.CSharp.targets"" />
 </Project>";
