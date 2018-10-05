@@ -259,40 +259,48 @@ namespace UnrealEngine.Runtime.Native
             string gameAssemblyFileName = null;
             const string gameAssemblySuffix = "-Managed.dll";
 
+            // Add to assemblyPaths for each possible location the main managed assembly can be.
+            // If a managed assembly is found just use the found assembly path (and its references).
+            HashSet<string> assemblyPaths = new HashSet<string>();
+
             string projectFileName = FPaths.ProjectFilePath;
             if (!string.IsNullOrEmpty(projectFileName))
             {
                 projectFileName = Path.GetFileNameWithoutExtension(projectFileName);
                 string projectManagedBinDir = Path.Combine(FPaths.ProjectDir, "Managed", "Binaries");
-                string assemblyPath = Path.Combine(projectManagedBinDir, projectFileName + gameAssemblySuffix);
+                string assemblyPath = Path.GetFullPath(Path.Combine(projectManagedBinDir, projectFileName + gameAssemblySuffix));
                 if (File.Exists(assemblyPath))
                 {
-                    gameAssemblyFileName = Path.GetFullPath(assemblyPath);
+                    gameAssemblyFileName = assemblyPath;
                 }
+                assemblyPaths.Add(assemblyPath);
             }
 
             string projectName = FGlobals.InternalProjectName;
             if (string.IsNullOrEmpty(gameAssemblyFileName) && !string.IsNullOrEmpty(projectName))
             {
-                string path = projectName + gameAssemblySuffix;
+                string path = Path.GetFullPath(projectName + gameAssemblySuffix);
+                assemblyPaths.Add(path);
                 if (!File.Exists(path))
                 {
-                    path = Path.Combine("../", "Managed", projectName + gameAssemblySuffix);
+                    path = Path.GetFullPath(Path.Combine("../", "Managed", projectName + gameAssemblySuffix));
                 }
 
                 if (File.Exists(path))
                 {
-                    gameAssemblyFileName = Path.GetFullPath(path);
+                    gameAssemblyFileName = path;
                 }
+                assemblyPaths.Add(path);
             }
-
-            HashSet<string> assemblyPaths = new HashSet<string>();
 
             // We either need to load all unreal assemblies or hold some metadata to know what modules to load dynamically
             // as GCHelper needs to resolve types. Resolving all assemblies is tricky without forcefully loading all dependencies
             // which may be undesirable.
             if (!string.IsNullOrEmpty(gameAssemblyFileName) && File.Exists(gameAssemblyFileName))
             {
+                // Clear the assembly paths as we have found a concrete target game assembly
+                assemblyPaths.Clear();
+
                 assemblyPaths.Add(gameAssemblyFileName);
                 
                 //string pdbFileName = Path.ChangeExtension(gameAssemblyFileName, ".pdb");
