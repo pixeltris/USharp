@@ -27,7 +27,7 @@ namespace UnrealEngine.Runtime
         }
 
         public void GenerateCodeForAllModules()
-        {            
+        {
             GenerateCodeForModules(new UnrealModuleType[]
                 {
                     UnrealModuleType.Game,// Do C++ classes appear here? Or under asset registry? TODO: Look into
@@ -40,6 +40,13 @@ namespace UnrealEngine.Runtime
         public void GenerateCodeForModules(UnrealModuleType[] moduleTypes)
         {
             BeginGenerateModules();
+
+            //If Generating All Modules and Modules Folder Exists
+            if (moduleTypes.Length >= 3 && Directory.Exists(Settings.GetManagedModulesDir()))
+            {
+                //Remove Modules Folder with SubFolders/Files So That It Can Be Regenerated
+                Directory.Delete(Settings.GetManagedModulesDir(), true);
+            }
 
             Dictionary<UPackage, List<UStruct>> structsByPackage = new Dictionary<UPackage, List<UStruct>>();
             Dictionary<UPackage, List<UEnum>> enumsByPackage = new Dictionary<UPackage, List<UEnum>>();
