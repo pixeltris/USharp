@@ -26,9 +26,25 @@
     <USharpRunntimeDllPath>$(USharpPluginPath)/Binaries/Managed/UnrealEngine.Runtime.dll</USharpRunntimeDllPath>
   </PropertyGroup>
 
+  <!--Will Only Exist If All Engine And Plugin Modules Are Grouped Together Under One Csproj -->
+  <PropertyGroup>
+    <UE4GenModulesPath>$(USharpPluginPath)/Binaries/Managed/Modules/bin/Debug/UnrealEngine.dll</UE4GenModulesPath>
+  </PropertyGroup>
+
   <ItemGroup>
     <Reference Include="UnrealEngine.Runtime">
       <HintPath>$(USharpRunntimeDllPath)</HintPath>
     </Reference>
   </ItemGroup>
+ 
+  <Choose>
+    <When Condition="Exists('$(UE4GenModulesPath)')">
+      <ItemGroup>
+        <Reference Include="UnrealEngine">
+          <HintPath>$(UE4GenModulesPath)</HintPath>
+        </Reference>
+      </ItemGroup>
+    </When>
+  </Choose>
+
 </Project>
