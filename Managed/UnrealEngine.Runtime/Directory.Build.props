@@ -1,0 +1,23 @@
+<!--
+    MSBuild special user file which defines the props which should be used by any project. 
+    It is picked up by msbuild itself
+-->
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Target Name="Copy OutPut to Binaries dir" AfterTargets="PostBuildEvent" 
+          Condition="'$(MSBuildProjectName)' != 'UnrealEngine.AssemblyRewriter'"
+    >
+    <PropertyGroup>
+        <SourcePath>$(MSBuildProjectDirectory)/$(OutDir)$(AssemblyName)</SourcePath>
+        <CopyPath>$(MSBuildStartupDirectory)/../../Binaries/Managed/$(AssemblyName)</CopyPath>
+    </PropertyGroup>
+    <Message Text="Copy output from '$(SourcePath)' to ' $(CopyPath))"/>
+    <Exec ConsoleToMSBuild="true"
+        Command="copy &quot;$(SourcePath).dll&quot; &quot;$(CopyPath).dll&quot; /y"
+        IgnoreExitCode ="false" 
+    />
+    <Exec ConsoleToMSBuild="true"
+        Command="copy &quot;$(SourcePath).pdb&quot; &quot;$(CopyPath).pdb&quot; /y"
+        IgnoreExitCode ="true"
+    />
+  </Target>  
+</Project>

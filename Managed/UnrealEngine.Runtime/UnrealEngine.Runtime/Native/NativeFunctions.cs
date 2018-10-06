@@ -108,6 +108,34 @@ namespace UnrealEngine.Runtime.Native
 #if WITH_USHARP_TESTS
                 Tests.Tests.OnNativeFunctionsRegistered();
 #endif
+                if (FBuild.WithEditor)
+                {
+                    //TODO: this tells the domain where to lookup aditional assemblies. however it might not be the best place for this code. find a better place
+                    AppDomain.CurrentDomain.AssemblyResolve += (sender, args) =>
+                    {
+                        var rootPath = args.RequestingAssembly?.Location ?? AppDomain.CurrentDomain.SetupInformation.ApplicationBase;
+                        var path = Path.Combine(rootPath, args.Name);
+                        if (File.Exists(path))
+                        {
+                            return Assembly.LoadFile(path);
+                        }
+                        return null;
+                    };
+
+                    try
+                    {
+                        var assemblyName = "USharp.Editor.dll";
+                        var assembly = AppDomain.CurrentDomain.Load(assemblyName);
+
+                        var type = assembly.GetExportedTypes().First(t => t.Name.Contains(nameof(EntryPoint)));
+                        type.InvokeMember(nameof(EntryPoint.DllMain), BindingFlags.InvokeMethod, null, null, new object[]{""});
+                    }
+                    catch (Exception e)
+                    {
+                        Console.WriteLine(e);
+                        Debug.WriteLine(e.ToString());
+                    }
+                }
             }
         }
 
