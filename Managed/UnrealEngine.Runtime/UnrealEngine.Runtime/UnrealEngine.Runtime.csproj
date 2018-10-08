@@ -288,6 +288,7 @@
     <Compile Include="Native\Native_FMulticastScriptDelegate.cs" />
     <Compile Include="Native\Native_FARFilter.cs" />
     <Compile Include="Native\Native_FAssetData.cs" />
+    <Compile Include="Native\Native_FReferenceControllerOps.cs" />
     <Compile Include="Native\Native_FReferenceFinder.cs" />
     <Compile Include="Native\Native_FScriptDelegate.cs" />
     <Compile Include="Native\Native_FSoftObjectPtr.cs" />
@@ -314,6 +315,7 @@
     <Compile Include="Native\Native_FScriptSparseArray.cs" />
     <Compile Include="Native\Native_FString.cs" />
     <Compile Include="Native\Native_FSoftObjectPath.cs" />
+    <Compile Include="Native\Native_FText.cs" />
     <Compile Include="Native\Native_FThreading.cs" />
     <Compile Include="Native\Native_FTicker.cs" />
     <Compile Include="Native\Native_FTimerManager.cs" />

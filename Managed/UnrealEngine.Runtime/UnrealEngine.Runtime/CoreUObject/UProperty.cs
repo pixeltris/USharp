@@ -522,7 +522,7 @@ namespace UnrealEngine.Runtime
                 case EPropertyType.Name:
                     return typeof(FName);
                 case EPropertyType.Text:
-                    throw new NotImplementedException();
+                    return typeof(FText);
                 case EPropertyType.Interface:
                     {
                         UClass unrealClassInterface = (prop as UInterfaceProperty).InterfaceClass;

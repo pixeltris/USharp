@@ -232,6 +232,9 @@ namespace UnrealEngine.Runtime
                 case EPropertyType.MulticastDelegate:
                     builder.AppendLine(GetTypeName(property, namespaces) + " " + propertyName + Settings.VarNames.DelegateCached + ";");
                     break;
+                case EPropertyType.Text:
+                    builder.AppendLine(GetTypeName(property, namespaces) + " " + propertyName + Settings.VarNames.FTextCached + ";");
+                    break;
                 case EPropertyType.Array:
                     if (IsOwnerClassOrStructAsClass(property))
                     {
@@ -564,7 +567,7 @@ namespace UnrealEngine.Runtime
                         builder.CloseBrace();
 
                         if (toNative)
-                        {   
+                        {
                             builder.AppendLine(cachedStructAsClassVarName + "." + Names.StructAsClass_CopyFrom + "(" + varName + ");");
                         }
                         else
@@ -593,6 +596,24 @@ namespace UnrealEngine.Runtime
                             Names.UObject_Address + ", " + memberOffsetVarName + "));");
                         builder.CloseBrace();
                         builder.AppendLine(assignTo + delegateVarName + ";");
+                    }
+                    else if (property.PropertyType == EPropertyType.Text)
+                    {
+                        string textVarName = propertyName + Settings.VarNames.FTextCached;
+
+                        builder.AppendLine("if (" + textVarName + " == null)");
+                        builder.OpenBrace();
+                        builder.AppendLine(textVarName + " = new " + GetTypeName(property, namespaces) + "(IntPtr.Add(" +
+                            Names.UObject_Address + ", " + memberOffsetVarName + "), false);");
+                        builder.CloseBrace();
+                        if (toNative)
+                        {
+                            builder.AppendLine(textVarName + ".CopyFrom(value);");
+                        }
+                        else
+                        {
+                            builder.AppendLine("return " + textVarName + ";");
+                        }
                     }
                     else
                     {
@@ -672,17 +693,12 @@ namespace UnrealEngine.Runtime
                 return Names.BlittableTypeMarshaler + "<" + blittableTypeName + ">";
             }
 
-            if (property.PropertyType == EPropertyType.Text)
-            {
-                // TODO
-                return null;
-            }
-
             switch (property.PropertyType)
             {
                 case EPropertyType.Bool:
                     return Names.BoolMarshaler;
                 case EPropertyType.Str: return Names.FStringMarshaler;
+                case EPropertyType.Text: return Names.FTextMarshaler;
                 case EPropertyType.Struct:
                     {
                         UStruct unrealStruct = (property as UStructProperty).Struct;

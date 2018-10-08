@@ -15,12 +15,8 @@ CSEXPORT int32 CSCONV Export_SizeOfStruct_SizeOf_FLazyObjectPtr()
 
 CSEXPORT int32 CSCONV Export_SizeOfStruct_SizeOf_FSharedPtr()
 {
+	ensure(sizeof(TSharedPtr<int32, ESPMode::ThreadSafe>) == sizeof(TSharedRef<int32, ESPMode::ThreadSafe>));
 	return sizeof(TSharedPtr<int32, ESPMode::ThreadSafe>);
-}
-
-CSEXPORT int32 CSCONV Export_SizeOfStruct_SizeOf_FSharedRef()
-{
-	return sizeof(TSharedRef<int32, ESPMode::ThreadSafe>);
 }
 
 CSEXPORT int32 CSCONV Export_SizeOfStruct_SizeOf_FSoftObjectPath()
@@ -154,7 +150,6 @@ CSEXPORT void CSCONV Export_SizeOfStruct(RegisterFunc registerFunc)
 	REGISTER_FUNC(Export_SizeOfStruct_SizeOf_FWeakObjectPtr);
 	REGISTER_FUNC(Export_SizeOfStruct_SizeOf_FLazyObjectPtr);
 	REGISTER_FUNC(Export_SizeOfStruct_SizeOf_FSharedPtr);
-	REGISTER_FUNC(Export_SizeOfStruct_SizeOf_FSharedRef);
 	REGISTER_FUNC(Export_SizeOfStruct_SizeOf_FSoftObjectPath);
 	REGISTER_FUNC(Export_SizeOfStruct_SizeOf_FUniqueObjectGuid);
 	REGISTER_FUNC(Export_SizeOfStruct_SizeOf_FAssetData);

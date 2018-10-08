@@ -441,6 +441,7 @@ namespace UnrealEngine.Runtime
             VarNames.StructCopy = "Copy";
             VarNames.UObjectBlittableName = "_ObjectPtr";
             VarNames.StructAsClassCached = "_StructCached";
+            VarNames.FTextCached = "_TextCached";
             VarNames.DelegateCached = "_DelegateCached";
             VarNames.DelegateInvoker = "Invoker";
             VarNames.DelegateSignature = "Signature";
@@ -945,6 +946,11 @@ namespace UnrealEngine.Runtime
             /// FSomeStructAsClass XXXX_StructCached;
             /// </summary>
             public string StructAsClassCached { get; set; }
+
+            /// <summary>
+            /// FText XXXX_TextCached;
+            /// </summary>
+            public string FTextCached { get; set; }
 
             /// <summary>
             /// FMulticastDelegate<T> XXXX_DelegateCached;

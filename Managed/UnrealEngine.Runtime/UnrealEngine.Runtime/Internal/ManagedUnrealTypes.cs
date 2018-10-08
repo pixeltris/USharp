@@ -566,7 +566,7 @@ namespace UnrealEngine.Runtime
                 managedFunctionInvoker(paramsBuffer, obj);
 
                 // Copy out params from the temp buffer
-                if (hasOutParams)
+                //if (hasOutParams) // 4.20 DestructorLink change (see below)
                 {
                     int paramIndex = 0;
                     foreach (IntPtr paramProp in new NativeReflection.NativeFieldIterator(Runtime.Classes.UProperty, function, false))
@@ -578,12 +578,21 @@ namespace UnrealEngine.Runtime
                             // - See "REMOVING the DestroyValue call" below.
                             // Destroy the existing memory (this assumed the existing memory is valid or at least memzerod)
                             //Native_UProperty.DestroyValue(paramProp, outParamsBufferPtr[paramIndex]);
-                            
+
                             // A raw memcpy should be OK since the managed invoker should have set this memory appropriately.
                             FMemory.Memcpy(outParamsBufferPtr[paramIndex],
                                 paramsBuffer + Native_UProperty.GetOffset_ForUFunction(paramProp),
                                 Native_UProperty.Get_ElementSize(paramProp));// Should be ArrayDim*ElementSize but ArrayDim should always be 1 for params
                         }
+                        else
+                        {
+                            // 4.20 the original DestructorLink code doesn't work as expected (did it ever work?). DestructorLink seems to only be
+                            // used on delegate functions (e.g. /Script/Engine.ActorOnClickedSignature__DelegateSignature).
+                            // - For now call destroy everything other than out params (is this safe?)
+                            // - TODO: Replace this with custom Stack.Code stepping as described above?
+                            Native_UProperty.DestroyValue_InContainer(paramProp, paramsBuffer);
+                        }
+
                         paramIndex++;
                     }
                 }
@@ -597,7 +606,7 @@ namespace UnrealEngine.Runtime
                 // For C# it might be better if we reimplemented all of the IMPLEMENT_VM_FUNCTION functions to reduce the amount
                 // of copying as we currently need ANOTHER copy to get it from the temp buffer into a C# type (which is done
                 // inside the managedFunctionInvoker function)
-                foreach (IntPtr paramProp in new NativeReflection.NativeFieldIterator(Runtime.Classes.UProperty, function,
+                /*foreach (IntPtr paramProp in new NativeReflection.NativeFieldIterator(Runtime.Classes.UProperty, function,
                     EFieldIteratorType.Destructor, false))
                 {
                     // When is this ever false? It seems to be checked in UObject::ProcessEvent()
@@ -609,7 +618,7 @@ namespace UnrealEngine.Runtime
                     {
                         Native_UProperty.DestroyValue_InContainer(paramProp, paramsBuffer);
                     }
-                }
+                }*/
             }
 
             private unsafe void HandleInvokeFunctionFromNative(IntPtr obj, FFrame* stack, IntPtr result,

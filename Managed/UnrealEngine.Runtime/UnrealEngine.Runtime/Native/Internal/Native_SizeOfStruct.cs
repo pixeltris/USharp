@@ -15,7 +15,6 @@ namespace UnrealEngine.Runtime.Native
         public static Del_SizeOf SizeOf_FWeakObjectPtr;
         public static Del_SizeOf SizeOf_FLazyObjectPtr;
         public static Del_SizeOf SizeOf_FSharedPtr;
-        public static Del_SizeOf SizeOf_FSharedRef;               
         public static Del_SizeOf SizeOf_FSoftObjectPath;
         public static Del_SizeOf SizeOf_FUniqueObjectGuid;
         public static Del_SizeOf SizeOf_FAssetData;
@@ -41,5 +40,6 @@ namespace UnrealEngine.Runtime.Native
         public static Del_SizeOf SizeOf_FDelegateHandle;
         public static Del_SizeOf SizeOf_FFrame;
         public static Del_SizeOf SizeOf_TStatId;
+        public static Del_SizeOf SizeOf_FText;
     }
 }

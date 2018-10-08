@@ -15,7 +15,6 @@ namespace UnrealEngine.Runtime
             ValidateStructSize<FWeakObjectPtr>(Native_SizeOfStruct.SizeOf_FWeakObjectPtr);
             ValidateStructSize<FLazyObjectPtr>(Native_SizeOfStruct.SizeOf_FLazyObjectPtr);
             ValidateStructSize<FSharedPtr>(Native_SizeOfStruct.SizeOf_FSharedPtr);
-            ValidateStructSize<FSharedRef>(Native_SizeOfStruct.SizeOf_FSharedRef);
             ValidateStructSize<FSoftObjectPathUnsafe>(Native_SizeOfStruct.SizeOf_FSoftObjectPath);
             ValidateStructSize<FUniqueObjectGuid>(Native_SizeOfStruct.SizeOf_FUniqueObjectGuid);
             ValidateStructSize<FAssetDataNative>(Native_SizeOfStruct.SizeOf_FAssetData);
@@ -41,6 +40,7 @@ namespace UnrealEngine.Runtime
             ValidateStructSize<FDelegateHandle>(Native_SizeOfStruct.SizeOf_FDelegateHandle);
             ValidateStructSize<FFrame>(Native_SizeOfStruct.SizeOf_FFrame);
             ValidateStructSize<TStatId>(Native_SizeOfStruct.SizeOf_TStatId);
+            ValidateStructSize<FText.FTextNative>(Native_SizeOfStruct.SizeOf_FText);
         }
 
         private static void ValidateStructSize<T>(Native_SizeOfStruct.Del_SizeOf func) where T : struct

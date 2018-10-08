@@ -345,6 +345,20 @@ namespace UnrealEngine.Runtime
                     GCHelper.ManagedObjectBeingInitialized = IntPtr.Zero;
                 }
 
+                // All types other than FText seem to be OK to be left uninitialized. FText however requires the FText::TextData to be
+                // initialized otherwise the TSharedPtr will be invalid and will cause a crash. For C++ this is fine as FText will be
+                // initialized by the default ctor. For BP I'd imagine something like this InitializeValue_InContainer code is used.
+                // TODO: Locate the BP code which handles construction and make sure they do the same?
+                IntPtr objAddress = objectInitializer.ObjectAddress;
+                foreach (IntPtr prop in new NativeReflection.NativeFieldIterator(Runtime.Classes.UProperty, sharpClass, true))
+                {
+                    if (Native_UObjectBase.GetClass(Native_UField.GetOwnerClass(prop)) != Runtime.Classes.USharpClass)
+                    {
+                        break;
+                    }
+                    Native_UProperty.InitializeValue_InContainer(prop, objAddress);
+                }
+
                 //EClassFlags oldClassFlags = Native_UClass.Get_ClassFlags(managedClass.Address);
                 //Native_UClass.Set_ClassFlags(managedClass.Address, oldClassFlags & (~(EClassFlags.Intrinsic | EClassFlags.Native)));
 

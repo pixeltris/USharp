@@ -79,6 +79,15 @@ namespace UnrealEngine.Runtime
                         assembly.MainModule.ImportEx(ManagedUnrealTypeInfo.GetTypeFromPropertyInfo(propertyInfo)));
                     type.Fields.Add(delegateWrapperField);
                 }
+
+                FieldDefinition cachedFTextField = null;
+                if (propertyInfo.Type.TypeCode == EPropertyType.Text)
+                {
+                    // Add a field to store the cached FText for the getter / setter
+                    cachedFTextField = new FieldDefinition(
+                        propertyInfo.Name + codeSettings.VarNames.FTextCached, FieldAttributes.Private, ftextTypeRef);
+                    type.Fields.Add(cachedFTextField);
+                }
                 
                 if (propertyDefinition.GetMethod != null)
                 {
@@ -100,6 +109,10 @@ namespace UnrealEngine.Runtime
                     else if (propertyInfo.IsDelegate)
                     {
                         WriteGetterDelegate(classInfo, propertyInfo, propertyDefinition.GetMethod, isValidField, offsetField, delegateWrapperField);
+                    }
+                    else if (propertyInfo.Type.TypeCode == EPropertyType.Text)
+                    {
+                        WriteCachedFTextGetter(classInfo, propertyInfo, propertyDefinition.GetMethod, isValidField, offsetField, cachedFTextField);
                     }
                     else
                     {
@@ -126,6 +139,10 @@ namespace UnrealEngine.Runtime
                         // Setter for delegates isn't currently supported.
                         type.Methods.Remove(propertyDefinition.SetMethod);
                         propertyDefinition.SetMethod = null;
+                    }
+                    else if (propertyInfo.Type.TypeCode == EPropertyType.Text)
+                    {
+                        WriteCachedFTextSetter(classInfo, propertyInfo, propertyDefinition.SetMethod, isValidField, offsetField, cachedFTextField);
                     }
                     else
                     {
@@ -295,6 +312,64 @@ namespace UnrealEngine.Runtime
             processor.InsertBefore(branchPosition, branchInstruction);
 
             EndGetter(typeInfo, propertyInfo, getter, isValidField, processor);
+        }
+
+        private void WriteCachedFTextGetter(ManagedUnrealTypeInfo typeInfo, ManagedUnrealPropertyInfo propertyInfo, MethodDefinition getter,
+            FieldDefinition isValidField, FieldDefinition offsetField, FieldDefinition cachedFTextField)
+        {
+            ILProcessor processor = BeginGetter(getter);
+            WriteCachedFTextGetterSetter(offsetField, cachedFTextField, processor,
+                new Instruction[] 
+                {
+                    processor.Create(OpCodes.Ldfld, cachedFTextField)
+                });
+            EndGetter(typeInfo, propertyInfo, getter, isValidField, processor);
+        }
+
+        private void WriteCachedFTextSetter(ManagedUnrealTypeInfo typeInfo, ManagedUnrealPropertyInfo propertyInfo, MethodDefinition setter,
+            FieldDefinition isValidField, FieldDefinition offsetField, FieldDefinition cachedFTextField)
+        {
+            ILProcessor processor = BeginSetter(setter);
+            WriteCachedFTextGetterSetter(offsetField, cachedFTextField, processor,
+                new Instruction[]
+                {
+                    processor.Create(OpCodes.Ldfld, cachedFTextField),
+                    processor.Create(OpCodes.Ldarg_1),
+                    processor.Create(OpCodes.Callvirt, ftextCopyFrom)
+                });
+            EndSetter(typeInfo, propertyInfo, setter, isValidField, processor);
+        }
+
+        private void WriteCachedFTextGetterSetter(FieldDefinition offsetField, FieldDefinition cachedFTextField, 
+            ILProcessor processor, Instruction[] instructions)
+        {
+            processor.Emit(OpCodes.Ldarg_0);
+            processor.Emit(OpCodes.Ldfld, cachedFTextField);
+
+            // Save the position of the branch instruction for later, when we have a reference to its target.
+            // (will insert Brtrue_S before this instruction as a null check on the wrapper field)
+            processor.Emit(OpCodes.Ldarg_0);
+            Instruction branchPosition = processor.Body.Instructions[processor.Body.Instructions.Count - 1];
+
+            // Create an instance of the FText and store in the member field
+            processor.Emit(OpCodes.Ldarg_0);// IntPtr.Add(Address, XXXX_Offset)
+            processor.Emit(OpCodes.Call, uobjectAddressGetter);
+            processor.Emit(OpCodes.Ldsfld, offsetField);
+            processor.Emit(OpCodes.Call, intPtrAddMethod);
+            processor.Emit(OpCodes.Ldc_I4_0);// , false);
+            processor.Emit(OpCodes.Newobj, ftextCtor);
+            processor.Emit(OpCodes.Stfld, cachedFTextField);// XXXX_TextCached = ...
+
+            processor.Emit(OpCodes.Ldarg_0);
+            Instruction branchTarget = processor.Body.Instructions[processor.Body.Instructions.Count - 1];
+            foreach (Instruction instruction in instructions)
+            {
+                processor.Append(instruction);
+            }
+
+            // Insert the branch
+            Instruction branchInstruction = processor.Create(OpCodes.Brtrue_S, branchTarget);
+            processor.InsertBefore(branchPosition, branchInstruction);
         }
 
         private void WriteGetterFixedSizeArray(TypeDefinition type, ManagedUnrealTypeInfo typeInfo, ManagedUnrealPropertyInfo propertyInfo, 
