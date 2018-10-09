@@ -70,10 +70,7 @@ namespace UnrealEngine.Runtime
             {
                 if (managedClass.Address != IntPtr.Zero)
                 {
-                    // The native class constructor shouldn't be null as we should at least have the native UObject constructor.
-                    Debug.Assert(managedClass.NativeParentClassConstructor != IntPtr.Zero);
-                    Native_UClass.Set_ClassConstructor(managedClass.Address, managedClass.NativeParentClassConstructor);
-
+                    Native_USharpClass.Set_ManagedConstructor(managedClass.Address, IntPtr.Zero);
                     managedClass.SetFallbackInvokers();
                 }
             }
@@ -345,18 +342,23 @@ namespace UnrealEngine.Runtime
                     GCHelper.ManagedObjectBeingInitialized = IntPtr.Zero;
                 }
 
-                // All types other than FText seem to be OK to be left uninitialized. FText however requires the FText::TextData to be
-                // initialized otherwise the TSharedPtr will be invalid and will cause a crash. For C++ this is fine as FText will be
-                // initialized by the default ctor. For BP I'd imagine something like this InitializeValue_InContainer code is used.
-                // TODO: Locate the BP code which handles construction and make sure they do the same?
+                // Initialize C# members which can't be zero initialized (e.g. FText)
+                // - Does this impact how the FObjectInitializer destructor is called (it will call FObjectInitializer::InitProperties). This could
+                //   potentially conflict with our use of InitializeValue_InContainer and leak memory? Check how blueprint does this initialization
                 IntPtr objAddress = objectInitializer.ObjectAddress;
                 foreach (IntPtr prop in new NativeReflection.NativeFieldIterator(Runtime.Classes.UProperty, sharpClass, true))
                 {
+                    // Only initialize members defined in C#, the other properties will be initialized by the base native ctor
                     if (Native_UObjectBase.GetClass(Native_UField.GetOwnerClass(prop)) != Runtime.Classes.USharpClass)
                     {
                         break;
                     }
-                    Native_UProperty.InitializeValue_InContainer(prop, objAddress);
+                    
+                    // Only initialize the value if the property can't be zero initialized
+                    if (!Native_UProperty.HasAnyPropertyFlags(prop, EPropertyFlags.ZeroConstructor))
+                    {
+                        Native_UProperty.InitializeValue_InContainer(prop, objAddress);
+                    }
                 }
 
                 //EClassFlags oldClassFlags = Native_UClass.Get_ClassFlags(managedClass.Address);
@@ -395,6 +397,20 @@ namespace UnrealEngine.Runtime
             // If the class hasn't been changed create a reinstancer which will reinstance only if the CDO has changed.
             // If it is an interface and it hasn't been structurally modified the CDO shouldn't have changed so we can skip the reinstancer CDO check.
 
+            if (compiledClasses.Contains(managedClass))
+            {
+                return;
+            }
+
+            ManagedUnrealTypeInfo classInfo = managedClass.TypeInfo;
+            IntPtr sharpClass = managedClass.Address;
+
+            if (!managedClass.IsInterface)
+            {
+                // Always update the class constructor as the C# constructor is trashed on hotreload
+                Native_USharpClass.SetSharpClassConstructor(sharpClass, Marshal.GetFunctionPointerForDelegate(managedClass.ClassConstructor));
+            }
+
             if (!managedClass.HasChanged)
             {
                 // Classes which haven't changed structurally may still require reinstancing if the CDO code has changed.
@@ -405,10 +421,6 @@ namespace UnrealEngine.Runtime
                     Debug.Assert(managedClass.OldAddress == IntPtr.Zero);
                     classesToReinstance.Add(managedClass);
                 }
-                return;
-            }
-            else if (compiledClasses.Contains(managedClass))
-            {
                 return;
             }
 
@@ -433,9 +445,6 @@ namespace UnrealEngine.Runtime
             }
 
             {
-                ManagedUnrealTypeInfo classInfo = managedClass.TypeInfo;
-                IntPtr sharpClass = managedClass.Address;
-
                 // If this class / interface implements interfaces create an interfaces array and link them up
                 TArrayUnsafe<FImplementedInterface> implementedInterfaces = null;
                 if (classInfo.AdditionalFlags.HasFlag(ManagedUnrealTypeInfoFlags.ImplementsInterface))
@@ -474,6 +483,7 @@ namespace UnrealEngine.Runtime
 
                 // Resolve the native parent class now that the parent class is set up
                 managedClass.ResolveNativeParentClass();
+                Native_USharpClass.UpdateNativeParentConstructor(sharpClass);
 
                 // Clean up the implemented interfaces array
                 if (implementedInterfaces != null)
@@ -493,9 +503,6 @@ namespace UnrealEngine.Runtime
                 classFlags |= EClassFlags.Native;
 
                 Native_UClass.Set_ClassFlags(sharpClass, classFlags);
-
-                // This function pointer should reset to the first native class constructor on managed hotreload
-                Native_UClass.Set_ClassConstructor(sharpClass, Marshal.GetFunctionPointerForDelegate(managedClass.ClassConstructor));
 
                 // Create functions
                 foreach (ManagedUnrealFunctionInfo functionInfo in managedClass.TypeInfo.Functions.Reverse<ManagedUnrealFunctionInfo>())
@@ -1020,7 +1027,7 @@ namespace UnrealEngine.Runtime
         {
             // NOTE: We don't want to set EObjectFlags.MarkAsNative here. If we did the function would be held onto by the GC
             //       and the function along with its owning class wouldn't be cleaned up on hotreload.
-            EObjectFlags objectFlags = EObjectFlags.Public | EObjectFlags.Transient;
+            EObjectFlags objectFlags = EObjectFlags.Public | EObjectFlags.Transient | EObjectFlags.MarkAsNative;
             IntPtr function = NativeReflection.NewObject(outer, Runtime.Classes.UFunction, new FName(functionInfo.Name), objectFlags);
 
             // We want EFunctionFlags.Native so that UObject::CallFunction calls our invoker func with the desired params.

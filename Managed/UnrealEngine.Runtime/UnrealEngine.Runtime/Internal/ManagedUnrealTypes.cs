@@ -381,7 +381,7 @@ namespace UnrealEngine.Runtime
                 // We could possibly update this code to do a deep search for the first non-C# class (e.g. C# : X : C# : X : UObject).
                 // We aren't currently calling the parent constructor in a way which would allow this. If we supported it as-is the C# 
                 // constructors would get called multiple times when calling the parent constructor.
-                
+
                 IntPtr parentClass = Native_UClass.GetSuperClass(Address);
                 while (parentClass != IntPtr.Zero)
                 {

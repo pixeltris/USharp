@@ -87,9 +87,97 @@ CSEXPORT UFunction* CSCONV Export_USharpClass_SetFunctionInvoker(USharpClass* in
 	return nullptr;
 }
 
+// Could possibly use IMPLEMENT_INTRINSIC_CLASS so this can be defined in USharpClass directly?
+// Stripped down copy of ManagedUnrealTypeps.Builder.cs ManagedUnrealTypes.ClassConstructor
+void SharpClassConstructor(const FObjectInitializer& ObjectInitializer)
+{	
+	UClass* Class = ObjectInitializer.GetClass();
+	USharpClass* SharpClass = nullptr;
+	
+	if (Class->GetClass() == USharpClass::StaticClass())
+	{
+		SharpClass = (USharpClass*)Class;
+	}
+	else
+	{
+		UClass* TempClass = Class;
+		while (TempClass != nullptr)
+		{
+			if (((UObject*)TempClass)->IsA(USharpClass::StaticClass()))
+			{
+				SharpClass = (USharpClass*)TempClass;
+				break;
+			}
+			TempClass = TempClass->GetSuperClass();
+		}
+	}
+	check(SharpClass != nullptr);
+	
+	if (SharpClass->ManagedConstructor != nullptr)
+	{
+		SharpClass->ManagedConstructor(ObjectInitializer);
+		return;
+	}
+	
+	UObject* Object = ObjectInitializer.GetObj();
+	
+	// Initialize C# members which can't be zero initialized (e.g. FText)
+	for (TFieldIterator<UProperty> PropIt(Class, EFieldIteratorFlags::IncludeSuper); PropIt; ++PropIt)
+	{
+		UProperty* Property = *PropIt;
+		if (Property->GetOwnerClass()->GetClass() == USharpClass::StaticClass())
+		{
+			if (!Property->HasAnyPropertyFlags(CPF_ZeroConstructor))
+			{
+				Property->InitializeValue_InContainer(Object);
+			}
+		}
+	}
+	
+	// Call the native parent class constructor
+	SharpClass->NativeParentConstructor(ObjectInitializer);
+}
+
+// Rough copy of ManagedUnrealTypes.cs ManagedClass.ResolveNativeParentClass
+CSEXPORT void CSCONV Export_USharpClass_UpdateNativeParentConstructor(USharpClass* instance)
+{	
+	instance->NativeParentConstructor = nullptr;
+	UClass* ParentClass = instance->GetSuperClass();
+	while (ParentClass != nullptr)
+	{
+		if (!((UObject*)ParentClass)->IsA(USharpClass::StaticClass()))
+		{
+			instance->NativeParentConstructor = ParentClass->ClassConstructor;
+		}
+		ParentClass = ParentClass->GetSuperClass();
+	}
+	// The native class constructor shouldn't be null as we should at least have the native UObject constructor
+	check(instance->NativeParentConstructor != nullptr);
+}
+
+CSEXPORT void CSCONV Export_USharpClass_SetSharpClassConstructor(USharpClass* instance, UClass::ClassConstructorType ManagedConstructor)
+{
+	instance->ClassConstructor = &SharpClassConstructor;
+	instance->ManagedConstructor = ManagedConstructor;
+}
+
+CSEXPORT UClass::ClassConstructorType CSCONV Export_USharpClass_Get_ManagedConstructor(USharpClass* instance)
+{
+	return instance->ManagedConstructor;
+}
+
+CSEXPORT void CSCONV Export_USharpClass_Set_ManagedConstructor(USharpClass* instance, UClass::ClassConstructorType value)
+{
+	instance->ManagedConstructor = value;
+}
+
 CSEXPORT void CSCONV Export_USharpClass(RegisterFunc registerFunc)
 {
 	REGISTER_FUNC(Export_USharpClass_ClearFuncMapEx);
 	REGISTER_FUNC(Export_USharpClass_SetFallbackFunctionInvoker);
 	REGISTER_FUNC(Export_USharpClass_SetFunctionInvoker);
+	REGISTER_FUNC(Export_USharpClass_SetSharpClassConstructor);
+	REGISTER_FUNC(Export_USharpClass_Get_ManagedConstructor);
+	REGISTER_FUNC(Export_USharpClass_Set_ManagedConstructor);
+	REGISTER_FUNC(Export_USharpClass_UpdateNativeParentConstructor);
 }

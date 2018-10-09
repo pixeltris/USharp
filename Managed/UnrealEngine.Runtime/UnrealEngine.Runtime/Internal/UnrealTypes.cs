@@ -38,6 +38,8 @@ namespace UnrealEngine.Runtime
         public static Dictionary<string, Type> ManagedByPath { get; private set; }
         public static Dictionary<string, Type> NativeByPath { get; private set; }
 
+        public static string GameAssemblyPath { get; internal set; }
+
         static UnrealTypes()
         {
             Assemblies = new Dictionary<Assembly, List<Type>>();

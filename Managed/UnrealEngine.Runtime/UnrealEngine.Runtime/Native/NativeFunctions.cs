@@ -244,10 +244,10 @@ namespace UnrealEngine.Runtime.Native
             AssemblyName[] referencedAssemblies = assembly.GetReferencedAssemblies();
             foreach (AssemblyName assemblyName in referencedAssemblies)
             {
-                if (assembly.FullName == currentAssembly.FullName)
+                if (assemblyName.FullName == currentAssembly.FullName)
                 {
                     // This is an unreal assembly. Load the unreal types.
-                    UnrealTypes.Load(assembly);
+                    ManagedUnrealModuleInfo.PreProcessAssembly(assembly);//UnrealTypes.Load(assembly);
                     UClass.Load(assembly);
                     break;
                 }
@@ -306,6 +306,8 @@ namespace UnrealEngine.Runtime.Native
                 assemblyPaths.Clear();
 
                 assemblyPaths.Add(gameAssemblyFileName);
+
+                UnrealTypes.GameAssemblyPath = Path.GetFullPath(gameAssemblyFileName);
                 
                 //string pdbFileName = Path.ChangeExtension(gameAssemblyFileName, ".pdb");
                 //byte[] assemblyBuffer = File.ReadAllBytes(gameAssemblyFileName);

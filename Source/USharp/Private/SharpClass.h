@@ -25,6 +25,9 @@ public:
 	// UClass::FuncMap / UClass::NativeFunctionLookupTable are somewhat interconnected but they are seperated which means
 	// hotreload lookups are slower. Combine / cache them to improve lookup speeds.
 	TMap<FName, FSharpFunctionLookup> FuncMapEx;
+	
+	UClass::ClassConstructorType ManagedConstructor;
+	UClass::ClassConstructorType NativeParentConstructor;
 
 	//virtual void Link(FArchive& Ar, bool bRelinkExistingProperties) override;
 };

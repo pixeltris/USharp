@@ -50,6 +50,9 @@ namespace UnrealEngine.Runtime
         public List<ManagedUnrealTypeInfo> Interfaces { get; set; }
         public List<ManagedUnrealTypeInfo> Delegates { get; set; }
 
+        public HashSet<string> ReferencedAssemblies { get; set; }
+
+        // These aren't serialized. They are populated from the Classes,Structs,Enums,etc
         public Dictionary<Type, ManagedUnrealTypeInfo> TypeInfosByType { get; private set; }
         public Dictionary<ManagedUnrealTypeInfo, Type> TypesByTypeInfo { get; private set; }
         public Dictionary<string, ManagedUnrealTypeInfo> TypeInfosByPath { get; private set; }
@@ -133,6 +136,7 @@ namespace UnrealEngine.Runtime
             Interfaces = new List<ManagedUnrealTypeInfo>();
             Delegates = new List<ManagedUnrealTypeInfo>();
 
+            ReferencedAssemblies = new HashSet<string>();
             TypeInfosByType = new Dictionary<Type, ManagedUnrealTypeInfo>();
             TypesByTypeInfo = new Dictionary<ManagedUnrealTypeInfo, Type>();
             TypeInfosByPath = new Dictionary<string, ManagedUnrealTypeInfo>();
@@ -168,7 +172,7 @@ namespace UnrealEngine.Runtime
         /// Pre processes a given assembly to extract basic information before loading the module info.
         /// (obtains UMetaPath / USharpPath types and paths)
         /// </summary>
-        private static void PreProcessAssembly(Assembly assembly)
+        internal static void PreProcessAssembly(Assembly assembly)
         {
             if (seenAssemblies.Contains(assembly))
             {
@@ -176,7 +180,7 @@ namespace UnrealEngine.Runtime
             }
 
             seenAssemblies.Add(assembly);
-            UnrealTypes.Load(assembly);            
+            UnrealTypes.Load(assembly);
             
             List<Type> types;
             if (UnrealTypes.Assemblies.TryGetValue(assembly, out types))
@@ -231,10 +235,41 @@ namespace UnrealEngine.Runtime
             AllKnownBlittableTypes.Clear();
             AllKnownNonBlittableTypes.Clear();
             PreProcessAssemblies();
+            
+            HashSet<string> seenReferences = new HashSet<string>();
+            seenReferences.Add(Assembly.GetExecutingAssembly().GetName().Name);
 
             foreach (KeyValuePair<Assembly, Type> assembly in UnrealTypes.AssemblySerializedModuleInfo)
             {
-                LoadModuleFromAssembly(assembly.Key, assembly.Value);
+                ManagedUnrealModuleInfo moduleInfo = LoadModuleFromAssembly(assembly.Key, assembly.Value);
+                seenReferences.Add(moduleInfo.AssemblyName);
+            }
+
+            // TODO: Improve this. This likely isn't enough for anything more than trivial assembly setups.
+            if (File.Exists(UnrealTypes.GameAssemblyPath))
+            {
+                string dir = System.IO.Path.GetDirectoryName(UnrealTypes.GameAssemblyPath);
+                foreach (ManagedUnrealModuleInfo module in Modules)
+                {
+                    foreach (string assemblyReference in module.ReferencedAssemblies)
+                    {
+                        if (seenReferences.Add(assemblyReference))
+                        {
+                            string assemblyPath = System.IO.Path.Combine(dir, assemblyReference + ".dll");
+                            if (File.Exists(assemblyPath))
+                            {
+                                try
+                                {
+                                    // NOTE: This depends on NativeFunctions.OnAssemblyLoad loading the type info
+                                    Assembly.LoadFrom(assemblyPath);
+                                }
+                                catch
+                                {
+                                }
+                            }
+                        }
+                    }
+                }
             }
         }
         
@@ -516,6 +551,7 @@ namespace UnrealEngine.Runtime
             UMetaPathAttribute pathAttribute = UnrealTypes.GetNativePathAttribute(type);
             if (pathAttribute != null)
             {
+                ReferencedAssemblies.Add(type.Assembly.GetName().Name);
                 return pathAttribute.Path;
             }
 
@@ -533,7 +569,12 @@ namespace UnrealEngine.Runtime
                         ProcessType(type);
                         typeInfo = FindType(type);
                     }
-                    return typeInfo != null ? typeInfo.Path : null;
+                    if (typeInfo != null)
+                    {
+                        ReferencedAssemblies.Add(type.Assembly.GetName().Name);
+                        return typeInfo.Path;
+                    }
+                    return null;
                 case EPropertyType.SoftClass:
                 case EPropertyType.SoftObject:
                 case EPropertyType.WeakObject:
