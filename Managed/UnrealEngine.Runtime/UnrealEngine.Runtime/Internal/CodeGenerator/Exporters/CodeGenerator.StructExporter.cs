@@ -12,7 +12,11 @@ namespace UnrealEngine.Runtime
             "/Script/CoreUObject.Object",
             "/Script/CoreUObject.Interface",
             "/Script/CoreUObject.SoftObjectPath",
-            "/Script/Engine.TimerHandle"
+            "/Script/Engine.TimerHandle",
+
+            "/Script/CoreUObject.Vector",
+            "/Script/CoreUObject.Vector2D",
+            "/Script/CoreUObject.Vector4",
         };
 
         private bool CanExportStruct(UStruct unrealStruct)

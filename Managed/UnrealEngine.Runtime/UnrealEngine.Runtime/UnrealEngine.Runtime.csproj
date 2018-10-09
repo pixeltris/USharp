@@ -265,6 +265,9 @@
     <Compile Include="Internal\USharpClass.cs" />
     <Compile Include="Internal\Attributes\UStructAttribute.cs" />
     <Compile Include="Internal\USharpStruct.cs" />
+    <Compile Include="Math\FVector.cs" />
+    <Compile Include="Math\FVector2D.cs" />
+    <Compile Include="Math\FVector4.cs" />
     <Compile Include="Native\ConsoleManager\Native_IConsoleVariable.cs" />
     <Compile Include="Native\ConsoleManager\Native_IConsoleObject.cs" />
     <Compile Include="Native\ConsoleManager\Native_IConsoleCommand.cs" />
