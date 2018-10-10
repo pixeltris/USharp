@@ -17,6 +17,8 @@ namespace UnrealEngine.Runtime
             //IConsoleManager.Get().RegisterConsoleCommand("USharpGenSliced", "USharp generate C# code", GenerateCodeTimeSliced);
 
             IConsoleManager.Get().RegisterConsoleCommand("USharpMinHotReload", "USharp hotreload will skip reintancing / CDO checks", SetMinimalHotReload);
+
+            IConsoleManager.Get().RegisterConsoleCommand("USharpCompileGeneratedSln", "USharp compile generated C# code", CompileGeneratedCode);
         }
 
         private static void SetMinimalHotReload(string[] args)
@@ -36,6 +38,18 @@ namespace UnrealEngine.Runtime
         private static void GenerateCode(string[] args)
         {
             GenerateCode(false, args);
+        }
+
+        private static void CompileGeneratedCode(string[] args)
+        {
+            CodeGenerator codeGenerator = new CodeGenerator(false);
+            CodeManager codeManager = CodeManager.Create(codeGenerator);
+            var _fileWriterCodeManager = (FileWriterCodeManager)codeManager;
+            if (_fileWriterCodeManager != null)
+            {
+                _fileWriterCodeManager.OnBeginGenerateModules();
+                _fileWriterCodeManager.AttemptToBuildGeneratedSolution();
+            }
         }
 
         private static void GenerateCodeTimeSliced(string[] args)

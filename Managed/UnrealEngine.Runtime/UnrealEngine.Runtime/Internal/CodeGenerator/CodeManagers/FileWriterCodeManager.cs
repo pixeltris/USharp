@@ -142,16 +142,26 @@ namespace UnrealEngine.Runtime
             catch (Exception e)
             {
                 Log(ELogVerbosity.Error, e.Message, e);
+                return;
             }
             finally
             {
                 Log(ELogVerbosity.Display, "Done Generating Modules, Solution is at " + modulesSlnPath);
-                AttemptToBuildGeneratedSolution();
             }
         }
 
-        protected void AttemptToBuildGeneratedSolution()
+        public void AttemptToBuildGeneratedSolution()
         {
+            if (!File.Exists(modulesSlnPath))
+            {
+                Log(ELogVerbosity.Error, "Can't Compile: The Solution " + modulesSlnPath + " doesn't exist");
+                return;
+            }
+            if (!File.Exists(modulesProjPath))
+            {
+                Log(ELogVerbosity.Error, "Can't Compile: The Project " + modulesProjPath + " doesn't exist");
+                return;
+            }
             Log(ELogVerbosity.Display, "Attempting To Build Generated Solution at " + modulesSlnPath);
             bool shippingBuild = false;
             bool x86Build = false;
