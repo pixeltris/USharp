@@ -425,6 +425,19 @@ namespace UnrealEngine.Runtime
             return _fileContents;
         }
 
+        protected void DelayAction(int millisecond, Action action)
+        {
+            var timer = new System.Timers.Timer();
+            timer.Elapsed += delegate
+            {
+                action.Invoke();
+                timer.Stop();
+                timer.Dispose();
+            };
+            timer.Interval = millisecond;
+            timer.Start();
+        }
+
         protected void Log(string value, params object[] args)
         {
             Log(ELogVerbosity.Log, value, args);

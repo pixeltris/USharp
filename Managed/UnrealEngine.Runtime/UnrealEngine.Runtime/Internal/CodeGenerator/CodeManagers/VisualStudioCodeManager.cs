@@ -19,6 +19,15 @@ namespace UnrealEngine.Runtime
         private List<int> versions = new List<int>();
         private Dictionary<string, EnvDTE.DTE> dteInstances = new Dictionary<string, EnvDTE.DTE>();
 
+        //fields help with new source code adding process
+        bool bHasSavedProjFile = false;
+        Stopwatch timeSinceProjectWasAdd = new Stopwatch();
+        Stopwatch timeSinceLastSourceWasAdded = new Stopwatch();
+        int elapsedTimeSinceLastSourceWasAddedWriteLimit = 1000;
+
+        bool bQuittedVisualStudio = false;
+        List<string> sourceFileContentList = new List<string>();
+
         protected override string LogCategory
         {
             get { return "VSCodeManager"; }
@@ -40,11 +49,6 @@ namespace UnrealEngine.Runtime
             }
             return true;
         }
-
-        bool bHasSavedProjFile = false;
-        Stopwatch _watch = new Stopwatch();
-        bool bQuittedVisualStudio = false;
-        //Task myAwaitableForSaving = Task.Delay(5000);
 
         public async override Task<bool> AddProjectFile(string slnPath, string projPath)
         {
@@ -69,20 +73,15 @@ namespace UnrealEngine.Runtime
                 }
                 dte.Solution.AddFromFile(projPath);
                 dte.Solution.SaveAs(slnPath);
-                //myAwaitableForSaving.Start();
                 await Task.Delay(5000);
-                _watch.Start();
+                timeSinceProjectWasAdd.Start();
 
                 bHasSavedProjFile = true;
-                //var _task = new Task(() => System.Threading.Thread.Sleep(3000));
-                //_task.Start();
-                //await _task;
             }
             
             if (bHasSavedProjFile == false)
             {
-                await Task.Delay(5000 - (int)_watch.ElapsedMilliseconds);
-                //await myAwaitableForSaving;
+                await Task.Delay(5000 - (int)timeSinceProjectWasAdd.ElapsedMilliseconds);
             }
             return true;
         }
@@ -111,7 +110,7 @@ namespace UnrealEngine.Runtime
                 {
                     return false;
                 }
-
+                
                 EnvDTE.Project project = FindProject(dte, projPath);
                 if (project == null)
                 {
@@ -133,8 +132,7 @@ namespace UnrealEngine.Runtime
             {
                 if(bHasSavedProjFile == false)
                 {
-                    await Task.Delay(5000 - (int)_watch.ElapsedMilliseconds);
-                    //await myAwaitableForSaving;
+                    await Task.Delay(5000 - (int)timeSinceProjectWasAdd.ElapsedMilliseconds);
                 }
                 EnvDTE.DTE _mydte = null;
                 if (TryFindDTE(slnPath, out _mydte) && bQuittedVisualStudio == false)
@@ -146,7 +144,12 @@ namespace UnrealEngine.Runtime
                 lock (this)
                 {
                     //Don't Use Visual Studio To Add Source File To Project
-                    List<string> _fileContentList = File.ReadAllLines(projPath).ToList();
+                    timeSinceLastSourceWasAdded.Reset();
+                    timeSinceLastSourceWasAdded.Start();
+                    if (sourceFileContentList.Count <= 0)
+                    {
+                        sourceFileContentList = File.ReadAllLines(projPath).ToList();
+                    }
                     string _itemGroupTag = @"<ItemGroup>";
                     int _itemGroupIndex = -1;
                     int _insertCodeIndex = -1;
@@ -154,13 +157,13 @@ namespace UnrealEngine.Runtime
                     string _insertCode = "    " +
         @"<Compile Include=""" + sourceFilePath + @""" />";
 
-                    for (int i = 0; i < _fileContentList.Count; i++)
+                    for (int i = 0; i < sourceFileContentList.Count; i++)
                     {
-                        if (_fileContentList[i].Contains(_itemGroupTag))
+                        if (sourceFileContentList[i].Contains(_itemGroupTag))
                         {
                             _itemGroupIndex = i;
                         }
-                        if (_fileContentList[i].Contains(_insertCode))
+                        if (sourceFileContentList[i].Contains(_insertCode))
                         {
                             _insertCodeIndex = i;
                         }
@@ -172,13 +175,21 @@ namespace UnrealEngine.Runtime
 
                     if (_itemGroupIndex != -1 && _insertCodeIndex == -1)
                     {
-                        _fileContentList.Insert(_itemGroupIndex + 1, _insertCode);
-                        File.WriteAllLines(projPath, _fileContentList.ToArray());
+                        sourceFileContentList.Insert(_itemGroupIndex + 1, _insertCode);
+                        DelayAction(elapsedTimeSinceLastSourceWasAddedWriteLimit + 200, () => CheckSourceTimer(projPath));
                     }
                 }
 
             }
             return true;
+        }
+
+        protected void CheckSourceTimer(string projPath)
+        {
+            if (timeSinceLastSourceWasAdded.ElapsedMilliseconds >= elapsedTimeSinceLastSourceWasAddedWriteLimit)
+            {
+                File.WriteAllLines(projPath, sourceFileContentList.ToArray());
+            }
         }
 
         protected override void OnBegin()
