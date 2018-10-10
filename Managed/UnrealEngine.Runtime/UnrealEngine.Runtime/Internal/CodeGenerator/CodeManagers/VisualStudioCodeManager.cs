@@ -23,10 +23,11 @@ namespace UnrealEngine.Runtime
         bool bHasSavedProjFile = false;
         Stopwatch timeSinceProjectWasAdd = new Stopwatch();
         Stopwatch timeSinceLastSourceWasAdded = new Stopwatch();
-        int elapsedTimeSinceLastSourceWasAddedWriteLimit = 1000;
+        int elapsedTimeSinceLastSourceWasAddedWriteLimit = 2500;
 
         bool bQuittedVisualStudio = false;
         List<string> sourceFileContentList = new List<string>();
+        bool bFinishedGeneratingSourceFiles = false;
 
         protected override string LogCategory
         {
@@ -173,10 +174,20 @@ namespace UnrealEngine.Runtime
                         }
                     }
 
+                    //Only Insert if Group Tag Exists and 
+                    //File Path Include Doesn't Exists
                     if (_itemGroupIndex != -1 && _insertCodeIndex == -1)
                     {
                         sourceFileContentList.Insert(_itemGroupIndex + 1, _insertCode);
-                        DelayAction(elapsedTimeSinceLastSourceWasAddedWriteLimit + 200, () => CheckSourceTimer(projPath));
+                        if (OriginalDelayTimer == null)
+                        {
+                            DelayAction(elapsedTimeSinceLastSourceWasAddedWriteLimit + 200, () => CheckSourceTimer(slnPath, projPath));
+                        }
+                        else
+                        {
+                            OriginalDelayTimer.Stop();
+                            OriginalDelayTimer.Start();
+                        }
                     }
                 }
 
@@ -184,11 +195,34 @@ namespace UnrealEngine.Runtime
             return true;
         }
 
-        protected void CheckSourceTimer(string projPath)
+        protected void CheckSourceTimer(string slnPath, string projPath)
         {
+            if (bFinishedGeneratingSourceFiles) return;
+
             if (timeSinceLastSourceWasAdded.ElapsedMilliseconds >= elapsedTimeSinceLastSourceWasAddedWriteLimit)
             {
-                File.WriteAllLines(projPath, sourceFileContentList.ToArray());
+                lock (this)
+                {
+                    bFinishedGeneratingSourceFiles = true;
+                    timeSinceLastSourceWasAdded.Reset();
+                    timeSinceLastSourceWasAdded.Stop();
+                    try
+                    {
+                        Log(ELogVerbosity.Display, "Writing To Project File: " + projPath);
+                        Log(ELogVerbosity.Display, "CheckSourceTimer: TimeSinceLastSourceWasAdded is " + timeSinceLastSourceWasAdded.ElapsedMilliseconds);
+                        File.WriteAllLines(projPath, sourceFileContentList.ToArray());
+                    }
+                    catch (Exception e)
+                    {
+                        Log(ELogVerbosity.Error, e.Message, e);
+                    }
+                    finally
+                    {
+                        Log(ELogVerbosity.Display, "Done Generating Modules, Solution is at " + slnPath);
+                        var _ide = FindOrCreateDTE(slnPath);
+                        _ide.Solution.Open(slnPath);
+                    }
+                }
             }
         }
 

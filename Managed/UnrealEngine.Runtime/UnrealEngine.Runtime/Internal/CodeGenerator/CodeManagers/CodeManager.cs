@@ -18,6 +18,9 @@ namespace UnrealEngine.Runtime
         public string GameSlnPath { get; private set; }
         public string GameProjPath { get; private set; }
 
+        //Used For Delay Certain Actions
+        protected System.Timers.Timer OriginalDelayTimer = null;
+
         protected virtual string LogCategory
         {
             get { return "CodeManager"; }
@@ -427,15 +430,19 @@ namespace UnrealEngine.Runtime
 
         protected void DelayAction(int millisecond, Action action)
         {
-            var timer = new System.Timers.Timer();
-            timer.Elapsed += delegate
+            if(OriginalDelayTimer == null)
             {
-                action.Invoke();
-                timer.Stop();
-                timer.Dispose();
-            };
-            timer.Interval = millisecond;
-            timer.Start();
+                OriginalDelayTimer = new System.Timers.Timer();
+                OriginalDelayTimer.Elapsed += delegate
+                {
+                    action.Invoke();
+                    OriginalDelayTimer.Stop();
+                    OriginalDelayTimer.Dispose();
+                    OriginalDelayTimer = null;
+                };
+                OriginalDelayTimer.Interval = millisecond;
+                OriginalDelayTimer.Start();
+            }
         }
 
         protected void Log(string value, params object[] args)
