@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -69,13 +70,13 @@ namespace UnrealEngine
                 return (int)AssemblyLoaderError.MainAssemblyPathNotProvided;
             }
 
-            IntPtr asyncTaskAddr = (IntPtr)args.GetInt64("AsyncTask");
+            IntPtr addTickerAddr = (IntPtr)args.GetInt64("AddTicker");
             IntPtr isInGameThreadAddr = (IntPtr)args.GetInt64("IsInGameThread");
-            if (asyncTaskAddr == IntPtr.Zero || isInGameThreadAddr == IntPtr.Zero)
+            if (addTickerAddr == IntPtr.Zero || isInGameThreadAddr == IntPtr.Zero)
             {
-                return (int)AssemblyLoaderError.GameThreadAsyncNull;
+                return (int)AssemblyLoaderError.GameThreadHelpersNull;
             }
-            GameThreadHelper.Init(asyncTaskAddr, isInGameThreadAddr);
+            GameThreadHelper.Init(addTickerAddr, isInGameThreadAddr);
 
             entryPointArg = arg;
 
@@ -437,7 +438,7 @@ namespace UnrealEngine
         MainAssemblyPathNotProvided = 1000,
         MainAssemblyNotFound,
         MainAssemblyNotInSubFolder,
-        GameThreadAsyncNull,
+        GameThreadHelpersNull,
         LoadFailed
     }
 
@@ -637,21 +638,42 @@ namespace UnrealEngine
     static class GameThreadHelper
     {
         public delegate void FSimpleDelegate();
-        private delegate void Del_AsyncTask(FSimpleDelegate func, int threadType);
-        private static Del_AsyncTask asyncTask;
+
+        private static FSimpleDelegate tickCallback;
+        private static AutoResetEvent waitHandle;
+
+        public delegate bool FTickerDelegate(float deltaTime);
+        private delegate void Del_AddStaticTicker(FTickerDelegate func, float delay);
+        private static Del_AddStaticTicker addStaticTicker;
+        private static FTickerDelegate ticker;
 
         private delegate csbool Del_IsInGameThread();
         private static Del_IsInGameThread isInGameThread;
 
-        public static void Init(IntPtr asyncTaskAddr, IntPtr isInGameThreadAddr)
+        public static void Init(IntPtr addTickerAddr, IntPtr isInGameThreadAddr)
         {
-            asyncTask = (Del_AsyncTask)Marshal.GetDelegateForFunctionPointer(asyncTaskAddr, typeof(Del_AsyncTask));
             isInGameThread = (Del_IsInGameThread)Marshal.GetDelegateForFunctionPointer(isInGameThreadAddr, typeof(Del_IsInGameThread));
+
+            Debug.Assert(IsInGameThread());
+            addStaticTicker = (Del_AddStaticTicker)Marshal.GetDelegateForFunctionPointer(addTickerAddr, typeof(Del_AddStaticTicker));
+            ticker = Tick;
+            addStaticTicker(ticker, 0.0f);
         }
 
         public static bool IsInGameThread()
         {
             return isInGameThread();
+        }
+
+        private static bool Tick(float deltaTime)
+        {
+            if (tickCallback != null)
+            {
+                tickCallback();
+                tickCallback = null;
+                waitHandle.Set();
+            }
+            return true;
         }
 
         public static void Run(FSimpleDelegate callback)
@@ -662,15 +684,13 @@ namespace UnrealEngine
             }
             else
             {
-                using (AutoResetEvent waitHandle = new AutoResetEvent(false))
+                Debug.Assert(waitHandle == null);
+                using (waitHandle = new AutoResetEvent(false))
                 {
-                    asyncTask(delegate
-                    {
-                        callback();
-                        waitHandle.Set();
-                    }, 0);
+                    tickCallback = callback;
                     waitHandle.WaitOne(Timeout.Infinite);
                 }
+                waitHandle = null;
             }
         }
     }

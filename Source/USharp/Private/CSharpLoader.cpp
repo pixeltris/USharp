@@ -390,8 +390,8 @@ bool CSharpLoader::Load(FString assemblyPath, FString customArgs, FString loader
 		return false;
 	}
 
-	FString entryPointMethodArg = FString::Printf(TEXT("RegisterFuncs=%lld|AsyncTask=%lld|IsInGameThread=%lld"), 
-		(int64)&RegisterFunctions, (int64)&Export_FAsync_AsyncTask, (int64)&Export_FThreading_IsInGameThread);
+	FString entryPointMethodArg = FString::Printf(TEXT("RegisterFuncs=%lld|AddTicker=%lld|IsInGameThread=%lld"), 
+		(int64)&RegisterFunctions, (int64)&Export_FTicker_AddStaticTicker, (int64)&Export_FThreading_IsInGameThread);
 	if (!customArgs.IsEmpty())
 	{
 		entryPointMethodArg += TEXT("|") + customArgs;
@@ -521,7 +521,7 @@ FString CSharpLoader::GetLoadErrorReason(int32 retVal)
 	}
 	else if (retVal == 1003)
 	{
-		reason = TEXT("Async functions used to run the loader in the game thread are null");
+		reason = TEXT("Functions used to run the loader in the game thread are null");
 	}
 	else if(retVal == 1004)
 	{
