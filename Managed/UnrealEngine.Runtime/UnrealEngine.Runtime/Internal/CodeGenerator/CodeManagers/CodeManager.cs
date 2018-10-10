@@ -358,12 +358,12 @@ namespace UnrealEngine.Runtime
             return false;
         }
 
-        protected virtual string GetProjectFileContents(string version, string projectName, bool insideEngine)
+        protected virtual string GetProjectFileContents(string version, string projectName, bool insideEngine, out Guid projectGuid)
         {
             string _ue4RuntimePath = Settings.EngineProjMerge ==
                 CodeGeneratorSettings.ManagedEngineProjMerge.EngineAndPluginsCombined ?
                 @"..\UnrealEngine.Runtime.dll" : @"..\..\..\UnrealEngine.Runtime.dll";
-            Guid projectGuid = Guid.NewGuid();
+            projectGuid = Guid.NewGuid();
             string _fileContents = @"<?xml version=""1.0"" encoding=""utf-8""?>
 <Project ToolsVersion=""" + version + @""" DefaultTargets=""Build"" xmlns=""http://schemas.microsoft.com/developer/msbuild/2003"">
   <Import Project=""$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props"" Condition=""Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')"" />

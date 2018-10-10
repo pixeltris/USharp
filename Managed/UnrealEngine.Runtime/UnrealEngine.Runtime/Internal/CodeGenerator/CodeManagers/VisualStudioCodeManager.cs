@@ -54,7 +54,8 @@ namespace UnrealEngine.Runtime
                 try
                 {
                     CreateFileDirectoryIfNotExists(projPath);
-                    File.WriteAllText(projPath, GetProjectFileContents(dte.Version, Path.GetFileNameWithoutExtension(projPath), GetEnginePathFromCurrentFolder(projPath) != null));
+                    Guid projectGuid;
+                    File.WriteAllText(projPath, GetProjectFileContents(dte.Version, Path.GetFileNameWithoutExtension(projPath), GetEnginePathFromCurrentFolder(projPath) != null, out projectGuid));
                 }
                 catch
                 {
