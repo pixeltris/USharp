@@ -38,11 +38,6 @@ namespace UnrealEngine.Runtime
 
         protected bool CreateSolutionFileFromProjectFile(string slnPath, string projPath, string projName, Guid projectGuid)
         {
-            if (!File.Exists(slnPath))
-            {
-                return false;
-            }
-
             modulesSlnPath = slnPath;
             try
             {
@@ -58,11 +53,6 @@ namespace UnrealEngine.Runtime
 
         public override bool AddProjectFile(string slnPath, string projPath)
         {
-            if (!File.Exists(projPath))
-            {
-                return false;
-            }
-
             modulesProjPath = projPath;
             try
             {
