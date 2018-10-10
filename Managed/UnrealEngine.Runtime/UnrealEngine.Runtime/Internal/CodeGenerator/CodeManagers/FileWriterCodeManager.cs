@@ -20,6 +20,11 @@ namespace UnrealEngine.Runtime
 
         List<string> sourceFileContentList = new List<string>();
 
+        public FileWriterCodeManager()
+        {
+
+        }
+
         protected override string LogCategory
         {
             get { return "FileWriterCodeManager"; }
@@ -88,38 +93,45 @@ namespace UnrealEngine.Runtime
             File.WriteAllText(sourceFilePath, code);
             lock (this)
             {
-                if (sourceFileContentList.Count <= 0)
+                try
                 {
-                    sourceFileContentList = File.ReadAllLines(projPath).ToList();
-                }
+                    if (sourceFileContentList.Count <= 0)
+                    {
+                        sourceFileContentList = File.ReadAllLines(projPath).ToList();
+                    }
 
-                string _itemGroupTag = @"<ItemGroup>";
-                int _itemGroupIndex = -1;
-                int _insertCodeIndex = -1;
-                string _insertCode = "    " +
-    @"<Compile Include=""" + sourceFilePath + @""" />";
+                    string _itemGroupTag = @"<ItemGroup>";
+                    int _itemGroupIndex = -1;
+                    int _insertCodeIndex = -1;
+                    string _insertCode = "    " +
+        @"<Compile Include=""" + sourceFilePath + @""" />";
 
-                for (int i = 0; i < sourceFileContentList.Count; i++)
+                    for (int i = 0; i < sourceFileContentList.Count; i++)
+                    {
+                        if (sourceFileContentList[i].Contains(_itemGroupTag))
+                        {
+                            _itemGroupIndex = i;
+                        }
+                        if (sourceFileContentList[i].Contains(_insertCode))
+                        {
+                            _insertCodeIndex = i;
+                        }
+                        if (_itemGroupIndex != -1 && _insertCodeIndex != -1)
+                        {
+                            break;
+                        }
+                    }
+
+                    //Only Insert if Group Tag Exists and 
+                    //File Path Include Doesn't Exists
+                    if (_itemGroupIndex != -1 && _insertCodeIndex == -1)
+                    {
+                        sourceFileContentList.Insert(_itemGroupIndex + 1, _insertCode);
+                    }
+                }catch(Exception e)
                 {
-                    if (sourceFileContentList[i].Contains(_itemGroupTag))
-                    {
-                        _itemGroupIndex = i;
-                    }
-                    if (sourceFileContentList[i].Contains(_insertCode))
-                    {
-                        _insertCodeIndex = i;
-                    }
-                    if (_itemGroupIndex != -1 && _insertCodeIndex != -1)
-                    {
-                        break;
-                    }
-                }
-
-                //Only Insert if Group Tag Exists and 
-                //File Path Include Doesn't Exists
-                if (_itemGroupIndex != -1 && _insertCodeIndex == -1)
-                {
-                    sourceFileContentList.Insert(_itemGroupIndex + 1, _insertCode);
+                    Log(ELogVerbosity.Error, e.Message, e);
+                    return false;
                 }
             }
             return true;
