@@ -4,7 +4,7 @@ USharp is a plugin for Unreal Engine 4 (4.20) which allows for programming in C#
 
 This project adapts various parts of mono-ue https://mono-ue.github.io/ and is roughly similar but has support for both mono and the .NET Framework. The C++ code used is mostly PInvoke methods and the equivalent mono-ue backend code is [mostly written in C#](https://github.com/pixeltris/USharp/tree/master/UnrealEngine.Runtime/UnrealEngine.Runtime/Internal).
 
-_This project currently isn't usable for most use cases. There are a lot of bugs and lacking features. Check back soon for updates!_
+_This project currently isn't usable for most use cases. There are a lot of bugs and lacking features. [Check back soon for updates!](https://github.com/pixeltris/USharp/projects/2)_
 
 Join the gitter chat room for quick help / discussion https://gitter.im/USharp/Lobby
 
@@ -33,13 +33,7 @@ _This is a very rough guide. TODO: Improve_
 
 When you first open the editor with USharp enabled it should create a C# project under "YourProjectName/Managed/". Use this to write your C# game code (see the Test.cs file for rough samples of code).
 
-# TODO
-
-- Look into a warning when overriding virtual functions (e.g. ReceiveBeginPlay) - "Warning: Ambiguous search, could be Function 'XXXX' or Function 'YYYY'"
-- Add equivalents of MonoUE's InjectedClasses and Math classes
-- Lots of work to do on improving marshaling
-- Create seperate editor / runtime modules (this will simplify creating shipping builds)
-- ???
+Use the "USharpGen modules" command to generate the wrapper code (which will give you access to AActor classes and others). Compile the generated solution and reference the outputted assembly from your C# game project.
 
 ---
 
