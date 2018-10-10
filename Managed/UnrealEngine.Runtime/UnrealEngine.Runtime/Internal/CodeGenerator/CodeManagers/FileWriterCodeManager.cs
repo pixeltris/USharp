@@ -148,6 +148,8 @@ namespace UnrealEngine.Runtime
 
         protected string[] GetSolutionContents(string slnPath, string slnName, bool insideEngine, string projName, Guid projectGuid)
         {
+            Guid slnGuid1 = new Guid();
+            Guid slnGuid2 = new Guid();
             return new string[]
             {
                 @"Microsoft Visual Studio Solution File, Format Version 12.00",
@@ -155,20 +157,24 @@ namespace UnrealEngine.Runtime
                 @"VisualStudioVersion = 15.0.28010.2041",
                 @"MinimumVisualStudioVersion = 10.0.40219.1",
                 //Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UnrealEngine", "UnrealEngine.csproj", "{9B2E6C24-CCEF-4F53-AE30-AB0C16A97A36}"
-                //EndProject
+                @"Project(""{" + slnGuid1 + @"}"") = """+projName+@""", """+projName+".csproj"+@""", ""{"+projectGuid+@"}""",
+                @"EndProject",
                 @"Global",
                 @"	GlobalSection(SolutionConfigurationPlatforms) = preSolution",
                 @"		Debug|Any CPU = Debug|Any CPU",
                 @"	EndGlobalSection",
                 @"	GlobalSection(ProjectConfigurationPlatforms) = postSolution",
-                //		{9B2E6C24-CCEF-4F53-AE30-AB0C16A97A36}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-                //		{9B2E6C24-CCEF-4F53-AE30-AB0C16A97A36}.Debug|Any CPU.Build.0 = Debug|Any CPU
+                //      {9B2E6C24-CCEF-4F53-AE30-AB0C16A97A36}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+                @"		{"+projectGuid+@"}.Debug|Any CPU.ActiveCfg = Debug|Any CPU",
+                //      {9B2E6C24-CCEF-4F53-AE30-AB0C16A97A36}.Debug|Any CPU.Build.0 = Debug|Any CPU
+                @"		{"+projectGuid+@"}.Debug|Any CPU.Build.0 = Debug|Any CPU",
                 @"	EndGlobalSection",
                 @"	GlobalSection(SolutionProperties) = preSolution",
                 @"		HideSolutionNode = FALSE",
                 @"	EndGlobalSection",
                 @"	GlobalSection(ExtensibilityGlobals) = postSolution",
                 //		SolutionGuid = {78C63B87-B5AE-4B7C-81D6-43F148AD1606}
+                @"		SolutionGuid = {"+slnGuid2+@"}",
                 @"	EndGlobalSection",
                 @"EndGlobal"
             };
