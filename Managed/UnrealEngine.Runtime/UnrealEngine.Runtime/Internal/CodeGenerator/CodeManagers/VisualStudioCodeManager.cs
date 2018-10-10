@@ -81,30 +81,71 @@ namespace UnrealEngine.Runtime
 
         public override bool AddSourceFile(string slnPath, string projPath, string sourceFilePath, string code)
         {
-            EnvDTE.DTE dte = FindOrCreateDTE(slnPath);
-            if (dte == null)
-            {
-                return false;
-            }
-
-            EnvDTE.Project project = FindProject(dte, projPath);
-            if (project == null)
-            {
-                if (!AddProjectFile(slnPath, projPath))
-                {
-                    return false;
-                }
-                project = FindProject(dte, projPath);
-                if (project == null)
-                {
-                    return false;
-                }
-            }
-
             CreateFileDirectoryIfNotExists(sourceFilePath);
             File.WriteAllText(sourceFilePath, code);
-            project.ProjectItems.AddFromFile(sourceFilePath);
 
+            if (Settings.AddSourceFilesManually == false)
+            {
+                EnvDTE.DTE dte = FindOrCreateDTE(slnPath);
+                if (dte == null)
+                {
+                    return false;
+                }
+
+                EnvDTE.Project project = FindProject(dte, projPath);
+                if (project == null)
+                {
+                    if (!AddProjectFile(slnPath, projPath))
+                    {
+                        return false;
+                    }
+                    project = FindProject(dte, projPath);
+                    if (project == null)
+                    {
+                        return false;
+                    }
+                }
+
+                project.ProjectItems.AddFromFile(sourceFilePath);
+            }
+            else
+            {
+                EnvDTE.DTE _mydte = null;
+                if (TryFindDTE(slnPath, out _mydte))
+                {
+                    _mydte.Quit();
+                }
+                //Don't Use Visual Studio To Add Source File To Project
+                List<string> _fileContentList = File.ReadAllLines(projPath).ToList();
+                string _itemGroupTag = @"<ItemGroup>";
+                int _itemGroupIndex = -1;
+                int _insertCodeIndex = -1;
+
+                string _insertCode = "    " +
+    @"<Compile Include=""" + sourceFilePath + @""" />";
+
+                for (int i = 0; i < _fileContentList.Count; i++)
+                {
+                    if (_fileContentList[i].Contains(_itemGroupTag))
+                    {
+                        _itemGroupIndex = i;
+                    }
+                    if (_fileContentList[i].Contains(_insertCode))
+                    {
+                        _insertCodeIndex = i;
+                    }
+                    if(_itemGroupIndex != -1 && _insertCodeIndex != -1)
+                    {
+                        break;
+                    }
+                }
+
+                if (_itemGroupIndex != -1 && _insertCodeIndex == -1)
+                {
+                    _fileContentList.Insert(_itemGroupIndex + 1, _insertCode);
+                    File.WriteAllLines(projPath, _fileContentList.ToArray());
+                }
+            }
             return true;
         }
 

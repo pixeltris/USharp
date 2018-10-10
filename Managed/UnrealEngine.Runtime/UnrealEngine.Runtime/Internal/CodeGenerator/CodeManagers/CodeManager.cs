@@ -410,8 +410,8 @@ namespace UnrealEngine.Runtime
     <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
-  <ItemGroup>
-  </ItemGroup>";
+  <ItemGroup>" + Environment.NewLine +
+  @"</ItemGroup>";
             _fileContents +=
 @"<ItemGroup>
     <Reference Include=""" + "UnrealEngine.Runtime" + @""">

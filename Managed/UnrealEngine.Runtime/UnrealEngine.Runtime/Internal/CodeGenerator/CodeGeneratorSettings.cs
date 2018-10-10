@@ -9,6 +9,13 @@ namespace UnrealEngine.Runtime
     public class CodeGeneratorSettings
     {
         /// <summary>
+        /// This will determine whether or not I'll use Visual Studio 
+        /// To Add Source Files To The Project
+        /// True = No VS, False = Use VS
+        /// </summary>
+        public bool AddSourceFilesManually { get; set; }
+
+        /// <summary>
         /// The method used for loading the underlying native type info (class address/properties/functions/offsets)
         /// </summary>
         public const string LoadNativeTypeMethodName = "LoadNativeType";
@@ -301,6 +308,8 @@ namespace UnrealEngine.Runtime
 
         public void LoadDefaults()
         {
+            AddSourceFilesManually = true;
+
             ModulesLocation = ManagedModulesLocation.ModulesFolder;
 
             GameProjMerge = ManagedGameProjMerge.GameAndPlugins;
