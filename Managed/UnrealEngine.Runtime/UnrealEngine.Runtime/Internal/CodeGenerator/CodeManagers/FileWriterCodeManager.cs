@@ -152,17 +152,19 @@ namespace UnrealEngine.Runtime
 
         public void AttemptToBuildGeneratedSolution()
         {
-            if (!File.Exists(modulesSlnPath))
+            string _slnPath = Path.Combine(Settings.GetManagedModulesDir(), "UnrealEngine.sln");
+            string _projPath = Path.Combine(Settings.GetManagedModulesDir(), "UnrealEngine.csproj");
+            if (!File.Exists(_slnPath))
             {
-                Log(ELogVerbosity.Error, "Can't Compile: The Solution " + modulesSlnPath + " doesn't exist");
+                Log(ELogVerbosity.Error, "Can't Compile: The Solution " + _slnPath + " doesn't exist");
                 return;
             }
-            if (!File.Exists(modulesProjPath))
+            if (!File.Exists(_projPath))
             {
-                Log(ELogVerbosity.Error, "Can't Compile: The Project " + modulesProjPath + " doesn't exist");
+                Log(ELogVerbosity.Error, "Can't Compile: The Project " + _projPath + " doesn't exist");
                 return;
             }
-            Log(ELogVerbosity.Display, "Attempting To Build Generated Solution at " + modulesSlnPath);
+            Log(ELogVerbosity.Display, "Attempting To Build Generated Solution at " + _slnPath);
             bool shippingBuild = false;
             bool x86Build = false;
             string customDefines = null;
@@ -171,14 +173,14 @@ namespace UnrealEngine.Runtime
                 // This is to clear the editor defines (WITH_EDITORONLY_DATA) which gives us a runtime FName struct
                 customDefines = "BLANK_DEFINES";
             }
-            if (!BuildCs(modulesSlnPath, modulesProjPath, !shippingBuild, x86Build, customDefines))
+            if (!BuildCs(_slnPath, _projPath, !shippingBuild, x86Build, customDefines))
             {
                 Log(ELogVerbosity.Display, "Failed to build (see build.log) - " + Path.GetFileName(modulesProjPath));
                 return;
             }
             else
             {
-                Log(ELogVerbosity.Display, "Build successful - " + Path.GetFileName(modulesProjPath));
+                Log(ELogVerbosity.Display, "Build successful - " + Path.GetFileName(_projPath));
             }
         }
 
