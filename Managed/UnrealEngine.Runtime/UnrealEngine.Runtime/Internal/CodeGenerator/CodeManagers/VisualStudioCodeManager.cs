@@ -20,6 +20,7 @@ namespace UnrealEngine.Runtime
         private Dictionary<string, EnvDTE.DTE> dteInstances = new Dictionary<string, EnvDTE.DTE>();
 
         //fields help with new source code adding process
+        int visualStudioSaveDelay = 5000;
         bool bHasSavedProjFile = false;
         Stopwatch timeSinceProjectWasAdd = new Stopwatch();
         Stopwatch timeSinceLastSourceWasAdded = new Stopwatch();
@@ -74,15 +75,19 @@ namespace UnrealEngine.Runtime
                 }
                 dte.Solution.AddFromFile(projPath);
                 dte.Solution.SaveAs(slnPath);
-                await Task.Delay(5000);
                 timeSinceProjectWasAdd.Start();
-
+                await Task.Delay(visualStudioSaveDelay);
+                timeSinceProjectWasAdd.Stop();
                 bHasSavedProjFile = true;
             }
             
             if (bHasSavedProjFile == false)
             {
-                await Task.Delay(5000 - (int)timeSinceProjectWasAdd.ElapsedMilliseconds);
+                int _delay = visualStudioSaveDelay - (int)timeSinceProjectWasAdd.ElapsedMilliseconds;
+                if (_delay > 0)
+                {
+                    await Task.Delay(_delay);
+                }
             }
             return true;
         }
@@ -133,7 +138,11 @@ namespace UnrealEngine.Runtime
             {
                 if(bHasSavedProjFile == false)
                 {
-                    await Task.Delay(5000 - (int)timeSinceProjectWasAdd.ElapsedMilliseconds);
+                    int _delay = visualStudioSaveDelay - (int)timeSinceProjectWasAdd.ElapsedMilliseconds;
+                    if (_delay > 0)
+                    {
+                        await Task.Delay(_delay);
+                    }
                 }
                 EnvDTE.DTE _mydte = null;
                 if (TryFindDTE(slnPath, out _mydte) && bQuittedVisualStudio == false)
@@ -209,7 +218,6 @@ namespace UnrealEngine.Runtime
                     try
                     {
                         Log(ELogVerbosity.Display, "Writing To Project File: " + projPath);
-                        Log(ELogVerbosity.Display, "CheckSourceTimer: TimeSinceLastSourceWasAdded is " + timeSinceLastSourceWasAdded.ElapsedMilliseconds);
                         File.WriteAllLines(projPath, sourceFileContentList.ToArray());
                     }
                     catch (Exception e)
