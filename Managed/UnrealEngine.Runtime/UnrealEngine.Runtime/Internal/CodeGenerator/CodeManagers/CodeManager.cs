@@ -28,7 +28,7 @@ namespace UnrealEngine.Runtime
             switch (FPlatformProperties.GetPlatform())
             {
                 case EPlatform.Windows:
-                    codeManager = new VisualStudioCodeManager();
+                    codeManager = new FileWriterCodeManager();
                     break;
                 default:
                     throw new NotImplementedException();
@@ -358,7 +358,7 @@ namespace UnrealEngine.Runtime
             return false;
         }
 
-        protected string GetProjectFileContents(string version, string projectName, bool insideEngine)
+        protected virtual string GetProjectFileContents(string version, string projectName, bool insideEngine)
         {
             string _ue4RuntimePath = Settings.EngineProjMerge ==
                 CodeGeneratorSettings.ManagedEngineProjMerge.EngineAndPluginsCombined ?
@@ -378,14 +378,14 @@ namespace UnrealEngine.Runtime
     <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
-  <ItemGroup>
-  </ItemGroup>";
+  <ItemGroup>" + Environment.NewLine +
+  @"</ItemGroup>" + Environment.NewLine;
             _fileContents +=
-@"<ItemGroup>
-    <Reference Include=""" + "UnrealEngine.Runtime" + @""">
+@"<ItemGroup>" + Environment.NewLine +
+    @"<Reference Include=""" + "UnrealEngine.Runtime" + @""">
       <HintPath>" + _ue4RuntimePath + @"</HintPath>
     </Reference>
-  </ItemGroup>";
+  </ItemGroup>" + Environment.NewLine;
             _fileContents +=
   @"<Import Project=""$(MSBuildToolsPath)\Microsoft.CSharp.targets"" />
 </Project>";
