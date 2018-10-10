@@ -146,6 +146,29 @@ namespace UnrealEngine.Runtime
             finally
             {
                 Log(ELogVerbosity.Display, "Done Generating Modules, Solution is at " + modulesSlnPath);
+                AttemptToBuildGeneratedSolution();
+            }
+        }
+
+        protected void AttemptToBuildGeneratedSolution()
+        {
+            Log(ELogVerbosity.Display, "Attempting To Build Generated Solution at " + modulesSlnPath);
+            bool shippingBuild = false;
+            bool x86Build = false;
+            string customDefines = null;
+            if (shippingBuild)
+            {
+                // This is to clear the editor defines (WITH_EDITORONLY_DATA) which gives us a runtime FName struct
+                customDefines = "BLANK_DEFINES";
+            }
+            if (!BuildCs(modulesSlnPath, modulesProjPath, !shippingBuild, x86Build, customDefines))
+            {
+                Log(ELogVerbosity.Display, "Failed to build (see build.log) - " + Path.GetFileName(modulesProjPath));
+                return;
+            }
+            else
+            {
+                Log(ELogVerbosity.Display, "Build successful - " + Path.GetFileName(modulesProjPath));
             }
         }
 

@@ -429,7 +429,7 @@ namespace UnrealEngine.Runtime
             return null;
         }
 
-        private bool BuildCs(string solutionPath, string projectPath, bool debug, bool x86, string customDefines)
+        protected bool BuildCs(string solutionPath, string projectPath, bool debug, bool x86, string customDefines)
         {
             if (string.IsNullOrEmpty(msbuildPath))
             {
@@ -523,7 +523,7 @@ namespace UnrealEngine.Runtime
             }
         }
 
-        private string FindMsBuildPath()
+        protected string FindMsBuildPath()
         {
             try
             {
