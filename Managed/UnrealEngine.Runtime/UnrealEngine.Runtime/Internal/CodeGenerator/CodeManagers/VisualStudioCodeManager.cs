@@ -1,11 +1,13 @@
 ﻿using Microsoft.Win32;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.ComTypes;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace UnrealEngine.Runtime
 {
@@ -39,7 +41,12 @@ namespace UnrealEngine.Runtime
             return true;
         }
 
-        public override bool AddProjectFile(string slnPath, string projPath)
+        bool bHasSavedProjFile = false;
+        Stopwatch _watch = new Stopwatch();
+        bool bQuittedVisualStudio = false;
+        //Task myAwaitableForSaving = Task.Delay(5000);
+
+        public async override Task<bool> AddProjectFile(string slnPath, string projPath)
         {
             EnvDTE.DTE dte = FindOrCreateDTE(slnPath);
             if (dte == null)
@@ -62,8 +69,21 @@ namespace UnrealEngine.Runtime
                 }
                 dte.Solution.AddFromFile(projPath);
                 dte.Solution.SaveAs(slnPath);
-            }
+                //myAwaitableForSaving.Start();
+                await Task.Delay(5000);
+                _watch.Start();
 
+                bHasSavedProjFile = true;
+                //var _task = new Task(() => System.Threading.Thread.Sleep(3000));
+                //_task.Start();
+                //await _task;
+            }
+            
+            if (bHasSavedProjFile == false)
+            {
+                await Task.Delay(5000 - (int)_watch.ElapsedMilliseconds);
+                //await myAwaitableForSaving;
+            }
             return true;
         }
 
@@ -79,7 +99,7 @@ namespace UnrealEngine.Runtime
             return null;
         }
 
-        public override bool AddSourceFile(string slnPath, string projPath, string sourceFilePath, string code)
+        public async override Task<bool> AddSourceFile(string slnPath, string projPath, string sourceFilePath, string code)
         {
             CreateFileDirectoryIfNotExists(sourceFilePath);
             File.WriteAllText(sourceFilePath, code);
@@ -95,7 +115,8 @@ namespace UnrealEngine.Runtime
                 EnvDTE.Project project = FindProject(dte, projPath);
                 if (project == null)
                 {
-                    if (!AddProjectFile(slnPath, projPath))
+                    bool _updateSlnAndProj = await AddProjectFile(slnPath, projPath);
+                    if (!_updateSlnAndProj)
                     {
                         return false;
                     }
@@ -110,41 +131,52 @@ namespace UnrealEngine.Runtime
             }
             else
             {
-                EnvDTE.DTE _mydte = null;
-                if (TryFindDTE(slnPath, out _mydte))
+                if(bHasSavedProjFile == false)
                 {
+                    await Task.Delay(5000 - (int)_watch.ElapsedMilliseconds);
+                    //await myAwaitableForSaving;
+                }
+                EnvDTE.DTE _mydte = null;
+                if (TryFindDTE(slnPath, out _mydte) && bQuittedVisualStudio == false)
+                {
+                    bQuittedVisualStudio = true;
                     _mydte.Quit();
                 }
-                //Don't Use Visual Studio To Add Source File To Project
-                List<string> _fileContentList = File.ReadAllLines(projPath).ToList();
-                string _itemGroupTag = @"<ItemGroup>";
-                int _itemGroupIndex = -1;
-                int _insertCodeIndex = -1;
 
-                string _insertCode = "    " +
-    @"<Compile Include=""" + sourceFilePath + @""" />";
-
-                for (int i = 0; i < _fileContentList.Count; i++)
+                lock (this)
                 {
-                    if (_fileContentList[i].Contains(_itemGroupTag))
+                    //Don't Use Visual Studio To Add Source File To Project
+                    List<string> _fileContentList = File.ReadAllLines(projPath).ToList();
+                    string _itemGroupTag = @"<ItemGroup>";
+                    int _itemGroupIndex = -1;
+                    int _insertCodeIndex = -1;
+
+                    string _insertCode = "    " +
+        @"<Compile Include=""" + sourceFilePath + @""" />";
+
+                    for (int i = 0; i < _fileContentList.Count; i++)
                     {
-                        _itemGroupIndex = i;
+                        if (_fileContentList[i].Contains(_itemGroupTag))
+                        {
+                            _itemGroupIndex = i;
+                        }
+                        if (_fileContentList[i].Contains(_insertCode))
+                        {
+                            _insertCodeIndex = i;
+                        }
+                        if (_itemGroupIndex != -1 && _insertCodeIndex != -1)
+                        {
+                            break;
+                        }
                     }
-                    if (_fileContentList[i].Contains(_insertCode))
+
+                    if (_itemGroupIndex != -1 && _insertCodeIndex == -1)
                     {
-                        _insertCodeIndex = i;
-                    }
-                    if(_itemGroupIndex != -1 && _insertCodeIndex != -1)
-                    {
-                        break;
+                        _fileContentList.Insert(_itemGroupIndex + 1, _insertCode);
+                        File.WriteAllLines(projPath, _fileContentList.ToArray());
                     }
                 }
 
-                if (_itemGroupIndex != -1 && _insertCodeIndex == -1)
-                {
-                    _fileContentList.Insert(_itemGroupIndex + 1, _insertCode);
-                    File.WriteAllLines(projPath, _fileContentList.ToArray());
-                }
             }
             return true;
         }

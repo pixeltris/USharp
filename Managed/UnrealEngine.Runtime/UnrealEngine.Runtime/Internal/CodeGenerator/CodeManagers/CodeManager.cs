@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace UnrealEngine.Runtime
 {
@@ -65,7 +66,7 @@ namespace UnrealEngine.Runtime
         {
         }
 
-        public void OnCodeGenerated(CodeGenerator.UnrealModuleInfo module, UnrealModuleType moduleAssetType, string typeName, string path, CSharpTextBuilder code)
+        public async void OnCodeGenerated(CodeGenerator.UnrealModuleInfo module, UnrealModuleType moduleAssetType, string typeName, string path, CSharpTextBuilder code)
         {
             // Note: path will be empty if using combined enums file or global delegates files
             string root, directory, moduleName, assetName, memberName;
@@ -221,9 +222,9 @@ namespace UnrealEngine.Runtime
 
                 try
                 {
-                    if (UpdateSolutionAndProject(slnPath, projPath))
+                    if (await UpdateSolutionAndProject(slnPath, projPath))
                     {
-                        if (!AddSourceFile(slnPath, projPath, sourceFilePath, code.ToString()))
+                        if (!await AddSourceFile(slnPath, projPath, sourceFilePath, code.ToString()))
                         {
                             Log(ELogVerbosity.Error, "Failed to add source file '{0}'", sourceFilePath);
                         }
@@ -290,17 +291,17 @@ namespace UnrealEngine.Runtime
             return true;
         }
 
-        public virtual bool AddProjectFile(string slnPath, string projPath)
+        public async virtual Task<bool> AddProjectFile(string slnPath, string projPath)
         {
             return true;
         }
 
-        public virtual bool AddSourceFile(string slnPath, string projPath, string sourceFilePath, string code)
+        public async virtual Task<bool> AddSourceFile(string slnPath, string projPath, string sourceFilePath, string code)
         {
             return true;
         }
 
-        private bool UpdateSolutionAndProject(string slnPath, string projPath)
+        private async Task<bool> UpdateSolutionAndProject(string slnPath, string projPath)
         {
             if (!File.Exists(slnPath))
             {
@@ -308,7 +309,7 @@ namespace UnrealEngine.Runtime
             }
             if (!File.Exists(projPath))
             {
-                return AddProjectFile(slnPath, projPath);
+                return await AddProjectFile(slnPath, projPath);
             }
             return true;
         }
@@ -411,13 +412,13 @@ namespace UnrealEngine.Runtime
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <ItemGroup>" + Environment.NewLine +
-  @"</ItemGroup>";
+  @"</ItemGroup>" + Environment.NewLine;
             _fileContents +=
-@"<ItemGroup>
-    <Reference Include=""" + "UnrealEngine.Runtime" + @""">
+@"<ItemGroup>" + Environment.NewLine + 
+    @"<Reference Include=""" + "UnrealEngine.Runtime" + @""">
       <HintPath>" + _ue4RuntimePath + @"</HintPath>
     </Reference>
-  </ItemGroup>";
+  </ItemGroup>" + Environment.NewLine;
             _fileContents +=
   @"<Import Project=""$(MSBuildToolsPath)\Microsoft.CSharp.targets"" />
 </Project>";

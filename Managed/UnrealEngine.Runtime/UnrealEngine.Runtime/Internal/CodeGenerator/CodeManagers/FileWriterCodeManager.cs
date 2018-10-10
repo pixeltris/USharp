@@ -6,6 +6,7 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.ComTypes;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace UnrealEngine.Runtime
 {
@@ -26,14 +27,14 @@ namespace UnrealEngine.Runtime
             return base.CreateSolutionFile(slnPath);
         }
 
-        public override bool AddProjectFile(string slnPath, string projPath)
+        public async override Task<bool> AddProjectFile(string slnPath, string projPath)
         {
-            return base.AddProjectFile(slnPath, projPath);
+            return await base.AddProjectFile(slnPath, projPath);
         }
 
-        public override bool AddSourceFile(string slnPath, string projPath, string sourceFilePath, string code)
+        public async override Task<bool> AddSourceFile(string slnPath, string projPath, string sourceFilePath, string code)
         {
-            return base.AddSourceFile(slnPath, projPath, sourceFilePath, code);
+            return await base.AddSourceFile(slnPath, projPath, sourceFilePath, code);
         }
 
         protected override void OnBegin()
