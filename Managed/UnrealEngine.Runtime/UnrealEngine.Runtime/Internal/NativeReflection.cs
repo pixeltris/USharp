@@ -151,11 +151,13 @@ namespace UnrealEngine.Runtime
         {
             // obj will always be IntPtr.Zero but requiring it for now so InvokeFunction / InvokeStaticFunction have the same signature
 
-            Debug.Assert(argsSize == Native_UFunction.Get_ParmsSize(function), "Function was passed with bad args");            
+            Debug.Assert(argsSize == Native_UFunction.Get_ParmsSize(function), "Function was passed with bad args");
 
-            // Possibly cache the CDO
-            IntPtr cdo = Native_UClass.Get_ClassDefaultObject(Native_UField.GetOwnerStruct(function));
-            InvokeFunction(cdo, function, args, argsSize);
+            // Is the above comment valid anymore? Should we still just get the class manually?
+            IntPtr unrealClass = Native_UField.GetOwnerClass(function);
+            Debug.Assert(unrealClass != IntPtr.Zero && unrealClass == obj);
+
+            InvokeFunction(unrealClass, function, args, argsSize);
         }
 
         public static void InvokeFunction(IntPtr obj, IntPtr function, IntPtr args, int argsSize)
