@@ -1,11 +1,13 @@
 ﻿using Microsoft.Win32;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.ComTypes;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace UnrealEngine.Runtime
 {
@@ -16,6 +18,17 @@ namespace UnrealEngine.Runtime
     {
         private List<int> versions = new List<int>();
         private Dictionary<string, EnvDTE.DTE> dteInstances = new Dictionary<string, EnvDTE.DTE>();
+
+        //fields help with new source code adding process
+        int visualStudioSaveDelay = 5000;
+        bool bHasSavedProjFile = false;
+        Stopwatch timeSinceProjectWasAdd = new Stopwatch();
+        Stopwatch timeSinceLastSourceWasAdded = new Stopwatch();
+        int elapsedTimeSinceLastSourceWasAddedWriteLimit = 2500;
+
+        bool bQuittedVisualStudio = false;
+        List<string> sourceFileContentList = new List<string>();
+        bool bFinishedGeneratingSourceFiles = false;
 
         protected override string LogCategory
         {
@@ -39,7 +52,7 @@ namespace UnrealEngine.Runtime
             return true;
         }
 
-        public override bool AddProjectFile(string slnPath, string projPath)
+        public async override Task<bool> AddProjectFile(string slnPath, string projPath)
         {
             EnvDTE.DTE dte = FindOrCreateDTE(slnPath);
             if (dte == null)
@@ -62,8 +75,20 @@ namespace UnrealEngine.Runtime
                 }
                 dte.Solution.AddFromFile(projPath);
                 dte.Solution.SaveAs(slnPath);
+                timeSinceProjectWasAdd.Start();
+                await Task.Delay(visualStudioSaveDelay);
+                timeSinceProjectWasAdd.Stop();
+                bHasSavedProjFile = true;
             }
-
+            
+            if (bHasSavedProjFile == false)
+            {
+                int _delay = visualStudioSaveDelay - (int)timeSinceProjectWasAdd.ElapsedMilliseconds;
+                if (_delay > 0)
+                {
+                    await Task.Delay(_delay);
+                }
+            }
             return true;
         }
 
@@ -79,33 +104,134 @@ namespace UnrealEngine.Runtime
             return null;
         }
 
-        public override bool AddSourceFile(string slnPath, string projPath, string sourceFilePath, string code)
+        public async override Task<bool> AddSourceFile(string slnPath, string projPath, string sourceFilePath, string code)
         {
-            EnvDTE.DTE dte = FindOrCreateDTE(slnPath);
-            if (dte == null)
-            {
-                return false;
-            }
-
-            EnvDTE.Project project = FindProject(dte, projPath);
-            if (project == null)
-            {
-                if (!AddProjectFile(slnPath, projPath))
-                {
-                    return false;
-                }
-                project = FindProject(dte, projPath);
-                if (project == null)
-                {
-                    return false;
-                }
-            }
-
             CreateFileDirectoryIfNotExists(sourceFilePath);
             File.WriteAllText(sourceFilePath, code);
-            project.ProjectItems.AddFromFile(sourceFilePath);
 
+            if (Settings.AddSourceFilesManually == false)
+            {
+                EnvDTE.DTE dte = FindOrCreateDTE(slnPath);
+                if (dte == null)
+                {
+                    return false;
+                }
+                
+                EnvDTE.Project project = FindProject(dte, projPath);
+                if (project == null)
+                {
+                    bool _updateSlnAndProj = await AddProjectFile(slnPath, projPath);
+                    if (!_updateSlnAndProj)
+                    {
+                        return false;
+                    }
+                    project = FindProject(dte, projPath);
+                    if (project == null)
+                    {
+                        return false;
+                    }
+                }
+
+                project.ProjectItems.AddFromFile(sourceFilePath);
+            }
+            else
+            {
+                if(bHasSavedProjFile == false)
+                {
+                    int _delay = visualStudioSaveDelay - (int)timeSinceProjectWasAdd.ElapsedMilliseconds;
+                    if (_delay > 0)
+                    {
+                        await Task.Delay(_delay);
+                    }
+                }
+                EnvDTE.DTE _mydte = null;
+                if (TryFindDTE(slnPath, out _mydte) && bQuittedVisualStudio == false)
+                {
+                    bQuittedVisualStudio = true;
+                    _mydte.Quit();
+                }
+
+                lock (this)
+                {
+                    //Don't Use Visual Studio To Add Source File To Project
+                    timeSinceLastSourceWasAdded.Reset();
+                    timeSinceLastSourceWasAdded.Start();
+                    if (sourceFileContentList.Count <= 0)
+                    {
+                        sourceFileContentList = File.ReadAllLines(projPath).ToList();
+                    }
+                    string _itemGroupTag = @"<ItemGroup>";
+                    int _itemGroupIndex = -1;
+                    int _insertCodeIndex = -1;
+
+                    string _insertCode = "    " +
+        @"<Compile Include=""" + sourceFilePath + @""" />";
+
+                    for (int i = 0; i < sourceFileContentList.Count; i++)
+                    {
+                        if (sourceFileContentList[i].Contains(_itemGroupTag))
+                        {
+                            _itemGroupIndex = i;
+                        }
+                        if (sourceFileContentList[i].Contains(_insertCode))
+                        {
+                            _insertCodeIndex = i;
+                        }
+                        if (_itemGroupIndex != -1 && _insertCodeIndex != -1)
+                        {
+                            break;
+                        }
+                    }
+
+                    //Only Insert if Group Tag Exists and 
+                    //File Path Include Doesn't Exists
+                    if (_itemGroupIndex != -1 && _insertCodeIndex == -1)
+                    {
+                        sourceFileContentList.Insert(_itemGroupIndex + 1, _insertCode);
+                        if (OriginalDelayTimer == null)
+                        {
+                            DelayAction(elapsedTimeSinceLastSourceWasAddedWriteLimit + 200, () => CheckSourceTimer(slnPath, projPath));
+                        }
+                        else
+                        {
+                            OriginalDelayTimer.Stop();
+                            OriginalDelayTimer.Start();
+                        }
+                    }
+                }
+
+            }
             return true;
+        }
+
+        protected void CheckSourceTimer(string slnPath, string projPath)
+        {
+            if (bFinishedGeneratingSourceFiles) return;
+
+            if (timeSinceLastSourceWasAdded.ElapsedMilliseconds >= elapsedTimeSinceLastSourceWasAddedWriteLimit)
+            {
+                lock (this)
+                {
+                    bFinishedGeneratingSourceFiles = true;
+                    timeSinceLastSourceWasAdded.Reset();
+                    timeSinceLastSourceWasAdded.Stop();
+                    try
+                    {
+                        Log(ELogVerbosity.Display, "Writing To Project File: " + projPath);
+                        File.WriteAllLines(projPath, sourceFileContentList.ToArray());
+                    }
+                    catch (Exception e)
+                    {
+                        Log(ELogVerbosity.Error, e.Message, e);
+                    }
+                    finally
+                    {
+                        Log(ELogVerbosity.Display, "Done Generating Modules, Solution is at " + slnPath);
+                        var _ide = FindOrCreateDTE(slnPath);
+                        _ide.Solution.Open(slnPath);
+                    }
+                }
+            }
         }
 
         protected override void OnBegin()
@@ -308,72 +434,6 @@ namespace UnrealEngine.Runtime
                 }
             }
             return false;
-        }
-
-        private string GetProjectFileContents(string version, string projectName, bool insideEngine)
-        {
-            string _ue4RuntimePath = Settings.EngineProjMerge ==
-                CodeGeneratorSettings.ManagedEngineProjMerge.EngineAndPluginsCombined ?
-                @"..\UnrealEngine.Runtime.dll" : @"..\..\..\UnrealEngine.Runtime.dll";
-            Guid projectGuid = Guid.NewGuid();
-            string _fileContents = @"<?xml version=""1.0"" encoding=""utf-8""?>
-<Project ToolsVersion=""" + version + @""" DefaultTargets=""Build"" xmlns=""http://schemas.microsoft.com/developer/msbuild/2003"">
-  <Import Project=""$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props"" Condition=""Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')"" />
-  <PropertyGroup>
-    <Configuration Condition="" '$(Configuration)' == '' "">Debug</Configuration>
-    <Platform Condition="" '$(Platform)' == '' "">AnyCPU</Platform>
-    <ProjectGuid>{" + projectGuid + @"}</ProjectGuid>
-    <OutputType>Library</OutputType>
-    <OutputPath>bin\$(Configuration)\</OutputPath>
-    <RootNamespace>" + projectName + @"</RootNamespace>
-    <AssemblyName>" + projectName + @"</AssemblyName>
-    <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-  </PropertyGroup>
-  <ItemGroup>
-  </ItemGroup>";
-            _fileContents +=
-@"<ItemGroup>
-    <Reference Include=""" + "UnrealEngine.Runtime" + @""">
-      <HintPath>" + _ue4RuntimePath + @"</HintPath>
-    </Reference>
-  </ItemGroup>";
-            _fileContents +=
-  @"<Import Project=""$(MSBuildToolsPath)\Microsoft.CSharp.targets"" />
-</Project>";
-            return _fileContents;
-        }
-
-        string GetEnginePathFromCurrentFolder(string currentPath)
-        {
-            // Check upwards for /Epic Games/ENGINE_VERSION/Engine/Plugins/USharp/ and extract the path from there
-            string[] parentFolders = { "Modules", "Managed", "Binaries", "USharp", "Plugins", "Engine" };
-            //string currentPath = GetCurrentDirectory();
-
-            DirectoryInfo dir = Directory.GetParent(currentPath);
-            if(Settings.EngineProjMerge != CodeGeneratorSettings.ManagedEngineProjMerge.EngineAndPluginsCombined)
-            {
-                //Directory Starts To Level Up If Merge Settings Isn't
-                //Combining Engine and Plugins
-                dir = dir.Parent;
-                dir = dir.Parent;
-            }
-            for (int i = 0; i < parentFolders.Length; i++)
-            {
-                if (!dir.Exists || !dir.Name.Equals(parentFolders[i], StringComparison.OrdinalIgnoreCase))
-                {
-                    return null;
-                }
-                dir = dir.Parent;
-            }
-
-            // Make sure one of these folders exists along side the Engine folder: FeaturePacks, Samples, Templates
-            if (dir.Exists && Directory.Exists(Path.Combine(dir.FullName, "Templates")))
-            {
-                return dir.FullName;
-            }
-
-            return null;
         }
 
         /** Return codes when trying to access an existing VS instance */

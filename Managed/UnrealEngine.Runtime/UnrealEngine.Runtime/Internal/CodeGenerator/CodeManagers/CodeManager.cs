@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace UnrealEngine.Runtime
 {
@@ -16,6 +17,9 @@ namespace UnrealEngine.Runtime
 
         public string GameSlnPath { get; private set; }
         public string GameProjPath { get; private set; }
+
+        //Used For Delay Certain Actions
+        protected System.Timers.Timer OriginalDelayTimer = null;
 
         protected virtual string LogCategory
         {
@@ -65,7 +69,7 @@ namespace UnrealEngine.Runtime
         {
         }
 
-        public void OnCodeGenerated(CodeGenerator.UnrealModuleInfo module, UnrealModuleType moduleAssetType, string typeName, string path, CSharpTextBuilder code)
+        public async void OnCodeGenerated(CodeGenerator.UnrealModuleInfo module, UnrealModuleType moduleAssetType, string typeName, string path, CSharpTextBuilder code)
         {
             // Note: path will be empty if using combined enums file or global delegates files
             string root, directory, moduleName, assetName, memberName;
@@ -221,9 +225,9 @@ namespace UnrealEngine.Runtime
 
                 try
                 {
-                    if (UpdateSolutionAndProject(slnPath, projPath))
+                    if (await UpdateSolutionAndProject(slnPath, projPath))
                     {
-                        if (!AddSourceFile(slnPath, projPath, sourceFilePath, code.ToString()))
+                        if (!await AddSourceFile(slnPath, projPath, sourceFilePath, code.ToString()))
                         {
                             Log(ELogVerbosity.Error, "Failed to add source file '{0}'", sourceFilePath);
                         }
@@ -290,17 +294,17 @@ namespace UnrealEngine.Runtime
             return true;
         }
 
-        public virtual bool AddProjectFile(string slnPath, string projPath)
+        public async virtual Task<bool> AddProjectFile(string slnPath, string projPath)
         {
             return true;
         }
 
-        public virtual bool AddSourceFile(string slnPath, string projPath, string sourceFilePath, string code)
+        public async virtual Task<bool> AddSourceFile(string slnPath, string projPath, string sourceFilePath, string code)
         {
             return true;
         }
 
-        private bool UpdateSolutionAndProject(string slnPath, string projPath)
+        private async Task<bool> UpdateSolutionAndProject(string slnPath, string projPath)
         {
             if (!File.Exists(slnPath))
             {
@@ -308,7 +312,7 @@ namespace UnrealEngine.Runtime
             }
             if (!File.Exists(projPath))
             {
-                return AddProjectFile(slnPath, projPath);
+                return await AddProjectFile(slnPath, projPath);
             }
             return true;
         }
@@ -356,6 +360,89 @@ namespace UnrealEngine.Runtime
                 return true;
             }
             return false;
+        }
+
+        protected virtual string GetEnginePathFromCurrentFolder(string currentPath)
+        {
+            // Check upwards for /Epic Games/ENGINE_VERSION/Engine/Plugins/USharp/ and extract the path from there
+            string[] parentFolders = { "Modules", "Managed", "Binaries", "USharp", "Plugins", "Engine" };
+            //string currentPath = GetCurrentDirectory();
+
+            DirectoryInfo dir = Directory.GetParent(currentPath);
+            if (Settings.EngineProjMerge != CodeGeneratorSettings.ManagedEngineProjMerge.EngineAndPluginsCombined)
+            {
+                //Directory Starts To Level Up If Merge Settings Isn't
+                //Combining Engine and Plugins
+                dir = dir.Parent;
+                dir = dir.Parent;
+            }
+            for (int i = 0; i < parentFolders.Length; i++)
+            {
+                if (!dir.Exists || !dir.Name.Equals(parentFolders[i], StringComparison.OrdinalIgnoreCase))
+                {
+                    return null;
+                }
+                dir = dir.Parent;
+            }
+
+            // Make sure one of these folders exists along side the Engine folder: FeaturePacks, Samples, Templates
+            if (dir.Exists && Directory.Exists(Path.Combine(dir.FullName, "Templates")))
+            {
+                return dir.FullName;
+            }
+
+            return null;
+        }
+
+        protected virtual string GetProjectFileContents(string version, string projectName, bool insideEngine)
+        {
+            string _ue4RuntimePath = Settings.EngineProjMerge ==
+                CodeGeneratorSettings.ManagedEngineProjMerge.EngineAndPluginsCombined ?
+                @"..\UnrealEngine.Runtime.dll" : @"..\..\..\UnrealEngine.Runtime.dll";
+            Guid projectGuid = Guid.NewGuid();
+            string _fileContents = @"<?xml version=""1.0"" encoding=""utf-8""?>
+<Project ToolsVersion=""" + version + @""" DefaultTargets=""Build"" xmlns=""http://schemas.microsoft.com/developer/msbuild/2003"">
+  <Import Project=""$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props"" Condition=""Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')"" />
+  <PropertyGroup>
+    <Configuration Condition="" '$(Configuration)' == '' "">Debug</Configuration>
+    <Platform Condition="" '$(Platform)' == '' "">AnyCPU</Platform>
+    <ProjectGuid>{" + projectGuid + @"}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <OutputPath>bin\$(Configuration)\</OutputPath>
+    <RootNamespace>" + projectName + @"</RootNamespace>
+    <AssemblyName>" + projectName + @"</AssemblyName>
+    <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+  <ItemGroup>" + Environment.NewLine +
+  @"</ItemGroup>" + Environment.NewLine;
+            _fileContents +=
+@"<ItemGroup>" + Environment.NewLine + 
+    @"<Reference Include=""" + "UnrealEngine.Runtime" + @""">
+      <HintPath>" + _ue4RuntimePath + @"</HintPath>
+    </Reference>
+  </ItemGroup>" + Environment.NewLine;
+            _fileContents +=
+  @"<Import Project=""$(MSBuildToolsPath)\Microsoft.CSharp.targets"" />
+</Project>";
+            return _fileContents;
+        }
+
+        protected void DelayAction(int millisecond, Action action)
+        {
+            if(OriginalDelayTimer == null)
+            {
+                OriginalDelayTimer = new System.Timers.Timer();
+                OriginalDelayTimer.Elapsed += delegate
+                {
+                    action.Invoke();
+                    OriginalDelayTimer.Stop();
+                    OriginalDelayTimer.Dispose();
+                    OriginalDelayTimer = null;
+                };
+                OriginalDelayTimer.Interval = millisecond;
+                OriginalDelayTimer.Start();
+            }
         }
 
         protected void Log(string value, params object[] args)
