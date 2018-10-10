@@ -302,13 +302,13 @@ namespace UnrealEngine.Runtime
 
         private bool UpdateSolutionAndProject(string slnPath, string projPath)
         {
-            if (!File.Exists(slnPath))
+            if (!File.Exists(slnPath) && !CreateSolutionFile(slnPath))
             {
-                return CreateSolutionFile(slnPath);
+                return false;
             }
-            if (!File.Exists(projPath))
+            if (!File.Exists(projPath) && !AddProjectFile(slnPath, projPath))
             {
-                return AddProjectFile(slnPath, projPath);
+                return false;
             }
             return true;
         }
