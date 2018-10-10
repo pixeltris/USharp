@@ -28,7 +28,7 @@ namespace UnrealEngine.Runtime
             switch (FPlatformProperties.GetPlatform())
             {
                 case EPlatform.Windows:
-                    codeManager = new VisualStudioCodeManager();
+                    codeManager = new FileWriterCodeManager();
                     break;
                 default:
                     throw new NotImplementedException();
@@ -302,13 +302,13 @@ namespace UnrealEngine.Runtime
 
         private bool UpdateSolutionAndProject(string slnPath, string projPath)
         {
-            if (!File.Exists(slnPath))
+            if (!File.Exists(slnPath) && !CreateSolutionFile(slnPath))
             {
-                return CreateSolutionFile(slnPath);
+                return false;
             }
-            if (!File.Exists(projPath))
+            if (!File.Exists(projPath) && !AddProjectFile(slnPath, projPath))
             {
-                return AddProjectFile(slnPath, projPath);
+                return false;
             }
             return true;
         }
@@ -356,6 +356,72 @@ namespace UnrealEngine.Runtime
                 return true;
             }
             return false;
+        }
+
+        protected virtual string GetProjectFileContents(string version, string projectName, bool insideEngine, out Guid projectGuid)
+        {
+            string _ue4RuntimePath = Settings.EngineProjMerge ==
+                CodeGeneratorSettings.ManagedEngineProjMerge.EngineAndPluginsCombined ?
+                @"..\UnrealEngine.Runtime.dll" : @"..\..\..\UnrealEngine.Runtime.dll";
+            projectGuid = Guid.NewGuid();
+            string _fileContents = @"<?xml version=""1.0"" encoding=""utf-8""?>
+<Project ToolsVersion=""" + version + @""" DefaultTargets=""Build"" xmlns=""http://schemas.microsoft.com/developer/msbuild/2003"">
+  <Import Project=""$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props"" Condition=""Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')"" />
+  <PropertyGroup>
+    <Configuration Condition="" '$(Configuration)' == '' "">Debug</Configuration>
+    <Platform Condition="" '$(Platform)' == '' "">AnyCPU</Platform>
+    <ProjectGuid>{" + projectGuid + @"}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <OutputPath>bin\$(Configuration)\</OutputPath>
+    <RootNamespace>" + projectName + @"</RootNamespace>
+    <AssemblyName>" + projectName + @"</AssemblyName>
+    <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+  <ItemGroup>" + Environment.NewLine +
+  @"</ItemGroup>" + Environment.NewLine;
+            _fileContents +=
+@"<ItemGroup>" + Environment.NewLine +
+    @"<Reference Include=""" + "UnrealEngine.Runtime" + @""">
+      <HintPath>" + _ue4RuntimePath + @"</HintPath>
+    </Reference>
+  </ItemGroup>" + Environment.NewLine;
+            _fileContents +=
+  @"<Import Project=""$(MSBuildToolsPath)\Microsoft.CSharp.targets"" />
+</Project>";
+            return _fileContents;
+        }
+
+        protected string GetEnginePathFromCurrentFolder(string currentPath)
+        {
+            // Check upwards for /Epic Games/ENGINE_VERSION/Engine/Plugins/USharp/ and extract the path from there
+            string[] parentFolders = { "Modules", "Managed", "Binaries", "USharp", "Plugins", "Engine" };
+            //string currentPath = GetCurrentDirectory();
+
+            DirectoryInfo dir = Directory.GetParent(currentPath);
+            if (Settings.EngineProjMerge != CodeGeneratorSettings.ManagedEngineProjMerge.EngineAndPluginsCombined)
+            {
+                //Directory Starts To Level Up If Merge Settings Isn't
+                //Combining Engine and Plugins
+                dir = dir.Parent;
+                dir = dir.Parent;
+            }
+            for (int i = 0; i < parentFolders.Length; i++)
+            {
+                if (!dir.Exists || !dir.Name.Equals(parentFolders[i], StringComparison.OrdinalIgnoreCase))
+                {
+                    return null;
+                }
+                dir = dir.Parent;
+            }
+
+            // Make sure one of these folders exists along side the Engine folder: FeaturePacks, Samples, Templates
+            if (dir.Exists && Directory.Exists(Path.Combine(dir.FullName, "Templates")))
+            {
+                return dir.FullName;
+            }
+
+            return null;
         }
 
         protected void Log(string value, params object[] args)
