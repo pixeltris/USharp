@@ -143,9 +143,12 @@ namespace UnrealEngine.Runtime
 
         protected override void OnEnd()
         {
-            if(!File.Exists(modulesProjPath) || !File.Exists(modulesSlnPath))
+            if(!File.Exists(modulesProjPath) || 
+                !File.Exists(modulesSlnPath) ||
+                sourceFileContentList.Count <= 0)
             {
                 //Most likely project and solution update wasn't called at all
+                //Or Source Files weren't created
                 return;
             }
 
