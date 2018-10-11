@@ -59,12 +59,19 @@ namespace UnrealEngine.Runtime
 
         public override bool AddProjectFile(string slnPath, string projPath)
         {
-            //If not in engine folder, return true because we don't want to generate
-            //solution and project files for game
+            //If not in engine folder and projPath is GameProjPath, 
+            //return true because we don't want to generate
+            //solution and project files for game.
             //Module Directory is Empty By Default,
             //So We Need to skip that in our check
             var _slnInfo = new DirectoryInfo(slnPath);
-            if (string.IsNullOrEmpty(GetEnginePathFromCurrentFolder(_slnInfo.FullName, true))) return true;
+            if (string.IsNullOrEmpty(
+                GetEnginePathFromCurrentFolder(
+                    _slnInfo.FullName, true)) && 
+                    projPath == GameProjPath)
+            {
+                return true;
+            }
 
             try
             {
