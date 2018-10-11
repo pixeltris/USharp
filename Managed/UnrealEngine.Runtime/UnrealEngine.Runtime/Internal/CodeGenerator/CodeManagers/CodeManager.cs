@@ -46,8 +46,8 @@ namespace UnrealEngine.Runtime
 
             // Cache some strings we will be needing
             string projectName = Settings.GetProjectName();
-            GameSlnPath = Path.Combine(Settings.GetManagedDir(), projectName + ".sln");
-            GameProjPath = Path.Combine(Settings.GetManagedDir(), projectName + ".csproj");
+            GameSlnPath = Path.Combine(Settings.GetManagedDir(), "ManagedGameCode" + ".sln");
+            GameProjPath = Path.Combine(Settings.GetManagedDir(), "GameCode", "GameCode" + ".csproj");
 
             OnBegin();
         }
@@ -300,7 +300,7 @@ namespace UnrealEngine.Runtime
             return true;
         }
 
-        private bool UpdateSolutionAndProject(string slnPath, string projPath)
+        protected virtual bool UpdateSolutionAndProject(string slnPath, string projPath)
         {
             if (!File.Exists(slnPath) && !CreateSolutionFile(slnPath))
             {
