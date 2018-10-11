@@ -61,7 +61,10 @@ namespace UnrealEngine.Runtime
         {
             //If not in engine folder, return true because we don't want to generate
             //solution and project files for game
-            if (string.IsNullOrEmpty(GetEnginePathFromCurrentFolder(slnPath))) return true;
+            //Module Directory is Empty By Default,
+            //So We Need to skip that in our check
+            var _slnInfo = new DirectoryInfo(slnPath);
+            if (string.IsNullOrEmpty(GetEnginePathFromCurrentFolder(_slnInfo.FullName, true))) return true;
 
             try
             {

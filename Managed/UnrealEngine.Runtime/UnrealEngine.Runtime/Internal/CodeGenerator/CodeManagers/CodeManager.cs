@@ -392,10 +392,12 @@ namespace UnrealEngine.Runtime
             return _fileContents;
         }
 
-        protected string GetEnginePathFromCurrentFolder(string currentPath)
+        protected string GetEnginePathFromCurrentFolder(string currentPath, bool skipModulesCheck = false)
         {
             // Check upwards for /Epic Games/ENGINE_VERSION/Engine/Plugins/USharp/ and extract the path from there
-            string[] parentFolders = { "Modules", "Managed", "Binaries", "USharp", "Plugins", "Engine" };
+            string[] parentFolders = !skipModulesCheck ?
+                new string[] { "Modules", "Managed", "Binaries", "USharp", "Plugins", "Engine" } :
+                new string[] { "Managed", "Binaries", "USharp", "Plugins", "Engine" };
             //string currentPath = GetCurrentDirectory();
 
             DirectoryInfo dir = Directory.GetParent(currentPath);
@@ -404,6 +406,11 @@ namespace UnrealEngine.Runtime
                 //Directory Starts To Level Up If Merge Settings Isn't
                 //Combining Engine and Plugins
                 dir = dir.Parent;
+                dir = dir.Parent;
+            }
+            if (skipModulesCheck)
+            {
+                //Move up to Parent Because Modules Dir Most Likely Doesn't Exist
                 dir = dir.Parent;
             }
             for (int i = 0; i < parentFolders.Length; i++)

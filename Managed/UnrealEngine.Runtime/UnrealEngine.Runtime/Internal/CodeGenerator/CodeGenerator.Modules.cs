@@ -30,8 +30,8 @@ namespace UnrealEngine.Runtime
         {            
             GenerateCodeForModules(new UnrealModuleType[]
                 {
-                    UnrealModuleType.Game,// Do C++ classes appear here? Or under asset registry? TODO: Look into
-                    UnrealModuleType.GamePlugin,
+                    //UnrealModuleType.Game,// Do C++ classes appear here? Or under asset registry? TODO: Look into
+                    //UnrealModuleType.GamePlugin,
                     UnrealModuleType.Engine,
                     UnrealModuleType.EnginePlugin
                 });            
