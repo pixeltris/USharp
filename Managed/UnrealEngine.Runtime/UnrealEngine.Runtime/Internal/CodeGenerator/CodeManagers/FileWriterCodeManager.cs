@@ -107,8 +107,10 @@ namespace UnrealEngine.Runtime
                     }
 
                     string _itemGroupTag = @"<ItemGroup>";
+                    string _projectEndTag = @"</Project>";
                     int _itemGroupIndex = -1;
                     int _insertCodeIndex = -1;
+                    int _projectEndIndex = -1;
                     string _insertCode = "    " +
         @"<Compile Include=""" + sourceFilePath + @""" />";
 
@@ -122,15 +124,44 @@ namespace UnrealEngine.Runtime
                         {
                             _insertCodeIndex = i;
                         }
+                        if (sourceFileContentList[i].Contains(_projectEndTag) && i > 1)
+                        {
+                            _projectEndIndex = i;
+                        }
                         if (_itemGroupIndex != -1 && _insertCodeIndex != -1)
                         {
                             break;
                         }
                     }
 
+                    //If Item Group Tag Wasn't Found, The Inserted Code Wasn't Already Created
+                    //And The Project End Tag Exist and Isn't the Beginning Tag
+                    //Insert the Item Group Tags Before The Project End Tag
+                    if(_itemGroupIndex == -1 && _insertCodeIndex == -1 && 
+                        _projectEndIndex != -1 && _projectEndTag.Contains("/") && _projectEndIndex > 1)
+                    {
+                        sourceFileContentList.InsertRange(_projectEndIndex,
+                            new string[]
+                            {
+                                @"  <ItemGroup>",
+                                @"",
+                                @"  </ItemGroup>"
+                            }
+                        );
+                        //Check Again For Item Group Tag
+                        for (int i = 0; i < sourceFileContentList.Count; i++)
+                        {
+                            if (sourceFileContentList[i].Contains(_itemGroupTag))
+                            {
+                                _itemGroupIndex = i;
+                                break;
+                            }
+                        }
+                    }
+
                     //Only Insert if Group Tag Exists and 
                     //File Path Include Doesn't Exists
-                    if (_itemGroupIndex != -1 && _insertCodeIndex == -1)
+                        if (_itemGroupIndex != -1 && _insertCodeIndex == -1)
                     {
                         sourceFileContentList.Insert(_itemGroupIndex + 1, _insertCode);
                     }
