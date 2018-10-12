@@ -17,6 +17,10 @@ namespace UnrealEngine.Runtime
         public string GameSlnPath { get; private set; }
         public string GameProjPath { get; private set; }
 
+        //Used For Generating Wrappers From Native Game Code
+        public string GameNativeGenerationSlnPath { get; private set; }
+        public string GameNativeGenerationProjPath { get; private set; }
+
         protected virtual string LogCategory
         {
             get { return "CodeManager"; }
@@ -48,6 +52,8 @@ namespace UnrealEngine.Runtime
             string projectName = Settings.GetProjectName();
             GameSlnPath = Path.Combine(Settings.GetManagedDir(), "ManagedGameCode" + ".sln");
             GameProjPath = Path.Combine(Settings.GetManagedDir(), "GameCode", "GameCode" + ".csproj");
+            GameNativeGenerationSlnPath = Path.Combine(Settings.GetManagedDir(), Settings.GetProjectName() + "_" + "Native" + ".sln");
+            GameNativeGenerationProjPath = Path.Combine(Settings.GetManagedDir(), "Generated", Settings.GetProjectName() + "_" + "Native" + ".csproj");
 
             OnBegin();
         }
@@ -100,8 +106,8 @@ namespace UnrealEngine.Runtime
                             relativeSourceFilePath = name + ".cs";
                         }
                         sourceFilePath = Path.Combine(Settings.GetGeneratedCodeDir(), rootFolderName, relativeSourceFilePath);
-                        slnPath = GameSlnPath;
-                        projPath = GameProjPath;
+                        slnPath = GameNativeGenerationSlnPath;
+                        projPath = GameNativeGenerationProjPath;
                     }
                     break;
 
@@ -387,6 +393,40 @@ namespace UnrealEngine.Runtime
                 @"  </ItemGroup>",
                 @"  <Import Project=""$(MSBuildToolsPath)\Microsoft.CSharp.targets"" />",
                 @"</Project>"
+            };
+        }
+
+        protected string[] GetSolutionContents(string projName, string projPath, Guid projectGuid)
+        {
+            Guid staticcsslnGuid = new Guid(@"FAE04EC0-301F-11D3-BF4B-00C04F79EFBC");
+            Guid endingslnGuid = new Guid();
+            return new string[]
+            {
+                @"Microsoft Visual Studio Solution File, Format Version 12.00",
+                @"# Visual Studio 15",
+                @"VisualStudioVersion = 15.0.28010.2041",
+                @"MinimumVisualStudioVersion = 10.0.40219.1",
+                //Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UnrealEngine", "UnrealEngine.csproj", "{9B2E6C24-CCEF-4F53-AE30-AB0C16A97A36}"
+                @"Project(""{" + staticcsslnGuid + @"}"") = """+projName+@""", """+new FileInfo(projPath).FullName+@""", ""{"+projectGuid+@"}""",
+                @"EndProject",
+                @"Global",
+                @"	GlobalSection(SolutionConfigurationPlatforms) = preSolution",
+                @"		Debug|Any CPU = Debug|Any CPU",
+                @"	EndGlobalSection",
+                @"	GlobalSection(ProjectConfigurationPlatforms) = postSolution",
+                //      {9B2E6C24-CCEF-4F53-AE30-AB0C16A97A36}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+                @"		{"+projectGuid+@"}.Debug|Any CPU.ActiveCfg = Debug|Any CPU",
+                //      {9B2E6C24-CCEF-4F53-AE30-AB0C16A97A36}.Debug|Any CPU.Build.0 = Debug|Any CPU
+                @"		{"+projectGuid+@"}.Debug|Any CPU.Build.0 = Debug|Any CPU",
+                @"	EndGlobalSection",
+                @"	GlobalSection(SolutionProperties) = preSolution",
+                @"		HideSolutionNode = FALSE",
+                @"	EndGlobalSection",
+                @"	GlobalSection(ExtensibilityGlobals) = postSolution",
+                //		SolutionGuid = {78C63B87-B5AE-4B7C-81D6-43F148AD1606}
+                @"		SolutionGuid = {"+endingslnGuid+@"}",
+                @"	EndGlobalSection",
+                @"EndGlobal"
             };
         }
 
