@@ -75,7 +75,7 @@ namespace UnrealEngine.Runtime
                 CreateFileDirectoryIfNotExists(projPath);
                 string _projectName = Path.GetFileNameWithoutExtension(projPath);
                 Guid _projectGUID;
-                File.WriteAllText(projPath, GetProjectFileContents("15.0", _projectName, out _projectGUID));
+                File.WriteAllLines(projPath, GetProjectFileContents("15.0", _projectName, out _projectGUID));
                 //Create Sln File if It doesn't exist
                 if (!File.Exists(slnPath)){
                     CreateSolutionFileFromProjectFile(slnPath, projPath, _projectName, _projectGUID);
