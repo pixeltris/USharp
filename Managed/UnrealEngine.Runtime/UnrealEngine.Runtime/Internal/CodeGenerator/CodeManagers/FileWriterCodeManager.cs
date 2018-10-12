@@ -48,7 +48,7 @@ namespace UnrealEngine.Runtime
             try
             {
                 CreateFileDirectoryIfNotExists(slnPath);
-                File.WriteAllLines(slnPath, GetSolutionContents(slnPath, Path.GetFileNameWithoutExtension(slnPath), GetEnginePathFromCurrentFolder(slnPath) != null, projName, projectGuid));
+                File.WriteAllLines(slnPath, GetSolutionContents(projName, projectGuid));
             }
             catch
             {
@@ -65,10 +65,7 @@ namespace UnrealEngine.Runtime
             //Module Directory is Empty By Default,
             //So We Need to skip that in our check
             var _slnInfo = new DirectoryInfo(slnPath);
-            if (string.IsNullOrEmpty(
-                GetEnginePathFromCurrentFolder(
-                    _slnInfo.FullName, true)) && 
-                    projPath == GameProjPath)
+            if (projPath == GameProjPath)
             {
                 return true;
             }
@@ -78,7 +75,7 @@ namespace UnrealEngine.Runtime
                 CreateFileDirectoryIfNotExists(projPath);
                 string _projectName = Path.GetFileNameWithoutExtension(projPath);
                 Guid _projectGUID;
-                File.WriteAllText(projPath, GetProjectFileContents("15.0", _projectName, GetEnginePathFromCurrentFolder(projPath) != null, out _projectGUID));
+                File.WriteAllText(projPath, GetProjectFileContents("15.0", _projectName, out _projectGUID));
                 //Create Sln File if It doesn't exist
                 if (!File.Exists(slnPath)){
                     CreateSolutionFileFromProjectFile(slnPath, projPath, _projectName, _projectGUID);
@@ -178,7 +175,7 @@ namespace UnrealEngine.Runtime
             }
         }
 
-        protected string[] GetSolutionContents(string slnPath, string slnName, bool insideEngine, string projName, Guid projectGuid)
+        protected string[] GetSolutionContents(string projName, Guid projectGuid)
         {
             Guid staticcsslnGuid = new Guid(@"FAE04EC0-301F-11D3-BF4B-00C04F79EFBC");
             Guid endingslnGuid = new Guid();

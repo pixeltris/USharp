@@ -358,7 +358,7 @@ namespace UnrealEngine.Runtime
             return false;
         }
 
-        protected virtual string GetProjectFileContents(string version, string projectName, bool insideEngine, out Guid projectGuid)
+        protected virtual string GetProjectFileContents(string version, string projectName, out Guid projectGuid)
         {
             string _ue4RuntimePath = Settings.EngineProjMerge ==
                 CodeGeneratorSettings.ManagedEngineProjMerge.EngineAndPluginsCombined ?
@@ -390,45 +390,6 @@ namespace UnrealEngine.Runtime
   @"<Import Project=""$(MSBuildToolsPath)\Microsoft.CSharp.targets"" />
 </Project>";
             return _fileContents;
-        }
-
-        protected string GetEnginePathFromCurrentFolder(string currentPath, bool skipModulesCheck = false)
-        {
-            // Check upwards for /Epic Games/ENGINE_VERSION/Engine/Plugins/USharp/ and extract the path from there
-            string[] parentFolders = !skipModulesCheck ?
-                new string[] { "Modules", "Managed", "Binaries", "USharp", "Plugins", "Engine" } :
-                new string[] { "Managed", "Binaries", "USharp", "Plugins", "Engine" };
-            //string currentPath = GetCurrentDirectory();
-
-            DirectoryInfo dir = Directory.GetParent(currentPath);
-            if (Settings.EngineProjMerge != CodeGeneratorSettings.ManagedEngineProjMerge.EngineAndPluginsCombined)
-            {
-                //Directory Starts To Level Up If Merge Settings Isn't
-                //Combining Engine and Plugins
-                dir = dir.Parent;
-                dir = dir.Parent;
-            }
-            if (skipModulesCheck)
-            {
-                //Move up to Parent Because Modules Dir Most Likely Doesn't Exist
-                dir = dir.Parent;
-            }
-            for (int i = 0; i < parentFolders.Length; i++)
-            {
-                if (!dir.Exists || !dir.Name.Equals(parentFolders[i], StringComparison.OrdinalIgnoreCase))
-                {
-                    return null;
-                }
-                dir = dir.Parent;
-            }
-
-            // Make sure one of these folders exists along side the Engine folder: FeaturePacks, Samples, Templates
-            if (dir.Exists && Directory.Exists(Path.Combine(dir.FullName, "Templates")))
-            {
-                return dir.FullName;
-            }
-
-            return null;
         }
 
         protected void Log(string value, params object[] args)
