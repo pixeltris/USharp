@@ -25,6 +25,7 @@ namespace UnrealEngine.Runtime
             {
                 { "/Script/CoreUObject.SoftObjectPath", ProjectDefinedType.Struct },
                 { "/Script/Engine.TimerHandle", ProjectDefinedType.BlittableStruct },
+                { "/Script/CoreUObject.Guid", ProjectDefinedType.BlittableStruct },// This should map to System.Guid
             };
 
             foreach (Type type in System.Reflection.Assembly.GetExecutingAssembly().GetTypes())
