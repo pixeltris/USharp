@@ -2,8 +2,9 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using UnrealEngine.Runtime;
 
-namespace UnrealEngine.Runtime
+namespace UnrealEngine.Engine
 {
     /// <summary>
     /// This class is a base class for any function libraries exposed to blueprints.

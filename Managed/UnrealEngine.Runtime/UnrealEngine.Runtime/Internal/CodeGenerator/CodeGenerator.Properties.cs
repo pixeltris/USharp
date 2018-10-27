@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using UnrealEngine.Engine;
 
 namespace UnrealEngine.Runtime
 {
@@ -1270,7 +1271,7 @@ namespace UnrealEngine.Runtime
                 {
                     if (unrealClass != UClass.GetClass<UInterface>() && unrealClass.GetSuperStruct() != UClass.GetClass<UInterface>())
                     {
-                        FMessage.Log(ELogVerbosity.Error, "TODO: Support interface inheritance chains ({0})", unrealClass.GetName());
+                        FMessage.Log(ELogVerbosity.Error, "TODO: Support interface inheritance chains (" + unrealClass.GetName() + ")");
                     }
                     return UpdateTypeNamePrefix(Settings.Prefixes.Interface, str, fullyQualifiedName, namespaces, namespaceName);
                 }

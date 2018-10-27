@@ -107,6 +107,9 @@ namespace UnrealEngine.Runtime
 
                     case "modules":
                         codeGenerator = new CodeGenerator(timeSliced);
+                        //codeGenerator.Settings.ExportMode = CodeGeneratorSettings.CodeExportMode.All;
+                        //codeGenerator.Settings.ExportAllFunctions = true;
+                        //codeGenerator.Settings.ExportAllProperties = true;
                         codeGenerator.GenerateCodeForAllModules();
                         break;
 

@@ -431,7 +431,7 @@ namespace UnrealEngine.Runtime
 
         protected void Log(ELogVerbosity verbosity, string value, params object[] args)
         {
-            FMessage.Log(verbosity, string.Format(value, args), LogCategory);
+            FMessage.Log(LogCategory, verbosity, string.Format(value, args));
         }
     }
 }

@@ -28,6 +28,11 @@ namespace UnrealEngine.Runtime
 
         public readonly static FName None = new FName(0, 0);
 
+        /// <summary>
+        /// Maximum size of name.
+        /// </summary>
+        public const int MaxNameSize = 1024;
+
         public string PlainName
         {
             get

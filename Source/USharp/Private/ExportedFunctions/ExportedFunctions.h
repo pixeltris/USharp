@@ -99,6 +99,8 @@
 #include "Export_FReferenceFinder.h"
 #include "Export_TStatId.h"
 #include "Export_FApp.h"
+#include "Export_FMath.h"
+#include "Export_FParse.h"
 
 #include "Export_IConsoleObject.h"
 #include "Export_IConsoleCommand.h"
@@ -214,6 +216,8 @@ CSEXPORT void CSCONV RegisterFunctions(RegisterFunc registerFunc)
 	Export_FReferenceFinder(registerFunc);
 	Export_TStatId(registerFunc);
 	Export_FApp(registerFunc);
+	Export_FMath(registerFunc);
+	Export_FParse(registerFunc);
 	
 	Export_IConsoleObject(registerFunc);
 	Export_IConsoleCommand(registerFunc);
