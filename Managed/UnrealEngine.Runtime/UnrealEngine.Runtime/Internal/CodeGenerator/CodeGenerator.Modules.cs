@@ -103,7 +103,7 @@ namespace UnrealEngine.Runtime
                 }
                 else
                 {
-                    FMessage.Log(ELogVerbosity.Error, string.Format("Global function which isn't a delegate '{0}'"), function.GetName());
+                    FMessage.Log(ELogVerbosity.Error, string.Format("Global function which isn't a delegate '{0}'", function.GetName()));
                 }
             }
 

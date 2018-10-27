@@ -41,6 +41,7 @@ namespace UnrealEngine.Runtime
             ValidateStructSize<FFrame>(Native_SizeOfStruct.SizeOf_FFrame);
             ValidateStructSize<TStatId>(Native_SizeOfStruct.SizeOf_TStatId);
             ValidateStructSize<FText.FTextNative>(Native_SizeOfStruct.SizeOf_FText);
+            ValidateStructSize<Guid>(Native_SizeOfStruct.SizeOf_FGuid);
         }
 
         private static void ValidateStructSize<T>(Native_SizeOfStruct.Del_SizeOf func) where T : struct

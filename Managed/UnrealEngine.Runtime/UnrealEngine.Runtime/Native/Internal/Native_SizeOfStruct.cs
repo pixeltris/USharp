@@ -41,5 +41,6 @@ namespace UnrealEngine.Runtime.Native
         public static Del_SizeOf SizeOf_FFrame;
         public static Del_SizeOf SizeOf_TStatId;
         public static Del_SizeOf SizeOf_FText;
+        public static Del_SizeOf SizeOf_FGuid;
     }
 }

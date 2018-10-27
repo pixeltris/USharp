@@ -7,6 +7,7 @@ using System.Linq;
 using System.Reflection;
 using System.Security.Cryptography;
 using System.Text;
+using UnrealEngine.Engine;
 using UnrealEngine.Runtime.ManagedUnrealTypeInfoExceptions;
 
 namespace UnrealEngine.Runtime

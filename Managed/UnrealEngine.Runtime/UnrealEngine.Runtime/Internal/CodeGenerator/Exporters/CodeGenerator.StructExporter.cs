@@ -2,22 +2,69 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using UnrealEngine.Engine;
 
 namespace UnrealEngine.Runtime
 {
     public partial class CodeGenerator
     {
-        private static HashSet<string> projectDefinedClasses = new HashSet<string>()
+        // TODO: Move this "project defined" stuff elsewhere and provide better configuration of it
+        // (also need some way to map custom marshalers such as FSoftObjectPath)
+        enum ProjectDefinedType
         {
-            "/Script/CoreUObject.Object",
-            "/Script/CoreUObject.Interface",
-            "/Script/CoreUObject.SoftObjectPath",
-            "/Script/Engine.TimerHandle",
+            Struct,
+            BlittableStruct,
+            Class,
+            Enum
+        }
+        private static Dictionary<string, ProjectDefinedType> projectDefinedTypes = GetProjectDefinedTypes();
 
-            "/Script/CoreUObject.Vector",
-            "/Script/CoreUObject.Vector2D",
-            "/Script/CoreUObject.Vector4",
-        };
+        static Dictionary<string, ProjectDefinedType> GetProjectDefinedTypes()
+        {
+            Dictionary<string, ProjectDefinedType> result = new Dictionary<string, ProjectDefinedType>()
+            {
+                { "/Script/CoreUObject.SoftObjectPath", ProjectDefinedType.Struct },
+                { "/Script/Engine.TimerHandle", ProjectDefinedType.BlittableStruct },
+            };
+
+            foreach (Type type in System.Reflection.Assembly.GetExecutingAssembly().GetTypes())
+            {
+                UMetaPathAttribute[] attributes = (UMetaPathAttribute[])type.GetCustomAttributes(typeof(UMetaPathAttribute), false);
+                if (attributes.Length > 0 && !string.IsNullOrEmpty(attributes[0].Path))
+                {
+                    string path = attributes[0].Path;
+                    if (type.IsClass)
+                    {
+                        //UClassAttribute[] classAttributes = (UClassAttribute[])type.GetCustomAttributes(typeof(UClassAttribute), false);
+                        //if (classAttributes.Length > 0)
+                        {
+                            result[path] = ProjectDefinedType.Class;
+                        }
+                    }
+                    else if (type.IsEnum)
+                    {
+                        //UEnumAttribute[] enumAttributes = (UEnumAttribute[])type.GetCustomAttributes(typeof(UEnumAttribute), false);
+                        //if (enumAttributes.Length > 0)
+                        {
+                            result[path] = ProjectDefinedType.Enum;
+                        }
+                    }
+                    else
+                    {
+                        //UStructAttribute[] structAttributes = (UStructAttribute[])type.GetCustomAttributes(typeof(UStructAttribute), false);
+                        //if (structAttributes.Length > 0)
+                        {
+                            result[path] = ProjectDefinedType.Struct;
+                            if (type.IsLayoutSequential || type.IsExplicitLayout)
+                            {
+                                result[path] = ProjectDefinedType.BlittableStruct;
+                            }
+                        }
+                    }
+                }
+            }
+            return result;
+        }
 
         private bool CanExportStruct(UStruct unrealStruct)
         {
@@ -28,7 +75,7 @@ namespace UnrealEngine.Runtime
             }
 
             // Skip classes which are already defined in this project
-            if (projectDefinedClasses.Contains(unrealStruct.GetPathName()))
+            if (projectDefinedTypes.ContainsKey(unrealStruct.GetPathName()))
             {
                 return false;
             }
