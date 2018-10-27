@@ -1086,7 +1086,7 @@ namespace UnrealEngine.Runtime
             }
             else if (functionInfo.IsOverride)
             {
-                FName functionName = new FName(functionInfo.Name);
+                FName functionName = new FName(functionInfo.OriginalName);
                 IntPtr parentFunction = Native_UClass.FindFunctionByName(parentClass, ref functionName, false);
                 Debug.Assert(parentFunction != IntPtr.Zero);
 

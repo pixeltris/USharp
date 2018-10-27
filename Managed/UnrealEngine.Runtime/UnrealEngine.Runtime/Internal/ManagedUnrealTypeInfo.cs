@@ -2855,9 +2855,14 @@ namespace UnrealEngine.Runtime
         InterfaceImplementation = 0x00000080,
 
         /// <summary>
+        /// This is a native function with a "K2_" prefix
+        /// </summary>
+        K2 = 0x00000100,
+
+        /// <summary>
         /// The flags applicable to inherit from the base function flags
         /// </summary>
-        FuncInherit = 0
+        FuncInherit = K2
     }
 
     public partial class ManagedUnrealFunctionInfo : ManagedUnrealReflectionBase
@@ -2915,6 +2920,19 @@ namespace UnrealEngine.Runtime
         {
             get { return Flags.HasFlag(EFunctionFlags.NetValidate); }
             set { SetFlag(EFunctionFlags.NetValidate, value); }
+        }
+        [ManagedUnrealReflectIgnore]
+        public string OriginalName
+        {
+            get
+            {
+                string result = Name;
+                if (AdditionalFlags.HasFlag(ManagedUnrealFunctionFlags.K2))
+                {
+                    result = "K2_" + result;
+                }
+                return result;
+            }
         }
 
         private void SetFlag(EFunctionFlags flag, bool set)

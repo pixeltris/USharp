@@ -230,10 +230,16 @@ namespace UnrealEngine.Runtime
 
                 case EPropertyType.Delegate:
                 case EPropertyType.MulticastDelegate:
-                    builder.AppendLine(GetTypeName(property, namespaces) + " " + propertyName + Settings.VarNames.DelegateCached + ";");
+                    if (IsOwnerClassOrStructAsClass(property))
+                    {
+                        builder.AppendLine(GetTypeName(property, namespaces) + " " + propertyName + Settings.VarNames.DelegateCached + ";");
+                    }
                     break;
                 case EPropertyType.Text:
-                    builder.AppendLine(GetTypeName(property, namespaces) + " " + propertyName + Settings.VarNames.FTextCached + ";");
+                    if (IsOwnerClassOrStructAsClass(property))
+                    {
+                        builder.AppendLine(GetTypeName(property, namespaces) + " " + propertyName + Settings.VarNames.FTextCached + ";");
+                    }
                     break;
                 case EPropertyType.Array:
                     if (IsOwnerClassOrStructAsClass(property))

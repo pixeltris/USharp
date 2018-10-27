@@ -418,6 +418,16 @@ namespace UnrealEngine.Runtime
                 }
             }
 
+            // Remove the K2_ prefix (do it in a loop just incase there are multiple K2_ prefixes)
+            UFunction function = field as UFunction;
+            if (function != null)
+            {
+                while (name.StartsWith("K2_"))
+                {
+                    name = name.Substring(3);
+                }
+            }
+
             name = MakeValidName(name);
             name = UpdateCasing(name, casing);
             if (field != null)
