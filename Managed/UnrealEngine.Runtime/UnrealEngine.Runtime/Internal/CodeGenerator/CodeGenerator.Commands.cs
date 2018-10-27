@@ -44,11 +44,10 @@ namespace UnrealEngine.Runtime
         {
             CodeGenerator codeGenerator = new CodeGenerator(false);
             CodeManager codeManager = CodeManager.Create(codeGenerator);
-            var _fileWriterCodeManager = (FileWriterCodeManager)codeManager;
-            if (_fileWriterCodeManager != null)
+            if (codeManager != null)
             {
-                _fileWriterCodeManager.OnBeginGenerateModules();
-                _fileWriterCodeManager.AttemptToBuildGeneratedSolution();
+                codeManager.OnBeginGenerateModules();
+                codeManager.AttemptToBuildGeneratedSolution();
             }
         }
 
