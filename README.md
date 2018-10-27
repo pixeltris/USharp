@@ -33,7 +33,7 @@ _This is a very rough guide. TODO: Improve_
 
 When you first open the editor with USharp enabled it should create a C# project under "YourProjectName/Managed/". Use this to write your C# game code (see the Test.cs file for rough samples of code).
 
-Use the "USharpGen modules" command to generate the wrapper code (which will give you access to AActor classes and others). Compile the generated solution and reference the outputted assembly from your C# game project.
+Use the "USharpGen modules" command to generate the wrapper code (which will give you access to AActor classes and others). This will briefly freeze the engine while it generates the files. Once it is complete check the console for the sln file path, compile it and reference the outputted assembly from your C# game project.
 
 ---
 

@@ -96,10 +96,27 @@
     <Compile Include="Core\FModuleManager.cs" />
     <Compile Include="Core\FModuleStatus.cs" />
     <Compile Include="Core\FPackageName.cs" />
+    <Compile Include="Core\FParse.cs" />
     <Compile Include="Core\FPlatformProperties.cs" />
     <Compile Include="Core\FThreading.cs" />
     <Compile Include="Core\FTicker.cs" />
     <Compile Include="Core\ConsoleManager\IConsoleManager.cs" />
+    <Compile Include="Core\Math\FMath_InterpCurve.cs" />
+    <Compile Include="Core\Math\FRandomStream.cs" />
+    <Compile Include="Core\Math\InterpCurvePoint\EInterpCurveMode.cs" />
+    <Compile Include="Core\Math\InterpCurvePoint\FInterpCurve.cs" />
+    <Compile Include="Core\Math\InterpCurvePoint\FInterpCurvePointFloat.cs" />
+    <Compile Include="Core\Math\InterpCurvePoint\FInterpCurvePointLinearColor.cs" />
+    <Compile Include="Core\Math\InterpCurvePoint\FInterpCurvePointQuat.cs" />
+    <Compile Include="Core\Math\InterpCurvePoint\FInterpCurvePointTwoVectors.cs" />
+    <Compile Include="Core\Math\InterpCurvePoint\FInterpCurvePointVector.cs" />
+    <Compile Include="Core\Math\InterpCurvePoint\FInterpCurvePointVector2D.cs" />
+    <Compile Include="Core\Math\RangeBound\ERangeBoundTypes.cs" />
+    <Compile Include="Core\Math\RangeBound\FFloatRangeBound.cs" />
+    <Compile Include="Core\Math\RangeBound\FInt32RangeBound.cs" />
+    <Compile Include="Core\Math\Range\FInt32Range.cs" />
+    <Compile Include="Core\Math\Range\FFloatRange.cs" />
+    <Compile Include="Core\Math\FTransform.cs" />
     <Compile Include="Core\TArray.cs" />
     <Compile Include="Core\TFixedArray.cs" />
     <Compile Include="Core\TMap.cs" />
@@ -266,9 +283,35 @@
     <Compile Include="Internal\USharpClass.cs" />
     <Compile Include="Internal\Attributes\UStructAttribute.cs" />
     <Compile Include="Internal\USharpStruct.cs" />
-    <Compile Include="Math\FVector.cs" />
-    <Compile Include="Math\FVector2D.cs" />
-    <Compile Include="Math\FVector4.cs" />
+    <Compile Include="Core\Math\EAxis.cs" />
+    <Compile Include="Core\Math\FBox.cs" />
+    <Compile Include="Core\Math\FBox2D.cs" />
+    <Compile Include="Core\Math\FBoxSphereBounds.cs" />
+    <Compile Include="Core\Math\FColor.cs" />
+    <Compile Include="Core\Math\Interval\FFloatInterval.cs" />
+    <Compile Include="Core\Math\Interval\FInt32Interval.cs" />
+    <Compile Include="Core\Math\FIntPoint.cs" />
+    <Compile Include="Core\Math\FIntRect.cs" />
+    <Compile Include="Core\Math\FIntVector.cs" />
+    <Compile Include="Core\Math\FIntVector4.cs" />
+    <Compile Include="Core\Math\FLinearColor.cs" />
+    <Compile Include="Core\Math\FMath_Extra.cs" />
+    <Compile Include="Core\Math\FMath_GenericPlatformMath.cs" />
+    <Compile Include="Core\Math\FMath_GenericPlatformMathT.cs" />
+    <Compile Include="Core\Math\FMath_UnrealMathUtility.cs" />
+    <Compile Include="Core\Math\FMath_UnrealMathUtilityInterp.cs" />
+    <Compile Include="Core\Math\FMath_UnrealMathUtilityIntersect.cs" />
+    <Compile Include="Core\Math\FMath_UnrealMathUtilityT.cs" />
+    <Compile Include="Core\Math\FMatrix.cs" />
+    <Compile Include="Core\Math\FOrientedBox.cs" />
+    <Compile Include="Core\Math\FPlane.cs" />
+    <Compile Include="Core\Math\FQuat.cs" />
+    <Compile Include="Core\Math\FRotator.cs" />
+    <Compile Include="Core\Math\FSphere.cs" />
+    <Compile Include="Core\Math\FTwoVectors.cs" />
+    <Compile Include="Core\Math\FVector.cs" />
+    <Compile Include="Core\Math\FVector2D.cs" />
+    <Compile Include="Core\Math\FVector4.cs" />
     <Compile Include="Native\ConsoleManager\Native_IConsoleVariable.cs" />
     <Compile Include="Native\ConsoleManager\Native_IConsoleObject.cs" />
     <Compile Include="Native\ConsoleManager\Native_IConsoleCommand.cs" />
@@ -288,10 +331,12 @@
     <Compile Include="Native\Native_FFrameRef.cs" />
     <Compile Include="Native\Native_FGlobals.cs" />
     <Compile Include="Native\Native_FCoreNet.cs" />
+    <Compile Include="Native\Native_FMath.cs" />
     <Compile Include="Native\Native_FMemory.cs" />
     <Compile Include="Native\Native_FMulticastScriptDelegate.cs" />
     <Compile Include="Native\Native_FARFilter.cs" />
     <Compile Include="Native\Native_FAssetData.cs" />
+    <Compile Include="Native\Native_FParse.cs" />
     <Compile Include="Native\Native_FReferenceControllerOps.cs" />
     <Compile Include="Native\Native_FReferenceFinder.cs" />
     <Compile Include="Native\Native_FScriptDelegate.cs" />
@@ -400,7 +445,9 @@
   <ItemGroup>
     <Compile Include="Internal\CodeGenerator\CodeGenerator.Names.cs" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Folder Include="Core\Math\InterpCurve\" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PostBuildEvent>

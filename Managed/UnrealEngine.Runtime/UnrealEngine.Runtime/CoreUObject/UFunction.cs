@@ -4,6 +4,7 @@ using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
+using UnrealEngine.Engine;
 using UnrealEngine.Runtime.Native;
 
 namespace UnrealEngine.Runtime

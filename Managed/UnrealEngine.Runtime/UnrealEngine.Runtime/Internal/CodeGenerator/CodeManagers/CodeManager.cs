@@ -22,6 +22,10 @@ namespace UnrealEngine.Runtime
 
         private string msbuildPath;
 
+        //Used For Generating Wrappers From Native Game Code
+        public string GameNativeGenerationSlnPath { get; private set; }
+        public string GameNativeGenerationProjPath { get; private set; }
+
         protected virtual string LogCategory
         {
             get { return "CodeManager"; }
@@ -51,8 +55,10 @@ namespace UnrealEngine.Runtime
 
             // Cache some strings we will be needing
             string projectName = Settings.GetProjectName();
-            GameSlnPath = Path.Combine(Settings.GetManagedDir(), projectName + ".sln");
-            GameProjPath = Path.Combine(Settings.GetManagedDir(), projectName + ".csproj");
+            GameSlnPath = Path.Combine(Settings.GetManagedDir(), "ManagedGameCode" + ".sln");
+            GameProjPath = Path.Combine(Settings.GetManagedDir(), "GameCode", "GameCode" + ".csproj");
+            GameNativeGenerationSlnPath = Path.Combine(Settings.GetManagedDir(), "NativeCodeWrappers" + ".sln");
+            GameNativeGenerationProjPath = Path.Combine(Settings.GetManagedDir(), "Generated", "NativeCodeWrappers" + ".csproj");
 
             OnBegin();
         }
@@ -105,8 +111,8 @@ namespace UnrealEngine.Runtime
                             relativeSourceFilePath = name + ".cs";
                         }
                         sourceFilePath = Path.Combine(Settings.GetGeneratedCodeDir(), rootFolderName, relativeSourceFilePath);
-                        slnPath = GameSlnPath;
-                        projPath = GameProjPath;
+                        slnPath = GameNativeGenerationSlnPath;
+                        projPath = GameNativeGenerationProjPath;
                     }
                     break;
 
@@ -305,7 +311,7 @@ namespace UnrealEngine.Runtime
             return true;
         }
 
-        private bool UpdateSolutionAndProject(string slnPath, string projPath)
+        protected virtual bool UpdateSolutionAndProject(string slnPath, string projPath)
         {
             if (!File.Exists(slnPath) && !CreateSolutionFile(slnPath))
             {
@@ -363,70 +369,70 @@ namespace UnrealEngine.Runtime
             return false;
         }
 
-        protected virtual string GetProjectFileContents(string version, string projectName, bool insideEngine, out Guid projectGuid)
+        protected virtual string[] GetProjectFileContents(string version, string projectName, out Guid projectGuid)
         {
             string _ue4RuntimePath = Settings.EngineProjMerge ==
                 CodeGeneratorSettings.ManagedEngineProjMerge.EngineAndPluginsCombined ?
                 @"..\UnrealEngine.Runtime.dll" : @"..\..\..\UnrealEngine.Runtime.dll";
             projectGuid = Guid.NewGuid();
-            string _fileContents = @"<?xml version=""1.0"" encoding=""utf-8""?>
-<Project ToolsVersion=""" + version + @""" DefaultTargets=""Build"" xmlns=""http://schemas.microsoft.com/developer/msbuild/2003"">
-  <Import Project=""$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props"" Condition=""Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')"" />
-  <PropertyGroup>
-    <Configuration Condition="" '$(Configuration)' == '' "">Debug</Configuration>
-    <Platform Condition="" '$(Platform)' == '' "">AnyCPU</Platform>
-    <ProjectGuid>{" + projectGuid + @"}</ProjectGuid>
-    <OutputType>Library</OutputType>
-    <OutputPath>bin\$(Configuration)\</OutputPath>
-    <RootNamespace>" + projectName + @"</RootNamespace>
-    <AssemblyName>" + projectName + @"</AssemblyName>
-    <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-  </PropertyGroup>
-  <ItemGroup>" + Environment.NewLine +
-  @"</ItemGroup>" + Environment.NewLine;
-            _fileContents +=
-@"<ItemGroup>" + Environment.NewLine +
-    @"<Reference Include=""" + "UnrealEngine.Runtime" + @""">
-      <HintPath>" + _ue4RuntimePath + @"</HintPath>
-    </Reference>
-  </ItemGroup>" + Environment.NewLine;
-            _fileContents +=
-  @"<Import Project=""$(MSBuildToolsPath)\Microsoft.CSharp.targets"" />
-</Project>";
-            return _fileContents;
+            return new string[]
+            {
+                @"<?xml version=""1.0"" encoding=""utf-8""?>",
+                @"<Project ToolsVersion=""" + version + @""" DefaultTargets=""Build"" xmlns=""http://schemas.microsoft.com/developer/msbuild/2003"">",
+                @"  <Import Project=""$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props"" Condition=""Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')"" />",
+                @"  <PropertyGroup>",
+                @"    <Configuration Condition="" '$(Configuration)' == '' "">Debug</Configuration>",
+                @"    <Platform Condition="" '$(Platform)' == '' "">AnyCPU</Platform>",
+                @"    <ProjectGuid>{" + projectGuid + @"}</ProjectGuid>",
+                @"    <OutputType>Library</OutputType>",
+                @"    <OutputPath>bin\$(Configuration)\</OutputPath>",
+                @"    <RootNamespace>" + projectName + @"</RootNamespace>",
+                @"    <AssemblyName>" + projectName + @"</AssemblyName>",
+                @"    <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>",
+                @"    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>",
+                @"  </PropertyGroup>",
+                @"  <ItemGroup>",
+                @"    <Reference Include=""" + "UnrealEngine.Runtime" + @""">",
+                @"      <HintPath>" + _ue4RuntimePath + @"</HintPath>",
+                @"    </Reference>",
+                @"  </ItemGroup>",
+                @"  <Import Project=""$(MSBuildToolsPath)\Microsoft.CSharp.targets"" />",
+                @"</Project>"
+            };
         }
 
-        protected string GetEnginePathFromCurrentFolder(string currentPath)
+        protected string[] GetSolutionContents(string projName, string projPath, Guid projectGuid)
         {
-            // Check upwards for /Epic Games/ENGINE_VERSION/Engine/Plugins/USharp/ and extract the path from there
-            string[] parentFolders = { "Modules", "Managed", "Binaries", "USharp", "Plugins", "Engine" };
-            //string currentPath = GetCurrentDirectory();
-
-            DirectoryInfo dir = Directory.GetParent(currentPath);
-            if (Settings.EngineProjMerge != CodeGeneratorSettings.ManagedEngineProjMerge.EngineAndPluginsCombined)
+            Guid staticcsslnGuid = new Guid(@"FAE04EC0-301F-11D3-BF4B-00C04F79EFBC");
+            Guid endingslnGuid = new Guid();
+            return new string[]
             {
-                //Directory Starts To Level Up If Merge Settings Isn't
-                //Combining Engine and Plugins
-                dir = dir.Parent;
-                dir = dir.Parent;
-            }
-            for (int i = 0; i < parentFolders.Length; i++)
-            {
-                if (!dir.Exists || !dir.Name.Equals(parentFolders[i], StringComparison.OrdinalIgnoreCase))
-                {
-                    return null;
-                }
-                dir = dir.Parent;
-            }
-
-            // Make sure one of these folders exists along side the Engine folder: FeaturePacks, Samples, Templates
-            if (dir.Exists && Directory.Exists(Path.Combine(dir.FullName, "Templates")))
-            {
-                return dir.FullName;
-            }
-
-            return null;
+                @"Microsoft Visual Studio Solution File, Format Version 12.00",
+                @"# Visual Studio 15",
+                @"VisualStudioVersion = 15.0.28010.2041",
+                @"MinimumVisualStudioVersion = 10.0.40219.1",
+                //Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UnrealEngine", "UnrealEngine.csproj", "{9B2E6C24-CCEF-4F53-AE30-AB0C16A97A36}"
+                @"Project(""{" + staticcsslnGuid + @"}"") = """+projName+@""", """+new FileInfo(projPath).FullName+@""", ""{"+projectGuid+@"}""",
+                @"EndProject",
+                @"Global",
+                @"	GlobalSection(SolutionConfigurationPlatforms) = preSolution",
+                @"		Debug|Any CPU = Debug|Any CPU",
+                @"	EndGlobalSection",
+                @"	GlobalSection(ProjectConfigurationPlatforms) = postSolution",
+                //      {9B2E6C24-CCEF-4F53-AE30-AB0C16A97A36}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+                @"		{"+projectGuid+@"}.Debug|Any CPU.ActiveCfg = Debug|Any CPU",
+                //      {9B2E6C24-CCEF-4F53-AE30-AB0C16A97A36}.Debug|Any CPU.Build.0 = Debug|Any CPU
+                @"		{"+projectGuid+@"}.Debug|Any CPU.Build.0 = Debug|Any CPU",
+                @"	EndGlobalSection",
+                @"	GlobalSection(SolutionProperties) = preSolution",
+                @"		HideSolutionNode = FALSE",
+                @"	EndGlobalSection",
+                @"	GlobalSection(ExtensibilityGlobals) = postSolution",
+                //		SolutionGuid = {78C63B87-B5AE-4B7C-81D6-43F148AD1606}
+                @"		SolutionGuid = {"+endingslnGuid+@"}",
+                @"	EndGlobalSection",
+                @"EndGlobal"
+            };
         }
 
         protected bool BuildCs(string solutionPath, string projectPath, bool debug, bool x86, string customDefines)
@@ -566,6 +572,40 @@ namespace UnrealEngine.Runtime
             return null;
         }
 
+        public void AttemptToBuildGeneratedSolution()
+        {
+            string _slnPath = Path.Combine(Settings.GetManagedModulesDir(), "UnrealEngine.sln");
+            string _projPath = Path.Combine(Settings.GetManagedModulesDir(), "UnrealEngine.csproj");
+            if (!File.Exists(_slnPath))
+            {
+                Log(ELogVerbosity.Error, "Can't Compile: The Solution " + _slnPath + " doesn't exist");
+                return;
+            }
+            if (!File.Exists(_projPath))
+            {
+                Log(ELogVerbosity.Error, "Can't Compile: The Project " + _projPath + " doesn't exist");
+                return;
+            }
+            Log(ELogVerbosity.Display, "Attempting To Build Generated Solution at " + _slnPath);
+            bool shippingBuild = false;
+            bool x86Build = false;
+            string customDefines = null;
+            if (shippingBuild)
+            {
+                // This is to clear the editor defines (WITH_EDITORONLY_DATA) which gives us a runtime FName struct
+                customDefines = "BLANK_DEFINES";
+            }
+            if (!BuildCs(_slnPath, _projPath, !shippingBuild, x86Build, customDefines))
+            {
+                Log(ELogVerbosity.Display, "Failed to build (see build.log) - " + Path.GetFileName(_projPath));
+                return;
+            }
+            else
+            {
+                Log(ELogVerbosity.Display, "Build successful - " + Path.GetFileName(_projPath));
+            }
+        }
+
         protected void Log(string value, params object[] args)
         {
             Log(ELogVerbosity.Log, value, args);
@@ -573,7 +613,7 @@ namespace UnrealEngine.Runtime
 
         protected void Log(ELogVerbosity verbosity, string value, params object[] args)
         {
-            FMessage.Log(verbosity, string.Format(value, args), LogCategory);
+            FMessage.Log(LogCategory, verbosity, string.Format(value, args));
         }
     }
 }

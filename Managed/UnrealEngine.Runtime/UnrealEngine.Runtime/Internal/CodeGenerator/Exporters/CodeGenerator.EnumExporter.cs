@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using UnrealEngine.Engine;
 
 namespace UnrealEngine.Runtime
 {
@@ -9,6 +10,12 @@ namespace UnrealEngine.Runtime
     {
         private bool CanExportEnum(UEnum unrealEnum)
         {
+            // Skip enums which are already defined in this project
+            if (projectDefinedTypes.ContainsKey(unrealEnum.GetPathName()))
+            {
+                return false;
+            }
+
             return true;
         }
 

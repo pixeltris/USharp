@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using UnrealEngine.Engine;
 
 namespace UnrealEngine.Runtime
 {
@@ -414,6 +415,16 @@ namespace UnrealEngine.Runtime
                 if (boolProperty != null && name.Length > 1 && name[0] == 'b' && char.IsUpper(name[1]))
                 {
                     name = name.Remove(0, 1);
+                }
+            }
+
+            // Remove the K2_ prefix (do it in a loop just incase there are multiple K2_ prefixes)
+            UFunction function = field as UFunction;
+            if (function != null)
+            {
+                while (name.StartsWith("K2_"))
+                {
+                    name = name.Substring(3);
                 }
             }
 
@@ -1270,7 +1281,7 @@ namespace UnrealEngine.Runtime
                 {
                     if (unrealClass != UClass.GetClass<UInterface>() && unrealClass.GetSuperStruct() != UClass.GetClass<UInterface>())
                     {
-                        FMessage.Log(ELogVerbosity.Error, "TODO: Support interface inheritance chains ({0})", unrealClass.GetName());
+                        FMessage.Log(ELogVerbosity.Error, "TODO: Support interface inheritance chains (" + unrealClass.GetName() + ")");
                     }
                     return UpdateTypeNamePrefix(Settings.Prefixes.Interface, str, fullyQualifiedName, namespaces, namespaceName);
                 }

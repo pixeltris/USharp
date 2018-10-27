@@ -2,9 +2,10 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using UnrealEngine.Runtime;
 using UnrealEngine.Runtime.Native;
 
-namespace UnrealEngine.Runtime
+namespace UnrealEngine.Engine
 {
     [UMetaPath("/Script/Engine.BlueprintCore", "Engine", UnrealModuleType.Engine)]
     public class UBlueprintCore : UObject
