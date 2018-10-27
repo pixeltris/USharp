@@ -30,6 +30,13 @@ namespace UnrealEngine.Runtime
             get { return "FileWriterCodeManager"; }
         }
 
+        protected override bool UpdateSolutionAndProject(string slnPath, string projPath)
+        {
+            modulesSlnPath = slnPath;
+            modulesProjPath = projPath;
+            return base.UpdateSolutionAndProject(slnPath, projPath);
+        }
+
         public override bool CreateSolutionFile(string slnPath)
         {
             //Create Sln in another method since it requires project creation
@@ -38,11 +45,10 @@ namespace UnrealEngine.Runtime
 
         protected bool CreateSolutionFileFromProjectFile(string slnPath, string projPath, string projName, Guid projectGuid)
         {
-            modulesSlnPath = slnPath;
             try
             {
                 CreateFileDirectoryIfNotExists(slnPath);
-                File.WriteAllLines(slnPath, GetSolutionContents(slnPath, Path.GetFileNameWithoutExtension(slnPath), GetEnginePathFromCurrentFolder(slnPath) != null, projName, projectGuid));
+                File.WriteAllLines(slnPath, GetSolutionContents(projName, projPath, projectGuid));
             }
             catch
             {
@@ -53,13 +59,23 @@ namespace UnrealEngine.Runtime
 
         public override bool AddProjectFile(string slnPath, string projPath)
         {
-            modulesProjPath = projPath;
+            //If not in engine folder and projPath is GameProjPath, 
+            //return true because we don't want to generate
+            //solution and project files for game.
+            //Module Directory is Empty By Default,
+            //So We Need to skip that in our check
+            var _slnInfo = new DirectoryInfo(slnPath);
+            if (projPath == GameProjPath)
+            {
+                return true;
+            }
+
             try
             {
                 CreateFileDirectoryIfNotExists(projPath);
                 string _projectName = Path.GetFileNameWithoutExtension(projPath);
                 Guid _projectGUID;
-                File.WriteAllText(projPath, GetProjectFileContents("15.0", _projectName, GetEnginePathFromCurrentFolder(projPath) != null, out _projectGUID));
+                File.WriteAllLines(projPath, GetProjectFileContents("15.0", _projectName, out _projectGUID));
                 //Create Sln File if It doesn't exist
                 if (!File.Exists(slnPath)){
                     CreateSolutionFileFromProjectFile(slnPath, projPath, _projectName, _projectGUID);
@@ -91,8 +107,10 @@ namespace UnrealEngine.Runtime
                     }
 
                     string _itemGroupTag = @"<ItemGroup>";
+                    string _projectEndTag = @"</Project>";
                     int _itemGroupIndex = -1;
                     int _insertCodeIndex = -1;
+                    int _projectEndIndex = -1;
                     string _insertCode = "    " +
         @"<Compile Include=""" + sourceFilePath + @""" />";
 
@@ -106,15 +124,44 @@ namespace UnrealEngine.Runtime
                         {
                             _insertCodeIndex = i;
                         }
+                        if (sourceFileContentList[i].Contains(_projectEndTag) && i > 1)
+                        {
+                            _projectEndIndex = i;
+                        }
                         if (_itemGroupIndex != -1 && _insertCodeIndex != -1)
                         {
                             break;
                         }
                     }
 
+                    //If Item Group Tag Wasn't Found, The Inserted Code Wasn't Already Created
+                    //And The Project End Tag Exist and Isn't the Beginning Tag
+                    //Insert the Item Group Tags Before The Project End Tag
+                    if(_itemGroupIndex == -1 && _insertCodeIndex == -1 && 
+                        _projectEndIndex != -1 && _projectEndTag.Contains("/") && _projectEndIndex > 1)
+                    {
+                        sourceFileContentList.InsertRange(_projectEndIndex,
+                            new string[]
+                            {
+                                @"  <ItemGroup>",
+                                @"",
+                                @"  </ItemGroup>"
+                            }
+                        );
+                        //Check Again For Item Group Tag
+                        for (int i = 0; i < sourceFileContentList.Count; i++)
+                        {
+                            if (sourceFileContentList[i].Contains(_itemGroupTag))
+                            {
+                                _itemGroupIndex = i;
+                                break;
+                            }
+                        }
+                    }
+
                     //Only Insert if Group Tag Exists and 
                     //File Path Include Doesn't Exists
-                    if (_itemGroupIndex != -1 && _insertCodeIndex == -1)
+                        if (_itemGroupIndex != -1 && _insertCodeIndex == -1)
                     {
                         sourceFileContentList.Insert(_itemGroupIndex + 1, _insertCode);
                     }
@@ -134,6 +181,15 @@ namespace UnrealEngine.Runtime
 
         protected override void OnEnd()
         {
+            if(!File.Exists(modulesProjPath) || 
+                !File.Exists(modulesSlnPath) ||
+                sourceFileContentList.Count <= 0)
+            {
+                //Most likely project and solution update wasn't called at all
+                //Or Source Files weren't created
+                return;
+            }
+
             try
             {
                 Log(ELogVerbosity.Display, "Writing To Project File: " + modulesProjPath);
@@ -142,45 +198,12 @@ namespace UnrealEngine.Runtime
             catch (Exception e)
             {
                 Log(ELogVerbosity.Error, e.Message, e);
+                return;
             }
             finally
             {
                 Log(ELogVerbosity.Display, "Done Generating Modules, Solution is at " + modulesSlnPath);
             }
-        }
-
-        protected string[] GetSolutionContents(string slnPath, string slnName, bool insideEngine, string projName, Guid projectGuid)
-        {
-            Guid staticcsslnGuid = new Guid(@"FAE04EC0-301F-11D3-BF4B-00C04F79EFBC");
-            Guid endingslnGuid = new Guid();
-            return new string[]
-            {
-                @"Microsoft Visual Studio Solution File, Format Version 12.00",
-                @"# Visual Studio 15",
-                @"VisualStudioVersion = 15.0.28010.2041",
-                @"MinimumVisualStudioVersion = 10.0.40219.1",
-                //Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UnrealEngine", "UnrealEngine.csproj", "{9B2E6C24-CCEF-4F53-AE30-AB0C16A97A36}"
-                @"Project(""{" + staticcsslnGuid + @"}"") = """+projName+@""", """+projName+".csproj"+@""", ""{"+projectGuid+@"}""",
-                @"EndProject",
-                @"Global",
-                @"	GlobalSection(SolutionConfigurationPlatforms) = preSolution",
-                @"		Debug|Any CPU = Debug|Any CPU",
-                @"	EndGlobalSection",
-                @"	GlobalSection(ProjectConfigurationPlatforms) = postSolution",
-                //      {9B2E6C24-CCEF-4F53-AE30-AB0C16A97A36}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-                @"		{"+projectGuid+@"}.Debug|Any CPU.ActiveCfg = Debug|Any CPU",
-                //      {9B2E6C24-CCEF-4F53-AE30-AB0C16A97A36}.Debug|Any CPU.Build.0 = Debug|Any CPU
-                @"		{"+projectGuid+@"}.Debug|Any CPU.Build.0 = Debug|Any CPU",
-                @"	EndGlobalSection",
-                @"	GlobalSection(SolutionProperties) = preSolution",
-                @"		HideSolutionNode = FALSE",
-                @"	EndGlobalSection",
-                @"	GlobalSection(ExtensibilityGlobals) = postSolution",
-                //		SolutionGuid = {78C63B87-B5AE-4B7C-81D6-43F148AD1606}
-                @"		SolutionGuid = {"+endingslnGuid+@"}",
-                @"	EndGlobalSection",
-                @"EndGlobal"
-            };
         }
     }
 }
