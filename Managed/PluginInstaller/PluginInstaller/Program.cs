@@ -942,7 +942,7 @@ namespace PluginInstaller
             CopyFilesRecursive(_runtimeBinaryDir, new DirectoryInfo(_patchPath), true);
         }
 
-        static void PatchInGameProjectBinariesBinaries(DirectoryInfo packageNameFolder, DirectoryInfo _gameProjBinaryDir)
+        static void PatchInGameProjectBinaries(DirectoryInfo packageNameFolder, DirectoryInfo _gameProjBinaryDir)
         {
             string _patchPath = Path.Combine(packageNameFolder.FullName, "Managed", "Binaries");
             if (!Directory.Exists(_patchPath))
@@ -964,7 +964,7 @@ namespace PluginInstaller
                 ObtainGameProjectBinariesPath(packageExeDir, packageName, out _gameProjBinaryDir))
             {
                 PatchInRuntimeBinaries(packageNameFolder, _runtimeBinaryDir);
-                PatchInGameProjectBinariesBinaries(packageNameFolder, _gameProjBinaryDir);
+                PatchInGameProjectBinaries(packageNameFolder, _gameProjBinaryDir);
                 Console.WriteLine("Successfully Patched Game Package: " + packageName);
             }
         }
