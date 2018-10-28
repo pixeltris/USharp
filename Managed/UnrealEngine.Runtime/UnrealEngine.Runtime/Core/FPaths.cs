@@ -806,6 +806,16 @@ namespace UnrealEngine.Runtime
         /// Convert all / and \ to TEXT("/")
         /// </summary>
         /// <param name="inPath"></param>
+        public static string NormalizeFilename(string inPath)
+        {
+            NormalizeFilename(ref inPath);
+            return inPath;
+        }
+
+        /// <summary>
+        /// Convert all / and \ to TEXT("/")
+        /// </summary>
+        /// <param name="inPath"></param>
         public static void NormalizeFilename(ref string inPath)
         {
             using (FStringUnsafe inPathUnsafe = new FStringUnsafe(inPath))
@@ -917,13 +927,29 @@ namespace UnrealEngine.Runtime
         /// <param name="inPath">Path to make this path relative to.</param>
         /// <param name="inRelativeTo">Path relative to InPath</param>
         /// <returns></returns>
+        public static string MakePathRelativeTo(string inPath, string inRelativeTo)
+        {
+            string result = inPath;
+            if (MakePathRelativeTo(ref result, inRelativeTo))
+            {
+                return result;
+            }
+            return inPath;
+        }
+
+        /// <summary>
+        /// Assuming both paths (or filenames) are relative to the base dir, find the relative path to the InPath.
+        /// </summary>
+        /// <param name="inPath">Path to make this path relative to.</param>
+        /// <param name="inRelativeTo">Path relative to InPath</param>
+        /// <returns></returns>
         public static bool MakePathRelativeTo(ref string inPath, string inRelativeTo)
         {
             using (FStringUnsafe inPathUnsafe = new FStringUnsafe(inPath))
             using (FStringUnsafe inRelativeToUnsafe = new FStringUnsafe(inRelativeTo))
             {
                 bool result = Native_FPaths.MakePathRelativeTo(ref inPathUnsafe.Array, ref inRelativeToUnsafe.Array);
-                inPathUnsafe.Value = inPath;
+                inPath = inPathUnsafe.Value;
                 return result;
             }
         }

@@ -98,8 +98,8 @@ namespace UnrealEngine.Runtime
         internal static Dictionary<Type, EStructFlags> resolvedStructCtorDtorFlags = new Dictionary<Type, EStructFlags>();
 
         // Cache function flags to avoid processing flags multiple times where we want to obtain base function flags
-        private static Dictionary<MethodInfo, KeyValuePair<EFunctionFlags, ManagedUnrealFunctionFlags>> cachedFunctionFlags =
-            new Dictionary<MethodInfo, KeyValuePair<EFunctionFlags, ManagedUnrealFunctionFlags>>();
+        private static Dictionary<MethodInfo, CachedFunctionFlagInfo> cachedFunctionFlags =
+            new Dictionary<MethodInfo, CachedFunctionFlagInfo>();
         private static ManagedUnrealFunctionInfo cachedDummyFunctionInfo = new ManagedUnrealFunctionInfo();// Just for flags
 
         // Cache class flags to avoid processing flags multiple times where we want to obtain base class flags
@@ -1576,8 +1576,7 @@ namespace UnrealEngine.Runtime
         /// <summary>
         /// Gets the function flags. This assumes ProcessFunction will only set flags and nothing else.
         /// </summary>
-        private bool TryGetFunctionFlags(ManagedUnrealFunctionInfo functionInfo, MethodInfo method,
-            out KeyValuePair<EFunctionFlags, ManagedUnrealFunctionFlags> outFlags)
+        private bool TryGetFunctionFlags(ManagedUnrealFunctionInfo functionInfo, MethodInfo method, out CachedFunctionFlagInfo outFlags)
         {
             if (cachedFunctionFlags.TryGetValue(method, out outFlags))
             {
@@ -1613,7 +1612,7 @@ namespace UnrealEngine.Runtime
                         {
                             throw new InvalidManagedUnrealAttributeException(originalMethod, attribute);
                         }
-                        outFlags = new KeyValuePair<EFunctionFlags, ManagedUnrealFunctionFlags>(0, 0);
+                        outFlags = null;
                         return false;
                     }
                 }
@@ -1621,6 +1620,7 @@ namespace UnrealEngine.Runtime
 
             EFunctionFlags flags = functionInfo.Flags;
             ManagedUnrealFunctionFlags additionalFlags = functionInfo.AdditionalFlags;
+            string originalName = functionInfo.OriginalName;
 
             // Get inherited base function flags
             MethodInfo baseMethod = method.GetBaseDefinition();
@@ -1634,21 +1634,24 @@ namespace UnrealEngine.Runtime
                 // on functions / properties as well as defining flags in parent functions. For now inherit all
                 // flags from the base-most method and selectively include flags defined in the current method.
 
-                KeyValuePair<EFunctionFlags, ManagedUnrealFunctionFlags> baseFlags;
-                TryGetFunctionFlags(null, baseMethod, out baseFlags);
-
-                additionalFlags = (baseFlags.Value & ManagedUnrealFunctionFlags.FuncInherit);
-                if (baseMethod.DeclaringType.IsInterface)
+                CachedFunctionFlagInfo baseFlags;
+                if (TryGetFunctionFlags(null, baseMethod, out baseFlags))
                 {
-                    additionalFlags |= ManagedUnrealFunctionFlags.InterfaceImplementation;
-                }
+                    originalName = baseFlags.OriginalName;
 
-                // Allow SealedEvent to be set so that we can at least make the function sealed / final if needed.
-                bool isSealedEvent = flags.HasFlag(EFunctionFlags.Final);
-                flags |= baseFlags.Key & EFunctionFlags.FuncInherit;
-                if (isSealedEvent)
-                {
-                    flags |= EFunctionFlags.Final;
+                    additionalFlags = (baseFlags.AdditionalFlags & ManagedUnrealFunctionFlags.FuncInherit);
+                    if (baseMethod.DeclaringType.IsInterface)
+                    {
+                        additionalFlags |= ManagedUnrealFunctionFlags.InterfaceImplementation;
+                    }
+
+                    // Allow SealedEvent to be set so that we can at least make the function sealed / final if needed.
+                    bool isSealedEvent = flags.HasFlag(EFunctionFlags.Final);
+                    flags |= baseFlags.Flags & EFunctionFlags.FuncInherit;
+                    if (isSealedEvent)
+                    {
+                        flags |= EFunctionFlags.Final;
+                    }
                 }
             }
             else
@@ -1673,7 +1676,7 @@ namespace UnrealEngine.Runtime
                 flags |= EFunctionFlags.BlueprintCallable;
             }
 
-            outFlags = new KeyValuePair<EFunctionFlags, ManagedUnrealFunctionFlags>(flags, additionalFlags);
+            outFlags = new CachedFunctionFlagInfo(flags, additionalFlags, originalName);
             cachedFunctionFlags.Add(originalMethod, outFlags);
             if (method != originalMethod)
             {
@@ -2064,15 +2067,20 @@ namespace UnrealEngine.Runtime
 
             functionInfo.IsImplementation = method.Name.EndsWith(codeSettings.VarNames.ImplementationMethod);
 
+            if (method.Name.Contains("OnBecomeViewTarget"))
+            {
+            }
+
             // Get the cached function flags which may have already been obtained. This will resolve
             // the function flags to include the base function flags.
-            KeyValuePair<EFunctionFlags, ManagedUnrealFunctionFlags> flags;
+            CachedFunctionFlagInfo flags;
             if (!TryGetFunctionFlags(functionInfo, method, out flags))
             {
                 return null;
             }
-            functionInfo.Flags |= flags.Key;
-            functionInfo.AdditionalFlags |= flags.Value;
+            functionInfo.Flags |= flags.Flags;
+            functionInfo.AdditionalFlags |= flags.AdditionalFlags;
+            functionInfo.OriginalName = flags.OriginalName;
 
             // non-static functions in a const class must be const themselves
             if (!functionInfo.IsStatic && typeInfo.ClassFlags.HasFlag(EClassFlags.Const))
@@ -2285,6 +2293,20 @@ namespace UnrealEngine.Runtime
             /// A type defined in C# defined the (Not)BlueprintType state
             /// </summary>
             ManagedTypeBlueprintType = 0x0000020,
+        }
+
+        class CachedFunctionFlagInfo
+        {
+            public EFunctionFlags Flags;
+            public ManagedUnrealFunctionFlags AdditionalFlags;
+            public string OriginalName;
+
+            public CachedFunctionFlagInfo(EFunctionFlags flags, ManagedUnrealFunctionFlags additionalFlags, string originalName)
+            {
+                Flags = flags;
+                AdditionalFlags = additionalFlags;
+                OriginalName = originalName;
+            }
         }
     }
 
@@ -2855,14 +2877,9 @@ namespace UnrealEngine.Runtime
         InterfaceImplementation = 0x00000080,
 
         /// <summary>
-        /// This is a native function with a "K2_" prefix
-        /// </summary>
-        K2 = 0x00000100,
-
-        /// <summary>
         /// The flags applicable to inherit from the base function flags
         /// </summary>
-        FuncInherit = K2
+        FuncInherit = 0
     }
 
     public partial class ManagedUnrealFunctionInfo : ManagedUnrealReflectionBase
@@ -2921,18 +2938,24 @@ namespace UnrealEngine.Runtime
             get { return Flags.HasFlag(EFunctionFlags.NetValidate); }
             set { SetFlag(EFunctionFlags.NetValidate, value); }
         }
-        [ManagedUnrealReflectIgnore]
-        public string OriginalName
+
+        /// <summary>
+        /// The original name of the function. Used for function lookup on virtual/interface functions.
+        /// </summary>
+        public string OriginalName { get; set; }
+
+        /// <summary>
+        /// Returns Name or OriginalName (if it exists).
+        /// 
+        /// NOTE: Make sure this is called in ManagedUnrealTypes.Builder.cs instead of using Name directly.
+        /// </summary>
+        public string GetName()
         {
-            get
+            if (!string.IsNullOrEmpty(OriginalName))
             {
-                string result = Name;
-                if (AdditionalFlags.HasFlag(ManagedUnrealFunctionFlags.K2))
-                {
-                    result = "K2_" + result;
-                }
-                return result;
+                return OriginalName;
             }
+            return Name;
         }
 
         private void SetFlag(EFunctionFlags flag, bool set)

@@ -126,6 +126,7 @@ namespace UnrealEngine.Runtime
             base.Serialize(writer);
             WriteEnum(writer, AdditionalFlags);
             WriteEnum(writer, Flags);
+            WriteString(writer, OriginalName);
             WriteObjects(writer, Params);
             WriteObject(writer, ReturnProp);
         }
@@ -135,6 +136,7 @@ namespace UnrealEngine.Runtime
             base.Deserialize(reader);
             AdditionalFlags = ReadEnum<ManagedUnrealFunctionFlags>(reader);
             Flags = ReadEnum<EFunctionFlags>(reader);
+            OriginalName = ReadString(reader);
             Params = ReadObjects<ManagedUnrealPropertyInfo>(reader);
             ReturnProp = ReadObject<ManagedUnrealPropertyInfo>(reader);
         }

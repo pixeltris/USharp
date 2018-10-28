@@ -74,6 +74,13 @@ namespace UnrealEngine.Runtime
                 }
             }
 
+            // Skip functions which require generics for now (see NOTE in GetFunctionSignature)
+            if (!string.IsNullOrEmpty(function.GetMetaData("ArrayParam")) ||
+                !string.IsNullOrEmpty(function.GetMetaData("ArrayTypeDependentParams")))
+            {
+                return false;
+            }
+
             // Maybe check metadata "BlueprintProtected" for true? In blueprint how do the
             // dropdowns private/protected/public impact the UFunction?
 
@@ -402,11 +409,14 @@ namespace UnrealEngine.Runtime
             // Info so we can avoid param name conflicts
             Dictionary<UProperty, string> paramNames = GetParamNames(function);
 
-            // Generic array parameters
+            // NOTE: Removing generics for now as this complicates FromNative/ToNative marshaling.
+            //       - We could possibly use MarshalingDelegateResolver<T>.FromNative/ToNative but this may not
+            //         work on platforms which require AOT compilation.
+            /*// Generic array parameters
             string[] arrayParamNames = function.GetCommaSeperatedMetaData("ArrayParam");
 
             // Generic parameters depending on array type
-            string[] arrayTypeDependentParamNames = function.GetCommaSeperatedMetaData("ArrayTypeDependentParams");
+            string[] arrayTypeDependentParamNames = function.GetCommaSeperatedMetaData("ArrayTypeDependentParams");*/
 
             // AutoCreateRefTerm will force ref on given parameter names (comma seperated)
             string[] autoRefParamNames = function.GetCommaSeperatedMetaData("AutoCreateRefTerm");            
@@ -456,7 +466,8 @@ namespace UnrealEngine.Runtime
                     }
 
                     string paramTypeName = GetTypeName(parameter, namespaces);
-                    if (arrayParamNames.Contains(rawParamName))
+                    // NOTE: Removing generics for now (see note above)
+                    /*if (arrayParamNames.Contains(rawParamName))
                     {
                         int genericsIndex = paramTypeName.IndexOf('<');
                         if (genericsIndex >= 0)
@@ -467,7 +478,7 @@ namespace UnrealEngine.Runtime
                     else if (arrayTypeDependentParamNames.Contains(rawParamName))
                     {
                         paramTypeName = "T";
-                    }
+                    }*/
 
                     parameters.Append(paramTypeName + " " + paramName);
 
@@ -539,10 +550,11 @@ namespace UnrealEngine.Runtime
             }
 
             string generics = string.Empty;
-            if (arrayParamNames.Length > 0 || arrayTypeDependentParamNames.Length > 0)
+            // NOTE: Removing generics for now (see note above)
+            /*if (arrayParamNames.Length > 0 || arrayTypeDependentParamNames.Length > 0)
             {
                 generics = "<T>";
-            }
+            }*/
 
             if (modifiers.Length > 0)
             {

@@ -48,7 +48,7 @@ namespace UnrealEngine.Runtime
             try
             {
                 CreateFileDirectoryIfNotExists(slnPath);
-                File.WriteAllLines(slnPath, GetSolutionContents(projName, projPath, projectGuid));
+                File.WriteAllLines(slnPath, GetSolutionContents(slnPath, projName, projPath, projectGuid));
             }
             catch
             {
@@ -106,13 +106,13 @@ namespace UnrealEngine.Runtime
                         sourceFileContentList = File.ReadAllLines(projPath).ToList();
                     }
 
-                    string _itemGroupTag = @"<ItemGroup>";
-                    string _projectEndTag = @"</Project>";
+                    string _itemGroupTag = "<ItemGroup>";
+                    string _projectEndTag = "</Project>";
                     int _itemGroupIndex = -1;
                     int _insertCodeIndex = -1;
                     int _projectEndIndex = -1;
-                    string _insertCode = "    " +
-        @"<Compile Include=""" + sourceFilePath + @""" />";
+                    string _insertCode = "    <Compile Include=\"" +
+                        NormalizePath(FPaths.MakePathRelativeTo(sourceFilePath, projPath)) + "\" />";
 
                     for (int i = 0; i < sourceFileContentList.Count; i++)
                     {
@@ -143,9 +143,9 @@ namespace UnrealEngine.Runtime
                         sourceFileContentList.InsertRange(_projectEndIndex,
                             new string[]
                             {
-                                @"  <ItemGroup>",
-                                @"",
-                                @"  </ItemGroup>"
+                                "  <ItemGroup>",
+                                "",
+                                "  </ItemGroup>"
                             }
                         );
                         //Check Again For Item Group Tag
@@ -192,7 +192,7 @@ namespace UnrealEngine.Runtime
 
             try
             {
-                Log(ELogVerbosity.Display, "Writing To Project File: " + modulesProjPath);
+                Log("Writing To Project File: " + modulesProjPath);
                 File.WriteAllLines(modulesProjPath, sourceFileContentList.ToArray());
             }
             catch (Exception e)
@@ -202,7 +202,7 @@ namespace UnrealEngine.Runtime
             }
             finally
             {
-                Log(ELogVerbosity.Display, "Done Generating Modules, Solution is at " + modulesSlnPath);
+                Log("Done Generating Modules, Solution is at " + modulesSlnPath);
             }
         }
     }
