@@ -645,8 +645,10 @@ namespace UnrealEngine.Runtime
                         managedDelegate.Linked = true;
                     }
                 }
-
-                Native_SharpHotReloadUtils.UpdateDelegates(changedDelegatesUnsafe.Address);
+                if (FBuild.WithEditor)
+                {
+                    Native_SharpHotReloadUtils.UpdateDelegates(changedDelegatesUnsafe.Address);
+                }
             }
         }
 
@@ -884,27 +886,30 @@ namespace UnrealEngine.Runtime
                 Native_UClass.GetDefaultObject(managedClass.Address, true);
             }
 
-            if (!SkipReinstance)
+            if (FBuild.WithEditor)
             {
-                using (var timing = HotReload.Timing.Create(HotReload.Timing.ManagedUnrealTypes_ReinstanceClasses))
+                if (!SkipReinstance)
                 {
-                    // Reinstance any classes which require reinstancing
-                    foreach (ManagedClass managedClass in classesToReinstance)
+                    using (var timing = HotReload.Timing.Create(HotReload.Timing.ManagedUnrealTypes_ReinstanceClasses))
                     {
-                        IntPtr classReinstancer = IntPtr.Zero;
+                        // Reinstance any classes which require reinstancing
+                        foreach (ManagedClass managedClass in classesToReinstance)
+                        {
+                            IntPtr classReinstancer = IntPtr.Zero;
 
-                        classReinstancer = Native_SharpHotReloadUtils.CreateClassReinstancer(
-                            managedClass.Address, managedClass.OldAddress != IntPtr.Zero ? managedClass.OldAddress : managedClass.Address);
-                        Debug.Assert(classReinstancer != IntPtr.Zero);
+                            classReinstancer = Native_SharpHotReloadUtils.CreateClassReinstancer(
+                                managedClass.Address, managedClass.OldAddress != IntPtr.Zero ? managedClass.OldAddress : managedClass.Address);
+                            Debug.Assert(classReinstancer != IntPtr.Zero);
 
-                        // This will reinstance objects of this class (and delete the class reinstancer).
-                        Native_SharpHotReloadUtils.ReinstanceClass(classReinstancer);
+                            // This will reinstance objects of this class (and delete the class reinstancer).
+                            Native_SharpHotReloadUtils.ReinstanceClass(classReinstancer);
+                        }
                     }
-                }
 
-                using (var timing = HotReload.Timing.Create(HotReload.Timing.SharpHotReloadUtils_FinalizeClasses))
-                {
-                    Native_SharpHotReloadUtils.FinalizeClasses();
+                    using (var timing = HotReload.Timing.Create(HotReload.Timing.SharpHotReloadUtils_FinalizeClasses))
+                    {
+                        Native_SharpHotReloadUtils.FinalizeClasses();
+                    }
                 }
             }
             classesToReinstance.Clear();
