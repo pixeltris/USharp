@@ -646,7 +646,10 @@ namespace UnrealEngine.Runtime
                     }
                 }
 
-                Native_SharpHotReloadUtils.UpdateDelegates(changedDelegatesUnsafe.Address);
+                if (FBuild.WithEditor)
+                {
+                    Native_SharpHotReloadUtils.UpdateDelegates(changedDelegatesUnsafe.Address);
+                }
             }
         }
 
@@ -715,7 +718,7 @@ namespace UnrealEngine.Runtime
 
             ChainChangedDependencies(allTypesByPath, allTypes, changedTypes, unchangedTypes);
 
-            if (numChangedTypes == 0 && HotReload.MinimalReload)
+            if ((numChangedTypes == 0 && HotReload.MinimalReload) || !FBuild.WithEditor)
             {
                 SkipReinstance = true;
                 SkipBroadcastHotReload = true;
@@ -1087,7 +1090,7 @@ namespace UnrealEngine.Runtime
             else if (functionInfo.IsOverride)
             {
                 FName functionName = new FName(functionInfo.OriginalName);
-                IntPtr parentFunction = Native_UClass.FindFunctionByName(parentClass, ref functionName, false);
+                IntPtr parentFunction = Native_UClass.FindFunctionByName(parentClass, ref functionName, true);
                 Debug.Assert(parentFunction != IntPtr.Zero);
 
                 Native_UStruct.SetSuperStruct(function, parentFunction);

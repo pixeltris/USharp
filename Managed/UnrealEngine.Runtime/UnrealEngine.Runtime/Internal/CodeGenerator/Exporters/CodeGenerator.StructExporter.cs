@@ -26,6 +26,10 @@ namespace UnrealEngine.Runtime
                 { "/Script/CoreUObject.SoftObjectPath", ProjectDefinedType.Struct },
                 { "/Script/Engine.TimerHandle", ProjectDefinedType.BlittableStruct },
                 { "/Script/CoreUObject.Guid", ProjectDefinedType.BlittableStruct },// This should map to System.Guid
+
+                // UKismetArrayLibrary has a bunch of methods which have generic args (T), this doesn't really work with marshalers.
+                // - Add code to ignore any functions which have a T arg or a T return type?
+                //{ "/Script/Engine.KismetArrayLibrary", ProjectDefinedType.Class }
             };
 
             foreach (Type type in System.Reflection.Assembly.GetExecutingAssembly().GetTypes())
@@ -36,30 +40,18 @@ namespace UnrealEngine.Runtime
                     string path = attributes[0].Path;
                     if (type.IsClass)
                     {
-                        //UClassAttribute[] classAttributes = (UClassAttribute[])type.GetCustomAttributes(typeof(UClassAttribute), false);
-                        //if (classAttributes.Length > 0)
-                        {
-                            result[path] = ProjectDefinedType.Class;
-                        }
+                        result[path] = ProjectDefinedType.Class;
                     }
                     else if (type.IsEnum)
                     {
-                        //UEnumAttribute[] enumAttributes = (UEnumAttribute[])type.GetCustomAttributes(typeof(UEnumAttribute), false);
-                        //if (enumAttributes.Length > 0)
-                        {
-                            result[path] = ProjectDefinedType.Enum;
-                        }
+                        result[path] = ProjectDefinedType.Enum;
                     }
                     else
                     {
-                        //UStructAttribute[] structAttributes = (UStructAttribute[])type.GetCustomAttributes(typeof(UStructAttribute), false);
-                        //if (structAttributes.Length > 0)
+                        result[path] = ProjectDefinedType.Struct;
+                        if (type.IsLayoutSequential || type.IsExplicitLayout)
                         {
-                            result[path] = ProjectDefinedType.Struct;
-                            if (type.IsLayoutSequential || type.IsExplicitLayout)
-                            {
-                                result[path] = ProjectDefinedType.BlittableStruct;
-                            }
+                            result[path] = ProjectDefinedType.BlittableStruct;
                         }
                     }
                 }
@@ -194,7 +186,7 @@ namespace UnrealEngine.Runtime
             // IsBlueprintBase, BlueprintSpawnableComponent
 
             // All UBlueprintFunctionLibrary classes are visible in blueprint even if marked as not visible
-            if (unrealStruct.IsA<UBlueprintFunctionLibrary>())
+            if (unrealStruct.IsChildOf<UBlueprintFunctionLibrary>())
             {
                 return true;
             }
