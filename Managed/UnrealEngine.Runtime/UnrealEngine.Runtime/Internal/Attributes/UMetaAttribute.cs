@@ -614,6 +614,11 @@ namespace UnrealEngine.Runtime
         DisplayName,
 
         /// <summary>
+        /// The name to use for this class, property, or function when exporting it to a scripting language. May include deprecated names as additional semi-colon separated entries.
+        /// </summary>
+        ScriptName,// added 4.19
+
+        /// <summary>
         /// Specifies that this class is an acceptable base class for creating blueprints.
         /// </summary>
         IsBlueprintBase,
@@ -806,9 +811,35 @@ namespace UnrealEngine.Runtime
         ContentDir,
 
         /// <summary>
+        /// This property is deprecated, any blueprint references to it cause a compilation warning.
+        /// </summary>
+        DeprecatedProperty,// added 4.20
+
+        /// <summary>
+        /// Used in conjunction with DeprecatedNode, DeprecatedProperty, or DeprecatedFunction to customize the warning message displayed to the user.
+        /// </summary>
+        DeprecationMessage,// added 4.20 (UProperty, existed before on functions / classes)
+
+        /// <summary>
         /// The name to display for this class, property, or function instead of auto-generating it from the name.
         /// </summary>
         DisplayName,
+
+        /// <summary>
+        /// The name to use for this class, property, or function when exporting it to a scripting language. May include deprecated names as additional semi-colon separated entries.
+        /// </summary>
+        ScriptName,// added 4.19
+
+        /// <summary>
+        /// Indicates that the property should be displayed immediately after the property named in the metadata.
+        /// </summary>
+        DisplayAfter,// added 4.21
+
+        /// <summary>
+        /// The relative order within its category that the property should be displayed in where lower values are sorted first..
+        /// If used in conjunction with DisplayAfter, specifies the priority relative to other properties with same DisplayAfter specifier.
+        /// </summary>
+        DisplayPriority,// added 4.21
 
         /// <summary>
         /// Indicates that the property is an asset type and it should display the thumbnail of the selected asset.
@@ -859,6 +890,11 @@ namespace UnrealEngine.Runtime
         /// Used for Subclass and SoftClass properties. Specifies to hide the ability to change view options in the class picker
         /// </summary>
         HideViewOptions,
+
+        /// <summary>
+        /// Used for bypassing property initialization tests when the property cannot be safely tested in a deterministic fashion. Example: random numbers, guids, etc.
+        /// </summary>
+        IgnoreForMemberInitializationTest,// added 4.21
 
         /// <summary>
         /// Signifies that the bool property is only displayed inline as an edit condition toggle in other properties, and should not be shown on its own row.
@@ -936,6 +972,11 @@ namespace UnrealEngine.Runtime
         RelativeToGameContentDir,
 
         /// <summary>
+        /// Flag set on a property or function to prevent it being exported to a scripting language.
+        /// </summary>
+        ScriptNoExport,// added 4.19
+
+        /// <summary>
         /// Used by struct properties. Indicates that the inner properties will not be shown inside an expandable struct, but promoted up a level.
         /// </summary>
         ShowOnlyInnerProperties,
@@ -951,6 +992,11 @@ namespace UnrealEngine.Runtime
         SliderExponent,
 
         /// <summary>
+        /// Used by arrays of structs. Indicates a single property inside of the struct that should be used as a title summary when the array entry is collapsed.
+        /// </summary>
+        TitleProperty,
+
+        /// <summary>
         /// Used for float and integer properties.  Specifies the lowest that the value slider should represent.
         /// </summary>
         UIMin,
@@ -959,6 +1005,11 @@ namespace UnrealEngine.Runtime
         /// Used for float and integer properties.  Specifies the highest that the value slider should represent.
         /// </summary>
         UIMax,
+
+        /// <summary>
+        /// Used for SoftObjectPtr/SoftObjectPath properties to specify a reference should not be tracked. This reference will not be automatically cooked or saved into the asset registry for redirector/delete fixup.
+        /// </summary>
+        Untracked,// added 4.21
 
         //////////////////////////////////////////////////////////////////////////////////////////
         // Metadata usable in UPROPERTY for customizing the behavior of Persona and UMG
@@ -1133,6 +1184,54 @@ namespace UnrealEngine.Runtime
         DisplayName,
 
         /// <summary>
+        /// The name to use for this class, property, or function when exporting it to a scripting language.
+        /// </summary>
+        ScriptName,// added 4.19
+
+        /// <summary>
+        /// Flag set on a property or function to prevent it being exported to a scripting language.
+        /// </summary>
+        ScriptNoExport,// added 4.19
+
+        /// <summary>
+        /// Flags a static function taking a struct or or object as its first argument so that it "hoists" the function to be a method of the struct or class when exporting it to a scripting language.
+        /// The value is optional, and may specify a name override for the method. May include deprecated names as additional semi-colon separated entries.
+        /// </summary>
+        ScriptMethod,// added 4.20
+
+        /// <summary>
+        /// Used with ScriptMethod to denote that the return value of the function should overwrite the value of the instance that made the call (structs only, equivalent to using UPARAM(self) on the struct argument).
+        /// </summary>
+        ScriptMethodSelfReturn,// added 4.20
+
+        /// <summary>
+        /// Flags a static function taking a struct as its first argument so that it "hoists" the function to be an operator of the struct when exporting it to a scripting language.
+        /// The value describes the kind of operator using C++ operator syntax (see below), and may contain multiple semi-colon separated values.
+        /// The signature of the function depends on the operator type, and additional parameters may be passed as long as they're defaulted and the basic signature requirements are met.
+        /// - For the bool conversion operator (bool) the signature must be:
+        ///     bool FuncName(const FMyStruct&); // FMyStruct may be passed by value rather than const-ref
+        /// - For comparion operators (==, !=, &lt;, &lt;=, >, >=) the signature must be:
+        ///     bool FuncName(const FMyStruct, OtherType); // OtherType can be any type, FMyStruct may be passed by value rather than const-ref
+        /// - For mathematical operators (+, -, *, /, %, &, |, ^, >>, &lt;&lt;) the signature must be:
+        ///     ReturnType FuncName(const FMyStruct&, OtherType); // ReturnType and OtherType can be any type, FMyStruct may be passed by value rather than const-ref
+        /// - For mathematical assignment operators (+=, -=, *=, /=, %=, &=, |=, ^=, >>=, &lt;&lt;=) the signature must be:
+        ///     FMyStruct FuncName(const FMyStruct&, OtherType); // OtherType can be any type, FMyStruct may be passed by value rather than const-ref
+        /// </summary>
+        ScriptOperator,// added 4.20
+
+        /// <summary>
+        /// Flags a static function returning a value so that it "hoists" the function to be a constant of its host type when exporting it to a scripting language.
+        /// The constant will be hosted on the class that owns the function, but ScriptConstantHost can be used to host it on a different type (struct or class).
+        /// The value is optional, and may specify a name override for the constant. May include deprecated names as additional semi-colon separated entries.
+        /// </summary>
+        ScriptConstant,// added 4.20
+
+        /// <summary>
+        /// Used with ScriptConstant to override the host type for a constant. Should be the name of a struct or class with no prefix, eg) Vector2D or Actor
+        /// </summary>
+        ScriptConstantHost,// added 4.20
+
+        /// <summary>
         /// For BlueprintCallable functions indicates that the parameter pin should be hidden from the user's view.
         /// </summary>
         HidePin,
@@ -1229,7 +1328,7 @@ namespace UnrealEngine.Runtime
         /// Specifies the category of the function when displayed in blueprint editing tools.
         /// Usage: Category=CategoryName or Category="MajorCategory,SubCategory"
         /// </summary>
-        Category
+        Category,
     }
 
     public static class MetadataExtensions

@@ -417,15 +417,11 @@ namespace UnrealEngine.Runtime
                     name = name.Remove(0, 1);
                 }
             }
-
-            // Remove the K2_ prefix (do it in a loop just incase there are multiple K2_ prefixes)
+            
             UFunction function = field as UFunction;
             if (function != null)
             {
-                while (name.StartsWith("K2_"))
-                {
-                    name = name.Substring(3);
-                }
+                function.GetScriptName(name, out name);
             }
 
             name = MakeValidName(name);

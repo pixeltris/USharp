@@ -346,14 +346,14 @@ namespace UnrealEngine.Runtime
                     // Failed to create a return prop for validiation... throw an exception?
                 }
 
-                KeyValuePair<EFunctionFlags, ManagedUnrealFunctionFlags> flags;
-                if (TryGetFunctionFlags(null, getterMethod, out flags))
+                CachedFunctionFlagInfo flagInfo;
+                if (TryGetFunctionFlags(null, getterMethod, out flagInfo))
                 {
-                    if (flags.Key.HasFlag(EFunctionFlags.BlueprintEvent))
+                    if (flagInfo.Flags.HasFlag(EFunctionFlags.BlueprintEvent))
                     {
                         throw new ValidateUnrealPropertyFailedException(member, "Blueprint Property getter function cannot be a blueprint event.");
                     }
-                    if (!flags.Key.HasFlag(EFunctionFlags.BlueprintPure))
+                    if (!flagInfo.Flags.HasFlag(EFunctionFlags.BlueprintPure))
                     {
                         throw new ValidateUnrealPropertyFailedException(member, "Blueprint Property getter function must be pure.");
                     }
@@ -414,18 +414,18 @@ namespace UnrealEngine.Runtime
                         propertyType.FullName + "'");
                 }
 
-                KeyValuePair<EFunctionFlags, ManagedUnrealFunctionFlags> flags;
-                if (TryGetFunctionFlags(null, setterMethod, out flags))
+                CachedFunctionFlagInfo flagInfo;
+                if (TryGetFunctionFlags(null, setterMethod, out flagInfo))
                 {
-                    if (flags.Key.HasFlag(EFunctionFlags.BlueprintEvent))
+                    if (flagInfo.Flags.HasFlag(EFunctionFlags.BlueprintEvent))
                     {
                         throw new ValidateUnrealPropertyFailedException(member, "Blueprint Property setter function cannot be a blueprint event.");
                     }
-                    if (!flags.Key.HasFlag(EFunctionFlags.BlueprintCallable))
+                    if (!flagInfo.Flags.HasFlag(EFunctionFlags.BlueprintCallable))
                     {
                         throw new ValidateUnrealPropertyFailedException(member, "Blueprint Property setter function must be blueprint callable.");
                     }
-                    if (flags.Key.HasFlag(EFunctionFlags.BlueprintPure))
+                    if (flagInfo.Flags.HasFlag(EFunctionFlags.BlueprintPure))
                     {
                         throw new ValidateUnrealPropertyFailedException(member, "Blueprint Property setter function must not be pure.");
                     }

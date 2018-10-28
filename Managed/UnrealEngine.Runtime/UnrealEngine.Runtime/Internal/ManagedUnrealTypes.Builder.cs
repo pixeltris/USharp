@@ -577,7 +577,7 @@ namespace UnrealEngine.Runtime
                     IntPtr invokerAddress = Marshal.GetFunctionPointerForDelegate(managedClass.FunctionInvoker);
                     foreach (ManagedUnrealFunctionInfo functionInfo in managedClass.TypeInfo.Functions)
                     {
-                        using (FStringUnsafe functionNameUnsafe = new FStringUnsafe(functionInfo.Name))
+                        using (FStringUnsafe functionNameUnsafe = new FStringUnsafe(functionInfo.GetName()))
                         {
                             IntPtr function = Native_USharpClass.SetFunctionInvoker(managedClass.Address, ref functionNameUnsafe.Array, invokerAddress);
                             if (function != IntPtr.Zero)
@@ -1031,7 +1031,7 @@ namespace UnrealEngine.Runtime
             // NOTE: We don't want to set EObjectFlags.MarkAsNative here. If we did the function would be held onto by the GC
             //       and the function along with its owning class wouldn't be cleaned up on hotreload.
             EObjectFlags objectFlags = EObjectFlags.Public | EObjectFlags.Transient | EObjectFlags.MarkAsNative;
-            IntPtr function = NativeReflection.NewObject(outer, Runtime.Classes.UFunction, new FName(functionInfo.Name), objectFlags);
+            IntPtr function = NativeReflection.NewObject(outer, Runtime.Classes.UFunction, new FName(functionInfo.GetName()), objectFlags);
 
             // We want EFunctionFlags.Native so that UObject::CallFunction calls our invoker func with the desired params.
             EFunctionFlags functionFlags = EFunctionFlags.Native;
@@ -1068,7 +1068,7 @@ namespace UnrealEngine.Runtime
                 // - Blueprint ALWAYS sets the super func for implemented interfaces.
                 // - It seems to have no impact regardless of whether or not we set it.
                 //
-                /*FName functionName = new FName(functionInfo.Name);
+                /*FName functionName = new FName(functionInfo.GetName());
                 IntPtr interfaceFunction = IntPtr.Zero;
                 var implementedInterfaces = new TArrayUnsafeRef<FImplementedInterface>(
                     Native_UClass.Get_InterfacesRef(outer));
@@ -1089,7 +1089,7 @@ namespace UnrealEngine.Runtime
             }
             else if (functionInfo.IsOverride)
             {
-                FName functionName = new FName(functionInfo.OriginalName);
+                FName functionName = new FName(functionInfo.GetName());
                 IntPtr parentFunction = Native_UClass.FindFunctionByName(parentClass, ref functionName, true);
                 Debug.Assert(parentFunction != IntPtr.Zero);
 
@@ -1114,7 +1114,7 @@ namespace UnrealEngine.Runtime
             // UFunction::Bind will look up the function address and use it to assign UFunction::Func
             {
                 IntPtr funcInvokerAddress = Marshal.GetFunctionPointerForDelegate(funcInvoker);
-                using (FStringUnsafe nameUnsafe = new FStringUnsafe(functionInfo.Name))
+                using (FStringUnsafe nameUnsafe = new FStringUnsafe(functionInfo.GetName()))
                 {
                     // This is the same as FNativeFunctionRegistrar::RegisterFunction()
                     Native_UClass.AddNativeFunction(outer, ref nameUnsafe.Array, funcInvokerAddress);

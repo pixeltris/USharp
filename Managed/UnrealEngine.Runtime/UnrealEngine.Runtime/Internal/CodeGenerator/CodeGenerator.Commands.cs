@@ -45,112 +45,119 @@ namespace UnrealEngine.Runtime
 
         private static void GenerateCode(bool timeSliced, string[] args)
         {
-            bool invalidArgs = false;
-
-            if (args.Length > 0)
+            try
             {
-                if (args[0] == "cancel")
+                bool invalidArgs = false;
+
+                if (args.Length > 0)
                 {
-                    if (timeSlicedCodeGenerator != null && !timeSlicedCodeGenerator.Complete)
+                    if (args[0] == "cancel")
                     {
-                        timeSlicedCodeGenerator.EndGenerateModules();
+                        if (timeSlicedCodeGenerator != null && !timeSlicedCodeGenerator.Complete)
+                        {
+                            timeSlicedCodeGenerator.EndGenerateModules();
+                        }
+                        timeSlicedCodeGenerator = null;
+                        return;
                     }
-                    timeSlicedCodeGenerator = null;
-                    return;
-                }
 
-                if (timeSlicedCodeGenerator != null)
-                {
-                    FMessage.Log("Already generating code");
-                    return;
-                }
+                    if (timeSlicedCodeGenerator != null)
+                    {
+                        FMessage.Log("Already generating code");
+                        return;
+                    }
 
-                CodeGenerator codeGenerator = null;
+                    CodeGenerator codeGenerator = null;
 
-                switch (args[0])
-                {
-                    case "game":
-                        AssetLoadMode loadMode = AssetLoadMode.Game;
-                        bool clearAssetCache = false;
-                        bool skipLevels = false;
-                        if (args.Length > 1)
-                        {
-                            switch (args[1])
+                    switch (args[0])
+                    {
+                        case "game":
+                            AssetLoadMode loadMode = AssetLoadMode.Game;
+                            bool clearAssetCache = false;
+                            bool skipLevels = false;
+                            if (args.Length > 1)
                             {
-                                case "game":
-                                    loadMode = CodeGenerator.AssetLoadMode.Game;
-                                    break;
-                                case "engine":
-                                    loadMode = CodeGenerator.AssetLoadMode.Engine;
-                                    break;
-                                case "all":
-                                    loadMode = CodeGenerator.AssetLoadMode.All;
-                                    break;
+                                switch (args[1])
+                                {
+                                    case "game":
+                                        loadMode = CodeGenerator.AssetLoadMode.Game;
+                                        break;
+                                    case "engine":
+                                        loadMode = CodeGenerator.AssetLoadMode.Engine;
+                                        break;
+                                    case "all":
+                                        loadMode = CodeGenerator.AssetLoadMode.All;
+                                        break;
+                                }
                             }
-                        }
-                        if (args.Length > 2)
-                        {
-                            bool.TryParse(args[2], out clearAssetCache);
-                        }
-                        if (args.Length > 3)
-                        {
-                            bool.TryParse(args[3], out skipLevels);
-                        }
-                        codeGenerator = new CodeGenerator(timeSliced);
-                        codeGenerator.GenerateCodeForGame(loadMode, clearAssetCache, skipLevels);
-                        break;
-
-                    case "gameplugins":
-                        codeGenerator = new CodeGenerator(timeSliced);
-                        codeGenerator.GenerateCodeForModules(new UnrealModuleType[] { UnrealModuleType.GamePlugin });
-                        break;
-
-                    case "modules":
-                        codeGenerator = new CodeGenerator(timeSliced);
-                        //codeGenerator.Settings.ExportMode = CodeGeneratorSettings.CodeExportMode.All;
-                        //codeGenerator.Settings.ExportAllFunctions = true;
-                        //codeGenerator.Settings.ExportAllProperties = true;
-                        codeGenerator.GenerateCodeForAllModules();
-                        break;
-
-                    case "module":
-                        if (args.Length > 1)
-                        {
+                            if (args.Length > 2)
+                            {
+                                bool.TryParse(args[2], out clearAssetCache);
+                            }
+                            if (args.Length > 3)
+                            {
+                                bool.TryParse(args[3], out skipLevels);
+                            }
                             codeGenerator = new CodeGenerator(timeSliced);
-                            // Tests / using these for types for use in this lib
-                            //codeGenerator.Settings.CheckUObjectDestroyed = false;
-                            //codeGenerator.Settings.GenerateIsValidSafeguards = false;
+                            codeGenerator.GenerateCodeForGame(loadMode, clearAssetCache, skipLevels);
+                            break;
+
+                        case "gameplugins":
+                            codeGenerator = new CodeGenerator(timeSliced);
+                            codeGenerator.GenerateCodeForModules(new UnrealModuleType[] { UnrealModuleType.GamePlugin });
+                            break;
+
+                        case "modules":
+                            codeGenerator = new CodeGenerator(timeSliced);
                             //codeGenerator.Settings.ExportMode = CodeGeneratorSettings.CodeExportMode.All;
                             //codeGenerator.Settings.ExportAllFunctions = true;
                             //codeGenerator.Settings.ExportAllProperties = true;
-                            //codeGenerator.Settings.MergeEnumFiles = false;
-                            codeGenerator.GenerateCodeForModule(args[1], true);
-                        }
-                        else
-                        {
+                            codeGenerator.GenerateCodeForAllModules();
+                            break;
+
+                        case "module":
+                            if (args.Length > 1)
+                            {
+                                codeGenerator = new CodeGenerator(timeSliced);
+                                // Tests / using these for types for use in this lib
+                                //codeGenerator.Settings.CheckUObjectDestroyed = false;
+                                //codeGenerator.Settings.GenerateIsValidSafeguards = false;
+                                //codeGenerator.Settings.ExportMode = CodeGeneratorSettings.CodeExportMode.All;
+                                //codeGenerator.Settings.ExportAllFunctions = true;
+                                //codeGenerator.Settings.ExportAllProperties = true;
+                                //codeGenerator.Settings.MergeEnumFiles = false;
+                                codeGenerator.GenerateCodeForModule(args[1], true);
+                            }
+                            else
+                            {
+                                invalidArgs = true;
+                            }
+                            break;
+
+                        default:
                             invalidArgs = true;
-                        }
-                        break;
+                            break;
+                    }
 
-                    default:
-                        invalidArgs = true;
-                        break;
+                    if (!invalidArgs && timeSliced && codeGenerator != null)
+                    {
+                        timeSlicedCodeGenerator = codeGenerator;
+                        Coroutine.StartCoroutine(null, ProcessTimeSlice());
+                    }
                 }
-
-                if (!invalidArgs && timeSliced && codeGenerator != null)
+                else
                 {
-                    timeSlicedCodeGenerator = codeGenerator;
-                    Coroutine.StartCoroutine(null, ProcessTimeSlice());
+                    invalidArgs = true;
+                }
+
+                if (invalidArgs)
+                {
+                    FMessage.Log(ELogVerbosity.Warning, "Invalid input. Provide one of the following: game, gameplugins, modules, module [ModuleName]");
                 }
             }
-            else
+            catch(Exception e)
             {
-                invalidArgs = true;
-            }
-
-            if (invalidArgs)
-            {
-                FMessage.Log(ELogVerbosity.Warning, "Invalid input. Provide one of the following: game, gameplugins, modules, module [ModuleName]");
+                FMessage.Log(ELogVerbosity.Error, "Generate code failed. Error: \n" + e);
             }
         }
 

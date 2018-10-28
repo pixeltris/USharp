@@ -324,6 +324,47 @@ namespace UnrealEngine.Runtime
             }
 
             return true;
+        }        
+
+        /// <summary>
+        /// Gets the name of the function when exposed to a scripting system (e.g. Python)
+        /// </summary>
+        public bool GetScriptName(out string name)
+        {
+            return GetScriptName(GetName(), out name);
+        }
+
+        /// <summary>
+        /// Gets the name of the function when exposed to a scripting system (e.g. Python)
+        /// </summary>
+        public bool GetScriptName(string originalName, out string name)
+        {
+            string scriptFunctionName = originalName;
+            bool hasScriptFunctionName = false;
+
+            string scriptName = this.GetMetaData(MDFunc.ScriptName);
+            if (!string.IsNullOrEmpty(scriptName))
+            {
+                scriptFunctionName = scriptName;
+                hasScriptFunctionName = true;
+            }
+            else
+            {
+                // Remove the K2_ prefix (do it in a loop just incase there are multiple K2_ prefixes)
+                IntPtr ownerClass = Native_UField.GetOwnerClass(Address);
+                if (ownerClass != IntPtr.Zero && Native_UClass.HasAnyClassFlags(ownerClass, EClassFlags.Native))
+                {
+                    while (scriptFunctionName.StartsWith("K2_"))
+                    {
+                        scriptFunctionName = scriptFunctionName.Substring(3);
+                        hasScriptFunctionName = true;
+                    }
+                }
+            }
+
+            name = scriptFunctionName;
+
+            return hasScriptFunctionName;
         }
     }
 }
