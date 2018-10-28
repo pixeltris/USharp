@@ -146,10 +146,12 @@ namespace PluginInstaller
             Console.WriteLine("Available commands:");            
             Console.WriteLine("- build       builds C# and C++ projects");
             Console.WriteLine("- fullbuild   builds C# and C++ projects and updates content files");
-            Console.WriteLine("- buildcs     builds C# projects (Loader, AssemblyRewriter, Runtime)");
+            Console.WriteLine("- buildcs     builds C# projects: EDITOR(Loader, AssemblyRewriter, Runtime, Shared, Editor) ");
+            Console.WriteLine("              and RUNTIME(Loader, Runtime, Shared)");
             Console.WriteLine("- buildcpp    builds C++ projects");
             Console.WriteLine("- update      copies content files to the USharp engine plugin folder");
             Console.WriteLine("- engine      set the target engine path for current engine version (e.g. '{0}')", ExampleEnginePath);
+            Console.WriteLine("- patchgame   patch your packaged game, using the packaged game and game project folder paths");
         }
 
         private static string[] ParseArgs(string commandLine)
