@@ -645,8 +645,15 @@ namespace UnrealEngine.Runtime
                         managedDelegate.Linked = true;
                     }
                 }
-
+                
+#if WITH_EDITORONLY_DATA
                 Native_SharpHotReloadUtils.UpdateDelegates(changedDelegatesUnsafe.Address);
+#else
+                if (FBuild.WithEditor)
+                {
+                    Native_SharpHotReloadUtils.UpdateDelegates(changedDelegatesUnsafe.Address);
+                }
+#endif
             }
         }
 
@@ -884,7 +891,13 @@ namespace UnrealEngine.Runtime
                 Native_UClass.GetDefaultObject(managedClass.Address, true);
             }
 
-            if (!SkipReinstance)
+            bool _canReinstanceClasses = true;
+
+#if WITH_EDITORONLY_DATA == false
+            _canReinstanceClasses = FBuild.WithEditor;
+#endif
+
+            if (!SkipReinstance && _canReinstanceClasses)
             {
                 using (var timing = HotReload.Timing.Create(HotReload.Timing.ManagedUnrealTypes_ReinstanceClasses))
                 {
