@@ -368,7 +368,7 @@ namespace UnrealEngine.Runtime
         {
             string _ue4RuntimePath = Settings.EngineProjMerge ==
                 CodeGeneratorSettings.ManagedEngineProjMerge.EngineAndPluginsCombined ?
-                @"..\UnrealEngine.Runtime.dll" : @"..\..\..\UnrealEngine.Runtime.dll";
+                @"..\EDITOR\UnrealEngine.Runtime.dll" : @"..\..\..\EDITOR\UnrealEngine.Runtime.dll";
             projectGuid = Guid.NewGuid();
             return new string[]
             {
@@ -383,7 +383,7 @@ namespace UnrealEngine.Runtime
                 @"    <OutputPath>bin\$(Configuration)\</OutputPath>",
                 @"    <RootNamespace>" + projectName + @"</RootNamespace>",
                 @"    <AssemblyName>" + projectName + @"</AssemblyName>",
-                @"    <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>",
+                @"    <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>",
                 @"    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>",
                 @"  </PropertyGroup>",
                 @"  <ItemGroup>",

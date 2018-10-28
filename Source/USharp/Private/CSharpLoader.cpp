@@ -130,6 +130,8 @@ void CSharpLoader::SetupPaths()
 
 	// Managed plugins should be under "/Binaries/Managed/"
 	csharpPaths.Add(FPaths::Combine(*PluginsBaseDir, TEXT("Managed")));
+	csharpPaths.Add(FPaths::Combine(*PluginsBaseDir, TEXT("Managed"), TEXT("EDITOR")));
+	csharpPaths.Add(FPaths::Combine(*PluginsBaseDir, TEXT("Managed"), TEXT("RUNTIME")));
 	
 	// Mono should be under "/Binaries/Mono/" or "/Binaries/ThirdParty/Mono/"
 	monoLibPaths.Add(FPaths::Combine(*PluginsBaseDir, TEXT("Mono/")));

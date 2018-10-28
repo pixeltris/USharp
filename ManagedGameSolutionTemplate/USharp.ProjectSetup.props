@@ -23,7 +23,7 @@
 
 
   <PropertyGroup>
-    <USharpRunntimeDllPath>$(USharpPluginPath)/Binaries/Managed/UnrealEngine.Runtime.dll</USharpRunntimeDllPath>
+    <USharpRunntimeDllPath>$(USharpPluginPath)/Binaries/Managed/EDITOR/UnrealEngine.Runtime.dll</USharpRunntimeDllPath>
   </PropertyGroup>
 
   <!--Will Only Exist If All Engine And Plugin Modules Are Grouped Together Under One Csproj -->

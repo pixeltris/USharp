@@ -382,8 +382,10 @@ namespace PluginInstaller
             
             string loaderProj = Path.Combine(slnDir, "Loader/Loader.csproj");
             string runtimeProj = Path.Combine(slnDir, "UnrealEngine.Runtime/UnrealEngine.Runtime.csproj");
+            string editorProj = Path.Combine(slnDir, "USharp.Editor/USharp.Editor.csproj");
+            string sharedProj = Path.Combine(slnDir, "USharp.Shared/USharp.Shared.csproj");
             string assemblyRewriterProj = Path.Combine(slnDir, "UnrealEngine.AssemblyRewriter/UnrealEngine.AssemblyRewriter.csproj");
-            string[] projectPaths = { loaderProj, runtimeProj, assemblyRewriterProj };
+            string[] projectPaths = { loaderProj, runtimeProj, editorProj, sharedProj, assemblyRewriterProj };
             string slnPath = Path.Combine(slnDir, "UnrealEngine.Runtime.sln");
 
             Dictionary<string, string> keyValues = GetKeyValues(args);
