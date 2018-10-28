@@ -127,6 +127,10 @@ namespace PluginInstaller
                         CompileCpp(args);
                         break;
 
+                    case "patchgame":
+                        PrepareToPackageGame();
+                        break;
+
                     case "help":
                     case "?":
                         PrintHelp();
@@ -772,6 +776,175 @@ namespace PluginInstaller
             if (!copiedFile)
             {
                 Console.WriteLine("Failed to copy " + extension + ". Error: " + copyFileError);
+            }
+        }
+
+        static DirectoryInfo GetPackageExecutableDirectory(string _packagePath, out string projectName)
+        {
+            DirectoryInfo _packageDir = new DirectoryInfo(_packagePath);
+            DirectoryInfo _packageExeDir = null;
+            projectName = "";
+
+            foreach (var _dir in _packageDir.GetDirectories())
+            {
+                //Most Likely Inside WindowsNoEditor Folder
+                foreach (var _dirInsideDir in _dir.GetDirectories())
+                {
+                    if (_dirInsideDir.Name == "Engine")
+                    {
+                        //Get Directory Of Engine Directory, This is where the Exe is
+                        _packageExeDir = _dir;
+                        break;
+                    }
+                }
+                if (_packageExeDir != null) break;
+            }
+
+            if(_packageExeDir != null)
+            {
+                foreach (var _file in _packageExeDir.GetFiles())
+                {
+                    if(_file.Extension == ".exe")
+                    {
+                        projectName = Path.GetFileNameWithoutExtension(_file.FullName);
+                    }
+                }
+            }
+
+            return _packageExeDir;
+        }
+
+        static void PrepareToPackageGame()
+        {
+            Console.WriteLine("Please Provide Path To Your Packaged Game...");
+            string _packagePath = Console.ReadLine();
+
+            if(!string.IsNullOrEmpty(_packagePath) && _packagePath.Length > 4 && Directory.Exists(_packagePath))
+            {
+                string _projectName = "";
+                DirectoryInfo _packageExeDir = GetPackageExecutableDirectory(_packagePath, out _projectName);
+                if(_packageExeDir != null && _packageExeDir.Exists)
+                {
+                    Console.WriteLine("Successfully Obtained Project: " + _projectName);
+                    Console.WriteLine("Do you really want to patch your game project? 'Y/N'");
+                    if (ReadYesNo())
+                    {
+                        DirectoryInfo _projectNameFolder = null;
+                        foreach (var _folder in _packageExeDir.GetDirectories())
+                        {
+                            if(_folder.Name == _projectName)
+                            {
+                                _projectNameFolder = new DirectoryInfo(_folder.FullName);
+                                break;
+                            }
+                        }
+                        if(_projectNameFolder == null)
+                        {
+                            Console.WriteLine("Couldn't Find Folder Named: " + _projectName);
+                            return;
+                        }
+                        PatchPackagedGame(_packageExeDir, _projectNameFolder, _projectName);
+                    }
+                }
+                else
+                {
+                    Console.WriteLine("Couldn't Find Project Executable Inside Package Directory");
+                }
+            }
+            else
+            {
+                Console.WriteLine("Could Not Find Directory You Provided.");
+                Console.WriteLine("Package: " + _packagePath);
+            }
+        }
+
+        static bool ObtainRuntimeBinariesPath(DirectoryInfo packageExeDir, string packageName, out DirectoryInfo runtimeBinaryDir)
+        {
+            runtimeBinaryDir = null;
+            string usharpPluginsDir = GetUSharpPluginDirectory(settings.EnginePath);
+            string _runtimeBinaryPath = Path.Combine(usharpPluginsDir, "Binaries", "Managed", "RUNTIME");
+            if (Directory.Exists(_runtimeBinaryPath))
+            {
+                Console.WriteLine("Obtained Runtime Binaries: " + Path.GetFullPath(_runtimeBinaryPath));
+                runtimeBinaryDir = new DirectoryInfo(_runtimeBinaryPath);
+                return true;
+            }
+            else
+            {
+                Console.WriteLine("Couldn't Find Runtime Binaries Path");
+                return false;
+            }
+        }
+
+        static bool ObtainGameProjectBinariesPath(DirectoryInfo packageExeDir, string packageName, out DirectoryInfo gameProjBinaryDir)
+        {
+            gameProjBinaryDir = null;
+            string usharpPluginsDir = GetUSharpPluginDirectory(settings.EnginePath);
+            string _gameProjFilePath = "";
+            do
+            {
+                Console.WriteLine("Please Provide The Path To Your Game Project: " + packageName);
+                _gameProjFilePath = Console.ReadLine();
+                Console.WriteLine("Is this the path to your game project? 'Y/N'");
+            } while (ReadYesNo() == false);
+            
+            if (!string.IsNullOrEmpty(_gameProjFilePath) && _gameProjFilePath.Length > 4 && Directory.Exists(_gameProjFilePath))
+            {
+                string _managedGameProjectBinaries = Path.Combine(_gameProjFilePath, "Managed", "Binaries");
+                if (Directory.Exists(_managedGameProjectBinaries))
+                {
+                    Console.WriteLine("Obtained Game Project Managed Binaries: " + Path.GetFullPath(_managedGameProjectBinaries));
+                    gameProjBinaryDir = new DirectoryInfo(_managedGameProjectBinaries);
+                    return true;
+                }
+                else
+                {
+                    Console.WriteLine("Couldn't Find Game Project Managed Binaries: " + Path.GetFullPath(_managedGameProjectBinaries));
+                }
+            }
+            else
+            {
+                Console.WriteLine("Couldn't Find Game Project Directory: " + _gameProjFilePath);
+            }
+            return false;
+        }
+
+        static void PatchInRuntimeBinaries(DirectoryInfo packageNameFolder, DirectoryInfo _runtimeBinaryDir)
+        {
+            string _patchPath = Path.Combine(packageNameFolder.FullName, "Binaries", "Managed", "RUNTIME");
+            if (!Directory.Exists(_patchPath))
+            {
+                Directory.CreateDirectory(_patchPath);
+            }
+
+            Console.WriteLine("Patching In Runtime Binaries At: " + _patchPath);
+            CopyFilesRecursive(_runtimeBinaryDir, new DirectoryInfo(_patchPath), true);
+        }
+
+        static void PatchInGameProjectBinariesBinaries(DirectoryInfo packageNameFolder, DirectoryInfo _gameProjBinaryDir)
+        {
+            string _patchPath = Path.Combine(packageNameFolder.FullName, "Managed", "Binaries");
+            if (!Directory.Exists(_patchPath))
+            {
+                Directory.CreateDirectory(_patchPath);
+            }
+
+            Console.WriteLine("Patching In Game Project Binaries At: " + _patchPath);
+            CopyFilesRecursive(_gameProjBinaryDir, new DirectoryInfo(_patchPath), true);
+        }
+
+        static void PatchPackagedGame(DirectoryInfo packageExeDir, DirectoryInfo packageNameFolder, string packageName)
+        {
+            Console.WriteLine("Patching Packaged Game: " + packageName + "...");
+            DirectoryInfo _runtimeBinaryDir = null;
+            DirectoryInfo _gameProjBinaryDir = null;
+
+            if (ObtainRuntimeBinariesPath(packageExeDir, packageName, out _runtimeBinaryDir) &&
+                ObtainGameProjectBinariesPath(packageExeDir, packageName, out _gameProjBinaryDir))
+            {
+                PatchInRuntimeBinaries(packageNameFolder, _runtimeBinaryDir);
+                PatchInGameProjectBinariesBinaries(packageNameFolder, _gameProjBinaryDir);
+                Console.WriteLine("Successfully Patched Game Package: " + packageName);
             }
         }
     }
