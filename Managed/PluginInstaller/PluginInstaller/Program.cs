@@ -389,14 +389,15 @@ namespace PluginInstaller
             string editorProj = Path.Combine(slnDir, "USharp.Editor/USharp.Editor.csproj");
             string sharedProj = Path.Combine(slnDir, "USharp.Shared/USharp.Shared.csproj");
             string assemblyRewriterProj = Path.Combine(slnDir, "UnrealEngine.AssemblyRewriter/UnrealEngine.AssemblyRewriter.csproj");
-            string[] projectPaths = { loaderProj, runtimeProj, editorProj, sharedProj, assemblyRewriterProj };
+            string[] runtimeProjectPaths = { loaderProj, runtimeProj, sharedProj };
+            string[] editorProjectPaths = { loaderProj, runtimeProj, editorProj, sharedProj, assemblyRewriterProj };
             string slnPath = Path.Combine(slnDir, "UnrealEngine.Runtime.sln");
 
             Dictionary<string, string> keyValues = GetKeyValues(args);
-            bool shippingBuild = keyValues.ContainsKey("shipping");
+            bool runtimeBuild = false;
             bool x86Build = keyValues.ContainsKey("x86");
 
-            foreach (string projPath in projectPaths)
+            foreach (string projPath in editorProjectPaths)
             {
                 if (!File.Exists(projPath))
                 {
@@ -405,24 +406,42 @@ namespace PluginInstaller
                 }
             }
 
-            foreach (string projPath in projectPaths)
+            //Perform Compiles Twice
+            for (int i = 0; i < 2; i++)
             {
-                string customDefines = null;
-                if (shippingBuild && projPath == runtimeProj)
+                if(runtimeBuild == false)
                 {
-                    // This is to clear the editor defines (WITH_EDITORONLY_DATA) which gives us a runtime FName struct
-                    customDefines = "BLANK_DEFINES";
-                }
-
-                if (!BuildCs(slnPath, projPath, !shippingBuild, x86Build, customDefines))
-                {
-                    Console.WriteLine("Failed to build (see build.log) - " + Path.GetFileName(projPath));
-                    return;
+                    Console.WriteLine("Performing Editor Compile....");
                 }
                 else
                 {
-                    Console.WriteLine("Build successful - " + Path.GetFileName(projPath));
+                    Console.WriteLine("Performing Runtime Compile....");
                 }
+
+                string[] projPaths = runtimeBuild ? runtimeProjectPaths : editorProjectPaths;
+
+                foreach (string projPath in projPaths)
+                {
+                    string customDefines = null;
+                    if (runtimeBuild && projPath == runtimeProj)
+                    {
+                        // This is to clear the editor defines (WITH_EDITORONLY_DATA) which gives us a runtime FName struct
+                        customDefines = "BLANK_DEFINES";
+                    }
+
+                    if (!BuildCs(slnPath, projPath, runtimeBuild, x86Build, customDefines))
+                    {
+                        Console.WriteLine("Failed to build (see build.log) - " + Path.GetFileName(projPath));
+                        return;
+                    }
+                    else
+                    {
+                        Console.WriteLine("Build successful - " + Path.GetFileName(projPath));
+                    }
+                }
+
+                //Invert To Compile For Both Configurations
+                runtimeBuild = !runtimeBuild;
             }
 
             // If we are in the engine folder we shouldn't have to do anything as the binaries should be in the correct location.
@@ -490,7 +509,7 @@ namespace PluginInstaller
             return null;
         }
 
-        private static bool BuildCs(string solutionPath, string projectPath, bool debug, bool x86, string customDefines)
+        private static bool BuildCs(string solutionPath, string projectPath, bool runtimeBuild, bool x86, string customDefines)
         {
             if (string.IsNullOrEmpty(msbuildPath))
             {
@@ -502,7 +521,7 @@ namespace PluginInstaller
                 return false;
             }
             
-            string config = debug ? "Debug" : "Release";
+            string config = runtimeBuild ? "RUNTIME_CONFIG" : "EDITOR_CONFIG";
             string platform = x86 ? "x86" : "\"Any CPU\"";
             string fileArgs = "\"" + solutionPath + "\"" + " /p:Configuration=" + config + " /p:Platform=" + platform;
             if (!string.IsNullOrEmpty(projectPath))
