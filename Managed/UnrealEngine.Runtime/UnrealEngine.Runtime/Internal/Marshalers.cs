@@ -96,6 +96,7 @@ namespace UnrealEngine.Runtime
             marshalerTypeMap.Add(typeof(FSoftObjectPath), typeof(FSoftObjectPathMarshaler));
             marshalerTypeMap.Add(typeof(bool), typeof(BoolMarshaler));
             marshalerTypeMap.Add(typeof(string), typeof(FStringMarshaler));
+            marshalerTypeMap.Add(typeof(FText), typeof(FTextMarshaler));
         }
     }
 
@@ -1250,6 +1251,117 @@ namespace UnrealEngine.Runtime
             CharSize = Native_FString.GetCharSize();
         }
     }
+
+    public class FTextMarshaler
+    {
+        public static FText FromNative(IntPtr nativeBuffer)
+        {
+            return FromNative(nativeBuffer, 0, IntPtr.Zero);
+        }
+
+        public static FText FromNative(IntPtr nativeBuffer, int arrayIndex, IntPtr prop)
+        {
+            FText result = new FText(nativeBuffer + (arrayIndex * FText.FTextNative.StructSize), false);
+            return result;
+        }
+
+        public static void ToNative(IntPtr nativeBuffer, FText value)
+        {
+            ToNative(nativeBuffer, 0, IntPtr.Zero, value);
+        }
+
+        public static void ToNative(IntPtr nativeBuffer, int arrayIndex, IntPtr prop, FText value)
+        {
+            unsafe
+            {
+                FText.FTextNative* from = (FText.FTextNative*)value.Address;
+                FText.FTextNative* to = (FText.FTextNative*)(nativeBuffer + (arrayIndex * FText.FTextNative.StructSize));
+
+                to->TextData.ReleaseSharedReference(ESPMode.ThreadSafe);
+                *to = *from;
+                to->TextData.AddSharedReference(ESPMode.ThreadSafe);
+            }
+        }
+    }
+
+    /*class FTextCachedMarshaler : CachedMarshaler<FText>
+    {
+        private FText[] items = null;
+
+        public FTextCachedMarshaler(IntPtr address, UFieldAddress property, UObject owner)
+            : base(address, property, owner)
+        {
+            items = new FText[FixedArrayLength];
+        }
+
+        protected override FText Create(int index)
+        {
+            return new FText(Address + (index * Property.GenericArg1Size), Owner);
+        }
+
+        public override FText Get(int index)
+        {
+            ValidateIndex(index, items);
+            return items[index];
+        }
+
+        public override void Set(int index, FText value)
+        {
+            ValidateIndex(index, items);
+            items[index].CopyFrom(value);
+        }
+    }
+
+    // Really is a pseudo copy of TFixedSizeArray<>. Modify TFixedSizeArray<> to hold onto a nullable CachedMarshaler<T>?
+    // and then use these custom get/set methods if there is an imeplementation for the given T?
+    abstract class CachedMarshaler<T>
+    {
+        public int FixedArrayLength
+        {
+            get { return Property.ArrayDim; }
+        }
+        public readonly IntPtr Address;
+        public readonly UObject Owner;
+        public readonly UFieldAddress Property;
+
+        public CachedMarshaler(IntPtr address, UFieldAddress property, UObject owner)
+        {
+            Address = address;            
+            Property = property;
+            Owner = owner;
+        }
+
+        public T Get()
+        {
+            return Get(0);
+        }
+
+        public void Set(T value)
+        {
+            Set(0, value);
+        }
+
+        protected abstract T Create(int index);
+        public abstract T Get(int index);
+        public abstract void Set(int index, T value);
+
+        protected void ValidateIndex(int index)
+        {
+            if (index < 0 || index >= FixedArrayLength)
+            {
+                throw new IndexOutOfRangeException(string.Format("Index {0} out of bounds. Array is size {1}.", index, FixedArrayLength));
+            }
+        }
+
+        protected void ValidateIndex(int index, T[] items)
+        {
+            ValidateIndex(index);
+            if (items[index] == null)
+            {
+                items[index] = Create(index);
+            }
+        }
+    }*/
 
     /// <summary>
     /// Marshaler for structs treated as a class in managed code due to large struct layout not suitable for

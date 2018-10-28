@@ -9,6 +9,11 @@ namespace UnrealEngine.Runtime
 {
     // Engine\Source\Runtime\Core\Public\UObject\NameTypes.h
 
+    /// <summary>
+    /// Public name, available to the world.  Names are stored as a combination of
+    /// an index into a table of unique strings and an instance number.
+    /// Names are case-insensitive, but case-preserving (when WITH_CASE_PRESERVING_NAME is 1)
+    /// </summary>
     [StructLayout(LayoutKind.Sequential)]
     public struct FName : IEquatable<FName>, IComparable<FName>
     {
@@ -22,6 +27,11 @@ namespace UnrealEngine.Runtime
         public int Number;
 
         public readonly static FName None = new FName(0, 0);
+
+        /// <summary>
+        /// Maximum size of name.
+        /// </summary>
+        public const int MaxNameSize = 1024;
 
         public string PlainName
         {

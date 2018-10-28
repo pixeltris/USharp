@@ -19,8 +19,17 @@ namespace UnrealEngine.Runtime
         /// </summary>
         public uint Flags { get; set; }
 
+        /// <summary>
+        /// This is a native function with a "K2_" prefix
+        /// </summary>
+        public bool K2 { get; set; }
+
         public override void ProcessFunction(ManagedUnrealFunctionInfo functionInfo)
         {
+            if (K2)
+            {
+                functionInfo.AdditionalFlags |= ManagedUnrealFunctionFlags.K2;
+            }
             functionInfo.AdditionalFlags |= ManagedUnrealFunctionFlags.UFunction;
             functionInfo.Flags |= (EFunctionFlags)Flags;
         }
@@ -36,8 +45,17 @@ namespace UnrealEngine.Runtime
         /// </summary>
         public uint Flags { get; set; }
 
+        /// <summary>
+        /// This is a native function with a "K2_" prefix
+        /// </summary>
+        public bool K2 { get; set; }
+
         public override void ProcessFunction(ManagedUnrealFunctionInfo functionInfo)
         {
+            if (K2)
+            {
+                functionInfo.AdditionalFlags |= ManagedUnrealFunctionFlags.K2;
+            }
             functionInfo.AdditionalFlags |= ManagedUnrealFunctionFlags.UFunction;
             functionInfo.Flags |= (EFunctionFlags)Flags;
         }

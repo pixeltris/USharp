@@ -7,7 +7,7 @@ using UnrealEngine.Runtime.Native;
 namespace UnrealEngine.Runtime
 {
     [UMetaPath("/Script/USharp.SharpClass", "USharp", UnrealModuleType.EnginePlugin)]
-    public class USharpClass : UBlueprintGeneratedClass
+    public class USharpClass : UClass
     {
     }
 }

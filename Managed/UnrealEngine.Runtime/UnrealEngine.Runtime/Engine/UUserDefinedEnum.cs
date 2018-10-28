@@ -2,8 +2,9 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using UnrealEngine.Runtime;
 
-namespace UnrealEngine.Runtime
+namespace UnrealEngine.Engine
 {
     /// <summary>
     /// An Enumeration is a list of named values.

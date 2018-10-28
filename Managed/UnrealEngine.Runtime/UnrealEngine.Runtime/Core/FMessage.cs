@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using UnrealEngine.Runtime.Native;
@@ -27,12 +28,34 @@ namespace UnrealEngine.Runtime
             }
         }
 
-        public static void Assert(bool condition, string message)
+        /// <summary>
+        /// The same as Ensure() but only executed in DEBUG builds
+        /// </summary>
+        [Conditional("DEBUG")]
+        public static void EnsureDebug(bool condition, string message)
+        {
+            if (!condition)
+            {
+                Log(ELogVerbosity.Warning, message);
+            }
+        }
+
+        public static bool Ensure(bool condition, string message)
+        {
+            if (!condition)
+            {
+                Log(ELogVerbosity.Warning, message);
+            }
+            return condition;
+        }
+
+        public static bool Assert(bool condition, string message)
         {
             if (!condition)
             {
                 Log(ELogVerbosity.Error, message);
             }
+            return condition;
         }
 
         public static void Log(string message)
@@ -42,15 +65,15 @@ namespace UnrealEngine.Runtime
 
         public static void Log(ELogVerbosity verbosity, string message)
         {
-            Log(verbosity, message, null);
+            Log(null, verbosity, message);
         }
 
         public static void Log(string message, string category)
         {
-            Log(ELogVerbosity.Log, message, category);
+            Log(category, ELogVerbosity.Log, message);
         }
 
-        public static void Log(ELogVerbosity verbosity, string message, string category)
+        public static void Log(string category, ELogVerbosity verbosity, string message)
         {
             if (string.IsNullOrEmpty(category))
             {

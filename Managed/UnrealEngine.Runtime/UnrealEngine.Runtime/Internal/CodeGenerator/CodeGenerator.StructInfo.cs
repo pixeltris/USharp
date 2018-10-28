@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using UnrealEngine.Engine;
 
 namespace UnrealEngine.Runtime
 {
@@ -134,6 +135,22 @@ namespace UnrealEngine.Runtime
                             exportableProperties.Count >= codeGenerator.Settings.StructsAsClassesAtXProps_NonBlittable)
                         {
                             StructAsClass = true;
+                        }
+                    }
+
+                    if (!StructAsClass)
+                    {
+                        ProjectDefinedType structureType;
+                        if (projectDefinedTypes.TryGetValue(Struct.GetPathName(), out structureType))
+                        {
+                            if (structureType == ProjectDefinedType.BlittableStruct)
+                            {
+                                IsBlittable = true;
+                            }
+                            else if (structureType == ProjectDefinedType.Struct)
+                            {
+                                IsBlittable = false;
+                            }
                         }
                     }
                 }

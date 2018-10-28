@@ -311,13 +311,24 @@ namespace UnrealEngine.Runtime
                 if (typeCode == EPropertyType.Struct && !type.IsGenericType)
                 {
                     // Struct marshaling methods are generated, find the existing type by path
-                    TypeDefinition typeDef = typeDef = assembly.MainModule.GetType(type.FullName);
+                    TypeDefinition typeDef = assembly.MainModule.GetType(type.FullName);
+
+                    bool requiresImport = false;
+                    if (typeDef == null)
+                    {
+                        typeDef = assembly.MainModule.ImportEx(type).Resolve();
+                        requiresImport = true;
+                    }
 
                     foreach (MethodDefinition methodDef in typeDef.Methods)
                     {
                         if (methodDef.Name == "FromNative" && methodDef.IsPublic && methodDef.IsStatic && methodDef.Parameters.Count == paramCount)
                         {
                             method = methodDef;
+                            if (requiresImport)
+                            {
+                                method = assembly.MainModule.Import(method);
+                            }
                             break;
                         }
                     }
@@ -396,13 +407,24 @@ namespace UnrealEngine.Runtime
                 if (typeCode == EPropertyType.Struct && !type.IsGenericType)
                 {
                     // Struct marshaling methods are generated, find the existing type by path
-                    TypeDefinition typeDef = typeDef = assembly.MainModule.GetType(type.FullName);
+                    TypeDefinition typeDef = assembly.MainModule.GetType(type.FullName);
+
+                    bool requiresImport = false;
+                    if (typeDef == null)
+                    {
+                        typeDef = assembly.MainModule.ImportEx(type).Resolve();
+                        requiresImport = true;
+                    }
 
                     foreach (MethodDefinition methodDef in typeDef.Methods)
                     {
                         if (methodDef.Name == "ToNative" && methodDef.IsPublic && methodDef.IsStatic && methodDef.Parameters.Count == paramCount)
                         {
                             method = methodDef;
+                            if (requiresImport)
+                            {
+                                method = assembly.MainModule.Import(method);
+                            }
                             break;
                         }
                     }

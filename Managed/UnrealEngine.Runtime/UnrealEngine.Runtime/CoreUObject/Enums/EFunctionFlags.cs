@@ -5,6 +5,8 @@ using System.Text;
 
 namespace UnrealEngine.Runtime
 {
+    // Engine\Source\Runtime\CoreUObject\Public\UObject\Script.h
+
     /// <summary>
     /// Function flags.
     /// </summary>
@@ -79,7 +81,10 @@ namespace UnrealEngine.Runtime
         /// </summary>
         NetMulticast = 0x00004000,
 
-        // FUNC_ = 0x00008000, // unused.
+        ///// <summary>
+        ///// Function is used as the merge 'ubergraph' for a blueprint, only assigned when using the persistent 'ubergraph' frame
+        ///// </summary>
+        //UbergraphFunction = 0x00008000,// added 4.21
 
         /// <summary>
         /// Function is a multi-cast delegate signature (also requires FUNC_Delegate to be set!)
@@ -146,7 +151,10 @@ namespace UnrealEngine.Runtime
         /// </summary>
         BlueprintPure = 0x10000000,
 
-        // FUNC_ = 0x20000000, // unused.
+        /// <summary>
+        /// function can only be called from an editor script.
+        /// </summary>
+        EditorOnly = 0x20000000,// added 4.17
 
         /// <summary>
         /// function can be called from blueprint code, and only reads state (never writes state)
@@ -158,7 +166,7 @@ namespace UnrealEngine.Runtime
         /// </summary>
         NetValidate = 0x80000000,
 
-        FuncInherit = Exec | Event | BlueprintCallable | BlueprintEvent | BlueprintAuthorityOnly | BlueprintCosmetic,
+        FuncInherit = Exec | Event | BlueprintCallable | BlueprintEvent | BlueprintAuthorityOnly | BlueprintCosmetic | Const,
         FuncOverrideMatch = Exec | Final | Static | Public | Protected | Private,
         NetFuncFlags = Net | NetReliable | NetServer | NetClient | NetMulticast,
         AccessSpecifiers = Public | Private | Protected,

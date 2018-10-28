@@ -2,9 +2,10 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using UnrealEngine.Runtime;
 using UnrealEngine.Runtime.Native;
 
-namespace UnrealEngine.Runtime
+namespace UnrealEngine.Engine
 {
     /// <summary>
     /// Blueprints are special assets that provide an intuitive, node-based interface that can be used to create new types of Actors

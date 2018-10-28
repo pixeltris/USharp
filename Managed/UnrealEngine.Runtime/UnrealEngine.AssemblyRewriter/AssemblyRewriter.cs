@@ -68,6 +68,11 @@ namespace UnrealEngine.Runtime
         MethodReference rpcValidateFailedMethod;
         MethodReference fmemoryMemzero;
 
+        // FText
+        TypeReference ftextTypeRef;
+        MethodReference ftextCtor;
+        MethodReference ftextCopyFrom;
+
         // StructAsClass related
         MethodReference structAsClassAddressGetter;
         MethodReference checkStructAsClassDestroyedMethod;
@@ -229,6 +234,11 @@ namespace UnrealEngine.Runtime
 
             rpcValidateFailedMethod = assembly.MainModule.ImportEx(typeof(FCoreNet).GetMethod("RPC_ValidateFailed"));
             fmemoryMemzero = assembly.MainModule.ImportEx(typeof(FMemory).GetMethod("Memzero", new Type[] { typeof(IntPtr), typeof(int) }));
+
+            Type ftextType = typeof(FText);
+            ftextTypeRef = assembly.MainModule.ImportEx(ftextType);
+            ftextCtor = assembly.MainModule.ImportEx(ftextType.GetConstructor(new Type[] { typeof(IntPtr), typeof(bool) }));
+            ftextCopyFrom = assembly.MainModule.ImportEx(ftextType.GetMethod("CopyFrom"));
 
             structAsClassAddressGetter = assembly.MainModule.ImportEx(typeof(StructAsClass).GetProperty("Address").GetMethod);
             checkStructAsClassDestroyedMethod = assembly.MainModule.ImportEx(typeof(StructAsClass).GetMethod("CheckDestroyed",

@@ -147,6 +147,30 @@ namespace UnrealEngine.Runtime
             return result;
         }
 
+        protected void WriteStringSet(BinaryWriter writer, HashSet<string> values)
+        {
+            int count = values == null ? 0 : values.Count;
+            writer.Write(count);
+            if (count > 0)
+            {
+                foreach (string value in values)
+                {
+                    WriteString(writer, value);
+                }
+            }
+        }
+
+        protected HashSet<string> ReadStringSet(BinaryReader reader)
+        {
+            HashSet<string> result = new HashSet<string>();
+            int count = reader.ReadInt32();
+            for (int i = 0; i < count; ++i)
+            {
+                result.Add(ReadString(reader));
+            }
+            return result;
+        }
+
         protected void WriteObject(BinaryWriter writer, ManagedUnrealReflectionBase obj)
         {
             if (obj == null)
@@ -345,6 +369,10 @@ namespace UnrealEngine.Runtime
                                         line = "WriteTypeReferences(writer, " + property.Name + ");";
                                     }
                                 }
+                                else if (property.PropertyType == typeof(HashSet<string>))
+                                {
+                                    line = "WriteStringSet(writer, " + property.Name + ");";
+                                }
                                 break;
                         }
                     }
@@ -418,6 +446,10 @@ namespace UnrealEngine.Runtime
                                     {
                                         line = property.Name + " = ReadTypeReferences(reader);";
                                     }
+                                }
+                                else if (property.PropertyType == typeof(HashSet<string>))
+                                {
+                                    line = property.Name + " = ReadStringSet(reader);";
                                 }
                                 break;
                         }

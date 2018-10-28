@@ -48,15 +48,21 @@ namespace UnrealEngine.Runtime
                 }
                 else
                 {
+                    string additionalFunctionInfo = string.Empty;
+                    if (unrealFunction.GetName().StartsWith("K2_") && unrealFunction.GetOwnerClass().HasAnyClassFlags(EClassFlags.Native))
+                    {
+                        additionalFunctionInfo = ", K2=true";
+                    }
+
                     if (isCollapsedMember)
                     {
                         // The Flags here might not contain too useful information if there is both a get/set function.
                         // Maybe include a second flags var?
-                        attributes.Add("UFunctionAsProp(Flags=0x" + ((uint)unrealFunction.FunctionFlags).ToString("X8") + ")");
+                        attributes.Add("UFunctionAsProp(Flags=0x" + ((uint)unrealFunction.FunctionFlags).ToString("X8") + additionalFunctionInfo + ")");
                     }
                     else
                     {
-                        attributes.Add("UFunction(Flags=0x" + ((uint)unrealFunction.FunctionFlags).ToString("X8") + ")");
+                        attributes.Add("UFunction(Flags=0x" + ((uint)unrealFunction.FunctionFlags).ToString("X8") + additionalFunctionInfo + ")");
                     }
                 }
             }

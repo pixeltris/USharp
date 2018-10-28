@@ -239,10 +239,10 @@ namespace UnrealEngine.Runtime
             {
                 return EPropertyType.Name;
             }
-            //else if (type == typeof(FText))
-            //{
-            //    return EPropertyType.Text;
-            //}
+            else if (type == typeof(FText))
+            {
+                return EPropertyType.Text;
+            }
 
             if (type.IsSubclassOf(typeof(StructAsClass)) && !type.IsAbstract)
             {
@@ -476,6 +476,7 @@ namespace UnrealEngine.Runtime
                 case EPropertyType.Float: return typeof(float);
                 case EPropertyType.Double: return typeof(double);
                 case EPropertyType.Name: return typeof(FName);
+                case EPropertyType.Text: return typeof(FText);
                 case EPropertyType.Str: return typeof(string);
 
                 case EPropertyType.Array: return typeof(IList<>);
@@ -872,6 +873,7 @@ namespace UnrealEngine.Runtime
                 case EPropertyType.Float: return typeof(BlittableTypeMarshaler<float>);
                 case EPropertyType.Double: return typeof(BlittableTypeMarshaler<double>);
                 case EPropertyType.Name: return typeof(BlittableTypeMarshaler<FName>);
+                case EPropertyType.Text: return typeof(FTextMarshaler);
                 case EPropertyType.Str: return typeof(FStringMarshaler);
 
                 case EPropertyType.Enum:
@@ -1167,7 +1169,7 @@ namespace UnrealEngine.Runtime
                 case EPropertyType.Set:
                 case EPropertyType.Map:
                 case EPropertyType.Str:
-                //case EPropertyType.Text://yes,no?
+                case EPropertyType.Text:
                 case EPropertyType.SoftClass:
                 case EPropertyType.SoftObject:
                     // These need destroying but should be fine without being initialized
@@ -1225,7 +1227,7 @@ namespace UnrealEngine.Runtime
                 case EPropertyType.Set:
                 case EPropertyType.Map:
                 case EPropertyType.Str:
-                //case EPropertyType.Text://yes,no?
+                case EPropertyType.Text:
                 case EPropertyType.SoftClass:
                 case EPropertyType.SoftObject:
                     return true;

@@ -53,8 +53,15 @@ CSEXPORT void CSCONV Export_FTicker_Tick(float DeltaTime)
 	FTicker::GetCoreTicker().Tick(DeltaTime);
 }
 
+CSEXPORT void CSCONV Export_FTicker_AddStaticTicker(csbool(*handler)(float), float delay)
+{
+	FDelegateHandle Handle;
+	Export_FTicker_Reg_CoreTicker(handler, &Handle, true, delay);
+}
+
 CSEXPORT void CSCONV Export_FTicker(RegisterFunc registerFunc)
 {
 	REGISTER_FUNC(Export_FTicker_Reg_CoreTicker);
 	REGISTER_FUNC(Export_FTicker_Tick);
+	REGISTER_FUNC(Export_FTicker_AddStaticTicker);
 }

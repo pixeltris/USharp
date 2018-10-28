@@ -53,6 +53,7 @@
 #include "Export_FSoftObjectPtr.h"
 #include "Export_FLazyObjectPtr.h"
 #include "Export_FWeakObjectPtr.h"
+#include "Export_FReferenceControllerOps.h"
 
 #include "Export_FARFilter.h"
 #include "Export_FAssetData.h"
@@ -72,6 +73,7 @@
 
 #include "Export_FName.h"
 #include "Export_FString.h"
+#include "Export_FText.h"
 #include "Export_FSoftObjectPath.h"
 #include "Export_FPaths.h"
 #include "Export_FMessageDialog.h"
@@ -97,6 +99,8 @@
 #include "Export_FReferenceFinder.h"
 #include "Export_TStatId.h"
 #include "Export_FApp.h"
+#include "Export_FMath.h"
+#include "Export_FParse.h"
 
 #include "Export_IConsoleObject.h"
 #include "Export_IConsoleCommand.h"
@@ -166,6 +170,7 @@ CSEXPORT void CSCONV RegisterFunctions(RegisterFunc registerFunc)
 	Export_FSoftObjectPtr(registerFunc);
 	Export_FLazyObjectPtr(registerFunc);
 	Export_FWeakObjectPtr(registerFunc);
+	Export_FReferenceControllerOps(registerFunc);
 	
 	Export_FARFilter(registerFunc);
 	Export_FAssetData(registerFunc);
@@ -185,6 +190,7 @@ CSEXPORT void CSCONV RegisterFunctions(RegisterFunc registerFunc)
 	
 	Export_FName(registerFunc);
 	Export_FString(registerFunc);
+	Export_FText(registerFunc);
 	Export_FSoftObjectPath(registerFunc);
 	Export_FPaths(registerFunc);
 	Export_FMessageDialog(registerFunc);
@@ -210,6 +216,8 @@ CSEXPORT void CSCONV RegisterFunctions(RegisterFunc registerFunc)
 	Export_FReferenceFinder(registerFunc);
 	Export_TStatId(registerFunc);
 	Export_FApp(registerFunc);
+	Export_FMath(registerFunc);
+	Export_FParse(registerFunc);
 	
 	Export_IConsoleObject(registerFunc);
 	Export_IConsoleCommand(registerFunc);

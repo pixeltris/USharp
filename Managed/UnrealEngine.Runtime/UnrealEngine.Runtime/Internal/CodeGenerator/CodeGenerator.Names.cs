@@ -218,11 +218,7 @@ namespace UnrealEngine.Runtime
 
             public static string FText
             {
-                get
-                {
-                    return "FText";
-                    //return NameOf<UnrealEngine.Runtime.FText>(); }
-                }
+                get { return NameOf<UnrealEngine.Runtime.FText>(); }
             }
 
             public static string FObjectInitializer
@@ -338,6 +334,11 @@ namespace UnrealEngine.Runtime
             public static string FStringMarshaler_DefaultString
             {
 				get { return FStringMarshaler + ".DefaultString"; }
+            }
+
+            public static string FTextMarshaler
+            {
+                get { return NameOf<UnrealEngine.Runtime.FTextMarshaler>(); }
             }
 
             public static string TArrayReadWriteMarshaler

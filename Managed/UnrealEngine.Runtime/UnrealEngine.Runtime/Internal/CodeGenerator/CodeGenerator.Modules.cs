@@ -30,7 +30,7 @@ namespace UnrealEngine.Runtime
         {            
             GenerateCodeForModules(new UnrealModuleType[]
                 {
-                    UnrealModuleType.Game,// Do C++ classes appear here? Or under asset registry? TODO: Look into
+                    //UnrealModuleType.Game,// Do C++ classes appear here? Or under asset registry? TODO: Look into
                     UnrealModuleType.GamePlugin,
                     UnrealModuleType.Engine,
                     UnrealModuleType.EnginePlugin
@@ -103,7 +103,7 @@ namespace UnrealEngine.Runtime
                 }
                 else
                 {
-                    FMessage.Log(ELogVerbosity.Error, string.Format("Global function which isn't a delegate '{0}'"), function.GetName());
+                    FMessage.Log(ELogVerbosity.Error, string.Format("Global function which isn't a delegate '{0}'", function.GetName()));
                 }
             }
 

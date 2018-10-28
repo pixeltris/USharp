@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
+using UnrealEngine.Engine;
 
 namespace UnrealEngine.Runtime
 {
@@ -239,7 +240,7 @@ namespace UnrealEngine.Runtime
                 string warning = "Function redefined in hierarchy where interfaces are used. This is likely going to produce " +
                     "unexpected results and should be avoided where possible. ImplementedInClass: '" + unrealClass.GetPathName() + 
                     "' InterfaceFunc: '" +  function.GetPathName() + "' ConflictFunc: '" + conflictFunction.GetPathName() + "'";
-                FMessage.Log(ELogVerbosity.Warning, warning, "USharp-CodeGenerator");
+                FMessage.Log("USharp-CodeGenerator", ELogVerbosity.Warning, warning);
             }
         }
 

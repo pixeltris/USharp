@@ -5,6 +5,8 @@ using System.Text;
 
 namespace UnrealEngine.Runtime
 {
+    // Engine\Source\Runtime\CoreUObject\Public\UObject\ObjectMacros.h
+
     /// <summary>
     /// Flags describing a class.
     /// </summary>
@@ -38,7 +40,7 @@ namespace UnrealEngine.Runtime
         /// </summary>
         Parsed = 0x00000010,
 
-        // CLASS_ = 0x00000020,
+        MatchedSerializers = 0x00000020,// added 4.20
 
         /// <summary>
         /// All the properties on the class are shown in the advanced section (which is hidden by default) unless SimpleDisplay is specified on the property
@@ -66,9 +68,9 @@ namespace UnrealEngine.Runtime
         PerObjectConfig = 0x00000400,
 
         /// <summary>
-        /// pointers to this class default to weak.
+        /// Whether SetUpRuntimeReplicationData still needs to be called for this class
         /// </summary>
-        PointersDefaultToWeak = 0x00000800,
+        ReplicationDataIsSetUp = 0x00000800,// 4.16:PointersDefaultToWeak, 4.17:removed, 4.20:ReplicationDataIsSetUp
 
         /// <summary>
         /// Class can be constructed from editinline New button.
@@ -95,10 +97,10 @@ namespace UnrealEngine.Runtime
         /// </summary>
         Const = 0x00010000,
 
-        /// <summary>
-        /// pointers to this class default to weak.
-        /// </summary>
-        PointersDefaultToAutoWeak = 0x00020000,
+        ///// <summary>
+        ///// Class flag indicating the class is having its layout changed, and therefore is not ready for a CDO to be created
+        ///// </summary>
+        //LayoutChanging = 0x00020000,// 4.16:PointersDefaultToAutoWeak, 4.17:removed, 4.21:LayoutChanging
 
         /// <summary>
         /// Indicates that the class was created from blueprint source material
@@ -174,8 +176,7 @@ namespace UnrealEngine.Runtime
         /// Flags to inherit from base class
         /// </summary>
         Inherit = Transient | DefaultConfig | Config | PerObjectConfig | ConfigDoNotCheckDefaults | NotPlaceable
-                | PointersDefaultToAutoWeak | PointersDefaultToWeak | Const
-                | HasInstancedReference | Deprecated | DefaultToInstanced | GlobalUserConfig,
+                | Const | HasInstancedReference | Deprecated | DefaultToInstanced | GlobalUserConfig,
 
         /// <summary>
         /// these flags will be cleared by the compiler when the class is parsed during script compilation
@@ -205,11 +206,9 @@ namespace UnrealEngine.Runtime
             NotPlaceable |
             PerObjectConfig |
             ConfigDoNotCheckDefaults |
-            PointersDefaultToWeak |
             EditInlineNew |
             CollapseCategories |
             Interface |
-            PointersDefaultToAutoWeak |
             DefaultToInstanced |
             HasInstancedReference |
             Hidden |
@@ -219,7 +218,8 @@ namespace UnrealEngine.Runtime
             AdvancedDisplay |
             Const |
             MinimalAPI |
-            RequiredAPI,
+            RequiredAPI |
+            MatchedSerializers,
 
         AllFlags = 0xFFFFFFFF,
     }

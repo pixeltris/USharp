@@ -15,6 +15,7 @@ namespace UnrealEngine.Runtime
             WriteObjects(writer, Enums);
             WriteObjects(writer, Interfaces);
             WriteString(writer, ModuleName);
+            WriteStringSet(writer, ReferencedAssemblies);
             WriteObjects(writer, Structs);
         }
 
@@ -27,6 +28,7 @@ namespace UnrealEngine.Runtime
             Enums = ReadObjects<ManagedUnrealEnumInfo>(reader);
             Interfaces = ReadObjects<ManagedUnrealTypeInfo>(reader);
             ModuleName = ReadString(reader);
+            ReferencedAssemblies = ReadStringSet(reader);
             Structs = ReadObjects<ManagedUnrealTypeInfo>(reader);
         }
     }

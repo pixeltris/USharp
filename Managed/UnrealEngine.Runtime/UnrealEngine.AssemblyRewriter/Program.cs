@@ -36,7 +36,6 @@ namespace UnrealEngine.Runtime
 
 
             AppDomain.CurrentDomain.AssemblyResolve += CurrentDomain_AssemblyResolve;
-            Console.WriteLine($"Processing file:");
 
             foreach (string filePath in args)
             {

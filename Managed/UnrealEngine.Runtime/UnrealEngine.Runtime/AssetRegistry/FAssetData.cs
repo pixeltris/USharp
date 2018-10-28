@@ -284,7 +284,7 @@ namespace UnrealEngine.Runtime
         public FName PackagePath;
         public FName AssetName;
         public FName AssetClass;
-        public FSharedRef TagsAndValues;//TSharedMapView<FName, FString>
+        public FSharedPtr TagsAndValues;//TSharedMapView<FName, FString>
         public FScriptArray ChunkIDs;//TArray<int32>
         public uint PackageFlags;
     }
