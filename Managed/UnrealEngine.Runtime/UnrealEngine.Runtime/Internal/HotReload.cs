@@ -269,12 +269,15 @@ namespace UnrealEngine.Runtime
 
             public static void PrintAll()
             {
-                Element totalLoadTime = elements[TotalLoadTime];
-                foreach (KeyValuePair<string, Element> element in elements)
+                Element totalLoadTime;
+                if (elements.TryGetValue(TotalLoadTime, out totalLoadTime))
                 {
-                    if (element.Value.IsRoot)
+                    foreach (KeyValuePair<string, Element> element in elements)
                     {
-                        PrintRecursive(element.Value, 0);
+                        if (element.Value.IsRoot)
+                        {
+                            PrintRecursive(element.Value, 0);
+                        }
                     }
                 }
             }

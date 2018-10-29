@@ -384,10 +384,10 @@ namespace PluginInstaller
             string runtimeProj = Path.Combine(slnDir, "UnrealEngine.Runtime/UnrealEngine.Runtime.csproj");
             string assemblyRewriterProj = Path.Combine(slnDir, "UnrealEngine.AssemblyRewriter/UnrealEngine.AssemblyRewriter.csproj");
             string[] projectPaths = { loaderProj, runtimeProj, assemblyRewriterProj };
+            string[] shippingBuildProjectPaths = { runtimeProj };// Currently also requires to be in projectPaths
             string slnPath = Path.Combine(slnDir, "UnrealEngine.Runtime.sln");
 
             Dictionary<string, string> keyValues = GetKeyValues(args);
-            bool shippingBuild = keyValues.ContainsKey("shipping");
             bool x86Build = keyValues.ContainsKey("x86");
 
             foreach (string projPath in projectPaths)
@@ -399,23 +399,28 @@ namespace PluginInstaller
                 }
             }
 
-            foreach (string projPath in projectPaths)
+            for (int i = 0; i < 2; i++)
             {
-                string customDefines = null;
-                if (shippingBuild && projPath == runtimeProj)
-                {
-                    // This is to clear the editor defines (WITH_EDITORONLY_DATA) which gives us a runtime FName struct
-                    customDefines = "BLANK_DEFINES";
-                }
+                bool shippingBuild = i == 1;
+                string[] paths = shippingBuild ? shippingBuildProjectPaths : projectPaths;
 
-                if (!BuildCs(slnPath, projPath, !shippingBuild, x86Build, customDefines))
+                foreach (string projPath in paths)
                 {
-                    Console.WriteLine("Failed to build (see build.log) - " + Path.GetFileName(projPath));
-                    return;
-                }
-                else
-                {
-                    Console.WriteLine("Build successful - " + Path.GetFileName(projPath));
+                    string targetName = Path.GetFileName(projPath);
+                    if (shippingBuild)
+                    {
+                        targetName += " (Shipping)";
+                    }
+
+                    if (!BuildCs(slnPath, projPath, !shippingBuild, x86Build, null))
+                    {
+                        Console.WriteLine("Failed to build (see build.log) - " + targetName);
+                        return;
+                    }
+                    else
+                    {
+                        Console.WriteLine("Build successful - " + targetName);
+                    }
                 }
             }
 

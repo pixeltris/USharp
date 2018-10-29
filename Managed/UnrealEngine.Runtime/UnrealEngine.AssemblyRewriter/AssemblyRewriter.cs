@@ -739,7 +739,7 @@ namespace UnrealEngine.Runtime
                 {
                     // XXXX_FunctionAddress = NativeReflection.GetFunction(classAddress, "XXXX");
                     processor.InsertBefore(target, loadNativeClassPtr);
-                    processor.InsertBefore(target, processor.Create(OpCodes.Ldstr, injectedFunctionInfo.FunctionInfo.Name));
+                    processor.InsertBefore(target, processor.Create(OpCodes.Ldstr, injectedFunctionInfo.FunctionInfo.GetName()));
                     processor.InsertBefore(target, processor.Create(OpCodes.Call, reflectionCachedGetFunctionMethod));
                     processor.InsertBefore(target, processor.Create(OpCodes.Stsfld, injectedFunctionInfo.FunctionAddress));
                 }
