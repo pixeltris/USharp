@@ -392,6 +392,7 @@ namespace UnrealEngine.Runtime
                 @"    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>",
                 @"  </PropertyGroup>",
                 @"  <ItemGroup>",
+                @"  <Reference Include=""System"" />",
                 @"    <Reference Include=""" + "UnrealEngine.Runtime" + @""">",
                 @"      <HintPath>" + _ue4RuntimePath + @"</HintPath>",
                 @"    </Reference>",
@@ -401,35 +402,33 @@ namespace UnrealEngine.Runtime
             };
         }
 
-        protected string[] GetSolutionContents(string projName, string projPath, Guid projectGuid)
+        protected string[] GetSolutionContents(string slnPath, string projName, string projPath, Guid projectGuid)
         {
-            Guid staticcsslnGuid = new Guid(@"FAE04EC0-301F-11D3-BF4B-00C04F79EFBC");
-            Guid endingslnGuid = new Guid();
+            string relativeProjPath = NormalizePath(FPaths.MakePathRelativeTo(projPath, slnPath));
+
+            Guid projectTypeGuid = new Guid(@"FAE04EC0-301F-11D3-BF4B-00C04F79EFBC");// C# project type guid
+            Guid solutionGuid = Guid.NewGuid();
             return new string[]
             {
                 @"Microsoft Visual Studio Solution File, Format Version 12.00",
                 @"# Visual Studio 15",
                 @"VisualStudioVersion = 15.0.28010.2041",
                 @"MinimumVisualStudioVersion = 10.0.40219.1",
-                //Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UnrealEngine", "UnrealEngine.csproj", "{9B2E6C24-CCEF-4F53-AE30-AB0C16A97A36}"
-                @"Project(""{" + staticcsslnGuid + @"}"") = """+projName+@""", """+new FileInfo(projPath).FullName+@""", ""{"+projectGuid+@"}""",
+                @"Project(""{" + projectTypeGuid + @"}"") = """ + projName + @""", """ + relativeProjPath + @""", ""{" + projectGuid + @"}""",
                 @"EndProject",
                 @"Global",
                 @"	GlobalSection(SolutionConfigurationPlatforms) = preSolution",
                 @"		Debug|Any CPU = Debug|Any CPU",
                 @"	EndGlobalSection",
                 @"	GlobalSection(ProjectConfigurationPlatforms) = postSolution",
-                //      {9B2E6C24-CCEF-4F53-AE30-AB0C16A97A36}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-                @"		{"+projectGuid+@"}.Debug|Any CPU.ActiveCfg = Debug|Any CPU",
-                //      {9B2E6C24-CCEF-4F53-AE30-AB0C16A97A36}.Debug|Any CPU.Build.0 = Debug|Any CPU
-                @"		{"+projectGuid+@"}.Debug|Any CPU.Build.0 = Debug|Any CPU",
+                @"		{" + projectGuid + @"}.Debug|Any CPU.ActiveCfg = Debug|Any CPU",
+                @"		{" + projectGuid + @"}.Debug|Any CPU.Build.0 = Debug|Any CPU",
                 @"	EndGlobalSection",
                 @"	GlobalSection(SolutionProperties) = preSolution",
                 @"		HideSolutionNode = FALSE",
                 @"	EndGlobalSection",
                 @"	GlobalSection(ExtensibilityGlobals) = postSolution",
-                //		SolutionGuid = {78C63B87-B5AE-4B7C-81D6-43F148AD1606}
-                @"		SolutionGuid = {"+endingslnGuid+@"}",
+                @"		SolutionGuid = {" + solutionGuid + @"}",
                 @"	EndGlobalSection",
                 @"EndGlobal"
             };
@@ -604,6 +603,14 @@ namespace UnrealEngine.Runtime
             {
                 Log(ELogVerbosity.Display, "Build successful - " + Path.GetFileName(_projPath));
             }
+        }
+
+        /// <summary>
+        /// Normalizes a file path to be used in a .sln/csproj ('\' must be used instead of '/')
+        /// </summary>
+        protected string NormalizePath(string path)
+        {
+            return path.Replace('/', '\\');
         }
 
         protected void Log(string value, params object[] args)

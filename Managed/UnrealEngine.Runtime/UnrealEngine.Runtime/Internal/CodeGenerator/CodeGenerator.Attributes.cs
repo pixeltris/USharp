@@ -49,9 +49,13 @@ namespace UnrealEngine.Runtime
                 else
                 {
                     string additionalFunctionInfo = string.Empty;
-                    if (unrealFunction.GetName().StartsWith("K2_") && unrealFunction.GetOwnerClass().HasAnyClassFlags(EClassFlags.Native))
+                    
+                    // TODO: Only get the script name for virtual functions / interface functions as we currently only need
+                    //       this for finding the base function for hooking things up to the native base types.
+                    string scriptFunctionName;
+                    if (unrealFunction.GetScriptName(out scriptFunctionName))
                     {
-                        additionalFunctionInfo = ", K2=true";
+                        additionalFunctionInfo += ", OriginalName=\"" + unrealFunction.GetName() + "\"";
                     }
 
                     if (isCollapsedMember)

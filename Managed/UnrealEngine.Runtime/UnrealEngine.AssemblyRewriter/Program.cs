@@ -28,7 +28,7 @@ namespace UnrealEngine.Runtime
             UnrealTypes.Load();
             AssemblyRewriter rewriter = new AssemblyRewriter();
 
-            if (System.Diagnostics.Debugger.IsAttached && args.Length == 0)
+            if (System.Diagnostics.Debugger.IsAttached)
             {
                 ManagedUnrealReflectionBase.UpdateSerializerCode();
                 //RunTests(rewriter);
