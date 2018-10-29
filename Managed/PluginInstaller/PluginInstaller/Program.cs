@@ -128,11 +128,12 @@ namespace PluginInstaller
                         break;
 
                     case "patchgame":
-                        if (args.Length > 1 && !string.IsNullOrEmpty(args[1])
-                            && !string.IsNullOrEmpty(args[2]) && args[1].Length > 3 && args[2].Length > 3)
+                        if (args.Length > 1 &&
+                            //Game Project Path
+                            !string.IsNullOrEmpty(args[1]) && args[1].Length > 1)
                         {
                             //Most likely being called from PostBuildSteps
-                            PrepareToPackageGameWithArguments(args[1], args[2]);
+                            PrepareToPackageGameWithArguments(args[1]);
                         }
                         else
                         {
@@ -845,8 +846,142 @@ namespace PluginInstaller
             return _packageExeDir;
         }
 
-        static void PrepareToPackageGameWithArguments(string _packageGamePath, string _gameProjectPath)
+        static int ObtainFirstIndexIfContains(string[] _content, string _contains)
         {
+            for (int i = 0; i < _content.Length; i++)
+            {
+                if (_content[i].Contains(_contains))
+                {
+                    return i;
+                }
+            }
+            return -1;
+        }
+
+        static List<int> ObtainAllLineIndexsIfContains(string[] _content, string _contains)
+        {
+            List<int> _allIndexes = new List<int>();
+            for (int i = 0; i < _content.Length; i++)
+            {
+                if(_content[i].Contains(_contains))
+                {
+                    _allIndexes.Add(i);
+                }
+            }
+            return _allIndexes;
+        }
+
+        static int ObtainLastIndexInAllLineContains(string[] _content, string _contains)
+        {
+            var _indexes = ObtainAllLineIndexsIfContains(_content, _contains);
+            int _last = -1;
+            foreach (var _index in _indexes)
+            {
+                if(_index > _last)
+                {
+                    _last = _index;
+                }
+            }
+            return _last;
+        }
+
+        static int FindFirstIndexOfGivenCharacter(string _line, int _startIndex, char _contains)
+        {
+            if (_startIndex < _line.Length)
+            {
+                for (int i = _startIndex; i < _line.Length; i++)
+                {
+                    if (_line[i] == _contains) return i;
+                }
+            }
+            return -1;
+        }
+
+        static string ObtainPackageGamePath(string _gameProjectPath)
+        {
+            string _gamePackagePath = "";
+            if(!string.IsNullOrEmpty(_gameProjectPath) && _gameProjectPath.Length > 4 && Directory.Exists(_gameProjectPath)){
+                string _gameProjectName = new DirectoryInfo(_gameProjectPath).Name;
+                string _logpath = Path.Combine(_gameProjectPath, "Saved", "Logs", _gameProjectName + ".log");
+                if (File.Exists(_logpath))
+                {
+                    string _fileStreamLine;
+                    List<string> _logContentList = new List<string>();
+                    using (var _stream = File.Open(_logpath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+                    using (StreamReader _reader = new StreamReader(_stream))
+                    {
+                        while ((_fileStreamLine = _reader.ReadLine()) != null)
+                        {
+                            _logContentList.Add(_fileStreamLine);
+                        }
+                    }
+                    
+                    string[] _logContent = _logContentList.ToArray();
+                    if (_logContent.Length <= 0) return _gamePackagePath;
+
+                    string _uatPackageLine = @"UATHelper: Packaging (Windows (64-bit)): Parsing command line: -ScriptsForProject=";
+                    int _lastUatIndex = ObtainLastIndexInAllLineContains(_logContent, _uatPackageLine);
+                    if(_lastUatIndex != -1)
+                    {
+                        string _lastUATCallInstance = _logContent[_lastUatIndex];
+                        int _archiveIndex = _lastUATCallInstance.IndexOf("-archivedirectory");
+                        if(_archiveIndex != -1)
+                        {
+                            //Check For First Quotation Mark After Archived Directory Arg
+                            int _firstLineCheckIndex = FindFirstIndexOfGivenCharacter(_logContent[_lastUatIndex], _archiveIndex, '"');
+                            string _checkLine = "";
+                            List<char> _gamePackagePathInCharacters = new List<char>();
+                            if (_firstLineCheckIndex != -1)
+                            {
+                                _checkLine = _logContent[_lastUatIndex];
+                                for (int i = _firstLineCheckIndex; i < _checkLine.Length; i++)
+                                {
+                                    //Checks Char After Current One For Quotation Mark
+                                    if(_checkLine[i + 1] == '"')
+                                    {
+                                        break;
+                                    }
+                                    else
+                                    {
+                                        _gamePackagePathInCharacters.Add(_checkLine[i + 1]);
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                Console.WriteLine("Couldn't Find Instance of Quotation Mark Inside the UAT Package Call Lines");
+                            }
+                            if(_gamePackagePathInCharacters.Count > 0)
+                            {
+                                _gamePackagePath = new string(_gamePackagePathInCharacters.ToArray());
+                            }
+                        }
+                        else
+                        {
+                            Console.WriteLine("Didn't find archive argument in UAT Call Line");
+                        }
+                    }
+                    else
+                    {
+                        Console.WriteLine("Couldn't Find Instance of Package UAT Call: " + _uatPackageLine);
+                    }
+                }
+                else
+                {
+                    Console.WriteLine("Couldn't Find Project Log File At: " + _logpath);
+                }
+            }
+            else
+            {
+                Console.WriteLine("Couldn't Find Game Project Directory Provided: " + _gameProjectPath);
+            }
+            return _gamePackagePath;
+        }
+
+        static void PrepareToPackageGameWithArguments(string _gameProjectPath)
+        {
+            string _packageGamePath = ObtainPackageGamePath(_gameProjectPath);
+
             Console.WriteLine("Preparing To Package Game With Arguments...");
             Console.WriteLine("Game Package Path: " + _packageGamePath);
             Console.WriteLine("Game Project Path: " + _gameProjectPath);
