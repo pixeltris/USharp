@@ -811,32 +811,59 @@ namespace PluginInstaller
             }
         }
 
-        static DirectoryInfo GetPackageExecutableDirectory(string _packagePath, out string projectName)
+        static DirectoryInfo GetPackageExecutableDirectory(string _packagePath, out string projectName, bool fromPackager = false)
         {
             DirectoryInfo _packageDir = new DirectoryInfo(_packagePath);
             DirectoryInfo _packageExeDir = null;
             projectName = "";
 
-            foreach (var _dir in _packageDir.GetDirectories())
+            if (fromPackager)
             {
-                //Most Likely Inside WindowsNoEditor Folder
-                foreach (var _dirInsideDir in _dir.GetDirectories())
+                //This is a temporary hack because if you patch a package using post steps,
+                //The WindowsNoEditor Folder Most Likely Doesn't Exist Yet
+                string _windowsNoEditorPath = Path.Combine(_packageDir.FullName, "WindowsNoEditor");
+                string _enginePath = Path.Combine(_packageDir.FullName, "WindowsNoEditor", "Engine");
+
+                if (!Directory.Exists(_windowsNoEditorPath))
                 {
-                    if (_dirInsideDir.Name == "Engine")
-                    {
-                        //Get Directory Of Engine Directory, This is where the Exe is
-                        _packageExeDir = _dir;
-                        break;
-                    }
+                    Console.WriteLine("Creating WindowsNoEditor SubDirectory In: " + _packageDir.FullName);
+                    Directory.CreateDirectory(_windowsNoEditorPath);
                 }
-                if (_packageExeDir != null) break;
+                if (!Directory.Exists(_enginePath))
+                {
+                    Console.WriteLine("Creating Engine SubDirectory In: " + _windowsNoEditorPath);
+                    Directory.CreateDirectory(_enginePath);
+                }
+
+                _packageExeDir = new DirectoryInfo(_windowsNoEditorPath);
+            }
+            else
+            {
+                foreach (var _dir in _packageDir.GetDirectories())
+                {
+                    //Most Likely Inside WindowsNoEditor Folder
+                    foreach (var _dirInsideDir in _dir.GetDirectories())
+                    {
+                        if (_dirInsideDir.Name == "Engine")
+                        {
+                            //Get Directory Of Engine Directory, This is where the Exe is
+                            _packageExeDir = _dir;
+                            break;
+                        }
+                    }
+
+                    if (_packageExeDir != null) break;
+                }
             }
 
-            if(_packageExeDir != null)
+
+            if (_packageExeDir != null)
             {
+                //Only Relevant If Using the Command Directly With No ProjectPath Argument
+                //May Get Rid Of In the Future
                 foreach (var _file in _packageExeDir.GetFiles())
                 {
-                    if(_file.Extension == ".exe")
+                    if (_file.Extension == ".exe")
                     {
                         projectName = Path.GetFileNameWithoutExtension(_file.FullName);
                     }
@@ -897,11 +924,12 @@ namespace PluginInstaller
             return -1;
         }
 
-        static string ObtainPackageGamePath(string _gameProjectPath)
+        static string ObtainPackageGamePath(string _gameProjectPath, out string _gameProjectName)
         {
+            _gameProjectName = "";
             string _gamePackagePath = "";
             if(!string.IsNullOrEmpty(_gameProjectPath) && _gameProjectPath.Length > 4 && Directory.Exists(_gameProjectPath)){
-                string _gameProjectName = new DirectoryInfo(_gameProjectPath).Name;
+                _gameProjectName = new DirectoryInfo(_gameProjectPath).Name;
                 string _logpath = Path.Combine(_gameProjectPath, "Saved", "Logs", _gameProjectName + ".log");
                 if (File.Exists(_logpath))
                 {
@@ -980,7 +1008,8 @@ namespace PluginInstaller
 
         static void PrepareToPackageGameWithArguments(string _gameProjectPath)
         {
-            string _packageGamePath = ObtainPackageGamePath(_gameProjectPath);
+            string _projectName = "";
+            string _packageGamePath = ObtainPackageGamePath(_gameProjectPath, out _projectName);
 
             Console.WriteLine("Preparing To Package Game With Arguments...");
             Console.WriteLine("Game Package Path: " + _packageGamePath);
@@ -988,8 +1017,9 @@ namespace PluginInstaller
 
             if (!string.IsNullOrEmpty(_packageGamePath) && _packageGamePath.Length > 4 && Directory.Exists(_packageGamePath))
             {
-                string _projectName = "";
-                DirectoryInfo _packageExeDir = GetPackageExecutableDirectory(_packageGamePath, out _projectName);
+                //Not Needed, May Delete In the Future
+                string unusedName = "";
+                DirectoryInfo _packageExeDir = GetPackageExecutableDirectory(_packageGamePath, out unusedName, true);
                 if (_packageExeDir != null && _packageExeDir.Exists)
                 {
                     Console.WriteLine("Successfully Obtained Project: " + _projectName);
@@ -1004,12 +1034,11 @@ namespace PluginInstaller
                     }
                     if (_projectNameFolder == null)
                     {
-                        Console.WriteLine("Couldn't Find Folder Named: " + _projectName);
+                        Console.WriteLine("Creating Subdirectory " + _projectName + " at: " + _packageExeDir.FullName);
+                        _projectNameFolder = _packageExeDir.CreateSubdirectory(_projectName);
                     }
-                    else
-                    {
-                        PatchPackagedGame(_packageExeDir, _projectNameFolder, _projectName, _gameProjectPath);
-                    }
+
+                    PatchPackagedGame(_packageExeDir, _projectNameFolder, _projectName, _gameProjectPath);
                 }
                 else
                 {
