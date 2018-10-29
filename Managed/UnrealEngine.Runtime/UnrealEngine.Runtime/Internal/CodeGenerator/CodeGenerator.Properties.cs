@@ -1203,7 +1203,7 @@ namespace UnrealEngine.Runtime
             }
         }
 
-        private bool IsCollectionProperty(UProperty property)
+        private static bool IsCollectionProperty(UProperty property)
         {
             switch (property.PropertyType)
             {

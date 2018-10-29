@@ -1209,13 +1209,13 @@ namespace UnrealEngine.Runtime
         /// The value describes the kind of operator using C++ operator syntax (see below), and may contain multiple semi-colon separated values.
         /// The signature of the function depends on the operator type, and additional parameters may be passed as long as they're defaulted and the basic signature requirements are met.
         /// - For the bool conversion operator (bool) the signature must be:
-        ///     bool FuncName(const FMyStruct&); // FMyStruct may be passed by value rather than const-ref
+        ///     bool FuncName(const FMyStruct&amp;); // FMyStruct may be passed by value rather than const-ref
         /// - For comparion operators (==, !=, &lt;, &lt;=, >, >=) the signature must be:
         ///     bool FuncName(const FMyStruct, OtherType); // OtherType can be any type, FMyStruct may be passed by value rather than const-ref
-        /// - For mathematical operators (+, -, *, /, %, &, |, ^, >>, &lt;&lt;) the signature must be:
-        ///     ReturnType FuncName(const FMyStruct&, OtherType); // ReturnType and OtherType can be any type, FMyStruct may be passed by value rather than const-ref
-        /// - For mathematical assignment operators (+=, -=, *=, /=, %=, &=, |=, ^=, >>=, &lt;&lt;=) the signature must be:
-        ///     FMyStruct FuncName(const FMyStruct&, OtherType); // OtherType can be any type, FMyStruct may be passed by value rather than const-ref
+        /// - For mathematical operators (+, -, *, /, %, &amp;, |, ^, >>, &lt;&lt;) the signature must be:
+        ///     ReturnType FuncName(const FMyStruct&amp;, OtherType); // ReturnType and OtherType can be any type, FMyStruct may be passed by value rather than const-ref
+        /// - For mathematical assignment operators (+=, -=, *=, /=, %=, &amp;=, |=, ^=, >>=, &lt;&lt;=) the signature must be:
+        ///     FMyStruct FuncName(const FMyStruct&amp;, OtherType); // OtherType can be any type, FMyStruct may be passed by value rather than const-ref
         /// </summary>
         ScriptOperator,// added 4.20
 

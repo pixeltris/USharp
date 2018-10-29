@@ -610,7 +610,7 @@ namespace UnrealEngine.Runtime
 
                     builder.AppendLine("public " + typeName + "(IntPtr nativeStruct)");
                     builder.OpenBrace();
-                    if (Settings.UObjectAsBlittableType)
+                    /*if (Settings.UObjectAsBlittableType)
                     {
                         // UObject types will have an additional backing field which needs to be assigned before being able to
                         // assign the property 
@@ -627,7 +627,7 @@ namespace UnrealEngine.Runtime
                                 builder.AppendLine(propertyName + Settings.VarNames.UObjectBlittableName + " = IntPtr.Zero;");
                             }
                         }
-                    }
+                    }*/
                     AppendStructMarshalerBody(builder, typeName, structInfo, parentStruct, false, namespaces);
                     builder.CloseBrace();
                     builder.AppendLine();
