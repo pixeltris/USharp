@@ -22,5 +22,10 @@
 			"LoadingPhase" : "PostEngineInit",
 			"WhitelistPlatforms": [ "Win64" ]
 		}
-	]
+	],
+   "PostBuildSteps": {
+        "Win64": [
+            "\"$(PluginDir)\\Binaries\\Managed\\PluginInstaller\\PluginInstaller.exe\" \"patchgame\" \"$(ProjectDir)\\Saved\\StagedBuilds\" \"$(ProjectDir)\""
+    ]
+    }
 }

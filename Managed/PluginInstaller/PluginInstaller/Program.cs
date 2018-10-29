@@ -128,7 +128,17 @@ namespace PluginInstaller
                         break;
 
                     case "patchgame":
-                        PrepareToPackageGame();
+                        if (args.Length > 1 && !string.IsNullOrEmpty(args[1])
+                            && !string.IsNullOrEmpty(args[2]) && args[1].Length > 3 && args[2].Length > 3)
+                        {
+                            //Most likely being called from PostBuildSteps
+                            PrepareToPackageGameWithArguments(args[1], args[2]);
+                        }
+                        else
+                        {
+                            //Most likely called directly
+                            PrepareToPackageGame();
+                        }
                         break;
 
                     case "help":
@@ -835,6 +845,51 @@ namespace PluginInstaller
             return _packageExeDir;
         }
 
+        static void PrepareToPackageGameWithArguments(string _packageGamePath, string _gameProjectPath)
+        {
+            Console.WriteLine("Preparing To Package Game With Arguments...");
+            Console.WriteLine("Game Package Path: " + _packageGamePath);
+            Console.WriteLine("Game Project Path: " + _gameProjectPath);
+
+            if (!string.IsNullOrEmpty(_packageGamePath) && _packageGamePath.Length > 4 && Directory.Exists(_packageGamePath))
+            {
+                string _projectName = "";
+                DirectoryInfo _packageExeDir = GetPackageExecutableDirectory(_packageGamePath, out _projectName);
+                if (_packageExeDir != null && _packageExeDir.Exists)
+                {
+                    Console.WriteLine("Successfully Obtained Project: " + _projectName);
+                    DirectoryInfo _projectNameFolder = null;
+                    foreach (var _folder in _packageExeDir.GetDirectories())
+                    {
+                        if (_folder.Name == _projectName)
+                        {
+                            _projectNameFolder = new DirectoryInfo(_folder.FullName);
+                            break;
+                        }
+                    }
+                    if (_projectNameFolder == null)
+                    {
+                        Console.WriteLine("Couldn't Find Folder Named: " + _projectName);
+                    }
+                    else
+                    {
+                        PatchPackagedGame(_packageExeDir, _projectNameFolder, _projectName, _gameProjectPath);
+                    }
+                }
+                else
+                {
+                    Console.WriteLine("Couldn't Find Project Executable Inside Package Directory");
+                }
+            }
+            else
+            {
+                Console.WriteLine("Could Not Find Directory You Provided.");
+                Console.WriteLine("Package: " + _packageGamePath);
+            }
+
+            Environment.Exit(0);
+        }
+
         static void PrepareToPackageGame()
         {
             Console.WriteLine("Please Provide Path To Your Packaged Game...");
@@ -897,17 +952,24 @@ namespace PluginInstaller
             }
         }
 
-        static bool ObtainGameProjectBinariesPath(DirectoryInfo packageExeDir, string packageName, out DirectoryInfo gameProjBinaryDir)
+        static bool ObtainGameProjectBinariesPath(DirectoryInfo packageExeDir, string packageName, string _possibleGivenGameProjectPath, out DirectoryInfo gameProjBinaryDir)
         {
             gameProjBinaryDir = null;
             string usharpPluginsDir = GetUSharpPluginDirectory(settings.EnginePath);
             string _gameProjFilePath = "";
-            do
+            if (!string.IsNullOrEmpty(_possibleGivenGameProjectPath))
             {
-                Console.WriteLine("Please Provide The Path To Your Game Project: " + packageName);
-                _gameProjFilePath = Console.ReadLine();
-                Console.WriteLine("Is this the path to your game project? 'Y/N'");
-            } while (ReadYesNo() == false);
+                _gameProjFilePath = _possibleGivenGameProjectPath;
+            }
+            else
+            {
+                do
+                {
+                    Console.WriteLine("Please Provide The Path To Your Game Project: " + packageName);
+                    _gameProjFilePath = Console.ReadLine();
+                    Console.WriteLine("Is this the path to your game project? 'Y/N'");
+                } while (ReadYesNo() == false);
+            }
             
             if (!string.IsNullOrEmpty(_gameProjFilePath) && _gameProjFilePath.Length > 4 && Directory.Exists(_gameProjFilePath))
             {
@@ -954,14 +1016,14 @@ namespace PluginInstaller
             CopyFilesRecursive(_gameProjBinaryDir, new DirectoryInfo(_patchPath), true);
         }
 
-        static void PatchPackagedGame(DirectoryInfo packageExeDir, DirectoryInfo packageNameFolder, string packageName)
+        static void PatchPackagedGame(DirectoryInfo packageExeDir, DirectoryInfo packageNameFolder, string packageName, string _gameProjectPath = null)
         {
             Console.WriteLine("Patching Packaged Game: " + packageName + "...");
             DirectoryInfo _runtimeBinaryDir = null;
             DirectoryInfo _gameProjBinaryDir = null;
 
             if (ObtainRuntimeBinariesPath(packageExeDir, packageName, out _runtimeBinaryDir) &&
-                ObtainGameProjectBinariesPath(packageExeDir, packageName, out _gameProjBinaryDir))
+                ObtainGameProjectBinariesPath(packageExeDir, packageName, _gameProjectPath, out _gameProjBinaryDir))
             {
                 PatchInRuntimeBinaries(packageNameFolder, _runtimeBinaryDir);
                 PatchInGameProjectBinaries(packageNameFolder, _gameProjBinaryDir);
