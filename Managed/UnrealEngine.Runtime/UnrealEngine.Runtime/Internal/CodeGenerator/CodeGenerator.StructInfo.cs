@@ -469,6 +469,14 @@ namespace UnrealEngine.Runtime
                             }
                         }
 
+                        if (backingProperty != null && backingProperty.HasAnyPropertyFlags(EPropertyFlags.BlueprintReadOnly) &&
+                            IsCollectionProperty(backingProperty) && setter != null)
+                        {
+                            // If there is a backing property which is a readonly collection and there is a setter method then
+                            // there will be type conflicts. Don't collapse them.
+                            continue;
+                        }
+
                         // Some validation on bool properties
                         {
                             UBoolProperty getterReturn = getter == null ? null : getter.GetReturnProperty() as UBoolProperty;

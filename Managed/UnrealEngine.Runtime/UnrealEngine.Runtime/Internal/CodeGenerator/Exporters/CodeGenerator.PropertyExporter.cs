@@ -31,7 +31,7 @@ namespace UnrealEngine.Runtime
             
             return property.HasAnyPropertyFlags(EPropertyFlags.BlueprintVisible | EPropertyFlags.BlueprintAssignable) &&
                 (!property.HasAnyPropertyFlags(EPropertyFlags.NativeAccessSpecifierPrivate) || property.GetBoolMetaData(MDProp.AllowPrivateAccess)) &&
-                (property.GetBoolMetaData(MDProp.BlueprintPrivate) || property.GetBoolMetaData(MDProp.AllowPrivateAccess));
+                (!property.GetBoolMetaData(MDProp.BlueprintPrivate) || property.GetBoolMetaData(MDProp.AllowPrivateAccess));
                 //property.HasAnyPropertyFlags(EPropertyFlags.NativeAccessSpecifierPublic | EPropertyFlags.NativeAccessSpecifierProtected | EPropertyFlags.Protected);
         }
 
@@ -69,8 +69,8 @@ namespace UnrealEngine.Runtime
             AppendAttribute(builder, property, module);
             if (isOwnerStruct && !isOwnerStructAsClass)
             {
-                UObjectProperty objectProperty = property as UObjectProperty;
-                if (objectProperty != null && Settings.UObjectAsBlittableType)
+                if (structInfo.IsBlittable && (property is UObjectProperty) && Settings.UObjectAsBlittableType &&
+                    property.PropertyType != EPropertyType.Class)
                 {
                     builder.AppendLine("private IntPtr " + propertyName + Settings.VarNames.UObjectBlittableName + ";");
                     builder.AppendLine(modifiers + propertyTypeName + " " + propertyName);
