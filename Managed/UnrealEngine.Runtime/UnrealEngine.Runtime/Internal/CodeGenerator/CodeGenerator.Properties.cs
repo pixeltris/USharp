@@ -370,13 +370,33 @@ namespace UnrealEngine.Runtime
         /// </summary>
         private Dictionary<UProperty, string> GetParamNames(UFunction function)
         {
+            FunctionSigOptions options = default(FunctionSigOptions);
+            return GetParamNames(function, ref options);
+        }
+
+        /// <summary>
+        /// Gets the function param names. Does its own name conflict resolving as params exist in their own conflict context.
+        /// </summary>
+        private Dictionary<UProperty, string> GetParamNames(UFunction function, ref FunctionSigOptions options)
+        {
             Dictionary<UProperty, string> result = new Dictionary<UProperty, string>();
             Dictionary<string, UProperty> resultReverse = new Dictionary<string, UProperty>();
             int paramIndex = 0;
 
+            // If this is an extension method make sure the extension target is the first parameter
+            UProperty extensionTargetParam = null;
+            if (options.Flags.HasFlag(FunctionSigFlags.ExtensionMethod) && options.ExtensionInfo.Param != null)
+            {
+                paramIndex++;
+                extensionTargetParam = options.ExtensionInfo.Param;
+                string paramName = extensionTargetParam.GetName();
+                result.Add(extensionTargetParam, paramName);
+                resultReverse.Add(paramName, extensionTargetParam);
+            }
+
             foreach (UProperty parameter in function.GetFields<UProperty>())
             {
-                if (!parameter.HasAnyPropertyFlags(EPropertyFlags.Parm))
+                if (!parameter.HasAnyPropertyFlags(EPropertyFlags.Parm) || parameter == extensionTargetParam)
                 {
                     continue;
                 }

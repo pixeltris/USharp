@@ -296,17 +296,21 @@ namespace UnrealEngine.Runtime
 
         private string GetFunctionSignature(UnrealModuleInfo module, UFunction function, UStruct owner, List<string> namespaces)
         {
-            return GetFunctionSignature(module, function, owner, null, null, false, false, namespaces);
+            return GetFunctionSignature(module, function, owner, null, null, FunctionSigFlags.None, namespaces);
         }
 
         private string GetFunctionSignatureImpl(UnrealModuleInfo module, UFunction function, UStruct owner, List<string> namespaces)
         {
-            return GetFunctionSignature(module, function, owner, null, null, false, true, namespaces);
+            return GetFunctionSignature(module, function, owner, null, null, FunctionSigFlags.IsImplementation, namespaces);
         }
-
+        
         private string GetFunctionSignature(UnrealModuleInfo module, UFunction function, UStruct owner, string customFunctionName,
-            string customModifiers, bool stripAdditionalText, bool isImplementationMethod, List<string> namespaces)
+            string customModifiers, FunctionSigOptions options, List<string> namespaces)
         {
+            bool isImplementationMethod = options.Flags.HasFlag(FunctionSigFlags.IsImplementation);
+            bool stripAdditionalText = options.Flags.HasFlag(FunctionSigFlags.StripAdditionalText);
+            bool isExtensionMethod = options.Flags.HasFlag(FunctionSigFlags.ExtensionMethod);
+
             bool isInterface = owner != null && owner.IsChildOf<UInterface>();
             bool isDelegate = function.HasAnyFunctionFlags(EFunctionFlags.Delegate | EFunctionFlags.MulticastDelegate);
             bool isStatic = function.HasAnyFunctionFlags(EFunctionFlags.Static);
@@ -406,8 +410,8 @@ namespace UnrealEngine.Runtime
             // Blueprint can define ref/out parameters with default values, this can't be translated to code
             bool invalidDefaultParams = false;
 
-            // Info so we can avoid param name conflicts
-            Dictionary<UProperty, string> paramNames = GetParamNames(function);
+            // Get the function param names (this also handles param name conflicts)
+            Dictionary<UProperty, string> paramNames = GetParamNames(function, ref options);
 
             // NOTE: Removing generics for now as this complicates FromNative/ToNative marshaling.
             //       - We could possibly use MarshalingDelegateResolver<T>.FromNative/ToNative but this may not
@@ -447,6 +451,10 @@ namespace UnrealEngine.Runtime
                     if (firstParameter)
                     {
                         firstParameter = false;
+                        if (isExtensionMethod)
+                        {
+                            parameters.Append("this ");
+                        }
                     }
                     else
                     {
@@ -466,6 +474,13 @@ namespace UnrealEngine.Runtime
                     }
 
                     string paramTypeName = GetTypeName(parameter, namespaces);
+
+                    // If this is an extension method param and there is a more strongly typed version available use that instead
+                    if (isExtensionMethod && options.ExtensionInfo.Param == parameter && options.ExtensionInfo.RedirectParamClass != null)
+                    {
+                        paramTypeName = GetTypeName(options.ExtensionInfo.RedirectParamClass, namespaces);
+                    }
+
                     // NOTE: Removing generics for now (see note above)
                     /*if (arrayParamNames.Contains(rawParamName))
                     {
@@ -578,7 +593,7 @@ namespace UnrealEngine.Runtime
             builder.OpenBrace();
 
             builder.AppendLine(GetFunctionSignature(
-                module, function, owner, Settings.VarNames.DelegateSignature, "public delegate", false, false, namespaces));
+                module, function, owner, Settings.VarNames.DelegateSignature, "public delegate", FunctionSigFlags.None, namespaces));
             builder.AppendLine();
             builder.AppendLine("public override " + Settings.VarNames.DelegateSignature + " " + Names.FDelegateBase_GetInvoker + "()");
             builder.OpenBrace();
@@ -645,7 +660,7 @@ namespace UnrealEngine.Runtime
             builder.AppendLine();
 
             builder.AppendLine(GetFunctionSignature(
-                module, function, owner, Settings.VarNames.DelegateInvoker, "private", true, false, namespaces));
+                module, function, owner, Settings.VarNames.DelegateInvoker, "private", FunctionSigFlags.StripAdditionalText, namespaces));
             builder.OpenBrace();
             AppendFunctionBody(builder, function, false, false, false, namespaces);
             builder.CloseBrace();
@@ -734,7 +749,7 @@ namespace UnrealEngine.Runtime
             bool perInstanceFunctionAddress, List<string> namespaces)
         {
             string functionName = GetFunctionName(function);
-            UProperty blueprintReturnProperty = function.GetBlueprintReturnProperty();           
+            UProperty blueprintReturnProperty = function.GetBlueprintReturnProperty();
 
             bool isDelegate = function.HasAnyFunctionFlags(EFunctionFlags.Delegate | EFunctionFlags.MulticastDelegate);
             bool isStatic = function.HasAnyFunctionFlags(EFunctionFlags.Static);
@@ -988,6 +1003,270 @@ namespace UnrealEngine.Runtime
             if (hasElse)
             {
                 builder.CloseBrace();
+            }
+        }
+
+        private void GenerateCodeForExtensionMethods(UnrealModuleInfo module, UStruct unrealStruct, List<ExtensionMethodInfo> extensionMethods)
+        {
+            if (extensionMethods.Count == 0)
+            {
+                return;
+            }
+
+            bool isBlueprintType = unrealStruct.IsA<UUserDefinedStruct>() || unrealStruct.IsA<UBlueprintGeneratedClass>();
+
+            UnrealModuleType moduleAssetType;
+            string currentNamespace = GetModuleNamespace(unrealStruct, out moduleAssetType);
+            List<string> namespaces = GetDefaultNamespaces();
+
+            CSharpTextBuilder builder = new CSharpTextBuilder(Settings.IndentType);
+            if (!string.IsNullOrEmpty(currentNamespace))
+            {
+                builder.AppendLine("namespace " + currentNamespace);
+                builder.OpenBrace();
+            }
+
+            string fullTargetTypeName = GetTypeName(unrealStruct, namespaces);
+            string targetTypeName = GetTypeName(unrealStruct);// Without the namespace
+            string extensionsTypeName = targetTypeName + "_CsExtensions";
+            
+            builder.AppendLine("public static class " + extensionsTypeName);
+            builder.OpenBrace();
+
+            foreach (ExtensionMethodInfo extensionMethod in extensionMethods)
+            {
+                UFunction function = extensionMethod.Function;
+
+                string functionName = GetFunctionName(function);
+
+                AppendDocComment(builder, extensionMethod.Function, isBlueprintType);
+
+                FunctionSigOptions sigOptions = new FunctionSigOptions()
+                {
+                    Flags = FunctionSigFlags.ExtensionMethod,
+                    ExtensionInfo = extensionMethod
+                };
+                builder.AppendLine(GetFunctionSignature(module, function, unrealStruct, null, "public static", sigOptions, namespaces));
+                builder.OpenBrace();
+
+                Dictionary<UProperty, string> paramNames = GetParamNames(function);
+
+                // AutoCreateRefTerm will force ref on given parameter names (comma seperated)
+                string[] autoRefParamNames = function.GetCommaSeperatedMetaData("AutoCreateRefTerm");
+
+                // If this is a blueprint type try and getting the return value from the first out param (if there is only one out)
+                UProperty blueprintReturnProperty = function.GetBlueprintReturnProperty();
+
+                bool hasReturn = false;
+                bool firstParameter = true;
+                
+                StringBuilder funcCall = new StringBuilder();
+                funcCall.Append(fullTargetTypeName + "." + functionName + "(");
+
+                foreach (KeyValuePair<UProperty, string> param in paramNames)
+                {
+                    UProperty parameter = param.Key;
+                    string paramName = param.Value;
+                    string rawParamName = parameter.GetName();
+
+                    if (parameter.HasAnyPropertyFlags(EPropertyFlags.ReturnParm) || parameter == blueprintReturnProperty)
+                    {
+                        hasReturn = true;
+                        continue;
+                    }
+
+                    if (firstParameter)
+                    {
+                        firstParameter = false;
+                    }
+                    else
+                    {
+                        funcCall.Append(", ");
+                    }
+
+                    if (!parameter.HasAnyPropertyFlags(EPropertyFlags.ConstParm))
+                    {
+                        if (parameter.HasAnyPropertyFlags(EPropertyFlags.ReferenceParm) || autoRefParamNames.Contains(rawParamName))
+                        {
+                            funcCall.Append("ref ");
+                        }
+                        else if (parameter.HasAnyPropertyFlags(EPropertyFlags.OutParm))
+                        {
+                            funcCall.Append("out ");
+                        }
+                    }
+
+                    funcCall.Append(paramName);
+                }
+                funcCall.Append(");");
+
+                if (hasReturn)
+                {
+                    funcCall.Insert(0, "return ");
+                }
+
+                builder.AppendLine(funcCall.ToString());
+
+                builder.CloseBrace();
+                builder.AppendLine();
+            }
+
+            // Remove any trailing empty lines before adding the close brace
+            builder.RemovePreviousEmptyLines();
+
+            builder.CloseBrace();
+
+            if (!string.IsNullOrEmpty(currentNamespace))
+            {
+                builder.CloseBrace();
+            }
+
+            builder.InsertNamespaces(currentNamespace, namespaces, Settings.SortNamespaces);
+
+            // Use a null path so that the asset name in the path doesn't override the output file name
+            OnCodeGenerated(module, moduleAssetType, extensionsTypeName, null, builder);
+        }
+
+        [Flags]
+        enum FunctionSigFlags
+        {
+            None = 0x00000000,
+            StripAdditionalText = 0x00000001,
+            IsImplementation = 0x00000002,
+            ExtensionMethod = 0x00000004
+        }
+
+        struct FunctionSigOptions
+        {
+            public FunctionSigFlags Flags;
+            public ExtensionMethodInfo ExtensionInfo;
+
+            public FunctionSigOptions(FunctionSigFlags flags)
+            {
+                Flags = flags;
+                ExtensionInfo = null;
+            }
+
+            public FunctionSigOptions(FunctionSigFlags flags, ExtensionMethodInfo extensionInfo)
+            {
+                Flags = flags;
+                ExtensionInfo = extensionInfo;
+            }
+
+            public static implicit operator FunctionSigOptions(FunctionSigFlags flags)
+            {
+                Debug.Assert(!flags.HasFlag(FunctionSigFlags.ExtensionMethod));
+                return new FunctionSigOptions() { Flags = flags };
+            }
+        }
+
+        /// <summary>
+        /// Information for a function which can be rewritten as a C# extension method
+        /// </summary>
+        class ExtensionMethodInfo
+        {
+            /// <summary>
+            /// The function
+            /// </summary>
+            public UFunction Function { get; set; }
+
+            /// <summary>
+            /// The parameter to be used as the target for the extension method
+            /// </summary>
+            public UProperty Param { get; set; }
+
+            /// <summary>
+            /// Optionally redirect the type of the parameter so that the extension method targets a different type.
+            /// This must be valid within the parameters class hierarchy (valid:UObject->UWorld) (invalid: UWorld->UObject).
+            /// </summary>
+            public UClass RedirectParamClass { get; set; }
+
+            public static ExtensionMethodInfo Create(UFunction function)
+            {
+                // Extension methods should only be used on public, static methods (also not a override / delegate method).
+                if (function.HasAnyFunctionFlags(EFunctionFlags.Protected) ||
+                    !function.HasAnyFunctionFlags(EFunctionFlags.Static) ||
+                    function.HasAnyFunctionFlags(EFunctionFlags.Delegate | EFunctionFlags.MulticastDelegate) ||
+                    function.GetSuperFunction() != null)
+                {
+                    return null;
+                }
+
+                UProperty selfParam = null;
+                bool isWorldContext = false;
+
+                // ScriptMethod are treated as extension methods in scripting languages with the first arg as the target type
+                if (function.HasMetaData(MDFunc.ScriptMethod))
+                {
+                    selfParam = function.GetFirstParam();
+                }
+
+                // DefaultToSelf is used by blueprint to target "self" when no pin value is provided.
+                // Treat these as extension methods where "self" is the target for the extension.
+                if (selfParam == null && function.HasMetaData(MDFunc.DefaultToSelf))
+                {
+                    selfParam = FindParameter(function, function.GetMetaData(MDFunc.DefaultToSelf));
+                }
+
+                // World context object in blueprint is often a hidden parameter which passed in as "self" (for actors).
+                // Treat these as extension methods where the world context object param is the target for the extension.
+                // - Also upgrade the param type from UObject to UWorld so that UObject doesn't get littered with extension
+                //   methods which often aren't valid for objects to be calling (non AActor associated objects).
+                if (function.HasMetaData(MDFunc.WorldContext))
+                {
+                    string worldContextParamName = function.GetMetaData(MDFunc.WorldContext);
+                    if (selfParam != null)
+                    {
+                        if (selfParam.GetName() == worldContextParamName)
+                        {
+                            isWorldContext = true;
+                        }
+                    }
+                    else
+                    {
+                        selfParam = FindParameter(function, worldContextParamName);
+                        isWorldContext = true;
+                    }
+                }
+
+                if (selfParam == null)
+                {
+                    return null;
+                }
+
+                if (!isWorldContext)
+                {
+                    string paramName = selfParam.GetName();
+                    isWorldContext = paramName == "WorldContextObject" || paramName == "WorldContext";
+                }
+
+                ExtensionMethodInfo info = new ExtensionMethodInfo();
+                info.Function = function;
+                info.Param = selfParam;
+
+                if (isWorldContext)
+                {
+                    info.RedirectParamClass = GCHelper.Find<UClass>(Classes.UWorld);
+                }
+
+                return info;
+            }
+
+            private static UProperty FindParameter(UFunction function, string paramName)
+            {
+                if (!string.IsNullOrEmpty(paramName))
+                {
+                    foreach (UProperty prop in function.GetFields<UProperty>())
+                    {
+                        if (prop.GetName() == paramName &&
+                            prop.HasAnyPropertyFlags(EPropertyFlags.Parm) &&
+                            !prop.HasAnyPropertyFlags(EPropertyFlags.ReturnParm))
+                        {
+                            return prop;
+                        }
+                    }
+                }
+                return null;
             }
         }
     }

@@ -28,7 +28,7 @@ namespace UnrealEngine.Runtime
             UnrealModuleInfo module = new UnrealModuleInfo(null, projectName, projectPath);
             BeginGenerateModule(module);
             
-            UClass worldClass = UClass.GetClass("/Script/Engine.World");
+            UClass worldClass = GCHelper.Find<UClass>(Classes.UWorld);
 
             AssetCache assetCache = new AssetCache(this);
             if (!clearAssetCache)

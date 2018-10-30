@@ -29,7 +29,11 @@ namespace UnrealEngine.Runtime
 
                 // UKismetArrayLibrary has a bunch of methods which have generic args (T), this doesn't really work with marshalers.
                 // - Add code to ignore any functions which have a T arg or a T return type?
-                //{ "/Script/Engine.KismetArrayLibrary", ProjectDefinedType.Class }
+                //{ "/Script/Engine.KismetArrayLibrary", ProjectDefinedType.Class },
+
+                // IUserListEntry is an interface which implements another interface. Currently the code generator is broken for
+                // these situations (the Impl class doesn't include the entire interface chain). Blacklist this interface for now.
+                { "/Script/UMG.UserListEntry", ProjectDefinedType.Class },
             };
 
             foreach (Type type in System.Reflection.Assembly.GetExecutingAssembly().GetTypes())
@@ -279,7 +283,8 @@ namespace UnrealEngine.Runtime
             {
                 System.Diagnostics.Debug.Assert(structInfo.Class.Interfaces.Length == 0, "TODO: Interfaces inheriting other interfaces");
 
-                string baseInterface = unrealStruct == UClass.GetClass<UInterface>() ? string.Empty : " : " + Names.IInterface;
+                string baseInterface = unrealStruct == UClass.GetClass<UInterface>() ? string.Empty :
+                    (baseTypeStr.Length == 0 ? " : " : ", ") + Names.IInterface;
                 builder.AppendLine(modifiers + " interface " + typeName + baseTypeStr + baseInterface);
             }
             else if (structInfo.IsClass)
@@ -400,10 +405,21 @@ namespace UnrealEngine.Runtime
             }
 
             // Export functions
+            List<ExtensionMethodInfo> extensionMethods = new List<ExtensionMethodInfo>();
             foreach (UFunction function in structInfo.GetFunctions())
             {
                 if (!structInfo.IsCollapsedFunction(function))
                 {
+                    if (!structInfo.IsInterface)
+                    {
+                        // If this isn't an interface and the function can be made into an extension method then do so
+                        ExtensionMethodInfo extensionMethodInfo = ExtensionMethodInfo.Create(function);
+                        if (extensionMethodInfo != null)
+                        {
+                            extensionMethods.Add(extensionMethodInfo);
+                        }
+                    }
+
                     if (function.HasAnyFunctionFlags(EFunctionFlags.Delegate | EFunctionFlags.MulticastDelegate))
                     {
                         AppendDelegateSignature(module, builder, function, unrealStruct, isBlueprintType, namespaces);
@@ -427,7 +443,7 @@ namespace UnrealEngine.Runtime
                         // Also update the "ResetInterface" code which always expects an per-instance address to reset.
                         AppendAttribute(interfaceImplBuilder, function, module);
                         interfaceImplBuilder.AppendLine(GetFunctionSignature(module, function, unrealStruct, null, "public",
-                            false, false, namespaces));
+                            FunctionSigFlags.None, namespaces));
                         interfaceImplBuilder.OpenBrace();
                         AppendFunctionBody(interfaceImplBuilder, function, false, false, true, namespaces);
                         interfaceImplBuilder.CloseBrace();
@@ -684,6 +700,11 @@ namespace UnrealEngine.Runtime
             builder.InsertNamespaces(currentNamespace, namespaces, Settings.SortNamespaces);
             
             OnCodeGenerated(module, moduleAssetType, typeName, unrealStruct.GetPathName(), builder);
+
+            if (extensionMethods.Count > 0)
+            {
+                GenerateCodeForExtensionMethods(module, unrealStruct, extensionMethods);
+            }
         }
 
         /// <summary>
