@@ -229,7 +229,18 @@ namespace UnrealEngine.Runtime
         {
             string path = field.GetPathName();
             string renamedTypeName;
-            if (renamedTypes.TryGetValue(path, out renamedTypeName))
+            bool renamed = renamedTypes.TryGetValue(path, out renamedTypeName);
+            if (!renamed)
+            {
+                string scriptName = field.GetMetaData(MDProp.ScriptName);
+                if (!string.IsNullOrEmpty(scriptName))
+                {
+                    renamedTypeName = scriptName;
+                    renamed = true;
+                }
+            }
+
+            if (renamed)
             {
                 if (field.IsA<UBlueprintGeneratedClass>())
                 {
