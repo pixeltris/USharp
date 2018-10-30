@@ -451,6 +451,12 @@ namespace UnrealEngine.Runtime
             VarNames.FunctionInvoker = "__Invoker";
         }
 
+        public string GetUSharpBaseDir()
+        {
+            string binariesDir = GetPluginsBaseDir();
+            return Path.GetFullPath(Path.Combine(binariesDir, "../"));
+        }
+
         public string GetPluginsBaseDir()
         {
             // This gives "/Binaries/XXXX/" where XXXX is the platform (Win32, Win64, Android, etc)

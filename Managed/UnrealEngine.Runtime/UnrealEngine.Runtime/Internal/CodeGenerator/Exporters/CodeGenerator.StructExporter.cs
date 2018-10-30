@@ -289,13 +289,13 @@ namespace UnrealEngine.Runtime
             }
             else if (structInfo.IsClass)
             {
-                builder.AppendLine(modifiers + " class " + typeName + baseTypeStr);
+                builder.AppendLine(modifiers + " partial class " + typeName + baseTypeStr);
             }
             else
             {
                 if (structInfo.StructAsClass)
                 {
-                    builder.AppendLine(modifiers + " class " + typeName + " : "  + Names.StructAsClass);
+                    builder.AppendLine(modifiers + " partial class " + typeName + " : "  + Names.StructAsClass);
                 }
                 else
                 {
@@ -305,7 +305,7 @@ namespace UnrealEngine.Runtime
                         string layoutKind = UpdateTypeNameNamespace("LayoutKind", "System.Runtime.InteropServices", namespaces);
                         builder.AppendLine("[" + structLayout + "(" + layoutKind + ".Sequential)]");
                     }
-                    builder.AppendLine(modifiers + " struct " + typeName);
+                    builder.AppendLine(modifiers + " partial struct " + typeName);
                 }
             }
             builder.OpenBrace();

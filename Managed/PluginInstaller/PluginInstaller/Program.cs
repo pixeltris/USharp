@@ -49,7 +49,7 @@ namespace PluginInstaller
                 Console.WriteLine();
             }
 
-            UpdateUSharpPluginContentFiles(false);
+            UpdateUSharpPluginContentFiles(false, false);
 
             ProcessArgs(null, args);
 
@@ -100,11 +100,12 @@ namespace PluginInstaller
                         break;
 
                     case "update":
-                        UpdateUSharpPluginContentFiles(true);
+                        UpdateUSharpPluginContentFiles(true, true);
+                        Console.WriteLine("Content updated");
                         break;
 
                     case "fullbuild":
-                        UpdateUSharpPluginContentFiles(true);
+                        UpdateUSharpPluginContentFiles(true, false);
                         CompileCs(args);
                         CompileCpp(args);
                         break;
@@ -134,13 +135,23 @@ namespace PluginInstaller
 
         private static void PrintHelp()
         {
-            Console.WriteLine("Available commands:");            
-            Console.WriteLine("- build       builds C# and C++ projects");
-            Console.WriteLine("- fullbuild   builds C# and C++ projects and updates content files");
-            Console.WriteLine("- buildcs     builds C# projects (Loader, AssemblyRewriter, Runtime)");
-            Console.WriteLine("- buildcpp    builds C++ projects");
-            Console.WriteLine("- update      copies content files to the USharp engine plugin folder");
-            Console.WriteLine("- engine      set the target engine path for current engine version (e.g. '{0}')", ExampleEnginePath);
+            Console.WriteLine("Available commands:");
+            {
+                Console.WriteLine("- build       builds C# and C++ projects");
+            }
+            if (!IsInEngineFolder())
+            {
+                Console.WriteLine("- fullbuild   builds C# and C++ projects and updates content files");
+            }
+            {
+                Console.WriteLine("- buildcs     builds C# projects (Loader, AssemblyRewriter, Runtime)");
+                Console.WriteLine("- buildcpp    builds C++ projects");
+            }
+            if (!IsInEngineFolder())
+            {
+                Console.WriteLine("- update      copies content files to the USharp engine plugin folder");
+                Console.WriteLine("- engine      set the target engine path for current engine version (e.g. '{0}')", ExampleEnginePath);
+            }
         }
 
         private static string[] ParseArgs(string commandLine)
@@ -233,6 +244,11 @@ namespace PluginInstaller
             }
         }
 
+        static bool IsInEngineFolder()
+        {
+            return !string.IsNullOrEmpty(GetEnginePathFromCurrentFolder());
+        }
+
         static string GetEnginePathFromCurrentFolder()
         {
             // Check upwards for /Epic Games/ENGINE_VERSION/Engine/Plugins/USharp/ and extract the path from there
@@ -314,55 +330,78 @@ namespace PluginInstaller
         /// Copy over content files which wont be copied during a build (Resources, Sources, USharp.plugin)
         /// </summary>
         /// <param name="forceUpdate">If true force update the content files, otherwise they will only be copied if they don't already exist</param>
-        private static void UpdateUSharpPluginContentFiles(bool forceUpdate)
+        private static void UpdateUSharpPluginContentFiles(bool forceUpdate, bool logState)
         {
-            // If we are in the engine folder we shouldn't have to do anything as the content should be where it needs to be.
-            // If we are outside of the engine folder we need to copy the files over.
-            string currentFolderEnginePath = GetEnginePathFromCurrentFolder();
-            if (string.IsNullOrEmpty(currentFolderEnginePath) && Directory.Exists(settings.EnginePath))
+            if (IsInEngineFolder())
             {
-                string usharpPluginsDir = GetUSharpPluginDirectory(settings.EnginePath);
-                if (!Directory.Exists(usharpPluginsDir))
+                // If we are in the engine folder we shouldn't have to do anything as the content should be where it needs to be.
+                if (logState)
                 {
-                    Directory.CreateDirectory(usharpPluginsDir);
+                    Console.WriteLine("Updating content is not required as the files are already in the engine plugins folder");
                 }
+                return;
+            }
 
-                string relativeUSharpDir = Path.Combine(GetCurrentDirectory(), "../../../");
-
-                const string resourcesFolder = "Resources";
-                const string pluginFile = "USharp.uplugin";
-                const string sourceDir = "Source";
-                string[] sources = { "USharp", "USharpEditor" };
-                string buildFileExtension = ".Build.cs";
-
-                // Copy the Resources folder
-                CopyFilesRecursive(new DirectoryInfo(Path.Combine(relativeUSharpDir, resourcesFolder)), 
-                    new DirectoryInfo(Path.Combine(usharpPluginsDir, resourcesFolder)), forceUpdate);
-
-                // Copy the USharp.plugin file
-                CopyFile(Path.Combine(relativeUSharpDir, pluginFile), Path.Combine(usharpPluginsDir, pluginFile), forceUpdate);
-
-                foreach (string source in sources)
+            if (!Directory.Exists(settings.EnginePath))
+            {
+                // If we are outside of the engine folder we need a valid path to copy the files over.
+                if (logState)
                 {
-                    string relativeSourceDir = Path.Combine(relativeUSharpDir, sourceDir, source);
-                    if (Directory.Exists(relativeSourceDir))
+                    Console.WriteLine("Failed to update content as the engine path isn't valid. Use the \"engine\" command to set the path.");
+                }
+                return;
+            }
+
+            string usharpPluginsDir = GetUSharpPluginDirectory(settings.EnginePath);
+            if (!Directory.Exists(usharpPluginsDir))
+            {
+                Directory.CreateDirectory(usharpPluginsDir);
+            }
+
+            string relativeUSharpDir = Path.Combine(GetCurrentDirectory(), "../../../");
+
+            // Copy the Resources folder
+            const string resourcesFolder = "Resources";
+            CopyFilesRecursive(new DirectoryInfo(Path.Combine(relativeUSharpDir, resourcesFolder)),
+                new DirectoryInfo(Path.Combine(usharpPluginsDir, resourcesFolder)), forceUpdate);
+
+            // Copy the USharp.plugin file
+            const string pluginFile = "USharp.uplugin";
+            CopyFile(Path.Combine(relativeUSharpDir, pluginFile), Path.Combine(usharpPluginsDir, pluginFile), forceUpdate);
+
+            // Copy the XXXX.Build.cs files
+            const string sourceDir = "Source";
+            string[] sources = { "USharp", "USharpEditor" };
+            const string buildFileExtension = ".Build.cs";
+            foreach (string source in sources)
+            {
+                string relativeSourceDir = Path.Combine(relativeUSharpDir, sourceDir, source);
+                if (Directory.Exists(relativeSourceDir))
+                {
+                    string relativeBuildFile = Path.Combine(relativeSourceDir, source + buildFileExtension);
+                    if (File.Exists(relativeBuildFile))
                     {
-                        string relativeBuildFile = Path.Combine(relativeSourceDir, source + buildFileExtension);
-                        if (File.Exists(relativeBuildFile))
+                        string targetSourceDir = Path.Combine(usharpPluginsDir, sourceDir, source);
+                        if (!Directory.Exists(targetSourceDir))
                         {
-                            string targetSourceDir = Path.Combine(usharpPluginsDir, sourceDir, source);
-                            if (!Directory.Exists(targetSourceDir))
-                            {
-                                Directory.CreateDirectory(targetSourceDir);
-                            }
-
-                            string targetBuildFile = Path.Combine(targetSourceDir, source + buildFileExtension);
-
-                            // Copy the USharp.Build.cs file
-                            CopyFile(relativeBuildFile, targetBuildFile, forceUpdate);
+                            Directory.CreateDirectory(targetSourceDir);
                         }
+
+                        string targetBuildFile = Path.Combine(targetSourceDir, source + buildFileExtension);
+
+                        // Copy the USharp.Build.cs file
+                        CopyFile(relativeBuildFile, targetBuildFile, forceUpdate);
                     }
                 }
+            }
+
+            // Copy the "/Managed/UnrealEngine.Runtime/UnrealEngine.Runtime/InjectedClasses" folder
+            const string injectedClassesDir = "Managed/UnrealEngine.Runtime/UnrealEngine.Runtime/InjectedClasses";
+            DirectoryInfo injectedClassesRelativeDir = new DirectoryInfo(Path.Combine(relativeUSharpDir, injectedClassesDir));
+            if (injectedClassesRelativeDir.Exists)
+            {
+                CopyFilesRecursive(injectedClassesRelativeDir,
+                    new DirectoryInfo(Path.Combine(usharpPluginsDir, injectedClassesDir)), forceUpdate);
             }
         }
 

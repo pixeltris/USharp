@@ -122,6 +122,7 @@
     <Compile Include="Core\TMap.cs" />
     <Compile Include="Core\TSet.cs" />
     <Compile Include="Core\TStatId.cs" />
+    <Compile Include="Engine\Enums\EGetWorldErrorMode.cs" />
     <Compile Include="Engine\Enums\ETravelType.cs" />
     <Compile Include="Engine\Enums\EWorldType.cs" />
     <Compile Include="Engine\FTimerHandle.cs" />

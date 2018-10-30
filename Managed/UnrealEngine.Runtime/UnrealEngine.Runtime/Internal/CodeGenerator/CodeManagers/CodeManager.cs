@@ -71,7 +71,7 @@ namespace UnrealEngine.Runtime
         {
         }
 
-        public void OnCodeGenerated(CodeGenerator.UnrealModuleInfo module, UnrealModuleType moduleAssetType, string typeName, string path, CSharpTextBuilder code)
+        public void OnCodeGenerated(CodeGenerator.UnrealModuleInfo module, UnrealModuleType moduleAssetType, string typeName, string path, string code)
         {
             // Note: path will be empty if using combined enums file or global delegates files
             string root, directory, moduleName, assetName, memberName;
@@ -229,7 +229,7 @@ namespace UnrealEngine.Runtime
                 {
                     if (UpdateSolutionAndProject(slnPath, projPath))
                     {
-                        if (!AddSourceFile(slnPath, projPath, sourceFilePath, code.ToString()))
+                        if (!AddSourceFile(slnPath, projPath, sourceFilePath, code))
                         {
                             Log(ELogVerbosity.Error, "Failed to add source file '{0}'", sourceFilePath);
                         }
