@@ -483,7 +483,6 @@ namespace UnrealEngine.Runtime
 
                 // Resolve the native parent class now that the parent class is set up
                 managedClass.ResolveNativeParentClass();
-                Native_USharpClass.UpdateNativeParentConstructor(sharpClass);
                 if (!isInterface)
                 {
                     Native_USharpClass.UpdateNativeParentConstructor(sharpClass);
