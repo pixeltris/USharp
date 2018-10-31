@@ -575,6 +575,8 @@ namespace UnrealEngine.Runtime
         {
             string _slnPath = Path.Combine(Settings.GetManagedModulesDir(), "UnrealEngine.sln");
             string _projPath = Path.Combine(Settings.GetManagedModulesDir(), "UnrealEngine.csproj");
+            string _pluginInstallerPath = Path.Combine(Settings.GetManagedModulesDir(), "../", "../", "../", "Binaries", "Managed", "PluginInstaller", "PluginInstaller.exe");
+
             if (!File.Exists(_slnPath))
             {
                 Log(ELogVerbosity.Error, "Can't Compile: The Solution " + _slnPath + " doesn't exist");
@@ -585,23 +587,38 @@ namespace UnrealEngine.Runtime
                 Log(ELogVerbosity.Error, "Can't Compile: The Project " + _projPath + " doesn't exist");
                 return;
             }
-            Log(ELogVerbosity.Display, "Attempting To Build Generated Solution at " + _slnPath);
-            bool shippingBuild = false;
-            bool x86Build = false;
-            string customDefines = null;
-            if (shippingBuild)
+            if (!File.Exists(_pluginInstallerPath))
             {
-                // This is to clear the editor defines (WITH_EDITORONLY_DATA) which gives us a runtime FName struct
-                customDefines = "BLANK_DEFINES";
-            }
-            if (!BuildCs(_slnPath, _projPath, !shippingBuild, x86Build, customDefines))
-            {
-                Log(ELogVerbosity.Display, "Failed to build (see build.log) - " + Path.GetFileName(_projPath));
+                Log(ELogVerbosity.Error, "Can't Compile: Can't Find Plugin Installer At Path: " + _pluginInstallerPath);
                 return;
+            }
+
+            Log(ELogVerbosity.Display, "Attempting To Build Generated Solution at " + _slnPath);
+
+            int timeout = 60000;
+            bool built = false;
+
+            using (System.Diagnostics.Process process = new System.Diagnostics.Process())
+            {
+                process.StartInfo = new System.Diagnostics.ProcessStartInfo()
+                {
+                    WindowStyle = System.Diagnostics.ProcessWindowStyle.Normal,
+                    FileName = _pluginInstallerPath,
+                    Arguments = "buildcustomsln" + @" """ + _slnPath + @""" " + _projPath + @"""",
+                    UseShellExecute = false
+                };
+                process.Start();
+
+                built = process.WaitForExit(timeout) && process.ExitCode == 0;
+            }
+            
+            if (built)
+            {
+                Log(ELogVerbosity.Display, "Solution Was Compiled Successfully.");
             }
             else
             {
-                Log(ELogVerbosity.Display, "Build successful - " + Path.GetFileName(_projPath));
+                Log(ELogVerbosity.Error, "Couldn't Compile Solution, Please Try Compiling Manually At " + _slnPath);
             }
         }
 
