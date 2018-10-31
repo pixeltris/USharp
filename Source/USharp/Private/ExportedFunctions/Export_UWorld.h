@@ -18,9 +18,9 @@ CSEXPORT FTimerManager& CSCONV Export_UWorld_GetTimerManager(UWorld* instance)
 	return instance->GetTimerManager();
 }
 
-CSEXPORT AActor* CSCONV Export_UWorld_SpawnActor(UWorld* instance, UClass* Class, FVector const& Location, FRotator const& Rotation, const FActorSpawnParametersInterop& Params)
+CSEXPORT AActor* CSCONV Export_UWorld_SpawnActor(UWorld* instance, UClass* Class, FVector const& Location, FRotator const& Rotation, const FActorSpawnParameters& Params)
 {
-	return instance->SpawnActor(Class, &Location, &Rotation, FActorSpawnParametersInterop::ToNative(Params));
+	return instance->SpawnActor(Class, &Location, &Rotation, Params);
 }
 
 CSEXPORT void CSCONV Export_UWorld(RegisterFunc registerFunc)

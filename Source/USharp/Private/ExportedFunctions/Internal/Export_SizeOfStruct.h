@@ -144,6 +144,11 @@ CSEXPORT int32 CSCONV Export_SizeOfStruct_SizeOf_TStatId()
 	return sizeof(TStatId);
 }
 
+CSEXPORT int32 CSCONV Export_SizeOfStruct_SizeOf_FActorSpawnParameters()
+{
+	return sizeof(FActorSpawnParameters);
+}
+
 CSEXPORT void CSCONV Export_SizeOfStruct(RegisterFunc registerFunc)
 {
 	REGISTER_FUNC(Export_SizeOfStruct_SizeOf_FSoftObjectPtr);
@@ -175,4 +180,5 @@ CSEXPORT void CSCONV Export_SizeOfStruct(RegisterFunc registerFunc)
 	REGISTER_FUNC(Export_SizeOfStruct_SizeOf_FDelegateHandle);
 	REGISTER_FUNC(Export_SizeOfStruct_SizeOf_FFrame);
 	REGISTER_FUNC(Export_SizeOfStruct_SizeOf_TStatId);
+	REGISTER_FUNC(Export_SizeOfStruct_SizeOf_FActorSpawnParameters);
 }
