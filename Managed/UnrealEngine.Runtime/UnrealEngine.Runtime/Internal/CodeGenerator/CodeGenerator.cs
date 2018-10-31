@@ -67,13 +67,29 @@ namespace UnrealEngine.Runtime
 
         private void OnEndGenerateModule(UnrealModuleInfo module)
         {
+            if (codeManager != null)
+            {
+                string injectedClassesDir = Path.Combine(Settings.GetUSharpBaseDir(), 
+                    "Managed/UnrealEngine.Runtime/UnrealEngine.Runtime/InjectedClasses");
+
+                string moduleInjectedClassesDir = Path.Combine(injectedClassesDir, module.Name);
+                if (Directory.Exists(moduleInjectedClassesDir))
+                {
+                    foreach (string file in Directory.EnumerateFiles(moduleInjectedClassesDir, "*.cs", SearchOption.AllDirectories))
+                    {
+                        // FIXME: UnrealModuleType is incorrect and may output non engine code in the wrong location
+                        string name = Path.GetFileNameWithoutExtension(file);
+                        codeManager.OnCodeGenerated(module, UnrealModuleType.Engine, name, null, File.ReadAllText(file));
+                    }
+                }
+            }
         }
 
         private void OnCodeGenerated(UnrealModuleInfo module, UnrealModuleType moduleAssetType, string typeName, string path, CSharpTextBuilder code)
         {
             if (codeManager != null)
             {
-                codeManager.OnCodeGenerated(module, moduleAssetType, typeName, path, code);
+                codeManager.OnCodeGenerated(module, moduleAssetType, typeName, path, code.ToString());
             }
         }
     }

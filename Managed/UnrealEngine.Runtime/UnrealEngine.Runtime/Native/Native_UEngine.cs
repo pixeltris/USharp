@@ -3,18 +3,21 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
+using UnrealEngine.Engine;
 
 #pragma warning disable 649 // Field is never assigned
 
 namespace UnrealEngine.Runtime.Native
 {
-    static class Native_UEngine
+    public static class Native_UEngine
     {
         public delegate csbool Del_CopyPropertiesForUnrelatedObjects(IntPtr oldObject, IntPtr newObject, ref FCopyPropertiesForUnrelatedObjectsParams parameters);
         public delegate void Del_GetWorldContexts(IntPtr instance, IntPtr result);
+        public delegate IntPtr Del_GetWorldFromContextObject(IntPtr instance, IntPtr obj, EGetWorldErrorMode errorMode);
 
         public static Del_CopyPropertiesForUnrelatedObjects CopyPropertiesForUnrelatedObjects;
         public static Del_GetWorldContexts GetWorldContexts;
+        public static Del_GetWorldFromContextObject GetWorldFromContextObject;
     }
 
     // NOTE: Wrapper due to bool (see NativeFunctions "BoolInteropNotes")

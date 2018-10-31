@@ -26,7 +26,13 @@ CSEXPORT float CSCONV Export_AActor_GetActorTimeDilationOrDefault(UObject* World
 	return 1.0f;
 }
 
+CSEXPORT UWorld* CSCONV Export_AActor_GetWorld(AActor* instance)
+{
+	return instance->GetWorld();
+}
+
 CSEXPORT void CSCONV Export_AActor(RegisterFunc registerFunc)
 {
 	REGISTER_FUNC(Export_AActor_GetActorTimeDilationOrDefault);
+	REGISTER_FUNC(Export_AActor_GetWorld);
 }

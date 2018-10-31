@@ -193,6 +193,13 @@ namespace UnrealEngine.Runtime
 
             public void AddProperty(UProperty property, string bpVarName, bool exportable)
             {
+                // If the ScriptName metadata is set use that for the property name instead
+                string scriptName = property.GetMetaData(MDProp.ScriptName);
+                if (!string.IsNullOrEmpty(scriptName))
+                {
+                    bpVarName = scriptName;
+                }
+
                 allProperties.Add(property, bpVarName);
 
                 if (exportable)

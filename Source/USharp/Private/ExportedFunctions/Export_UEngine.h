@@ -12,8 +12,14 @@ CSEXPORT void CSCONV Export_UEngine_GetWorldContexts(UEngine* instance, TArray<c
 	}
 }
 
+CSEXPORT UWorld* CSCONV Export_UEngine_GetWorldFromContextObject(UEngine* instance, UObject* Object, EGetWorldErrorMode ErrorMode)
+{
+	return instance->GetWorldFromContextObject(Object, ErrorMode);
+}
+
 CSEXPORT void CSCONV Export_UEngine(RegisterFunc registerFunc)
 {
 	REGISTER_FUNC(Export_UEngine_CopyPropertiesForUnrelatedObjects);
 	REGISTER_FUNC(Export_UEngine_GetWorldContexts);
+	REGISTER_FUNC(Export_UEngine_GetWorldFromContextObject);
 }

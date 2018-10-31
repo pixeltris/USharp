@@ -163,20 +163,25 @@ namespace UnrealBuildTool.Rules
                         sourceFileName = shippingRuntimeDllPath;
                     }
                 }
-            
+
+                //Console.WriteLine("USharp-CopyFile: '" + sourceFileName + "');
+
+                bool copied = false;
                 try
                 {
                     File.Copy(sourceFileName, destFileName, overwrite);
+                    copied = true;
                 }
                 catch
                 {
-                    Console.WriteLine("Failed to copy to '{0}'", destFileName);
+                    Console.WriteLine("USharp-CopyFile: Failed to copy to '{0}'", destFileName);
                 }
-                
-                string relativePath = outputRelativeDir.MakeRelativeUri(new Uri(destFileName, UriKind.Absolute)).ToString();
-                RuntimeDependencies.Add("$(ProjectDir)/" + relativePath, StagedFileType.NonUFS);
-                
-                //Console.WriteLine("USharp-CopyFile: '" + sourceFileName + "' relative: '" + relativePath + "'");
+                                
+                if (copied)
+                {
+                    string relativePath = outputRelativeDir.MakeRelativeUri(new Uri(destFileName, UriKind.Absolute)).ToString();
+                    RuntimeDependencies.Add("$(ProjectDir)/" + relativePath, StagedFileType.NonUFS);
+                }
             }
         }
     }
