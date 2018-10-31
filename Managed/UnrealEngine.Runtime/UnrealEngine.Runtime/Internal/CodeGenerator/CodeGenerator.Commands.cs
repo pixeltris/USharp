@@ -17,8 +17,6 @@ namespace UnrealEngine.Runtime
             //IConsoleManager.Get().RegisterConsoleCommand("USharpGenSliced", "USharp generate C# code", GenerateCodeTimeSliced);
 
             IConsoleManager.Get().RegisterConsoleCommand("USharpMinHotReload", "USharp hotreload will skip reintancing / CDO checks", SetMinimalHotReload);
-
-            IConsoleManager.Get().RegisterConsoleCommand("USharpCompileGeneratedSln", "USharp compile generated C# code", CompileGeneratedCode);
         }
 
         private static void SetMinimalHotReload(string[] args)
@@ -40,7 +38,7 @@ namespace UnrealEngine.Runtime
             GenerateCode(false, args);
         }
 
-        private static void CompileGeneratedCode(string[] args)
+        private static void CompileGeneratedCode()
         {
             CodeGenerator codeGenerator = new CodeGenerator(false);
             CodeManager codeManager = CodeManager.Create(codeGenerator);
@@ -64,6 +62,11 @@ namespace UnrealEngine.Runtime
 
                 if (args.Length > 0)
                 {
+                    if(args[0] == "compile")
+                    {
+                        CompileGeneratedCode();
+                        return;
+                    }
                     if (args[0] == "cancel")
                     {
                         if (timeSlicedCodeGenerator != null && !timeSlicedCodeGenerator.Complete)
@@ -165,7 +168,7 @@ namespace UnrealEngine.Runtime
 
                 if (invalidArgs)
                 {
-                    FMessage.Log(ELogVerbosity.Warning, "Invalid input. Provide one of the following: game, gameplugins, modules, module [ModuleName]");
+                    FMessage.Log(ELogVerbosity.Warning, "Invalid input. Provide one of the following: game, gameplugins, modules, module [ModuleName], compile");
                 }
             }
             catch(Exception e)

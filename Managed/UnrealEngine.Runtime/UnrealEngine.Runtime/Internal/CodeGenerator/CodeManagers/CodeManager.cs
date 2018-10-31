@@ -451,7 +451,7 @@ namespace UnrealEngine.Runtime
                 return;
             }
 
-            Log(ELogVerbosity.Display, "Attempting To Build Generated Solution at " + _slnPath);
+            Log(ELogVerbosity.Log, "Attempting To Build Generated Solution at " + _slnPath);
 
             int timeout = 60000;
             bool built = false;
@@ -472,7 +472,7 @@ namespace UnrealEngine.Runtime
             
             if (built)
             {
-                Log(ELogVerbosity.Display, "Solution Was Compiled Successfully.");
+                Log(ELogVerbosity.Log, "Solution Was Compiled Successfully.");
             }
             else
             {
