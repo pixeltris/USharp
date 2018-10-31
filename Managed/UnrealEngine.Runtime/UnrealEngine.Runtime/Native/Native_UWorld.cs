@@ -60,7 +60,7 @@ namespace UnrealEngine.Runtime.Native
         /// </summary>
         public ESpawnActorCollisionHandlingMethod SpawnCollisionHandlingOverride;
 
-        public short PackedBools;
+        public ushort PackedBools;
 
         /// <summary>
         /// Is the actor remotely owned. This should only be set true by the package map when it is creating an actor on a client that was replicated from the server
@@ -123,11 +123,11 @@ namespace UnrealEngine.Runtime.Native
         {
             if (value)
             {
-                PackedBools |= (1 << 0);
+                PackedBools |= (ushort)(1 << index);
             }
             else
             {
-                PackedBools &= ~(1 << 0);
+                PackedBools &= (ushort)~(1 << index);
             }
         }
     }
