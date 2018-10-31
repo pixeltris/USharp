@@ -119,6 +119,19 @@ namespace PluginInstaller
                         CompileCs(args);
                         break;
 
+                    case "buildcustomsln":
+                        if(!string.IsNullOrEmpty(args[1]) && args[1].Length > 4 && File.Exists(args[1]) &&
+                            !string.IsNullOrEmpty(args[2]) && args[2].Length > 4 && File.Exists(args[2]))
+                        {
+                            BuildCustomSolution(args[1], args[2]);
+                        }
+                        else
+                        {
+                            Console.WriteLine("Couldn't Build Custom Solution Because Files Provided was Invalid. Solution: " + args[1] + " Project: " + args[2]);
+                        }
+                        Environment.Exit(0);
+                        break;
+
                     case "buildcpp":
                         CompileCpp(args);
                         break;
@@ -809,6 +822,19 @@ namespace PluginInstaller
             if (!copiedFile)
             {
                 Console.WriteLine("Failed to copy " + extension + ". Error: " + copyFileError);
+            }
+        }
+
+        static void BuildCustomSolution(string slnPath, string projPath)
+        {
+            Console.WriteLine("Attempting To Build Solution: " + slnPath);
+            if(BuildCs(slnPath, projPath, true, false, null))
+            {
+                Console.WriteLine("Solution Was Compiled Successfully");
+            }
+            else
+            {
+                Console.WriteLine("There was an issue with compiling the provided solution: " + slnPath);
             }
         }
     }
