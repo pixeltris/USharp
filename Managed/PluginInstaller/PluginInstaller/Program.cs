@@ -120,14 +120,22 @@ namespace PluginInstaller
                         break;
 
                     case "buildcustomsln":
-                        if(!string.IsNullOrEmpty(args[1]) && args[1].Length > 4 && File.Exists(args[1]) &&
+                        if(args.Length >= 3 && 
+                            !string.IsNullOrEmpty(args[1]) && args[1].Length > 4 && File.Exists(args[1]) &&
                             !string.IsNullOrEmpty(args[2]) && args[2].Length > 4 && File.Exists(args[2]))
                         {
                             BuildCustomSolution(args[1], args[2]);
                         }
                         else
                         {
-                            Console.WriteLine("Couldn't Build Custom Solution Because Files Provided was Invalid. Solution: " + args[1] + " Project: " + args[2]);
+                            if (args.Length >= 3)
+                            {
+                                Console.WriteLine("Couldn't Build Custom Solution Because Files Provided was Invalid. Solution: " + args[1] + " Project: " + args[2]);
+                            }
+                            else
+                            {
+                                Console.WriteLine("Didn't provide the correct number of arguments for buildcustomsln command");
+                            }
                         }
                         Environment.Exit(0);
                         break;
