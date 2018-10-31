@@ -431,9 +431,9 @@ namespace UnrealEngine.Runtime
 
         public void AttemptToBuildGeneratedSolution()
         {
-            string _slnPath = Path.Combine(Settings.GetManagedModulesDir(), "UnrealEngine.sln");
-            string _projPath = Path.Combine(Settings.GetManagedModulesDir(), "UnrealEngine.csproj");
-            string _pluginInstallerPath = Path.Combine(Settings.GetManagedModulesDir(), "../", "../", "../", "Binaries", "Managed", "PluginInstaller", "PluginInstaller.exe");
+            string _slnPath = Path.GetFullPath(Path.Combine(Settings.GetManagedModulesDir(), "UnrealEngine.sln"));
+            string _projPath = Path.GetFullPath(Path.Combine(Settings.GetManagedModulesDir(), "UnrealEngine.csproj"));
+            string _pluginInstallerPath = Path.GetFullPath(Path.Combine(Settings.GetManagedModulesDir(), "../", "../", "../", "Binaries", "Managed", "PluginInstaller", "PluginInstaller.exe"));
 
             if (!File.Exists(_slnPath))
             {
