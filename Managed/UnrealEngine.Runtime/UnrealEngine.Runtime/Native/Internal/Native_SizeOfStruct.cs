@@ -42,5 +42,6 @@ namespace UnrealEngine.Runtime.Native
         public static Del_SizeOf SizeOf_TStatId;
         public static Del_SizeOf SizeOf_FText;
         public static Del_SizeOf SizeOf_FGuid;
+        public static Del_SizeOf SizeOf_FActorSpawnParameters;
     }
 }

@@ -26,6 +26,7 @@ namespace UnrealEngine.Runtime
                 { "/Script/CoreUObject.SoftObjectPath", ProjectDefinedType.Struct },
                 { "/Script/Engine.TimerHandle", ProjectDefinedType.BlittableStruct },
                 { "/Script/CoreUObject.Guid", ProjectDefinedType.BlittableStruct },// This should map to System.Guid
+                { "/Script/Engine.ESpawnActorCollisionHandlingMethod", ProjectDefinedType.Enum },
 
                 // UKismetArrayLibrary has a bunch of methods which have generic args (T), this doesn't really work with marshalers.
                 // - Add code to ignore any functions which have a T arg or a T return type?

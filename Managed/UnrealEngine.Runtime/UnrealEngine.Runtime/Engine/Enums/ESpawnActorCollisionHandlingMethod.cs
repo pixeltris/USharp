@@ -3,13 +3,15 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using UnrealEngine.Runtime;
 
-namespace UnrealEngine.Runtime
+namespace UnrealEngine.Engine
 {
     /// <summary>
     /// Defines available strategies for handling the case where an actor is spawned in such a way that it penetrates blocking collision.
     /// </summary>
-    public enum ESpawnActorCollisionHandlingMethod : System.Byte
+    [UEnum, BlueprintType, UMetaPath("/Script/Engine.ESpawnActorCollisionHandlingMethod", "Engine", UnrealModuleType.Engine)]
+    public enum ESpawnActorCollisionHandlingMethod : byte
     {
         /// <summary>
         /// Fall back to default settings.

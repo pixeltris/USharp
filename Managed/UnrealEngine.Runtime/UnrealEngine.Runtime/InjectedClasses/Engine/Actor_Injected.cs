@@ -11,9 +11,9 @@ namespace UnrealEngine.Engine
             get { return worldCached.Update(Native_AActor.GetWorld(Address)); }
         }
 
-        public void PrintString(string InString, FLinearColor TextColor, bool PrintToLog = false, float Duration = 1f)
+        public void PrintString(string str, FLinearColor textColor, bool printToLog = false, float duration = 1f)
         {
-            USystemLibrary.PrintString(GCHelper.Find<AActor>(Address), InString, true, PrintToLog, TextColor, Duration);
+            USystemLibrary.PrintString(this, str, true, printToLog, textColor, duration);
         }
     }
 }
