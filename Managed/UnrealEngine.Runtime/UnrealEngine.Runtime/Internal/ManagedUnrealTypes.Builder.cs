@@ -484,6 +484,10 @@ namespace UnrealEngine.Runtime
                 // Resolve the native parent class now that the parent class is set up
                 managedClass.ResolveNativeParentClass();
                 Native_USharpClass.UpdateNativeParentConstructor(sharpClass);
+                if (!isInterface)
+                {
+                    Native_USharpClass.UpdateNativeParentConstructor(sharpClass);
+                }
 
                 // Clean up the implemented interfaces array
                 if (implementedInterfaces != null)
@@ -879,12 +883,12 @@ namespace UnrealEngine.Runtime
             // Create the CDO for classes after all classes have been initialized as classes may reference other classes.
             foreach (ManagedClass managedClass in Classes.Values)
             {
-                Native_UClass.GetDefaultObject(managedClass.Address, true);
+                CreateCDO(managedClass);
             }
             // Probably not needed
             foreach (ManagedClass managedClass in Interfaces.Values)
-            {                
-                Native_UClass.GetDefaultObject(managedClass.Address, true);
+            {
+                CreateCDO(managedClass);
             }
 
             if (!SkipReinstance)
@@ -921,6 +925,28 @@ namespace UnrealEngine.Runtime
 
             // Clear any temporary metadata which was created which isn't needed anymore
             ClearTypeMetaData();
+        }
+
+        private static void CreateCDO(ManagedClass managedClass)
+        {
+            // HACK: We aren't using defered type building like native code, therefore we don't make calls out to
+            //       NotifyRegistrationEvent to build the type when ready. CompiledIn expects NotifyRegistrationEvent
+            //       to be called an asserts everyting is set up in order. Temporarily remove CompiledIn to skip these checks.
+            // TODO: Use the proper defering way of loading types. This is important anyway as our classes may depend on other
+            //       classes which haven't loaded yet.
+            IntPtr package = Native_UObjectBaseUtility.GetOutermost(managedClass.Address);
+            bool hasCompiledIn = Native_UPackage.HasAnyPackageFlags(package, EPackageFlags.CompiledIn);
+            if (hasCompiledIn)
+            {
+                Native_UPackage.ClearPackageFlags(package, EPackageFlags.CompiledIn);
+            }
+
+            Native_UClass.GetDefaultObject(managedClass.Address, true);
+
+            if (hasCompiledIn)
+            {
+                Native_UPackage.SetPackageFlags(package, EPackageFlags.CompiledIn);
+            }
         }
 
         private static void UpdateClassReferences(Dictionary<Type, ManagedTypeBase> allTypes)
