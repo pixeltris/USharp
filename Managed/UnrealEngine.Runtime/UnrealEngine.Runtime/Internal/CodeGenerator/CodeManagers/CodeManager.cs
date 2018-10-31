@@ -429,57 +429,6 @@ namespace UnrealEngine.Runtime
             };
         }
 
-        public void AttemptToBuildGeneratedSolution()
-        {
-            string _slnPath = Path.GetFullPath(Path.Combine(Settings.GetManagedModulesDir(), "UnrealEngine.sln"));
-            string _projPath = Path.GetFullPath(Path.Combine(Settings.GetManagedModulesDir(), "UnrealEngine.csproj"));
-            string _pluginInstallerPath = Path.GetFullPath(Path.Combine(Settings.GetManagedModulesDir(), "../", "../", "../", "Binaries", "Managed", "PluginInstaller", "PluginInstaller.exe"));
-
-            if (!File.Exists(_slnPath))
-            {
-                Log(ELogVerbosity.Error, "Can't Compile: The Solution " + _slnPath + " doesn't exist");
-                return;
-            }
-            if (!File.Exists(_projPath))
-            {
-                Log(ELogVerbosity.Error, "Can't Compile: The Project " + _projPath + " doesn't exist");
-                return;
-            }
-            if (!File.Exists(_pluginInstallerPath))
-            {
-                Log(ELogVerbosity.Error, "Can't Compile: Can't Find Plugin Installer At Path: " + _pluginInstallerPath);
-                return;
-            }
-
-            Log(ELogVerbosity.Log, "Attempting To Build Generated Solution at " + _slnPath);
-
-            int timeout = 60000;
-            bool built = false;
-
-            using (System.Diagnostics.Process process = new System.Diagnostics.Process())
-            {
-                process.StartInfo = new System.Diagnostics.ProcessStartInfo()
-                {
-                    WindowStyle = System.Diagnostics.ProcessWindowStyle.Normal,
-                    FileName = _pluginInstallerPath,
-                    Arguments = "buildcustomsln" + @" """ + _slnPath + @""" " + _projPath + @"""",
-                    UseShellExecute = false
-                };
-                process.Start();
-
-                built = process.WaitForExit(timeout) && process.ExitCode == 0;
-            }
-            
-            if (built)
-            {
-                Log(ELogVerbosity.Log, "Solution Was Compiled Successfully.");
-            }
-            else
-            {
-                Log(ELogVerbosity.Error, "Couldn't Compile Solution, Please Try Compiling Manually At " + _slnPath);
-            }
-        }
-
         /// <summary>
         /// Normalizes a file path to be used in a .sln/csproj ('\' must be used instead of '/')
         /// </summary>
