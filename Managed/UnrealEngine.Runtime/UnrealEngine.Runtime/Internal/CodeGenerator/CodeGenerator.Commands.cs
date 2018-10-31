@@ -104,11 +104,6 @@ namespace UnrealEngine.Runtime
 
                 if (args.Length > 0)
                 {
-                    if(args[0] == "compile")
-                    {
-                        CompileGeneratedCode();
-                        return;
-                    }
                     if (args[0] == "cancel")
                     {
                         if (timeSlicedCodeGenerator != null && !timeSlicedCodeGenerator.Complete)
@@ -190,6 +185,10 @@ namespace UnrealEngine.Runtime
                             {
                                 invalidArgs = true;
                             }
+                            break;
+
+                        case "compile":
+                            CompileGeneratedCode();
                             break;
 
                         default:
