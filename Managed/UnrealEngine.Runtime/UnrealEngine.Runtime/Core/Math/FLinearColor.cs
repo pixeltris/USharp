@@ -82,9 +82,9 @@ namespace UnrealEngine.Runtime
         /// <param name="color">The sRGB color that needs to be converted into linear space.</param>
         public FLinearColor(FColor color)
         {
-            R = sRGBToLinearTable[color.R];
-            G = sRGBToLinearTable[color.G];
-            B = sRGBToLinearTable[color.B];
+            R = Tables.sRGBToLinearTable[color.R];
+            G = Tables.sRGBToLinearTable[color.G];
+            B = Tables.sRGBToLinearTable[color.B];
             A = (float)(color.A) * OneOver255;
         }
 
@@ -137,9 +137,9 @@ namespace UnrealEngine.Runtime
         public static FLinearColor FromSRGBColor(FColor color)
         {
             FLinearColor linearColor;
-            linearColor.R = sRGBToLinearTable[color.R];
-            linearColor.G = sRGBToLinearTable[color.G];
-            linearColor.B = sRGBToLinearTable[color.B];
+            linearColor.R = Tables.sRGBToLinearTable[color.R];
+            linearColor.G = Tables.sRGBToLinearTable[color.G];
+            linearColor.B = Tables.sRGBToLinearTable[color.B];
             linearColor.A = (float)(color.A) * OneOver255;
 
             return linearColor;
@@ -152,9 +152,9 @@ namespace UnrealEngine.Runtime
         public static FLinearColor FromPow22Color(FColor color)
         {
             FLinearColor linearColor;
-            linearColor.R = Pow22OneOver255Table[color.R];
-            linearColor.G = Pow22OneOver255Table[color.G];
-            linearColor.B = Pow22OneOver255Table[color.B];
+            linearColor.R = Tables.Pow22OneOver255Table[color.R];
+            linearColor.G = Tables.Pow22OneOver255Table[color.G];
+            linearColor.B = Tables.Pow22OneOver255Table[color.B];
             linearColor.A = (float)(color.A) * OneOver255;
 
             return linearColor;
@@ -884,12 +884,14 @@ namespace UnrealEngine.Runtime
         //public static readonly FLinearColor Yellow = new FLinearColor(FColor.Yellow);
         public static readonly FLinearColor YellowGreen = new FLinearColor(FColor.YellowGreen);
 
-        /// <summary>
-        /// Pow table for fast FColor -> FLinearColor conversion.
-        /// 
-        /// FMath::Pow( i / 255.f, 2.2f )
-        /// </summary>
-        private static readonly float[] Pow22OneOver255Table = new float[256]
+        class Tables
+        {
+            /// <summary>
+            /// Pow table for fast FColor -> FLinearColor conversion.
+            /// 
+            /// FMath::Pow( i / 255.f, 2.2f )
+            /// </summary>
+            public static readonly float[] Pow22OneOver255Table = new float[256]
             {
                 0f, 5.07705190066176E-06f, 2.33280046660989E-05f, 5.69217657121931E-05f, 0.000107187362341244f, 0.000175123977503027f, 0.000261543754548491f, 0.000367136269815943f, 0.000492503787191433f,
                 0.000638182842167022f, 0.000804658499513058f, 0.000992374304074325f, 0.0012017395224384f, 0.00143313458967186f, 0.00168691531678928f, 0.00196341621339647f, 0.00226295316070643f,
@@ -922,12 +924,12 @@ namespace UnrealEngine.Runtime
                 0.948964938178195f, 0.957369576199527f, 0.96581465350313f, 0.974300202388861f, 0.982826255053791f, 0.99139284359294f, 1f
             };
 
-        /// <summary>
-        /// Table for fast FColor -> FLinearColor conversion.
-        /// 
-        /// Color > 0.04045 ? pow( Color * (1.0 / 1.055) + 0.0521327, 2.4 ) : Color * (1.0 / 12.92);
-        /// </summary>
-        private static readonly float[] sRGBToLinearTable = new float[256]
+            /// <summary>
+            /// Table for fast FColor -> FLinearColor conversion.
+            /// 
+            /// Color > 0.04045 ? pow( Color * (1.0 / 1.055) + 0.0521327, 2.4 ) : Color * (1.0 / 12.92);
+            /// </summary>
+            public static readonly float[] sRGBToLinearTable = new float[256]
             {
                 0,
                 0.000303526983548838f, 0.000607053967097675f, 0.000910580950646512f, 0.00121410793419535f, 0.00151763491774419f,
@@ -982,6 +984,7 @@ namespace UnrealEngine.Runtime
                 0.921581853023715f, 0.930110855104312f, 0.938685725169219f, 0.947306533426946f, 0.955973349925421f,
                 0.964686244552961f, 0.973445287039244f, 0.982250546956257f, 0.991102093719252f, 1.0f,
             };
+        }
     }
 
 
