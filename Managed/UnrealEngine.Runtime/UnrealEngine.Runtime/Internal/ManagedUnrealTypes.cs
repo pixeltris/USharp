@@ -452,7 +452,19 @@ namespace UnrealEngine.Runtime
                 }
             }
 
-            private unsafe void InvokeFunction(IntPtr obj, IntPtr stackPtr, IntPtr result)
+            private void InvokeFunction(IntPtr obj, IntPtr stackPtr, IntPtr result)
+            {
+                try
+                {
+                    InvokeFunctionImpl(obj, stackPtr, result);
+                }
+                catch (Exception e)
+                {
+                    FMessage.Log(ELogVerbosity.Error, "InvokeFunction failed: " + e);
+                }
+            }
+
+            private unsafe void InvokeFunctionImpl(IntPtr obj, IntPtr stackPtr, IntPtr result)
             {
                 // TODO: Move this entire function into C++ for better performance? C++ should only need the managedFunctionInvoker
                 // function and the rest should be do-able in C++. Use C++ anonymous function capture to hold onto managedFunctionInvoker
