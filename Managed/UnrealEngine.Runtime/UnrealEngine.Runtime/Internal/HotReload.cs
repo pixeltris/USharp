@@ -52,18 +52,18 @@ namespace UnrealEngine.Runtime
         /// (GC has been fully cleaned - don't access any UObject code at this point)
         /// </summary>
         public static event HotReloadUnloadEnd UnloadEnd;
-        
+
         /// <summary>
-        /// Event fired after managed assemblies are loaded loaded but before the Unreal reflection system has been 
+        /// Event is fired before managed assemblies are loaded and before the Unreal reflection system has been
         /// initialized. The data store should be available but you shouldn't be calling any functions which rely on 
         /// UObject types.
         /// </summary>
         public static event HotReloadPreReloadBegin PreReloadBegin;
 
         /// <summary>
-        /// Event fired after the core Unreal reflection system has been initialized but before the managed types
-        /// are loaded into Unreal. It should be safe to access core UObject types at this point but not the managed 
-        /// types as they will be loaded directly after this event.
+        /// Event fired after the managed assemblies are loaded and after the core Unreal reflection system has been 
+        /// initialized but before the managed types are loaded into Unreal. It should be safe to access core UObject 
+        /// types at this point but not the managed types as they will be loaded directly after this event.
         /// </summary>
         public static event HotReloadPreReloadEnd PreReloadEnd;
 

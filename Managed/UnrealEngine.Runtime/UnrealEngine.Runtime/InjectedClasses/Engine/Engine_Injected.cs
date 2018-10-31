@@ -19,9 +19,9 @@ namespace UnrealEngine.Engine
             get { return editorCached.Update(FGlobals.GEditor); }
         }
 
-        public static UWorld GetWorldFromContextObject(UEngine engine, UObject obj)
+        public UWorld GetWorldFromContextObject(UObject obj)
         {
-            return GCHelper.Find<UWorld>(Native_UEngine.GetWorldFromContextObject(engine.Address, obj.Address, EGetWorldErrorMode.ReturnNull));
+            return GCHelper.Find<UWorld>(Native_UEngine.GetWorldFromContextObject(this.Address, obj.Address, EGetWorldErrorMode.ReturnNull));
         }
     }
 }

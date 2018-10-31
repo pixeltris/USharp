@@ -143,12 +143,6 @@ namespace UnrealEngine.Runtime.Native
                 Native_UPackage.ClearPackageFlags(package, EPackageFlags.EditorOnly);
             }
 
-            using (var timing = HotReload.Timing.Create(HotReload.Timing.NativeFunctions_LoadAssemblies))
-            {
-                // Load managed assemblies (game assembly, and any others which may need loading)
-                LoadAssemblies();
-            }
-
             using (var timing = HotReload.Timing.Create(HotReload.Timing.UnrealTypes_Load))
             {
                 UnrealTypes.Load();
@@ -165,13 +159,19 @@ namespace UnrealEngine.Runtime.Native
                 UnrealTypes.LoadNative();
             }
 
-            // If any assemblies are loaded after this point make sure to load their unreal types
-            AppDomain.CurrentDomain.AssemblyLoad += OnAssemblyLoad;
-
             using (var timing = HotReload.Timing.Create(HotReload.Timing.UClass_Load))
             {
                 // Load native classes
                 UClass.Load();
+            }
+
+            // If any assemblies are loaded make sure to load their unreal types
+            AppDomain.CurrentDomain.AssemblyLoad += OnAssemblyLoad;
+
+            using (var timing = HotReload.Timing.Create(HotReload.Timing.NativeFunctions_LoadAssemblies))
+            {
+                // Load managed assemblies (game assembly, and any others which may need loading)
+                LoadAssemblies();
             }
 
             if (HotReload.IsReloading)
@@ -246,9 +246,21 @@ namespace UnrealEngine.Runtime.Native
             {
                 if (assemblyName.FullName == currentAssembly.FullName)
                 {
-                    // This is an unreal assembly. Load the unreal types.
-                    ManagedUnrealModuleInfo.PreProcessAssembly(assembly);//UnrealTypes.Load(assembly);
-                    UClass.Load(assembly);
+                    try
+                    {
+                        FMessage.Log("Load managed assembly: '" + assembly.FullName + "'");
+
+                        // This is an unreal assembly. Load the unreal types.
+                        ManagedUnrealModuleInfo.PreProcessAssembly(assembly);//UnrealTypes.Load(assembly);
+                        UClass.Load(assembly);
+                    }
+                    catch (Exception e)
+                    {
+                        FMessage.Log("Failed to process assembly " + assembly.FullName + " error: " + e);
+
+                        // Break if we are debugging as the exception may be silently handled
+                        Debugger.Break();
+                    }
                     break;
                 }
             }

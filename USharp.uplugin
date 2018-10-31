@@ -19,7 +19,7 @@
 		{
 			"Name" : "USharp",
 			"Type" : "Runtime",
-			"LoadingPhase" : "PostEngineInit",
+			"LoadingPhase" : "PostDefault",
 			"WhitelistPlatforms": [ "Win64" ]
 		}
 	]
