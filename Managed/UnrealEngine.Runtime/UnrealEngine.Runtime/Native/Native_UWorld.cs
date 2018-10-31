@@ -8,13 +8,13 @@ using System.Text;
 
 namespace UnrealEngine.Runtime.Native
 {
-    static class Native_UWorld
+    public static class Native_UWorld
     {
         public delegate IntPtr Del_Get_GWorld();
         public delegate IntPtr Del_GetLevels(IntPtr instance);        
         public delegate IntPtr Del_GetGameInstance(IntPtr instance);
         public delegate IntPtr Del_GetTimerManager(IntPtr instance);
-        public delegate IntPtr Del_SpawnActor(IntPtr instance, IntPtr Class, IntPtr Location, IntPtr Rotation, ref FActorSpawnParameters parameters);
+        public delegate IntPtr Del_SpawnActor(IntPtr instance, IntPtr Class, ref FVector Location, ref FRotator Rotation, ref FActorSpawnParameters parameters);
 
         public static Del_Get_GWorld Get_GWorld;
         public static Del_GetLevels GetLevels;
