@@ -2067,10 +2067,6 @@ namespace UnrealEngine.Runtime
 
             functionInfo.IsImplementation = method.Name.EndsWith(codeSettings.VarNames.ImplementationMethod);
 
-            if (method.Name.Contains("OnBecomeViewTarget"))
-            {
-            }
-
             // Get the cached function flags which may have already been obtained. This will resolve
             // the function flags to include the base function flags.
             CachedFunctionFlagInfo flags;
@@ -2086,6 +2082,28 @@ namespace UnrealEngine.Runtime
             if (!functionInfo.IsStatic && typeInfo.ClassFlags.HasFlag(EClassFlags.Const))
             {
                 functionInfo.Flags |= EFunctionFlags.Const;
+            }
+
+            if (!typeInfo.IsDelegate)
+            {
+                // Make sure this function meets the requirements to be exposed
+                switch (ManagedUnrealVisibility.FunctionRequirement)
+                {
+                    case ManagedUnrealVisibility.Requirement.MainAttribute:
+                        if (!functionInfo.AdditionalFlags.HasFlag(ManagedUnrealFunctionFlags.UFunction))
+                        {
+                            return null;
+                        }
+                        break;
+                    case ManagedUnrealVisibility.Requirement.AnyAttribute:
+                        if (!functionInfo.AdditionalFlags.HasFlag(ManagedUnrealFunctionFlags.UFunction) &&
+                            !method.HasCustomAttribute<ManagedUnrealAttributeBase>(false) &&
+                            !method.HasCustomAttribute<UMetaAttribute>(false))
+                        {
+                            return null;
+                        }
+                        break;
+                }
             }
 
             if (functionInfo.IsOverride && !functionInfo.IsBlueprintEvent)
@@ -2146,27 +2164,6 @@ namespace UnrealEngine.Runtime
                     // method is skipped to ensure only 1 method is processed per definition). Though this means that
                     // our type info is our of sync with the C# type info.
                     functionInfo.IsVirtual = true;
-                }
-            }
-
-            if (!typeInfo.IsDelegate)
-            {
-                // Make sure this function meets the requirements to be exposed
-                switch (ManagedUnrealVisibility.FunctionRequirement)
-                {
-                    case ManagedUnrealVisibility.Requirement.MainAttribute:
-                        if (!functionInfo.AdditionalFlags.HasFlag(ManagedUnrealFunctionFlags.UFunction))
-                        {
-                            return null;
-                        }
-                        break;
-                    case ManagedUnrealVisibility.Requirement.AnyAttribute:
-                        if (!method.HasCustomAttribute<ManagedUnrealAttributeBase>(false) &&
-                            !method.HasCustomAttribute<UMetaAttribute>(false))
-                        {
-                            return null;
-                        }
-                        break;
                 }
             }
 
@@ -2879,7 +2876,7 @@ namespace UnrealEngine.Runtime
         /// <summary>
         /// The flags applicable to inherit from the base function flags
         /// </summary>
-        FuncInherit = 0
+        FuncInherit = UFunction
     }
 
     public partial class ManagedUnrealFunctionInfo : ManagedUnrealReflectionBase

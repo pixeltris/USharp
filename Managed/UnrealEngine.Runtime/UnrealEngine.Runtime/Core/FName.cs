@@ -113,6 +113,11 @@ namespace UnrealEngine.Runtime
             return ComparisonIndex;
         }
 
+        public static explicit operator FName(string value)
+        {
+            return new FName(value);
+        }
+
         /// <summary>
         /// Enumeration for finding name.
         /// </summary>

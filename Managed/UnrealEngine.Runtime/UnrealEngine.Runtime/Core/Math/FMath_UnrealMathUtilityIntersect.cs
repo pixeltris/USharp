@@ -641,7 +641,7 @@ namespace UnrealEngine.Runtime
         /// <returns>true: cone and sphere do intersect, false otherwise</returns>
         public static bool SphereConeIntersection(FVector sphereCenter, float sphereRadius, FVector coneAxis, float coneAngleSin, float coneAngleCos)
         {
-            /**
+            /*
              * from http://www.geometrictools.com/Documentation/IntersectionSphereCone.pdf
              * (Copyright c 1998-2008. All Rights Reserved.) http://www.geometrictools.com (boost license)
              */
@@ -1054,7 +1054,7 @@ namespace UnrealEngine.Runtime
         }
 
         /// <summary>
-        /// returns the time (t) of the intersection of the passed segment and a plane (could be <0 or >1)
+        /// returns the time (t) of the intersection of the passed segment and a plane (could be &lt;0 or >1)
         /// </summary>
         /// <param name="startPoint">start point of segment</param>
         /// <param name="endPoint">end point of segment</param>

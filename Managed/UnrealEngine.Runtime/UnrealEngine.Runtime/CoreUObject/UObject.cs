@@ -250,6 +250,15 @@ namespace UnrealEngine.Runtime
         }
 
         /// <summary>
+        /// Retrieve the object flags directly
+        /// </summary>
+        /// <returns>Flags for this object</returns>
+        public EObjectFlags GetFlags()
+        {
+            return Native_UObjectBase.GetFlags(Address);
+        }
+
+        /// <summary>
         /// Set object flags.
         /// </summary>
         /// <param name="newFlags">Object flags to set.</param>

@@ -40,7 +40,7 @@ namespace UnrealEngine.Runtime
         /// <summary>
         /// Constructor.
         /// </summary>
-        /// <param name="pts"Pointer to list of points this sphere must contain.></param>
+        /// <param name="pts">Pointer to list of points this sphere must contain.></param>
         public FSphere(FVector[] pts)
         {
             if (pts.Length > 0)

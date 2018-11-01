@@ -554,7 +554,7 @@ namespace UnrealEngine.Runtime
         /// </summary>
         /// <param name="a">The first vector.</param>
         /// <param name="b">The second vector.</param>
-        /// <returns>The result of division.</returns>
+        /// <param name="result">The result of division.</param>
         public static void Divide(ref FVector a, ref FVector b, out FVector result)
         {
             result.X = a.X / b.X;
@@ -984,7 +984,7 @@ namespace UnrealEngine.Runtime
         /// </summary>
         /// <param name="gridSz">Grid dimension.</param>
         /// <returns>A copy of this vector snapped to a grid.</returns>
-        /// <see cref="FMath.GridSnap"/>
+        /// <see cref="FMath.GridSnap(float, float)"/>
         public FVector GridSnap(float gridSz)
         {
             return new FVector(
@@ -1320,8 +1320,8 @@ namespace UnrealEngine.Runtime
         /// 'FQuat::FindBetweenVectors(FVector::ForwardVector, YourVector)' or 'FQuat::FindBetweenNormals(...)' if you know the vector is of unit length.
         /// </summary>
         /// <returns>Quaternion from the Vector's direction, without any roll.</returns>
-        /// <see cref="ToOrientationRotator()"/>
-        /// <see cref="FQuat.FindBetweenVectors()"/>
+        /// <see cref="ToOrientationRotator"/>
+        /// <see cref="FQuat.FindBetweenVectors"/>
         public FQuat ToOrientationQuat()
         {
             // Essentially an optimized Vector->Rotator->Quat made possible by knowing Roll == 0, and avoiding radians->degrees->radians.

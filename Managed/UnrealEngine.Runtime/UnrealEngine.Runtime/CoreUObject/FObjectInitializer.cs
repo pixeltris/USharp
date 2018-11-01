@@ -94,6 +94,36 @@ namespace UnrealEngine.Runtime
         /// <summary>
         /// Create a component or subobject
         /// </summary>
+        /// <typeparam name="T">class of return type, all overrides must be of this type</typeparam>
+        /// <param name="outer">outer to construct the subobject in</param>
+        /// <param name="subobjectName">name of the new component</param>
+        /// <param name="transient">true if the component is being assigned to a transient property</param>
+        /// <returns></returns>
+        public T CreateDefaultSubobject<T>(UObject outer, FName subobjectName, bool transient = false) where T : UObject
+        {
+            return CreateDefaultSubobject<T, T>(outer, subobjectName, transient);
+        }
+
+        /// <summary>
+        /// reate a component or subobject 
+        /// </summary>
+        /// <typeparam name="TReturnType">class of return type, all overrides must be of this type </typeparam>
+        /// <typeparam name="TClassToConstructByDefault">class to construct by default</typeparam>
+        /// <param name="outer">outer to construct the subobject in </param>
+        /// <param name="subobjectName">name of the new component </param>
+        /// <param name="transient">true if the component is being assigned to a transient property</param>
+        /// <returns></returns>
+        public TReturnType CreateDefaultSubobject<TReturnType, TClassToConstructByDefault>(UObject outer, FName subobjectName, bool transient = false)
+            where TReturnType : UObject
+            where TClassToConstructByDefault : UObject
+        {
+            return CreateDefaultSubobject(outer, subobjectName, UClass.GetClass<TReturnType>(), 
+                UClass.GetClass<TClassToConstructByDefault>(), true, false, transient) as TReturnType;
+        }
+
+        /// <summary>
+        /// Create a component or subobject
+        /// </summary>
         /// <param name="outer">outer to construct the subobject in</param>
         /// <param name="subobjectFName">name of the new component</param>
         /// <param name="returnType">class of return type, all overrides must be of this type</param>

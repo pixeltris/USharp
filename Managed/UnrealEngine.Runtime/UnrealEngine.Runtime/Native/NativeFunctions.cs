@@ -21,7 +21,7 @@ namespace UnrealEngine.Runtime.Native
         private static Dictionary<string, FieldInfo> functions = new Dictionary<string, FieldInfo>();
 
         /// <summary>
-        // Function defined in native code which calls the managed callback RegisterFunction on all native functions to be registerd
+        /// Function defined in native code which calls the managed callback RegisterFunction on all native functions to be registerd
         /// </summary>
         /// <param name="registerFuncCallback">Function pointer to our RegisterFunction method in managed code</param>
         delegate void Del_RegisterFunctions(IntPtr registerFuncCallback);

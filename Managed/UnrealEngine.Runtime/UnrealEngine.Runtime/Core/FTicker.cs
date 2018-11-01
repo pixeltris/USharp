@@ -70,7 +70,7 @@ namespace UnrealEngine.Runtime
         /// 
         /// Note: will remove ALL tickers that use this handle, as there's no way to uniquely identify which one you are trying to remove.
         /// </summary>
-        /// <param name="ticker">The ticker to remove.</param>
+        /// <param name="del">The ticker to remove.</param>
         public static void RemoveTicker(FTickerDelegate del)
         {
             if (del == null || del.Method == null)

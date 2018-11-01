@@ -24,7 +24,7 @@ namespace UnrealEngine.Runtime
         /// <param name="outer">value for LimitOuter</param>
         /// <param name="requireDirectOuter">Determines whether nested objects contained within LimitOuter are considered.</param>
         /// <param name="shouldIgnoreArchetype">whether to disable serialization of ObjectArchetype references</param>
-        /// <param name="serializeRecursively">only applicable when LimitOuter != NULL && bRequireDirectOuter==true;
+        /// <param name="serializeRecursively">only applicable when LimitOuter != NULL &amp;&amp; bRequireDirectOuter==true;
         /// serializes each object encountered looking for subobjects of referenced
         /// objects that have LimitOuter for their Outer (i.e. nested subobjects/components)</param>
         /// <param name="shouldIgnoreTransient">true to skip serialization of transient properties</param>
@@ -40,7 +40,7 @@ namespace UnrealEngine.Runtime
         /// <param name="outer">value for LimitOuter</param>
         /// <param name="requireDirectOuter">Determines whether nested objects contained within LimitOuter are considered.</param>
         /// <param name="shouldIgnoreArchetype">whether to disable serialization of ObjectArchetype references</param>
-        /// <param name="serializeRecursively">only applicable when LimitOuter != NULL && bRequireDirectOuter==true;
+        /// <param name="serializeRecursively">only applicable when LimitOuter != NULL &amp;&amp; bRequireDirectOuter==true;
         /// serializes each object encountered looking for subobjects of referenced
         /// objects that have LimitOuter for their Outer (i.e. nested subobjects/components)</param>
         /// <param name="shouldIgnoreTransient">true to skip serialization of transient properties</param>

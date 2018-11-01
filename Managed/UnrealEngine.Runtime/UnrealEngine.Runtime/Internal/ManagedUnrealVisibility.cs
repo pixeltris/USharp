@@ -16,7 +16,7 @@ namespace UnrealEngine.Runtime
         public static readonly Type Enum = Type.BlueprintType;
         public static readonly Member Members = Member.None;//Member.EditorVisible | Member.BlueprintVisible | Member.BlueprintCallable;
 
-        public static readonly Requirement ClassRequirement = Requirement.None;
+        public static readonly Requirement ClassRequirement = Requirement.MainAttribute;
         public static readonly Requirement StructRequirement = Requirement.MainAttribute;
         public static readonly Requirement EnumRequirement = Requirement.MainAttribute;
         /// <summary>
@@ -26,8 +26,8 @@ namespace UnrealEngine.Runtime
         /// </summary>
         public static readonly Requirement InterfaceRequirement = Requirement.MainAttribute;
         public static readonly Requirement DelegateRequirement = Requirement.None;
-        public static readonly Requirement FunctionRequirement = Requirement.None;
-        public static readonly Requirement PropertyRequirement = Requirement.None;
+        public static readonly Requirement FunctionRequirement = Requirement.MainAttribute;
+        public static readonly Requirement PropertyRequirement = Requirement.MainAttribute;
 
         public enum Requirement
         {

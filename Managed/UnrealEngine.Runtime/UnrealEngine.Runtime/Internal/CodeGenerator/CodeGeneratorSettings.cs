@@ -789,9 +789,9 @@ namespace UnrealEngine.Runtime
             /// </summary>
             Postfix,
 
-            /// <summary>
-            /// TODO: Put memebers with a category defined into a nested class
-            /// </summary>
+            ///// <summary>
+            ///// TODO: Put memebers with a category defined into a nested class
+            ///// </summary>
             //TODO_Nested,
 
             /// <summary>
@@ -804,9 +804,9 @@ namespace UnrealEngine.Runtime
             /// </summary>
             SelectivePostfix,
 
-            /// <summary>
-            /// TODO: Use a file to determine which types should be nested
-            /// </summary>
+            ///// <summary>
+            ///// TODO: Use a file to determine which types should be nested
+            ///// </summary>
             //TODO_SelectiveNested
         }
 
@@ -894,17 +894,17 @@ namespace UnrealEngine.Runtime
             public string MemberOffset { get; set; }
             
             /// <summary>
-            /// TArrayCopyMarshaler<T> XXXX_Marshaler;
+            /// TArrayCopyMarshaler&lt;T> XXXX_Marshaler;
             /// </summary>
             public string CollectionMarshaler { get; set; }
 
             /// <summary>
-            /// TArrayReadWriteMarshaler<T> XXXX_MarshalerCached;
+            /// TArrayReadWriteMarshaler&lt;T> XXXX_MarshalerCached;
             /// </summary>
             public string CollectionMarshalerCached { get; set; }
 
             /// <summary>
-            /// TFixedSizeArray<T> XXXX_FixedSizeArrayCached;
+            /// TFixedSizeArray&lt;T> XXXX_FixedSizeArrayCached;
             /// </summary>
             public string FixedSizeArrayCached { get; set; }
 
@@ -959,7 +959,7 @@ namespace UnrealEngine.Runtime
             public string FTextCached { get; set; }
 
             /// <summary>
-            /// FMulticastDelegate<T> XXXX_DelegateCached;
+            /// FMulticastDelegate&lt;T> XXXX_DelegateCached;
             /// </summary>
             public string DelegateCached { get; set; }
 
@@ -974,7 +974,7 @@ namespace UnrealEngine.Runtime
             public string DelegateSignature { get; set; }
 
             /// <summary>
-            /// public static class Marshaler<T> { ... }
+            /// public static class Marshaler&lt;T> { ... }
             /// </summary>
             public string DelegateMarshaler { get; set; }
 

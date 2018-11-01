@@ -583,7 +583,10 @@ namespace UnrealEngine.Runtime
                     int paramIndex = 0;
                     foreach (IntPtr paramProp in new NativeReflection.NativeFieldIterator(Runtime.Classes.UProperty, function, false))
                     {
-                        if (Native_UProperty.HasAnyPropertyFlags(paramProp, EPropertyFlags.OutParm))
+                        EPropertyFlags paramFlags = Native_UProperty.GetPropertyFlags(paramProp);
+
+                        if ((paramFlags & EPropertyFlags.OutParm) == EPropertyFlags.OutParm &&
+                            (paramFlags & EPropertyFlags.ConstParm) != EPropertyFlags.ConstParm)
                         {
                             Debug.Assert(outParamsBufferPtr[paramIndex] != IntPtr.Zero);
 
@@ -652,7 +655,10 @@ namespace UnrealEngine.Runtime
 
                     foreach (IntPtr paramProp in new NativeReflection.NativeFieldIterator(Runtime.Classes.UProperty, function, false))
                     {
-                        if (Native_UProperty.HasAnyPropertyFlags(paramProp, EPropertyFlags.OutParm))
+                        EPropertyFlags paramFlags = Native_UProperty.GetPropertyFlags(paramProp);
+
+                        if ((paramFlags & EPropertyFlags.OutParm) == EPropertyFlags.OutParm &&
+                            (paramFlags & EPropertyFlags.ConstParm) != EPropertyFlags.ConstParm)
                         {
                             Debug.Assert(outParms->Property == paramProp);
 

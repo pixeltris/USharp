@@ -155,6 +155,7 @@ namespace UnrealEngine.Runtime
         /// <summary>
         /// This stops the invokers which have the underlying method (not the actual handler itself)
         /// </summary>
+        /// <param name="owner"></param>
         /// <param name="method"></param>
         public static void StopInvokerByMethod(UObject owner, Delegate method)
         {

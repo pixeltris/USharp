@@ -443,6 +443,31 @@ CSEXPORT csbool CSCONV Export_UClass_HasProperty(UClass* instance, UProperty* In
 	return instance->HasProperty(InProperty);
 }
 
+CSEXPORT UObject* CSCONV Export_UClass_FindArchetype(UClass* instance, UClass* ArchetypeClass, const FName& ArchetypeName)
+{
+	return instance->FindArchetype(ArchetypeClass, ArchetypeName);
+}
+
+CSEXPORT UObject* CSCONV Export_UClass_GetArchetypeForCDO(UClass* instance)
+{
+	return instance->GetArchetypeForCDO();
+}
+
+CSEXPORT void CSCONV Export_UClass_GetRequiredPreloadDependencies(UClass* instance, TArray<UObject*>& DependenciesOut)
+{
+	instance->GetRequiredPreloadDependencies(DependenciesOut);
+}
+
+CSEXPORT void CSCONV Export_UClass_SetUpRuntimeReplicationData(UClass* instance)
+{
+	instance->SetUpRuntimeReplicationData();
+}
+
+CSEXPORT csbool CSCONV Export_UClass_IsSafeToSerializeToStructuredArchives(UClass* InClass)
+{
+	return UClass::IsSafeToSerializeToStructuredArchives(InClass);
+}
+
 CSEXPORT void CSCONV Export_UClass(RegisterFunc registerFunc)
 {
 	REGISTER_FUNC(Export_UClass_Get_ClassConstructor);
@@ -537,4 +562,9 @@ CSEXPORT void CSCONV Export_UClass(RegisterFunc registerFunc)
 	REGISTER_FUNC(Export_UClass_FindCommonBaseMany);
 	REGISTER_FUNC(Export_UClass_IsFunctionImplementedInBlueprint);
 	REGISTER_FUNC(Export_UClass_HasProperty);
+	REGISTER_FUNC(Export_UClass_FindArchetype);
+	REGISTER_FUNC(Export_UClass_GetArchetypeForCDO);
+	REGISTER_FUNC(Export_UClass_GetRequiredPreloadDependencies);
+	REGISTER_FUNC(Export_UClass_SetUpRuntimeReplicationData);
+	REGISTER_FUNC(Export_UClass_IsSafeToSerializeToStructuredArchives);
 }
