@@ -216,9 +216,6 @@ namespace UnrealEngine.Runtime
         /// Get the range's lower bound.
         /// </summary>
         /// <returns>Lower bound.</returns>
-        /// <see cref="GetLowerBoundValue"/>
-        /// <see cref="GetUpperBound"/>
-        /// <see cref="HasLowerBound"/>
         public FFloatRangeBound GetLowerBound()
         {
             return LowerBound;
@@ -228,7 +225,6 @@ namespace UnrealEngine.Runtime
         /// Assign the new lower bound for this range
         /// </summary>
         /// <param name="newLowerBound">The new lower bound to assign</param>
-        /// <see cref="GetLowerBound"/>
         public void SetLowerBound(FFloatRangeBound newLowerBound)
         {
             LowerBound = newLowerBound;
@@ -238,7 +234,6 @@ namespace UnrealEngine.Runtime
         /// Assign the new lower bound value for this range. Current lower bound must not be open to call this method.
         /// </summary>
         /// <param name="newLowerBoundValue">The new lower bound value to assign</param>
-        /// <see cref="GetLowerBound"/>
         public void SetLowerBoundValue(float newLowerBoundValue)
         {
             LowerBound.SetValue(newLowerBoundValue);
@@ -250,9 +245,6 @@ namespace UnrealEngine.Runtime
         /// Use HasLowerBound() to ensure that this range actually has a lower bound.
         /// </summary>
         /// <returns>Bound value.</returns>
-        /// <see cref="GetLowerBound()"/>
-        /// <see cref="GetUpperBoundValue"/>
-        /// <see cref="HasLowerBound"/>
         public float GetLowerBoundValue()
         {
             return LowerBound.GetValue();
@@ -262,9 +254,6 @@ namespace UnrealEngine.Runtime
         /// Get the range's upper bound.
         /// </summary>
         /// <returns>Upper bound.</returns>
-        /// <see cref="GetLowerBound"/>
-        /// <see cref="GetUpperBoundValue"/>
-        /// <see cref="HasUpperBound"/>
         public FFloatRangeBound GetUpperBound()
         {
             return UpperBound;
@@ -274,7 +263,6 @@ namespace UnrealEngine.Runtime
         /// Assign the new upper bound for this range
         /// </summary>
         /// <param name="newUpperBound">The new upper bound to assign</param>
-        /// <see cref="GetUpperBound"/>
         public void SetUpperBound(FFloatRangeBound newUpperBound)
         {
             UpperBound = newUpperBound;
@@ -284,7 +272,6 @@ namespace UnrealEngine.Runtime
         /// Assign the new upper bound value for this range. Current upper bound must not be open to call this method.
         /// </summary>
         /// <param name="newUpperBoundValue">The new upper bound value to assign</param>
-        /// <see cref="GetUpperBound"/>
         public void SetUpperBoundValue(float newUpperBoundValue)
         {
             UpperBound.SetValue(newUpperBoundValue);
@@ -296,9 +283,6 @@ namespace UnrealEngine.Runtime
         /// Use HasUpperBound() to ensure that this range actually has an upper bound.
         /// </summary>
         /// <returns>Bound value.</returns>
-        /// <see cref="GetLowerBoundValue"/>
-        /// <see cref="GetUpperBound"/>
-        /// <see cref="HasUpperBound"/>
         public float GetUpperBoundValue()
         {
             return UpperBound.GetValue();
@@ -308,9 +292,6 @@ namespace UnrealEngine.Runtime
         /// Check whether the range has a lower bound.
         /// </summary>
         /// <returns>true if the range has a lower bound, false otherwise.</returns>
-        /// <see cref="GetLowerBound"/>
-        /// <see cref="GetLowerBoundValue"/>
-        /// <see cref="HasUpperBound"/>
         public bool HasLowerBound()
         {
             return LowerBound.IsClosed();
@@ -320,9 +301,6 @@ namespace UnrealEngine.Runtime
         /// Check whether the range has an upper bound.
         /// </summary>
         /// <returns>true if the range has an upper bound, false otherwise.</returns>
-        /// <see cref="GetUpperBound"/>
-        /// <see cref="GetUpperBoundValue"/>
-        /// <see cref="HasLowerBound"/>
         public bool HasUpperBound()
         {
             return UpperBound.IsClosed();
@@ -443,9 +421,6 @@ namespace UnrealEngine.Runtime
         /// <param name="x">The first range to subtract from.</param>
         /// <param name="y">The second range to subtract with.</param>
         /// <returns>Between 0 and 2 remaining ranges.</returns>
-        /// <see cref="Hull"/>
-        /// <see cref="Intersection"/>
-        /// <see cref="Union"/>
         public static FFloatRange[] Difference(FFloatRange x, FFloatRange y)
         {
             if (x.Overlaps(y))
@@ -486,9 +461,6 @@ namespace UnrealEngine.Runtime
         /// <param name="x">The first range.</param>
         /// <param name="y">The second range.</param>
         /// <returns>The hull.</returns>
-        /// <see cref="Difference"/>
-        /// <see cref="Intersection"/>
-        /// <see cref="Union"/>
         public static FFloatRange Hull(FFloatRange x, FFloatRange y)
         {
             if (x.IsEmpty())
@@ -511,9 +483,6 @@ namespace UnrealEngine.Runtime
         /// </summary>
         /// <param name="ranges">The ranges to hull.</param>
         /// <returns>The hull.</returns>
-        /// <see cref="Difference"/>
-        /// <see cref="Intersection"/>
-        /// <see cref="Union"/>
         public static FFloatRange Hull(FFloatRange[] ranges)
         {
             if (ranges == null || ranges.Length == 0)
@@ -539,9 +508,6 @@ namespace UnrealEngine.Runtime
         /// <param name="x">The first range.</param>
         /// <param name="y">The second range.</param>
         /// <returns>The intersection, or an empty range if the ranges do not overlap.</returns>
-        /// <see cref="Difference"/>
-        /// <see cref="Hull"/>
-        /// <see cref="Union"/>
         public static FFloatRange Intersection(FFloatRange x, FFloatRange y)
         {
             if (x.IsEmpty())
@@ -564,9 +530,6 @@ namespace UnrealEngine.Runtime
         /// </summary>
         /// <param name="ranges">The ranges to intersect.</param>
         /// <returns>The intersection.</returns>
-        /// <see cref="Difference"/>
-        /// <see cref="Hull"/>
-        /// <see cref="Union"/>
         public static FFloatRange Intersection(FFloatRange[] ranges)
         {
             if (ranges == null || ranges.Length == 0)
@@ -592,9 +555,6 @@ namespace UnrealEngine.Runtime
         /// <param name="x">The first range.</param>
         /// <param name="y">The second range.</param>
         /// <returns>The union, or both ranges if the two ranges are not contiguous, or no ranges if both ranges are empty.</returns>
-        /// <see cref="Difference"/>
-        /// <see cref="Hull"/>
-        /// <see cref="Intersection"/>
         public static FFloatRange[] Union(FFloatRange x, FFloatRange y)
         {
             if (x.Contains(y))
@@ -633,13 +593,6 @@ namespace UnrealEngine.Runtime
         /// Create an unbounded (open) range that contains all elements of the domain.
         /// </summary>
         /// <returns>A new range.</returns>
-        /// <see cref="AtLeast"/>
-        /// <see cref="AtMost"/>
-        /// <see cref="Empty"/>
-        /// <see cref="Exclusive"/>
-        /// <see cref="GreaterThan"/>
-        /// <see cref="Inclusive"/>
-        /// <see cref="LessThan"/>
         public static FFloatRange All()
         {
             return new FFloatRange(FFloatRangeBound.Open(), FFloatRangeBound.Open());
@@ -650,13 +603,6 @@ namespace UnrealEngine.Runtime
         /// </summary>
         /// <param name="value">The value.</param>
         /// <returns>A new range.</returns>
-        /// <see cref="All"/>
-        /// <see cref="AtMost"/>
-        /// <see cref="Empty"/>
-        /// <see cref="Exclusive"/>
-        /// <see cref="GreaterThan"/>
-        /// <see cref="Inclusive"/>
-        /// <see cref="LessThan"/>
         public static FFloatRange AtLeast(float value)
         {
             return new FFloatRange(FFloatRangeBound.Inclusive(value), FFloatRangeBound.Open());
@@ -667,13 +613,6 @@ namespace UnrealEngine.Runtime
         /// </summary>
         /// <param name="value">The value.</param>
         /// <returns>A new range.</returns>
-        /// <see cref="All"/>
-        /// <see cref="AtLeast"/>
-        /// <see cref="Empty"/>
-        /// <see cref="Exclusive"/>
-        /// <see cref="GreaterThan"/>
-        /// <see cref="Inclusive"/>
-        /// <see cref="LessThan"/>
         public static FFloatRange AtMost(float value)
         {
             return new FFloatRange(FFloatRangeBound.Open(), FFloatRangeBound.Inclusive(value));
@@ -683,13 +622,6 @@ namespace UnrealEngine.Runtime
         /// Return an empty range.
         /// </summary>
         /// <returns>Empty range.</returns>
-        /// <see cref="All"/>
-        /// <see cref="AtLeast"/>
-        /// <see cref="AtMost"/>
-        /// <see cref="Exclusive"/>
-        /// <see cref="GreaterThan"/>
-        /// <see cref="Inclusive"/>
-        /// <see cref="LessThan"/>
         public static FFloatRange Empty()
         {
             return new FFloatRange(FFloatRangeBound.Exclusive(default(float)), FFloatRangeBound.Exclusive(default(float)));
@@ -701,14 +633,6 @@ namespace UnrealEngine.Runtime
         /// <param name="min">The minimum value to be included.</param>
         /// <param name="max">The maximum value to be included.</param>
         /// <returns>A new range.</returns>
-        /// <see cref="All"/>
-        /// <see cref="AtLeast"/>
-        /// <see cref="AtMost"/>
-        /// <see cref="Empty"/>
-        /// <see cref="Exclusive"/>
-        /// <see cref="GreaterThan"/>
-        /// <see cref="Inclusive"/>
-        /// <see cref="LessThan"/>
         public static FFloatRange Exclusive(float min, float max)
         {
             return new FFloatRange(FFloatRangeBound.Exclusive(min), FFloatRangeBound.Exclusive(max));
@@ -719,13 +643,6 @@ namespace UnrealEngine.Runtime
         /// </summary>
         /// <param name="value">The value.</param>
         /// <returns>A new range.</returns>
-        /// <see cref="All"/>
-        /// <see cref="AtLeast"/>
-        /// <see cref="AtMost"/>
-        /// <see cref="Empty"/>
-        /// <see cref="Exclusive"/>
-        /// <see cref="Inclusive"/>
-        /// <see cref="LessThan"/>
         public static FFloatRange GreaterThan(float value)
         {
             return new FFloatRange(FFloatRangeBound.Exclusive(value), FFloatRangeBound.Open());
@@ -737,13 +654,6 @@ namespace UnrealEngine.Runtime
         /// <param name="min">The minimum value to be included.</param>
         /// <param name="max">The maximum value to be included.</param>
         /// <returns>A new range.</returns>
-        /// <see cref="All"/>
-        /// <see cref="AtLeast"/>
-        /// <see cref="AtMost"/>
-        /// <see cref="Empty"/>
-        /// <see cref="Exclusive"/>
-        /// <see cref="GreaterThan"/>
-        /// <see cref="LessThan"/>
         public static FFloatRange Inclusive(float min, float max)
         {
             return new FFloatRange(FFloatRangeBound.Inclusive(min), FFloatRangeBound.Inclusive(max));
@@ -754,13 +664,6 @@ namespace UnrealEngine.Runtime
         /// </summary>
         /// <param name="value">The value.</param>
         /// <returns>A new range.</returns>
-        /// <see cref="All"/>
-        /// <see cref="AtLeast"/>
-        /// <see cref="AtMost"/>
-        /// <see cref="Empty"/>
-        /// <see cref="Exclusive"/>
-        /// <see cref="GreaterThan"/>
-        /// <see cref="Inclusive"/>
         public static FFloatRange LessThan(float value)
         {
             return new FFloatRange(FFloatRangeBound.Open(), FFloatRangeBound.Exclusive(value));

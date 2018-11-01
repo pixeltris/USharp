@@ -208,7 +208,7 @@ namespace UnrealEngine.Runtime
             // anonymous delegates, etc). However if Blueprint or C++ is the initiator of a delegate becoming bound
             // the state of the application may not be expected from their standpoint when hotreload happens.
             // - Generally we should keep our native binds down to a minimum, only where really needed and where it 
-            ///  can be handled on a case-by-case basis to rebind functions where needed.
+            //   can be handled on a case-by-case basis to rebind functions where needed.
 
             // TODO: Improve this (is there a better way without using GetMethod for generics?)
             foreach (Type type in nativeDelegateManagers)

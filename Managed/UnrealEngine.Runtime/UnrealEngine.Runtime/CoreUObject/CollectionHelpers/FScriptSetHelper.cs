@@ -191,6 +191,7 @@ namespace UnrealEngine.Runtime
         /// Removes an element at the specified index, destroying it.
         /// </summary>
         /// <param name="index">The index of the element to remove.</param>
+        /// <param name="count">The number of elements to remove.</param>
         public void RemoveAt(int index, int count = 1)
         {
             DestructItems(index, count);
@@ -428,7 +429,7 @@ namespace UnrealEngine.Runtime
         /// <summary>
         /// Internal function to call into the property system to construct / initialize elements.
         /// </summary>
-        /// <param name="index"First item to construct.></param>
+        /// <param name="index">First item to construct.></param>
         private void ConstructItem(int index)
         {
             bool zeroElement = Native_UProperty.HasAnyPropertyFlags(elementProp, EPropertyFlags.ZeroConstructor);

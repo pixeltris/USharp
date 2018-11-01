@@ -130,11 +130,11 @@ namespace UnrealEngine.Runtime
         /// </summary>
         ThreadSafe = 1,
 
-        /// <summary>
-        /// Fast, doesn't ever use atomic interlocks.
-        /// Some code requires that all shared pointers are thread-safe.
-        /// It's better to change it here, instead of replacing ESPMode::Fast to ESPMode::ThreadSafe throughout the code.
-        /// </summary>
+        ///// <summary>
+        ///// Fast, doesn't ever use atomic interlocks.
+        ///// Some code requires that all shared pointers are thread-safe.
+        ///// It's better to change it here, instead of replacing ESPMode::Fast to ESPMode::ThreadSafe throughout the code.
+        ///// </summary>
         //Fast = FORCE_THREADSAFE_SHAREDPTRS ? 1 : 0
     }
 }

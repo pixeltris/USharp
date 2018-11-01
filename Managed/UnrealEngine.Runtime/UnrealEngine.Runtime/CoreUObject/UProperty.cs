@@ -358,6 +358,7 @@ namespace UnrealEngine.Runtime
         /// </summary>
         /// <param name="unrealClass"></param>
         /// <param name="baseOffset"></param>
+        /// <param name="encounteredStructProps"></param>
         public void EmitReferenceInfo(UClass unrealClass, int baseOffset, List<UStructProperty> encounteredStructProps)
         {
             using (TArrayUnsafe<UStructProperty> encounteredStructPropsUnsafe = new TArrayUnsafe<UStructProperty>())
@@ -417,7 +418,7 @@ namespace UnrealEngine.Runtime
         /// <summary>
         /// Used to safely check whether any of the passed in flags are set. This is required
         /// as PropertyFlags currently is a 64 bit data type and bool is a 32 bit data type so
-        /// simply using PropertyFlags&CPF_MyFlagBiggerThanMaxInt won't work correctly when
+        /// simply using PropertyFlags&amp;CPF_MyFlagBiggerThanMaxInt won't work correctly when
         /// assigned directly to an bool.
         /// </summary>
         /// <param name="flagsToCheck">Object flags to check for.</param>
@@ -430,7 +431,7 @@ namespace UnrealEngine.Runtime
         /// <summary>
         /// Used to safely check whether all of the passed in flags are set. This is required
         /// as PropertyFlags currently is a 64 bit data type and bool is a 32 bit data type so
-        /// simply using PropertyFlags&CPF_MyFlagBiggerThanMaxInt won't work correctly when
+        /// simply using PropertyFlags&amp;CPF_MyFlagBiggerThanMaxInt won't work correctly when
         /// assigned directly to an bool.
         /// </summary>
         /// <param name="flagsToCheck">Object flags to check for</param>

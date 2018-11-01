@@ -598,7 +598,7 @@ namespace UnrealEngine.Runtime
         /// </summary>
         /// <param name="v">The location to test for inside the bounding volume.</param>
         /// <returns>true if location is inside this volume.</returns>
-        /// <see cref="IsInsideXY"/>
+        /// <see cref="IsInsideXY(FVector)"/>
         public bool IsInsideOrOn(FVector v)
         {
             return ((v.X >= Min.X) && (v.X <= Max.X) && (v.Y >= Min.Y) && (v.Y <= Max.Y) && (v.Z >= Min.Z) && (v.Z <= Max.Z));
@@ -619,7 +619,7 @@ namespace UnrealEngine.Runtime
         /// </summary>
         /// <param name="v">The location to test for inside the bounding box.</param>
         /// <returns>true if location is inside this box in the XY plane.</returns>
-        /// <see cref="IsInside"/>
+        /// <see cref="IsInside(FVector)"/>
         public bool IsInsideXY(FVector v)
         {
             return ((v.X > Min.X) && (v.X < Max.X) && (v.Y > Min.Y) && (v.Y < Max.Y));
@@ -696,7 +696,7 @@ namespace UnrealEngine.Runtime
         /// </summary>
         /// <param name="projM">The projection matrix.</param>
         /// <returns>The transformed box.</returns>
-        /// <see cref="TransformBy"/>
+        /// <see cref="TransformBy(FMatrix)"/>
         public FBox TransformProjectBy(FMatrix projM)
         {
             FVector[] vertices = new FVector[8]

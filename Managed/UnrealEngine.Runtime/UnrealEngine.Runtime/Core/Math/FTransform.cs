@@ -650,7 +650,7 @@ namespace UnrealEngine.Runtime
         /// </summary>
         /// <param name="scale">The scaling factor.</param>
         /// <param name="t">The transform.</param>
-        /// <returns>The result of the multiplication.</returns>
+        /// <param name="result">The result of the multiplication.</param>
         public static void Multiply(ref FTransform t, float scale, out FTransform result)
         {
             result.Translation = t.Translation * scale;

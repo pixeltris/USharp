@@ -148,7 +148,7 @@ namespace UnrealEngine.Runtime
         HideDropDown = 0x04000000,
 
         /// <summary>
-        /// Class settings are saved to <AppData>/..../Blah.ini (as opposed to CLASS_DefaultConfig)
+        /// Class settings are saved to &lt;AppData>/..../Blah.ini (as opposed to CLASS_DefaultConfig)
         /// </summary>
         GlobalUserConfig = 0x08000000,
 

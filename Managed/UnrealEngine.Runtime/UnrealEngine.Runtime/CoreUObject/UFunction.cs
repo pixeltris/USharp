@@ -56,7 +56,7 @@ namespace UnrealEngine.Runtime
         }
 
         /// <summary>
-        /// Id of this RPC function call (must be FUNC_Net & (FUNC_NetService|FUNC_NetResponse))
+        /// Id of this RPC function call (must be FUNC_Net &amp; (FUNC_NetService|FUNC_NetResponse))
         /// </summary>
         public ushort RPCId
         {
@@ -65,7 +65,7 @@ namespace UnrealEngine.Runtime
         }
 
         /// <summary>
-        /// Id of the corresponding response call (must be FUNC_Net & FUNC_NetService)
+        /// Id of the corresponding response call (must be FUNC_Net &amp; FUNC_NetService)
         /// </summary>
         public ushort RPCResponseId
         {

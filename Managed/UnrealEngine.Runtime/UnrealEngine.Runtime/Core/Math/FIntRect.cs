@@ -353,7 +353,7 @@ namespace UnrealEngine.Runtime
         /// <summary>
         /// Creates a rectangle from the bottom part of this rectangle.
         /// </summary>
-        /// <param name="height">Height of the new rectangle (<= rectangles original height).</param>
+        /// <param name="height">Height of the new rectangle (&lt;= rectangles original height).</param>
         /// <returns>The new rectangle.</returns>
         public FIntRect Bottom(int height)
         {
@@ -457,7 +457,7 @@ namespace UnrealEngine.Runtime
         /// <summary>
         /// Creates a rectangle from the right hand side of this rectangle.
         /// </summary>
-        /// <param name="width">Width of the new rectangle (<= rectangles original width).</param>
+        /// <param name="width">Width of the new rectangle (&lt;= rectangles original width).</param>
         /// <returns>The new rectangle.</returns>
         public FIntRect Right(int width)
         {

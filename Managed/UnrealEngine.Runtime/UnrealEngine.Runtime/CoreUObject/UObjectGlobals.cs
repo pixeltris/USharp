@@ -273,7 +273,7 @@ namespace UnrealEngine.Runtime
         /// <param name="flagMask">a bitmask of EObjectFlags that should be propagated to the object copies.  The resulting object copies will only have the object flags
         /// specified copied from their source object.</param>
         /// <param name="destClass">optional class to specify for the destination object. MUST BE SERIALIZATION COMPATIBLE WITH SOURCE OBJECT!!!</param>
-        /// <param name="duplicateForPIE"></param>
+        /// <param name="duplicateMode"></param>
         /// <param name="internalFlagsMask">bitmask of EInternalObjectFlags that should be propagated to the object copies.</param>
         /// <returns></returns>
         public static T DuplicateObject<T>(

@@ -95,6 +95,11 @@ namespace UnrealEngine.Runtime.Native
         public delegate IntPtr Del_FindCommonBaseMany(IntPtr inClasses);
         public delegate csbool Del_IsFunctionImplementedInBlueprint(IntPtr instance, ref FName inFunctionName);
         public delegate csbool Del_HasProperty(IntPtr instance, IntPtr inProperty);
+        public delegate IntPtr Del_FindArchetype(IntPtr instance, IntPtr archetypeClass, ref FName archetypeName);
+        public delegate IntPtr Del_GetArchetypeForCDO(IntPtr instance);
+        public delegate void Del_GetRequiredPreloadDependencies(IntPtr instance, IntPtr dependenciesOut);
+        public delegate void Del_SetUpRuntimeReplicationData(IntPtr instance);
+        public delegate csbool Del_IsSafeToSerializeToStructuredArchives(IntPtr inClass);
         
         public static Del_Get_ClassConstructor Get_ClassConstructor;
         public static Del_Set_ClassConstructor Set_ClassConstructor;
@@ -182,5 +187,10 @@ namespace UnrealEngine.Runtime.Native
         public static Del_FindCommonBaseMany FindCommonBaseMany;
         public static Del_IsFunctionImplementedInBlueprint IsFunctionImplementedInBlueprint;
         public static Del_HasProperty HasProperty;
+        public static Del_FindArchetype FindArchetype;
+        public static Del_GetArchetypeForCDO GetArchetypeForCDO;
+        public static Del_GetRequiredPreloadDependencies GetRequiredPreloadDependencies;
+        public static Del_SetUpRuntimeReplicationData SetUpRuntimeReplicationData;
+        public static Del_IsSafeToSerializeToStructuredArchives IsSafeToSerializeToStructuredArchives;
     }
 }
