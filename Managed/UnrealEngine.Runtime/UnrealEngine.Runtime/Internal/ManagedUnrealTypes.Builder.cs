@@ -1218,31 +1218,35 @@ namespace UnrealEngine.Runtime
             if (property == IntPtr.Zero)
             {
                 return IntPtr.Zero;
-            }            
-
-            if (FBuild.WithEditor)
-            {
-                // Some basic validation of flags which should have been set when creating the module info
-                EPropertyFlags propertyFlags = Native_UProperty.Get_PropertyFlags(property);
-                Debug.Assert(propertyFlags.HasFlag(EPropertyFlags.Parm));
-                if (paramInfo.IsOut)
-                {
-                    Debug.Assert(propertyFlags.HasFlag(EPropertyFlags.OutParm));
-                }
-                else if (paramInfo.IsByRef)
-                {
-                    Debug.Assert(propertyFlags.HasFlag(EPropertyFlags.OutParm | EPropertyFlags.ReferenceParm));
-                }
-                else if (paramInfo.IsFunctionReturnValue)
-                {
-                    Debug.Assert(propertyFlags.HasFlag(EPropertyFlags.OutParm | EPropertyFlags.ReturnParm));
-                }
-                if (propertyFlags.HasFlag(EPropertyFlags.OutParm))
-                {
-                    Debug.Assert(functionFlags.HasFlag(EFunctionFlags.HasOutParms));
-                }
-            }            
+            }
+            ValidateFunctionParamFlags(paramInfo, property, functionFlags);
             return property;
+        }
+
+        /// <summary>
+        /// Some basic validation of flags which should have been set when creating the module info
+        /// </summary>
+        [Conditional("DEBUG")]
+        private static void ValidateFunctionParamFlags(ManagedUnrealPropertyInfo paramInfo, IntPtr property, EFunctionFlags functionFlags)
+        {
+            EPropertyFlags propertyFlags = Native_UProperty.Get_PropertyFlags(property);
+            Debug.Assert(propertyFlags.HasFlag(EPropertyFlags.Parm));
+            if (paramInfo.IsOut)
+            {
+                Debug.Assert(propertyFlags.HasFlag(EPropertyFlags.OutParm));
+            }
+            else if (paramInfo.IsByRef)
+            {
+                Debug.Assert(propertyFlags.HasFlag(EPropertyFlags.OutParm | EPropertyFlags.ReferenceParm));
+            }
+            else if (paramInfo.IsFunctionReturnValue)
+            {
+                Debug.Assert(propertyFlags.HasFlag(EPropertyFlags.OutParm | EPropertyFlags.ReturnParm));
+            }
+            if (propertyFlags.HasFlag(EPropertyFlags.OutParm))
+            {
+                Debug.Assert(functionFlags.HasFlag(EFunctionFlags.HasOutParms));
+            }
         }
 
         private static IntPtr CreateProperty(IntPtr outer, ManagedUnrealPropertyInfo propertyInfo, bool addToOuter)

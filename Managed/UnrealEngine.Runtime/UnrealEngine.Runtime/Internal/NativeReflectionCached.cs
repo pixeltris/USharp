@@ -158,10 +158,17 @@ namespace UnrealEngine.Runtime
 
                 fields.Clear();
 
-                foreach (IntPtr field in new NativeReflection.NativeFieldIterator(EClassCastFlags.UFunction | EClassCastFlags.UProperty, unrealStruct, false))
+                foreach (IntPtr field in new NativeReflection.NativeFieldIterator(
+                    EClassCastFlags.UFunction | EClassCastFlags.UProperty, unrealStruct, false, false))
                 {
                     Native_UObjectBaseUtility.GetNameOut(field, ref nameUnsafe.Array);
                     string name = nameUnsafe.Value;
+
+                    // Temporary check for debugging purposes. There shouldn't be any duplicate fields as we aren't looking in the hierarchy.
+                    if (System.Diagnostics.Debugger.IsAttached)
+                    {
+                        System.Diagnostics.Debug.Assert(fields.ContainsKey(name));
+                    }
 
                     fields[name] = new CachedFieldInfo()
                     {
