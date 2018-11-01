@@ -66,6 +66,8 @@ namespace UnrealEngine.Runtime
 
             int timeout = 60000;
             bool built = false;
+            int _exitCode = 0;
+            string _arguments = "buildcustomsln" + @" """ + _slnPath + @""" """ + _projPath + @""" """ + "command" + @"""";
 
             using (System.Diagnostics.Process process = new System.Diagnostics.Process())
             {
@@ -73,17 +75,31 @@ namespace UnrealEngine.Runtime
                 {
                     WindowStyle = System.Diagnostics.ProcessWindowStyle.Normal,
                     FileName = _pluginInstallerPath,
-                    Arguments = "buildcustomsln" + @" """ + _slnPath + @""" " + _projPath + @"""",
+                    Arguments = _arguments,
                     UseShellExecute = false
                 };
                 process.Start();
 
                 built = process.WaitForExit(timeout) && process.ExitCode == 0;
+                _exitCode = process.ExitCode;
             }
 
             if (built)
             {
                 Log(ELogVerbosity.Log, "Solution Was Compiled Successfully.");
+            }
+            else if(_exitCode == 1)
+            {
+                Log(ELogVerbosity.Error, "There was an error building the Solution, Please Try Compiling Manually At " + _slnPath);
+
+            }
+            else if(_exitCode == 2)
+            {
+                Log(ELogVerbosity.Error, "Couldn't Build Custom Solution Because Files Provided were Invalid. Arguments: " + _arguments);
+            }
+            else if(_exitCode == 3)
+            {
+                Log(ELogVerbosity.Error, "Didn't provide the correct number of arguments for buildcustomsln command. Arguments: " + _arguments);
             }
             else
             {
