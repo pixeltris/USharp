@@ -120,27 +120,32 @@ namespace PluginInstaller
                         break;
 
                     case "buildcustomsln":
+                        int _exitCode = 0;
                         if(args.Length >= 3 && 
                             !string.IsNullOrEmpty(args[1]) && args[1].Length > 4 && File.Exists(args[1]) &&
                             !string.IsNullOrEmpty(args[2]) && args[2].Length > 4 && File.Exists(args[2]))
                         {
                             if(BuildCustomSolution(args[1], args[2]) == false)
                             {
-                                throw new Exception("There was an error building the solution. Please try building manually");
+                                _exitCode = 1;
                             }
                         }
                         else
                         {
                             if (args.Length >= 3)
                             {
-                                throw new Exception("Couldn't Build Custom Solution Because Files Provided was Invalid. Solution: " + args[1] + " Project: " + args[2]);
+                                _exitCode = 2;
                             }
                             else
                             {
-                                throw new Exception("Didn't provide the correct number of arguments for buildcustomsln command");
+                                _exitCode = 3;
                             }
                         }
-                        Environment.Exit(Environment.ExitCode);
+
+                        if (!string.IsNullOrEmpty(args[3]) && args[3] == "command")
+                        {
+                            Environment.Exit(_exitCode);
+                        }
                         break;
 
                     case "buildcpp":
