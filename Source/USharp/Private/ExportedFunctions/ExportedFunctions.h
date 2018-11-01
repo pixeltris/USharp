@@ -42,7 +42,6 @@
 #include "Export_UEngine.h"
 #include "Export_UGameEngine.h"
 #include "Export_UWorld.h"
-#include "Export_UGameplayStatics.h"
 #include "Export_UGameInstance.h"
 #include "Export_ULevel.h"
 #include "Export_AActor.h"
@@ -160,7 +159,6 @@ CSEXPORT void CSCONV RegisterFunctions(RegisterFunc registerFunc)
 	Export_UEngine(registerFunc);
 	Export_UGameEngine(registerFunc);
 	Export_UWorld(registerFunc);
-	Export_UGameplayStatics(registerFunc);
 	Export_UGameInstance(registerFunc);
 	Export_ULevel(registerFunc);
 	Export_AActor(registerFunc);
