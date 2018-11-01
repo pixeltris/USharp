@@ -1057,6 +1057,8 @@ namespace UnrealEngine.Runtime
             //       and the function along with its owning class wouldn't be cleaned up on hotreload.
             EObjectFlags objectFlags = EObjectFlags.Public | EObjectFlags.Transient | EObjectFlags.MarkAsNative;
             IntPtr function = NativeReflection.NewObject(outer, Runtime.Classes.UFunction, new FName(functionInfo.GetName()), objectFlags);
+            
+            IntPtr parentFunction = IntPtr.Zero;
 
             // We want EFunctionFlags.Native so that UObject::CallFunction calls our invoker func with the desired params.
             EFunctionFlags functionFlags = EFunctionFlags.Native;
@@ -1115,8 +1117,15 @@ namespace UnrealEngine.Runtime
             else if (functionInfo.IsOverride)
             {
                 FName functionName = new FName(functionInfo.GetName());
-                IntPtr parentFunction = Native_UClass.FindFunctionByName(parentClass, ref functionName, true);
+                parentFunction = Native_UClass.FindFunctionByName(parentClass, ref functionName, true);
                 Debug.Assert(parentFunction != IntPtr.Zero);
+
+                // Get the DisplayName/Category metadata, this is so that our overrides match up to blueprint
+                if (FBuild.WithEditor)
+                {
+                    LateAddMetaData(functionInfo, parentFunction, UMeta.GetKey(MDFunc.DisplayName));
+                    LateAddMetaData(functionInfo, parentFunction, UMeta.GetKey(MDFunc.Category));
+                }
 
                 Native_UStruct.SetSuperStruct(function, parentFunction);
                 EFunctionFlags parentFunctionFlags = Native_UFunction.Get_FunctionFlags(parentFunction);                
@@ -1154,7 +1163,59 @@ namespace UnrealEngine.Runtime
             Native_UField.Set_Next(function, Native_UStruct.Get_Children(outer));
             Native_UStruct.Set_Children(outer, function);
 
+            if (functionInfo.IsOverride && parentFunction != IntPtr.Zero)
+            {
+                FixupFunctionOverrideSignature(function, parentFunction);
+            }
+
             return function;
+        }
+
+        /// <summary>
+        /// HACK: We are currently treating params with ConstParam as regular params (non ref). However this means we lose
+        /// constness information is required to produce a compatible function signature with the native function.
+        /// To rectify this look for all native params with ConstParm|ReferenceParm and copy the ref/out/const info if so.
+        /// </summary>
+        private static void FixupFunctionOverrideSignature(IntPtr function, IntPtr parentFunction)
+        {
+            // This is a somewhat copy of UFunction::IsSignatureCompatibleWith but we are fixing up the flags instead
+
+            // Run thru the parameter property chains to compare each property
+            var iteratorA = new NativeReflection.NativeFieldIterator(Runtime.Classes.UProperty, function).GetEnumerator();
+            var iteratorB = new NativeReflection.NativeFieldIterator(Runtime.Classes.UProperty, parentFunction).GetEnumerator();
+
+            EPropertyFlags constRef = EPropertyFlags.ConstParm | EPropertyFlags.ReferenceParm;
+            EPropertyFlags constRefOut = EPropertyFlags.ConstParm | EPropertyFlags.ReferenceParm | EPropertyFlags.OutParm;
+
+            while (iteratorA.Current != IntPtr.Zero && (Native_UProperty.Get_PropertyFlags(iteratorA.Current).HasFlag(EPropertyFlags.Parm)))
+            {
+                if (iteratorB.Current != IntPtr.Zero && (Native_UProperty.Get_PropertyFlags(iteratorB.Current).HasFlag(EPropertyFlags.Parm)))
+                {
+                    // Compare the two properties to make sure their types are identical
+                    // Note: currently this requires both to be strictly identical and wouldn't allow functions that differ only by how derived a class is,
+                    // which might be desirable when binding delegates, assuming there is directionality in the SignatureIsCompatibleWith call
+                    IntPtr propA = iteratorA.Current;
+                    IntPtr propB = iteratorB.Current;
+
+                    // Skip ArePropertiesTheSame() call, assume they are the same as this isn't important here
+
+                    //EPropertyFlags flagsA = Native_UProperty.Get_PropertyFlags(propA);
+                    EPropertyFlags flagsB = Native_UProperty.Get_PropertyFlags(propB);
+
+                    // Const ref param! Copy copy/ref/out
+                    if ((flagsB & constRef) == constRef)
+                    {
+                        Native_UProperty.SetPropertyFlags(propA, (flagsB & constRefOut));
+                    }
+                }
+                else
+                {
+                    break;
+                }
+
+                iteratorA.MoveNext();
+                iteratorB.MoveNext();
+            }
         }
 
         private static IntPtr CreateFunctionParam(ManagedUnrealFunctionInfo functionInfo, IntPtr function, ref EFunctionFlags functionFlags,

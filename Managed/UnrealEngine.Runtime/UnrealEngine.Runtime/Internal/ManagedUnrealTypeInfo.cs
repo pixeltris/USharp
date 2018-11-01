@@ -2067,10 +2067,6 @@ namespace UnrealEngine.Runtime
 
             functionInfo.IsImplementation = method.Name.EndsWith(codeSettings.VarNames.ImplementationMethod);
 
-            if (method.Name.Contains("OnBecomeViewTarget"))
-            {
-            }
-
             // Get the cached function flags which may have already been obtained. This will resolve
             // the function flags to include the base function flags.
             CachedFunctionFlagInfo flags;

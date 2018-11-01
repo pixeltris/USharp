@@ -172,6 +172,38 @@ namespace UnrealEngine.Runtime
             }
         }
 
+        private static void LateAddMetaData(ManagedUnrealReflectionBase field, IntPtr nativeField, string key)
+        {
+            FName keyName = new FName(key);
+            using (FStringUnsafe displayNameUnsafe = new FStringUnsafe())
+            {
+                Native_UField.GetMetaDataF(nativeField, ref keyName, ref displayNameUnsafe.Array);
+                string displayName = displayNameUnsafe.Value;
+                if (!string.IsNullOrEmpty(displayName))
+                {
+                    LateAddMetaData(field.Path, keyName, displayName, false);
+                }
+            }
+        }
+
+        private static void LateAddMetaData(string path, FName key, string value, bool overwrite)
+        {
+            path = path.ToLower();
+            Dictionary<FName, string> values;
+            if (!metaDataMap.TryGetValue(path, out values))
+            {
+                metaDataMap.Add(path, values = new Dictionary<FName, string>());
+            }
+            if (overwrite)
+            {
+                values[key] = value;
+            }
+            else if (!values.ContainsKey(key))
+            {
+                values.Add(key, value);
+            }
+        }
+
         private static void MetaDataMergeClassCategories(IntPtr metadata, IntPtr obj, Dictionary<FName, string> values)
         {
             // Copying the logic in FClassDeclarationMetaData::MergeClassCategories
@@ -355,7 +387,7 @@ namespace UnrealEngine.Runtime
             {
                 values = new Dictionary<FName, string>();
             }
-            
+
             switch (target)
             {
                 // Class / interface
@@ -383,12 +415,15 @@ namespace UnrealEngine.Runtime
             }
             SetMetaDataBlueprintability(values, target, field as ManagedUnrealTypeInfo);
 
-            using (TArrayUnsafe<FName> keysUnsafe = new TArrayUnsafe<FName>())
-            using (TArrayUnsafe<string> valuesUnsafe = new TArrayUnsafe<string>())
+            if (values.Count > 0)
             {
-                keysUnsafe.AddRange(values.Keys.ToArray());
-                valuesUnsafe.AddRange(values.Values.ToArray());
-                Native_UMetaData.SetObjectValues(metadata, obj, keysUnsafe.Address, valuesUnsafe.Address);
+                using (TArrayUnsafe<FName> keysUnsafe = new TArrayUnsafe<FName>())
+                using (TArrayUnsafe<string> valuesUnsafe = new TArrayUnsafe<string>())
+                {
+                    keysUnsafe.AddRange(values.Keys.ToArray());
+                    valuesUnsafe.AddRange(values.Values.ToArray());
+                    Native_UMetaData.SetObjectValues(metadata, obj, keysUnsafe.Address, valuesUnsafe.Address);
+                }
             }
         }
 

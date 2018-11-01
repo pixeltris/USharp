@@ -262,9 +262,6 @@ namespace UnrealEngine.Runtime
                     UProperty propA = iteratorA.Current;
                     UProperty propB = iteratorB.Current;
 
-                    EPropertyFlags flags1 = propA.PropertyFlags;
-                    EPropertyFlags flags2 = propB.PropertyFlags;
-
                     if (!ArePropertiesTheSame(propA, propB, false))
                     {
                         // Type mismatch between an argument of A and B
