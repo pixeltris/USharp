@@ -105,7 +105,7 @@ namespace UnrealEngine.Runtime
         public const float THRESH_QUAT_NORMALIZED = 0.01f;
 
         /// <summary>
-        /// 32 bit values where BitFlag[x] == (1<<x)
+        /// 32 bit values where BitFlag[x] == (1&lt;&lt;x)
         /// </summary>
         public static readonly uint[] BitFlag = new uint[32]
         {
@@ -136,7 +136,7 @@ namespace UnrealEngine.Runtime
         }
 
         /// <summary>
-        /// Helper function for rand implementations. Returns a random number >= Min and <= Max
+        /// Helper function for rand implementations. Returns a random number >= Min and &lt;= Max
         /// </summary>
         public static int RandRange(int min, int max)
         {
@@ -1030,7 +1030,7 @@ namespace UnrealEngine.Runtime
         /// <summary>
         /// Evaluates a numerical equation.
         /// 
-        /// Operators and precedence: 1:+- 2:/% 3:* 4:^ 5:&|
+        /// Operators and precedence: 1:+- 2:/% 3:* 4:^ 5:&amp;|
         /// Unary: -
         /// Types: Numbers (0-9.), Hex ($0-$f)
         /// Grouping: ( )
@@ -1140,7 +1140,7 @@ namespace UnrealEngine.Runtime
 
         /// <summary>
         /// Returns a smooth Hermite interpolation between 0 and 1 for the value X (where X ranges between A and B)
-        /// Clamped to 0 for X <= A and 1 for X >= B.
+        /// Clamped to 0 for X &lt;= A and 1 for X >= B.
         /// </summary>
         /// <param name="a">Minimum value of X</param>
         /// <param name="b">Maximum value of X</param>

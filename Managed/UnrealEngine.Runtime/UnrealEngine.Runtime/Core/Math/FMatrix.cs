@@ -384,8 +384,8 @@ namespace UnrealEngine.Runtime
         /// <summary>
         /// Gets the result of adding two matrices.
         /// </summary>
-        /// <param name="a">The first matrix.</param>
-        /// <param name="b">The second matrix.</param>
+        /// <param name="matrix1">The first matrix.</param>
+        /// <param name="matrix2">The second matrix.</param>
         /// <param name="result">The result of the addition.</param>
         public static void Add(ref FMatrix matrix1, ref FMatrix matrix2, out FMatrix result)
         {

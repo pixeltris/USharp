@@ -394,7 +394,7 @@ namespace UnrealEngine.Runtime
         /// </summary>
         /// <param name="a">The first vector.</param>
         /// <param name="b">The second vector.</param>
-        /// <returns>The result of division.</returns>
+        /// <param name="result">The result of division.</param>
         public static void Divide(ref FVector2D a, ref FVector2D b, out FVector2D result)
         {
             result.X = a.X / b.X;

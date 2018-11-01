@@ -652,7 +652,7 @@ namespace UnrealEngine.Runtime
         }
 
         /// <summary>
-        /// Cast flags used to accelerate dynamic_cast<T*> on objects of this type for common T
+        /// Cast flags used to accelerate dynamic_cast&lt;T*> on objects of this type for common T
         /// </summary>
         public EClassCastFlags ClassCastFlags
         {
@@ -904,7 +904,8 @@ namespace UnrealEngine.Runtime
         /// <summary>
         /// Add a function to the function map
         /// </summary>
-        /// <param name="function"></param>
+        /// <param name="function">The function to add to the function map.</param>
+        /// <param name="funcName">The name of the function to add to the function map.</param>
         public void AddFunctionToFunctionMap(UFunction function, FName funcName)
         {
             Native_UClass.AddFunctionToFunctionMap(Address, function == null ? IntPtr.Zero : function.Address, ref funcName);
@@ -979,7 +980,9 @@ namespace UnrealEngine.Runtime
         /// <param name="baseClass"></param>
         public void AddDefaultSubobject(UObject newSubobject, UClass baseClass)
         {
-            Native_UClass.AddDefaultSubobject(Address, newSubobject == null ? IntPtr.Zero : newSubobject.Address, baseClass == null ? IntPtr.Zero : baseClass.Address);
+            Native_UClass.AddDefaultSubobject(Address, 
+                newSubobject == null ? IntPtr.Zero : newSubobject.Address, 
+                baseClass == null ? IntPtr.Zero : baseClass.Address);
         }
 
         /// <summary>
@@ -1111,7 +1114,9 @@ namespace UnrealEngine.Runtime
         /// <returns>the common base class or NULL</returns>
         public static UClass FindCommonBase(UClass inClassA, UClass inClassB)
         {
-            return GCHelper.Find<UClass>(Native_UClass.FindCommonBase(inClassA == null ? IntPtr.Zero : inClassA.Address, inClassB == null ? IntPtr.Zero : inClassB.Address));
+            return GCHelper.Find<UClass>(Native_UClass.FindCommonBase(
+                inClassA == null ? IntPtr.Zero : inClassA.Address, 
+                inClassB == null ? IntPtr.Zero : inClassB.Address));
         }
 
         /// <summary>
@@ -1146,6 +1151,72 @@ namespace UnrealEngine.Runtime
         public bool HasProperty(UProperty inProperty)
         {
             return Native_UClass.HasProperty(Address, inProperty == null ? IntPtr.Zero : inProperty.Address);
+        }
+
+        /// <summary>
+        /// Finds the object that is used as the parent object when serializing properties, overridden for blueprints
+        /// </summary>
+        /// <param name="archetypeClass"></param>
+        /// <param name="archetypeName"></param>
+        /// <returns></returns>
+        public UObject FindArchetype(UObject archetypeClass, FName archetypeName)
+        {
+            return GCHelper.Find(Native_UClass.FindArchetype(
+                Address, archetypeClass == null ? IntPtr.Zero : archetypeClass.Address, ref archetypeName));
+        }
+
+        /// <summary>
+        /// Returns archetype object for CDO
+        /// </summary>
+        /// <returns>The archetype object for CDO</returns>
+        public UObject GetArchetypeForCDO()
+        {
+            return GCHelper.Find(Native_UClass.GetArchetypeForCDO(Address));
+        }
+
+        /// <summary>
+        /// On save, we order a package's exports in class dependency order (so that
+        /// on load, we create the class dependencies before we create the class). 
+        /// More often than not, the class doesn't require any non-struct objects 
+        /// before it is created/serialized (only super-classes, and its UField 
+        /// members, see FExportReferenceSorter::operator&lt;&lt;() for reference). 
+        /// However, in some special occasions, there might be an export that we 
+        /// would like force loaded prior to the class's serialization (like  
+        /// component templates for blueprint classes). This function returns a list
+        /// of those non-struct dependencies, so that FExportReferenceSorter knows to 
+        /// prioritize them earlier in the ExportMap.
+        /// </summary>
+        /// <returns>A list of dependencies that need to be created before this class is recreated (on load).</returns>
+        public UObject[] GetRequiredPreloadDependencies()
+        {
+            using (TArrayUnsafe<UObject> result = new TArrayUnsafe<UObject>())
+            {
+                Native_UClass.GetRequiredPreloadDependencies(Address, result.Address);
+                return result.ToArray();
+            }
+        }
+
+        /// <summary>
+        /// Initializes the ClassReps and NetFields arrays used by replication.
+        /// This happens lazily based on the CLASS_ReplicationDataIsSetUp flag,
+        /// and will generally occur in Link or PostLoad. It's possible that replicated UFunctions
+        /// will load after their owning class, so UFunction::PostLoad will clear the flag on its owning class
+        /// to force lazy initialization next time the data is needed.
+        /// Also happens after blueprint compiliation.
+        /// </summary>
+        public void SetUpRuntimeReplicationData()
+        {
+            Native_UClass.SetUpRuntimeReplicationData(Address);
+        }
+
+        /// <summary>
+        /// Helper function for determining if the given class is compatible with structured archive serialization
+        /// </summary>
+        /// <param name="unrealClass"></param>
+        /// <returns></returns>
+        public static bool IsSafeToSerializeToStructuredArchives(UClass unrealClass)
+        {
+            return Native_UClass.IsSafeToSerializeToStructuredArchives(unrealClass.Address);
         }
     }
 }

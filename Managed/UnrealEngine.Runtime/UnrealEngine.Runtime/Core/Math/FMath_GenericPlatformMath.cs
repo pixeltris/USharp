@@ -554,7 +554,7 @@ namespace UnrealEngine.Runtime
         /// </summary>
         /// <param name="comparand">Comparand the results are based on</param>
         /// <param name="valueGEZero">Return value if Comparand >= 0</param>
-        /// <param name="valueLTZero">Return value if Comparand < 0</param>
+        /// <param name="valueLTZero">Return value if Comparand &lt; 0</param>
         /// <returns>valueGEZero if comparand >= 0, valueLTZero otherwise</returns>
         public static double FloatSelect(double comparand, double valueGEZero, double valueLTZero)
         {

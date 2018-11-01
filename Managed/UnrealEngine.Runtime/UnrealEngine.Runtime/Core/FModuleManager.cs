@@ -36,7 +36,6 @@ namespace UnrealEngine.Runtime
         /// Abandons a loaded module, leaving it loaded in memory but no longer tracking it in the module manager.
         /// </summary>
         /// <param name="moduleName">The name of the module to abandon.  Should not include path, extension or platform/configuration info.  This is just the "module name" part of the module file name.</param>
-        /// <see cref="IsModuleLoaded, LoadModule, LoadModuleWithFailureReason, UnloadModule"/>
         public void AbandonModule(FName moduleName)
         {
             Native_FModuleManager.AbandonModule(Address, ref moduleName);
@@ -58,7 +57,6 @@ namespace UnrealEngine.Runtime
         /// </summary>
         /// <param name="moduleName">The base name of the module file.  Should not include path, extension or platform/configuration info.  This is just the "module name" part of the module file name.  Names should be globally unique.</param>
         /// <returns>true if module is currently loaded, false otherwise.</returns>
-        /// <see cref="AbandonModule, LoadModule, LoadModuleWithFailureReason, UnloadModule"/>
         public bool IsModuleLoaded(FName moduleName)
         {
             return Native_FModuleManager.IsModuleLoaded(Address, ref moduleName);
@@ -69,7 +67,6 @@ namespace UnrealEngine.Runtime
         /// </summary>
         /// <param name="moduleName">The base name of the module file.  Should not include path, extension or platform/configuration info.  This is just the "module name" part of the module file name.  Names should be globally unique.</param>
         /// <returns>The loaded module, or nullptr if the load operation failed.</returns>
-        /// <see cref="AbandonModule, IsModuleLoaded, LoadModuleChecked, LoadModulePtr, LoadModuleWithFailureReason, UnloadModule"/>
         public IntPtr LoadModule(FName moduleName)
         {
             return Native_FModuleManager.LoadModule(Address, ref moduleName);
@@ -80,7 +77,6 @@ namespace UnrealEngine.Runtime
         /// </summary>
         /// <param name="moduleName">The base name of the module file.  Should not include path, extension or platform/configuration info.  This is just the "module name" part of the module file name.  Names should be globally unique.</param>
         /// <returns>The loaded module, or nullptr if the load operation failed.</returns>
-        /// <see cref="AbandonModule, IsModuleLoaded, LoadModuleChecked, LoadModulePtr, LoadModuleWithFailureReason, UnloadModule"/>
         public IntPtr LoadModuleChecked(FName moduleName)
         {
             return Native_FModuleManager.LoadModuleChecked(Address, ref moduleName);
@@ -91,7 +87,6 @@ namespace UnrealEngine.Runtime
         /// </summary>
         /// <param name="moduleName">The name of the module to load.</param>
         /// <returns>true on success, false otherwise.</returns>
-        /// <see cref="UnloadOrAbandonModuleWithCallback"/>
         public bool LoadModuleWithCallback(FName moduleName)
         {
             return Native_FModuleManager.LoadModuleWithCallback(Address, ref moduleName, IntPtr.Zero);
@@ -103,7 +98,6 @@ namespace UnrealEngine.Runtime
         /// <param name="moduleName">The base name of the module file.  Should not include path, extension or platform/configuration info.  This is just the "module name" part of the module file name.  Names should be globally unique.</param>
         /// <param name="failureReason">Will contain the result.</param>
         /// <returns>The loaded module (null if the load operation failed).</returns>
-        /// <see cref="AbandonModule, IsModuleLoaded, LoadModule, LoadModuleChecked, LoadModulePtr, UnloadModule"/>
         public IntPtr LoadModuleWithFailureReason(FName moduleName, out EModuleLoadResult failureReason)
         {
             return Native_FModuleManager.LoadModuleWithFailureReason(Address, ref moduleName, out failureReason);

@@ -65,9 +65,6 @@ namespace UnrealEngine.Runtime
         /// Creates a closed bound that includes the specified value.
         /// </summary>
         /// <param name="value">The bound's value.</param>
-        /// <see cref="Exclusive()"/>
-        /// <see cref="Inclusive()"/>
-        /// <see cref="Open()"/>
         public FFloatRangeBound(float value)
         {
             Type = ERangeBoundTypes.Inclusive;

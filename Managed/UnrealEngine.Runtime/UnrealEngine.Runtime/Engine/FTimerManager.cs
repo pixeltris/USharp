@@ -281,9 +281,9 @@ namespace UnrealEngine.Engine
         /// Invalidates the timer handle as it should no longer be used.
         /// </summary>
         /// <param name="handle">The handle of the timer to clear.</param>
-        public void ClearTimer(ref FTimerHandle inOutHandle)
+        public void ClearTimer(ref FTimerHandle handle)
         {
-            Native_FTimerManager.ClearTimer(Address, ref inOutHandle);
+            Native_FTimerManager.ClearTimer(Address, ref handle);
         }
 
         /// <summary>

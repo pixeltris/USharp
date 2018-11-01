@@ -34,7 +34,7 @@ namespace UnrealEngine.Runtime
 
         /// <summary>
         /// Returns the base directory of the "core" engine that can be shared across
-        /// several games or across games & mods. Shaders and base localization files
+        /// several games or across games &amp; mods. Shaders and base localization files
         /// e.g. reside in the engine directory.
         /// </summary>
         public static string EngineDir
@@ -81,7 +81,7 @@ namespace UnrealEngine.Runtime
 
         /// <summary>
         /// Returns the content directory of the "core" engine that can be shared across
-        /// several games or across games & mods.
+        /// several games or across games &amp; mods.
         /// </summary>
         public static string EngineContentDir
         {
@@ -896,7 +896,7 @@ namespace UnrealEngine.Runtime
         ///    - Normalizes path separators [NormalizeFilename]
         ///    - Removes extraneous separators  [NormalizeDirectoryName, as well removing adjacent separators]
         ///    - Collapses internal ..'s
-        ///    - Makes relative to Engine\Binaries\<Platform> (will ALWAYS start with ..\..\..)
+        ///    - Makes relative to Engine\Binaries\[PLATFORM]\ (will ALWAYS start with ..\..\..)
         /// </summary>
         /// <param name="inPath"></param>
         public static void MakeStandardFilename(ref string inPath)

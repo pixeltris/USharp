@@ -392,7 +392,7 @@ namespace UnrealEngine.Runtime
         /// <param name="q">The quaternion.</param>
         /// <param name="v">The vector to be rotated.</param>
         /// <returns>vector after rotation</returns>
-        /// <see cref="RotateVector()"/>
+        /// <see cref="RotateVector"/>
         public static FVector operator *(FQuat q, FVector v)
         {
             return q.RotateVector(v);
@@ -407,7 +407,7 @@ namespace UnrealEngine.Runtime
         /// <param name="q">The quaternion.</param>
         /// <param name="m">Matrix to multiply by.</param>
         /// <returns>Matrix result after multiplication.</returns>
-        /// <see cref="RotateVector()"/>
+        /// <see cref="RotateVector"/>
         public static FMatrix operator *(FQuat q, FMatrix m)
         {
             FMatrix result = default(FMatrix);
@@ -445,7 +445,6 @@ namespace UnrealEngine.Runtime
         /// <param name="a">The first quaternion.</param>
         /// <param name="b">The first quaternion.</param>
         /// <returns>true if two quaternion are identical, otherwise false.</returns>
-        /// <see cref="Equals()"/>
         public static bool operator ==(FQuat a, FQuat b)
         {
             return a.X == b.X && a.Y == b.Y && a.Z == b.Z && a.W == b.W;
@@ -1214,7 +1213,7 @@ namespace UnrealEngine.Runtime
         /// <param name="t0">tangent directions at end points</param>
         /// <param name="p1">end points</param>
         /// <param name="t1">tangent directions at end points</param>
-        /// <param name="alpha">distance along spline</param>
+        /// <param name="a">distance along spline</param>
         /// <returns>Interpolated value</returns>
         public static FQuat CubicInterp(FQuat p0, FQuat t0, FQuat p1, FQuat t1, float a)
         {
