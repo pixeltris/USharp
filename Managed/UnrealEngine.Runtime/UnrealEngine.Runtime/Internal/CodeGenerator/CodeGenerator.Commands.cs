@@ -73,7 +73,7 @@ namespace UnrealEngine.Runtime
                 {
                     WindowStyle = System.Diagnostics.ProcessWindowStyle.Normal,
                     FileName = _pluginInstallerPath,
-                    Arguments = "buildcustomsln" + @" """ + _slnPath + @""" " + _projPath + @"""",
+                    Arguments = "buildcustomsln" + @" """ + _slnPath + @""" """ + _projPath + @"""",
                     UseShellExecute = false
                 };
                 process.Start();
