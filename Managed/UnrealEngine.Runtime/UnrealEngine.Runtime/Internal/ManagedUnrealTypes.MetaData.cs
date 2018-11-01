@@ -412,6 +412,14 @@ namespace UnrealEngine.Runtime
 
                     MetaDataMergeClassCategories(metadata, obj, values);
                     break;
+
+                case UMeta.Target.Function:
+                    ManagedUnrealFunctionInfo functionInfo = field as ManagedUnrealFunctionInfo;
+                    if (functionInfo.IsOverride && functionInfo.IsBlueprintEvent)
+                    {
+                        values[UMeta.GetKeyName(MDFunc.BlueprintInternalUseOnly)] = "true";
+                    }
+                    break;
             }
             SetMetaDataBlueprintability(values, target, field as ManagedUnrealTypeInfo);
 

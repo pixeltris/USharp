@@ -1120,13 +1120,6 @@ namespace UnrealEngine.Runtime
                 parentFunction = Native_UClass.FindFunctionByName(parentClass, ref functionName, true);
                 Debug.Assert(parentFunction != IntPtr.Zero);
 
-                // Get the DisplayName/Category metadata, this is so that our overrides match up to blueprint
-                if (FBuild.WithEditor)
-                {
-                    LateAddMetaData(functionInfo, parentFunction, UMeta.GetKey(MDFunc.DisplayName));
-                    LateAddMetaData(functionInfo, parentFunction, UMeta.GetKey(MDFunc.Category));
-                }
-
                 Native_UStruct.SetSuperStruct(function, parentFunction);
                 EFunctionFlags parentFunctionFlags = Native_UFunction.Get_FunctionFlags(parentFunction);                
                 functionFlags |= (parentFunctionFlags & funcInherit);
