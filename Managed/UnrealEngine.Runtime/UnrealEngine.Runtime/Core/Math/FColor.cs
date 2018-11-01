@@ -358,7 +358,7 @@ namespace UnrealEngine.Runtime
 
         /// <summary>
         /// Returns a new FColor based of this color with the new alpha value.
-        /// Usage: const FColor& MyColor = FColorList::Green.WithAlpha(128);
+        /// Usage: const FColor&amp; MyColor = FColorList::Green.WithAlpha(128);
         /// </summary>
         public FColor WithAlpha(byte alpha)
         {

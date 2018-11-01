@@ -197,7 +197,7 @@ namespace UnrealEngine.Runtime
         /// </summary>
         /// <param name="min"></param>
         /// <param name="max"></param>
-        /// <returns>A random number >= Min and <= Max</returns>
+        /// <returns>A random number >= Min and &lt;= Max</returns>
         public float FRandRange(float min, float max)
         {
             return min + (max - min) * FRand();

@@ -241,7 +241,7 @@ namespace UnrealEngine.Runtime
         PersistentInstance = 0x0002000000000000,
 
         /// <summary>
-        /// Property was parsed as a wrapper class like TSubobjectOf<T>, FScriptInterface etc., rather than a USomething*
+        /// Property was parsed as a wrapper class like TSubobjectOf&lt;T>, FScriptInterface etc., rather than a USomething*
         /// </summary>
         UObjectWrapper = 0x0004000000000000,
 

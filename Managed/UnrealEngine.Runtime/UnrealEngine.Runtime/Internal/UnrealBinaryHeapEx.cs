@@ -121,7 +121,7 @@ namespace UnrealEngine.Runtime
         }
 
         /// <summary>
-        /// Builds an implicit heap from the array. Assumes < operator is defined
+        /// Builds an implicit heap from the array. Assumes &lt; operator is defined
         /// for the template type.
         /// </summary>
         private void Heapify()

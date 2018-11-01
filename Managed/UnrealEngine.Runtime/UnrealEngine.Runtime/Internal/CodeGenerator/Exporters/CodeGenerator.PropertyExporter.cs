@@ -7,7 +7,27 @@ namespace UnrealEngine.Runtime
 {
     public partial class CodeGenerator
     {
+        private static HashSet<string> forceExportProperties = new HashSet<string>()
+        {
+            "/Script/Engine.Actor:RootComponent"
+        };
+        private static HashSet<string> forceHideProperties = new HashSet<string>();
+
         private bool CanExportProperty(UProperty property, UStruct owner, bool isBlueprintType)
+        {
+            bool export = CanExportPropertyImpl(property, owner, isBlueprintType);
+            if (!export && forceExportProperties.Contains(property.GetPathName()))
+            {
+                return true;
+            }
+            if (export && forceHideProperties.Contains(property.GetPathName()))
+            {
+                return false;
+            }
+            return export;
+        }
+
+        private bool CanExportPropertyImpl(UProperty property, UStruct owner, bool isBlueprintType)
         {
             // There seem to be a lot of values which could potentially make a property visible from blueprint
             // TODO: Find all of the remaining values which we need to check
@@ -91,7 +111,7 @@ namespace UnrealEngine.Runtime
                 builder.AppendLine(modifiers + propertyTypeName + " " + propertyName);
                 builder.OpenBrace();
                 AppendGetter(builder, propertyName, property, namespaces);
-                if (!property.HasAnyPropertyFlags(EPropertyFlags.BlueprintReadOnly) &&
+                if ((!property.HasAnyPropertyFlags(EPropertyFlags.BlueprintReadOnly) || forceExportProperties.Contains(property.GetPathName())) &&
                     !IsCollectionProperty(property) && !IsDelegateProperty(property) &&
                     !property.IsFixedSizeArray)
                 {

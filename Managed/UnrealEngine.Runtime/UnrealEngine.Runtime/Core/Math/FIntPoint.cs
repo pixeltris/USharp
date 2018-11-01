@@ -439,9 +439,9 @@ namespace UnrealEngine.Runtime
         /// <param name="divisor">What to divide the int point by.</param>
         /// <returns>A new divided int point.</returns>
         /// <see cref="DivideAndRoundDown"/>
-        public static FIntPoint DivideAndRoundUp(FIntPoint lhs, FIntPoint Divisor)
+        public static FIntPoint DivideAndRoundUp(FIntPoint lhs, FIntPoint divisor)
         {
-            return new FIntPoint(FMath.DivideAndRoundUp(lhs.X, Divisor.X), FMath.DivideAndRoundUp(lhs.Y, Divisor.Y));
+            return new FIntPoint(FMath.DivideAndRoundUp(lhs.X, divisor.X), FMath.DivideAndRoundUp(lhs.Y, divisor.Y));
         }
 
         /// <summary>
@@ -450,7 +450,7 @@ namespace UnrealEngine.Runtime
         /// <param name="lhs">The int point being divided.</param>
         /// <param name="divisor">What to divide the int point by.</param>
         /// <returns>A new divided int point.</returns>
-        /// <see cref="DivideAndRoundUp"/>
+        /// <see cref="DivideAndRoundUp(FIntPoint, int)"/>
         public static FIntPoint DivideAndRoundDown(FIntPoint lhs, int divisor)
         {
             return new FIntPoint(FMath.DivideAndRoundDown(lhs.X, divisor), FMath.DivideAndRoundDown(lhs.Y, divisor));

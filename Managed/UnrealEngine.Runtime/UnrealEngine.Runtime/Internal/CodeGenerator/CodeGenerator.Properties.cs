@@ -365,15 +365,23 @@ namespace UnrealEngine.Runtime
             string name = customName == null ? property.GetName() : customName;
             return GetName(property, name, Settings.MemberCasing, resolveNameConflicts, renameBool);
         }
-
+        
         private string GetParamName(UProperty property)
         {
-            return GetName(property, property.GetName(), Settings.ParamCasing, false, true);
+            // TODO: For name changes to be allowed we need the ability to do original param name lookup when we override functions.
+            //       We currently don't have any support for this (would need to be added to ManagedUnrealTypeInfo). So for now don't
+            //       make any changes to the name.
+            return property.GetName();
+            //return GetName(property, property.GetName(), Settings.ParamCasing, false, true);
         }
 
         private string GetParamName(string paramName)
         {
-            return GetName(null, paramName, Settings.ParamCasing, false, true);
+            // TODO: For name changes to be allowed we need the ability to do original param name lookup when we override functions.
+            //       We currently don't have any support for this (would need to be added to ManagedUnrealTypeInfo). So for now don't
+            //       make any changes to the name.
+            return paramName;
+            //return GetName(null, paramName, Settings.ParamCasing, false, true);
         }
 
         /// <summary>
@@ -400,7 +408,7 @@ namespace UnrealEngine.Runtime
             {
                 paramIndex++;
                 extensionTargetParam = options.ExtensionInfo.Param;
-                string paramName = extensionTargetParam.GetName();
+                string paramName = GetParamName(extensionTargetParam);
                 result.Add(extensionTargetParam, paramName);
                 resultReverse.Add(paramName, extensionTargetParam);
             }
