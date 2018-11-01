@@ -167,7 +167,7 @@ namespace UnrealEngine.Runtime
                     // Temporary check for debugging purposes. There shouldn't be any duplicate fields as we aren't looking in the hierarchy.
                     if (System.Diagnostics.Debugger.IsAttached)
                     {
-                        System.Diagnostics.Debug.Assert(fields.ContainsKey(name));
+                        System.Diagnostics.Debug.Assert(!fields.ContainsKey(name));
                     }
 
                     fields[name] = new CachedFieldInfo()

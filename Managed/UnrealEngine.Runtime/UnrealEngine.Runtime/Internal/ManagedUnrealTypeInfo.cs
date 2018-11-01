@@ -2876,7 +2876,7 @@ namespace UnrealEngine.Runtime
         /// <summary>
         /// The flags applicable to inherit from the base function flags
         /// </summary>
-        FuncInherit = 0
+        FuncInherit = UFunction
     }
 
     public partial class ManagedUnrealFunctionInfo : ManagedUnrealReflectionBase
