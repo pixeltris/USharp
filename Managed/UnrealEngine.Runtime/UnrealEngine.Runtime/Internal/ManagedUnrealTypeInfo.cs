@@ -2084,6 +2084,28 @@ namespace UnrealEngine.Runtime
                 functionInfo.Flags |= EFunctionFlags.Const;
             }
 
+            if (!typeInfo.IsDelegate)
+            {
+                // Make sure this function meets the requirements to be exposed
+                switch (ManagedUnrealVisibility.FunctionRequirement)
+                {
+                    case ManagedUnrealVisibility.Requirement.MainAttribute:
+                        if (!functionInfo.AdditionalFlags.HasFlag(ManagedUnrealFunctionFlags.UFunction))
+                        {
+                            return null;
+                        }
+                        break;
+                    case ManagedUnrealVisibility.Requirement.AnyAttribute:
+                        if (!functionInfo.AdditionalFlags.HasFlag(ManagedUnrealFunctionFlags.UFunction) &&
+                            !method.HasCustomAttribute<ManagedUnrealAttributeBase>(false) &&
+                            !method.HasCustomAttribute<UMetaAttribute>(false))
+                        {
+                            return null;
+                        }
+                        break;
+                }
+            }
+
             if (functionInfo.IsOverride && !functionInfo.IsBlueprintEvent)
             {
                 // Override methods which don't have any contribution to the reflection system should be skipped
@@ -2142,27 +2164,6 @@ namespace UnrealEngine.Runtime
                     // method is skipped to ensure only 1 method is processed per definition). Though this means that
                     // our type info is our of sync with the C# type info.
                     functionInfo.IsVirtual = true;
-                }
-            }
-
-            if (!typeInfo.IsDelegate)
-            {
-                // Make sure this function meets the requirements to be exposed
-                switch (ManagedUnrealVisibility.FunctionRequirement)
-                {
-                    case ManagedUnrealVisibility.Requirement.MainAttribute:
-                        if (!functionInfo.AdditionalFlags.HasFlag(ManagedUnrealFunctionFlags.UFunction))
-                        {
-                            return null;
-                        }
-                        break;
-                    case ManagedUnrealVisibility.Requirement.AnyAttribute:
-                        if (!method.HasCustomAttribute<ManagedUnrealAttributeBase>(false) &&
-                            !method.HasCustomAttribute<UMetaAttribute>(false))
-                        {
-                            return null;
-                        }
-                        break;
                 }
             }
 

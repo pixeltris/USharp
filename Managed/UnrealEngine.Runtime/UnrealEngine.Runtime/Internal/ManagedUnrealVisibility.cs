@@ -25,7 +25,7 @@ namespace UnrealEngine.Runtime
         ///       ManagedUnrealTypeInfo.GetTypeCode
         /// </summary>
         public static readonly Requirement InterfaceRequirement = Requirement.MainAttribute;
-        public static readonly Requirement DelegateRequirement = Requirement.MainAttribute;
+        public static readonly Requirement DelegateRequirement = Requirement.None;
         public static readonly Requirement FunctionRequirement = Requirement.MainAttribute;
         public static readonly Requirement PropertyRequirement = Requirement.MainAttribute;
 
