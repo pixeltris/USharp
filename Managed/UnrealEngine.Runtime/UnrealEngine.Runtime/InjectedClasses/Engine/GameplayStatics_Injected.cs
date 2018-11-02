@@ -19,5 +19,12 @@ namespace UnrealEngine.Engine
                 }
             }
         }
+
+        public static List<AActor> GetAllActorsOfClass<T>(UObject WorldContext)
+        {
+            List<AActor> _returnActors;
+            UGameplayStatics.GetAllActorsOfClass(WorldContext, new TSubclassOf<AActor>(UClass.GetClass<T>()), out _returnActors);
+            return _returnActors;
+        }
     }
 }
