@@ -11,7 +11,7 @@ namespace UnrealEngine.Runtime.Native
 {
     public class Native_UGameplayStatics
     {
-        public delegate void Del_GetAllActorsOfClass(IntPtr WorldContextObject, IntPtr ActorClass, out TArrayUnsafe<IntPtr> OutActors);
+        public delegate void Del_GetAllActorsOfClass(IntPtr WorldContextObject, IntPtr ActorClass, IntPtr OutActors);
 
         public static Del_GetAllActorsOfClass GetAllActorsOfClass;
     }

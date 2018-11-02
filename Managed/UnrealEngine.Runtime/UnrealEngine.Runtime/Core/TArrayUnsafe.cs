@@ -38,12 +38,12 @@ namespace UnrealEngine.Runtime
         // ref points to existing memory which we shouldn't dispose / destroy
         protected bool isRef = false;
 
-        internal IntPtr Address
+        public IntPtr Address
         {
             get { return address; }
         }
 
-        internal FScriptArray ScriptArray
+        public FScriptArray ScriptArray
         {
             get { return *nativeArray; }
         }
