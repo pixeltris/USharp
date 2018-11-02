@@ -8,7 +8,12 @@ namespace UnrealEngine.Engine
 {
     public partial class UWorld : UObject
     {
-        public List<T> GetAllActorsOfClass<T>() where T : AActor
+        public T[] GetAllActorsOfClass<T>() where T : AActor
+        {
+            return UGameplayStatics.GetAllActorsOfClass<T>(this);
+        }
+
+        public List<T> GetAllActorsOfClassList<T>() where T : AActor
         {
             return UGameplayStatics.GetAllActorsOfClassList<T>(this);
         }
