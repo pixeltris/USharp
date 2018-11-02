@@ -1262,6 +1262,15 @@ namespace UnrealEngine.Runtime
 
                 // TODO: Propagate flags to inner properties which need it (collections)
 
+                // Somewhat emulate a check in Engine/Source/Programs/UnrealHeaderTool/Private/HeaderParser.cpp
+                // DoesAnythingInHierarchyHaveDefaultToInstanced()
+                // This should be for EObjectFlags.ObjectReference only?
+                EPropertyFlags inlinePropFlags = EPropertyFlags.InstancedReference | EPropertyFlags.ExportObject;
+                if ((propertyFlags & inlinePropFlags) == inlinePropFlags)
+                {
+                    LateAddMetaData(propertyInfo.Path, (FName)MDProp.EditInline.ToString(), "true", false);
+                }
+
                 Native_UProperty.Set_PropertyFlags(property, propertyFlags);
             }
 
@@ -1394,7 +1403,7 @@ namespace UnrealEngine.Runtime
                         case TypeCode.UInt64:
                             enumUnderlyingTypeCode = EPropertyType.UInt64;
                             break;
-                    }                    
+                    }
                     CreateProperty(property, enumUnderlyingType, enumUnderlyingTypeCode, propertyName, null, 0, true);
                     Debug.Assert(Native_UEnumProperty.GetUnderlyingProperty(property) != IntPtr.Zero);
                     break;
@@ -1418,7 +1427,29 @@ namespace UnrealEngine.Runtime
             }
 
             return property;
-        }        
+        }
+
+        /// <summary>
+        /// Copy of Engine/Source/Programs/UnrealHeaderTool/Private/HeaderParser.cpp
+        /// TODO: Really this should be pre-determined in the ManagedUnrealTypeInfo
+        /// </summary>
+        private static void InheritDefaultToInstance(ManagedUnrealPropertyInfo propertyInfo, IntPtr property, IntPtr unrealClass)
+        {
+            bool defaultToInstanced = false;
+
+            IntPtr search = unrealClass;
+            while (!defaultToInstanced && (unrealClass != IntPtr.Zero))
+            {
+                defaultToInstanced = Native_UClass.HasAnyClassFlags(search, EClassFlags.DefaultToInstanced);
+                unrealClass = Native_UClass.GetSuperClass(unrealClass);
+            }
+
+            if (defaultToInstanced)
+            {
+                Native_UProperty.SetPropertyFlags(property, EPropertyFlags.InstancedReference | EPropertyFlags.ExportObject);
+                LateAddMetaData(propertyInfo.Path, (FName)MDProp.EditInline.ToString(), "true", false);
+            }
+        }
 
         /// <summary>
         /// Creates a Guid for the given name

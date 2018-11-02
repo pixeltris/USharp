@@ -1146,6 +1146,29 @@ namespace UnrealEngine.Runtime
                     if (!string.IsNullOrEmpty(typePath))
                     {
                         propertyTypeInfo = new ManagedUnrealTypeInfoReference(typeCode, typePath);
+
+                        // TODO: Faster way of getting this class flags info
+                        // Somewhat emulate a check in Engine/Source/Programs/UnrealHeaderTool/Private/HeaderParser.cpp
+                        // DoesAnythingInHierarchyHaveDefaultToInstanced()
+                        EClassFlags classFlags = EClassFlags.None;
+                        ManagedUnrealTypeInfo typeInfo;
+                        Type classType;
+                        if (TypeInfosByPath.TryGetValue(typePath, out typeInfo))
+                        {
+                            classFlags = typeInfo.ClassFlags;
+                        }
+                        else if (AllTypesByPath.TryGetValue(typePath, out classType))
+                        {
+                            UClassAttribute classAttribute = classType.GetCustomAttribute<UClassAttribute>();
+                            if (classAttribute != null)
+                            {
+                                classFlags = (EClassFlags)classAttribute.Flags;
+                            }
+                        }
+                        if ((classFlags & EClassFlags.DefaultToInstanced) == EClassFlags.DefaultToInstanced)
+                        {
+                            propertyInfo.Flags |= EPropertyFlags.InstancedReference | EPropertyFlags.ExportObject;
+                        }
                     }
                     break;
 
@@ -1845,7 +1868,7 @@ namespace UnrealEngine.Runtime
         private bool TryGetClassFlags(ManagedUnrealTypeInfo typeInfo, Type type, bool lateResolve,
             out KeyValuePair<EClassFlags, ManagedUnrealTypeInfoFlags> outFlags, out string classConfigName)
         {
-            const EClassFlags inheritFlags = EClassFlags.ScriptInherit;// Inherit or ScriptInherit?
+            const EClassFlags inheritFlags = EClassFlags.Inherit;//EClassFlags.ScriptInherit;// Inherit or ScriptInherit?
             const string inheritConfig = "inherit";// Use parents config name
 
             EClassFlags flags = 0;
