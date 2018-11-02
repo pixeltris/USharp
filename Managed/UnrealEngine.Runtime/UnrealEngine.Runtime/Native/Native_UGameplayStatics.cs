@@ -9,7 +9,7 @@ using UnrealEngine.Engine;
 
 namespace UnrealEngine.Runtime.Native
 {
-    public class Native_UGameplayStatics
+    public static class Native_UGameplayStatics
     {
         public delegate void Del_GetAllActorsOfClass(IntPtr WorldContextObject, IntPtr ActorClass, IntPtr OutActors);
 
