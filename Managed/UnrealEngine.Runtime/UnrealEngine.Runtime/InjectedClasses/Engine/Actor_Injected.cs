@@ -15,5 +15,10 @@ namespace UnrealEngine.Engine
         {
             USystemLibrary.PrintString(this, str, true, printToLog, textColor, duration);
         }
+
+        public T GetComponentByClass<T>() where T : UActorComponent
+        {
+            return (T) GetComponentByClass(new TSubclassOf<UActorComponent>(UClass.GetClass<T>()));
+        }
     }
 }
