@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
+using UnrealEngine.Engine;
 using UnrealEngine.Runtime.Native;
 
 namespace UnrealEngine.Runtime
@@ -43,21 +44,53 @@ namespace UnrealEngine.Runtime
             ValidateStructSize<FText.FTextNative>(Native_SizeOfStruct.SizeOf_FText);
             ValidateStructSize<Guid>(Native_SizeOfStruct.SizeOf_FGuid);
             ValidateStructSize<FActorSpawnParametersInterop>(Native_SizeOfStruct.SizeOf_FActorSpawnParameters);
+            ValidateStructSize<FTickPrerequisite>(Native_SizeOfStruct.SizeOf_FTickPrerequisite);
+
+            ValidateFTickFunctionStructSize();
+        }
+
+        private static void ValidateFTickFunctionStructSize()
+        {
+            // Assumes these are all the same size with 1 additional member called Target which is a UObject pointer
+            int size = Engine.FTickFunction.FTickFunction_StructSize;
+            size += IntPtr.Size;
+
+            Native_SizeOfStruct.Del_SizeOf[] dels =
+            {
+                Native_SizeOfStruct.SizeOf_FActorComponentTickFunction,
+                Native_SizeOfStruct.SizeOf_FActorTickFunction,
+                Native_SizeOfStruct.SizeOf_FCharacterMovementComponentPostPhysicsTickFunction,
+                Native_SizeOfStruct.SizeOf_FEndPhysicsTickFunction,
+                Native_SizeOfStruct.SizeOf_FPrimitiveComponentPostPhysicsTickFunction,
+                Native_SizeOfStruct.SizeOf_FSkeletalMeshComponentClothTickFunction,
+                Native_SizeOfStruct.SizeOf_FSkeletalMeshComponentEndPhysicsTickFunction,
+                Native_SizeOfStruct.SizeOf_FStartAsyncSimulationFunction,
+                Native_SizeOfStruct.SizeOf_FStartPhysicsTickFunction
+            };
+
+            foreach (Native_SizeOfStruct.Del_SizeOf del in dels)
+            {
+                ValidateStructSize<Engine.FTickFunction>(del, size);
+            }
         }
 
         private static void ValidateStructSize<T>(Native_SizeOfStruct.Del_SizeOf func) where T : struct
         {            
             if (func != null)
             {
-                int managedSize = Marshal.SizeOf<T>();
-                int nativeSize = func();
-                if (managedSize != nativeSize)
-                {
-                    string error = string.Format("Struct size mismatch on '{0}' managed:{1} native:{2}", typeof(T), managedSize, nativeSize);
-                    FMessage.Log(ELogVerbosity.Error, error);
-                    System.Diagnostics.Debug.WriteLine(error);
-                    System.Diagnostics.Debug.Assert(false, error);
-                }
+                ValidateStructSize<T>(func, Marshal.SizeOf<T>());
+            }
+        }
+
+        private static void ValidateStructSize<T>(Native_SizeOfStruct.Del_SizeOf func, int managedSize) where T : struct
+        {
+            int nativeSize = func();
+            if (managedSize != nativeSize)
+            {
+                string error = string.Format("Struct size mismatch on '{0}' managed:{1} native:{2}", typeof(T), managedSize, nativeSize);
+                FMessage.Log(ELogVerbosity.Error, error);
+                System.Diagnostics.Debug.WriteLine(error);
+                System.Diagnostics.Debug.Assert(false, error);
             }
         }
     }

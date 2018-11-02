@@ -68,15 +68,13 @@ namespace UnrealEngine.Runtime.Native
                 Del_RegisterFunctions registerFunctions = (Del_RegisterFunctions)Marshal.GetDelegateForFunctionPointer(
                     registerFunctionsAddr, typeof(Del_RegisterFunctions));
                 
-                registerFunctions(Marshal.GetFunctionPointerForDelegate(registerFunction));
-
-                // Validate native struct sizes match the managed struct sizes before running any handlers
-                StructValidator.ValidateStructs();
+                registerFunctions(Marshal.GetFunctionPointerForDelegate(registerFunction));                
 
                 // Highest (these may be called from a thread other than the game thread, don't access UObject methods)
                 FBuild.OnNativeFunctionsRegistered();
                 FGlobals.OnNativeFunctionsRegistered();
-                Classes.OnNativeFunctionsRegistered();                
+                Classes.OnNativeFunctionsRegistered();
+                StructValidator.ValidateStructs();// Validate native struct sizes match the managed struct sizes before running any handlers
                 BoolMarshaler.OnNativeFunctionsRegistered();
                 FStringMarshaler.OnNativeFunctionsRegistered();
             }

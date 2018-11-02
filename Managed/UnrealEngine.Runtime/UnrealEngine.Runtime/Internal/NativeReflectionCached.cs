@@ -145,6 +145,10 @@ namespace UnrealEngine.Runtime
             {
                 Dictionary<string, CachedFieldInfo> fields = null;
 
+                // For structs we want to get all fields in the hierarchy as we can't struct inheritance in C#
+                // (C++ structs can have inheritance, if we skip checking the hierarchy we wont get all the fields we want)
+                bool isScriptStruct = false;
+
                 if (Native_UObjectBaseUtility.IsA(unrealStruct, Classes.UFunction))
                 {
                     fields = lastUnrealFunctionChildren;
@@ -152,14 +156,17 @@ namespace UnrealEngine.Runtime
                 }
                 else
                 {
+                    isScriptStruct = Native_UObjectBaseUtility.IsA(unrealStruct, Classes.UScriptStruct);
                     fields = lastUnrealStructChildren;
                     lastUnrealStruct = unrealStruct;
                 }
 
                 fields.Clear();
 
+
+
                 foreach (IntPtr field in new NativeReflection.NativeFieldIterator(
-                    EClassCastFlags.UFunction | EClassCastFlags.UProperty, unrealStruct, false, false))
+                    EClassCastFlags.UFunction | EClassCastFlags.UProperty, unrealStruct, false, isScriptStruct))
                 {
                     Native_UObjectBaseUtility.GetNameOut(field, ref nameUnsafe.Array);
                     string name = nameUnsafe.Value;

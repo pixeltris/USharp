@@ -124,8 +124,11 @@
     <Compile Include="Core\TSet.cs" />
     <Compile Include="Core\TStatId.cs" />
     <Compile Include="Engine\Enums\EGetWorldErrorMode.cs" />
+    <Compile Include="Engine\Enums\ETickingGroup.cs" />
     <Compile Include="Engine\Enums\ETravelType.cs" />
     <Compile Include="Engine\Enums\EWorldType.cs" />
+    <Compile Include="Engine\FTickFunction.cs" />
+    <Compile Include="Engine\FTickPrerequisite.cs" />
     <Compile Include="Engine\FTimerHandle.cs" />
     <Compile Include="Engine\FTimerManager.cs" />
     <Compile Include="Engine\FURLPtr.cs" />
@@ -369,6 +372,7 @@
     <Compile Include="Native\Native_FText.cs" />
     <Compile Include="Native\Native_FThreading.cs" />
     <Compile Include="Native\Native_FTicker.cs" />
+    <Compile Include="Native\Native_FTickFunction.cs" />
     <Compile Include="Native\Native_FTimerManager.cs" />
     <Compile Include="Native\Native_FUObjectArray.cs" />
     <Compile Include="Native\Native_FURL.cs" />

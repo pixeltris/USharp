@@ -87,6 +87,7 @@
 #include "Export_FUObjectArray.h"
 #include "Export_FTimerManager.h"
 #include "Export_FTicker.h"
+#include "Export_FTickFunction.h"
 #include "Export_FDelegateHandle.h"
 #include "Export_FPlatformProperties.h"
 #include "Export_FGlobals.h"
@@ -205,6 +206,7 @@ CSEXPORT void CSCONV RegisterFunctions(RegisterFunc registerFunc)
 	Export_FUObjectArray(registerFunc);
 	Export_FTimerManager(registerFunc);
 	Export_FTicker(registerFunc);
+	Export_FTickFunction(registerFunc);
 	Export_FDelegateHandle(registerFunc);
 	Export_FPlatformProperties(registerFunc);
 	Export_FGlobals(registerFunc);

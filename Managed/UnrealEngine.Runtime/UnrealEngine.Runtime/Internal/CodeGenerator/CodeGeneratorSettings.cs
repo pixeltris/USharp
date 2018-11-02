@@ -423,6 +423,7 @@ namespace UnrealEngine.Runtime
 
             VarNames = new VarNameSettings();
             VarNames.LoadNativeType = LoadNativeTypeMethodName;
+            VarNames.LoadNativeTypeInjected = VarNames.LoadNativeType + "Injected";
             VarNames.ClassAddress = "classAddress";
             VarNames.IsValid = "_IsValid";
             VarNames.FunctionAddress = "_FunctionAddress";
@@ -449,6 +450,12 @@ namespace UnrealEngine.Runtime
             VarNames.ImplementationMethod = "_Implementation";
             VarNames.RPCValidate = "_Validate";
             VarNames.FunctionInvoker = "__Invoker";
+        }
+
+        public string GetInjectedClassesDir()
+        {
+            return Path.Combine(GetUSharpBaseDir(),
+                    "Managed", "UnrealEngine.Runtime", "UnrealEngine.Runtime", "InjectedClasses");
         }
 
         public string GetUSharpBaseDir()
@@ -862,6 +869,11 @@ namespace UnrealEngine.Runtime
             /// static void LoadNativeType() { }
             /// </summary>
             public string LoadNativeType { get; set; }
+
+            /// <summary>
+            /// static void LoadNativeTypeInjected(IntPtr classAddress) { }
+            /// </summary>
+            public string LoadNativeTypeInjected { get; set; }
 
             /// <summary>
             /// static IntPtr ClassAddress;

@@ -10,9 +10,14 @@ namespace UnrealEngine.Runtime
     {
         private CodeManager codeManager;
         public CodeGeneratorSettings Settings { get; private set; }
-        
+
         public bool TimeSliced { get; private set; }
         public bool Complete { get; private set; }
+
+        /// <summary>
+        /// A list of types which should have an injected LoadNativeType call for custom native type info loading
+        /// </summary>
+        private HashSet<string> loadNativeTypeInjected = new HashSet<string>();
 
         public CodeGenerator(bool timeSliced)
         {
@@ -51,6 +56,27 @@ namespace UnrealEngine.Runtime
             {
                 codeManager.OnBeginGenerateModules();
             }
+
+            // Load the list of types which should have a custom LoadNativeTypeInjected call
+            loadNativeTypeInjected.Clear();
+            try
+            {
+                string loadNativeTypeInjectedFile = Path.Combine(Settings.GetInjectedClassesDir(), "LoadNativeType.txt");
+                if (File.Exists(loadNativeTypeInjectedFile))
+                {
+                    string[] lines = File.ReadAllLines(loadNativeTypeInjectedFile);
+                    foreach (string line in lines)
+                    {
+                        if (!string.IsNullOrWhiteSpace(line))
+                        {
+                            loadNativeTypeInjected.Add(line);
+                        }
+                    } 
+                }
+            }
+            catch
+            {
+            }
         }
 
         private void OnEndGenerateModules()
@@ -69,10 +95,7 @@ namespace UnrealEngine.Runtime
         {
             if (codeManager != null)
             {
-                string injectedClassesDir = Path.Combine(Settings.GetUSharpBaseDir(), 
-                    "Managed/UnrealEngine.Runtime/UnrealEngine.Runtime/InjectedClasses");
-
-                string moduleInjectedClassesDir = Path.Combine(injectedClassesDir, module.Name);
+                string moduleInjectedClassesDir = Path.Combine(Settings.GetInjectedClassesDir(), module.Name);
                 if (Directory.Exists(moduleInjectedClassesDir))
                 {
                     foreach (string file in Directory.EnumerateFiles(moduleInjectedClassesDir, "*.cs", SearchOption.AllDirectories))

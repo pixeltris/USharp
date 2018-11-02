@@ -35,6 +35,10 @@ namespace UnrealEngine.Runtime
                 // IUserListEntry is an interface which implements another interface. Currently the code generator is broken for
                 // these situations (the Impl class doesn't include the entire interface chain). Blacklist this interface for now.
                 { "/Script/UMG.UserListEntry", ProjectDefinedType.Class },
+
+                { "/Script/Engine.ETickingGroup", ProjectDefinedType.Enum },
+                { "/Script/Engine.TickFunction", ProjectDefinedType.Struct },
+                { "/Script/Engine.TickPrerequisite", ProjectDefinedType.BlittableStruct },
             };
 
             foreach (Type type in System.Reflection.Assembly.GetExecutingAssembly().GetTypes())
@@ -650,12 +654,17 @@ namespace UnrealEngine.Runtime
                     builder.AppendLine();
                 }
             }
+            
+            if (loadNativeTypeInjected.Contains(typeName))
+            {
+                offsetsBuilder.AppendLine(Settings.VarNames.LoadNativeTypeInjected + "(" + Settings.VarNames.ClassAddress + ");");
+            }
+            offsetsBuilder.CloseBrace();
 
             // Add the offsets builder if it isn't empty (always required for structs due to struct size export)
             // Interfaces are built up seperately in a different class which must be added after the interface body.
             if (!structInfo.IsInterface && (structInfo.HasContent || structInfo.IsStruct))
-            {
-                offsetsBuilder.CloseBrace();
+            {                
                 builder.AppendLine(offsetsBuilder.ToString());
                 builder.AppendLine();
             }
@@ -685,7 +694,6 @@ namespace UnrealEngine.Runtime
 
                     interfaceImplBuilder.AppendLine();// Whitespace
                 }
-                offsetsBuilder.CloseBrace();
                 interfaceImplBuilder.AppendLine(offsetsBuilder.ToString());// Add the offsets to the "Impl" class
                 interfaceImplBuilder.CloseBrace();// Add the close brace for the "Impl" class
 

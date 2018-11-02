@@ -149,6 +149,53 @@ CSEXPORT int32 CSCONV Export_SizeOfStruct_SizeOf_FActorSpawnParameters()
 	return sizeof(FActorSpawnParameters);
 }
 
+// FTickFunction structs
+
+CSEXPORT int32 CSCONV Export_SizeOfStruct_SizeOf_FActorComponentTickFunction()
+{
+	return sizeof(FActorComponentTickFunction);
+}
+
+CSEXPORT int32 CSCONV Export_SizeOfStruct_SizeOf_FActorTickFunction()
+{
+	return sizeof(FActorTickFunction);
+}
+
+CSEXPORT int32 CSCONV Export_SizeOfStruct_SizeOf_FCharacterMovementComponentPostPhysicsTickFunction()
+{
+	return sizeof(FCharacterMovementComponentPostPhysicsTickFunction);
+}
+
+CSEXPORT int32 CSCONV Export_SizeOfStruct_SizeOf_FEndPhysicsTickFunction()
+{
+	return sizeof(FEndPhysicsTickFunction);
+}
+
+CSEXPORT int32 CSCONV Export_SizeOfStruct_SizeOf_FPrimitiveComponentPostPhysicsTickFunction()
+{
+	return sizeof(FPrimitiveComponentPostPhysicsTickFunction);
+}
+
+CSEXPORT int32 CSCONV Export_SizeOfStruct_SizeOf_FSkeletalMeshComponentClothTickFunction()
+{
+	return sizeof(FSkeletalMeshComponentClothTickFunction);
+}
+
+CSEXPORT int32 CSCONV Export_SizeOfStruct_SizeOf_FSkeletalMeshComponentEndPhysicsTickFunction()
+{
+	return sizeof(FSkeletalMeshComponentEndPhysicsTickFunction);
+}
+
+CSEXPORT int32 CSCONV Export_SizeOfStruct_SizeOf_FStartAsyncSimulationFunction()
+{
+	return sizeof(FStartAsyncSimulationFunction);
+}
+
+CSEXPORT int32 CSCONV Export_SizeOfStruct_SizeOf_FStartPhysicsTickFunction()
+{
+	return sizeof(FStartPhysicsTickFunction);
+}
+
 CSEXPORT void CSCONV Export_SizeOfStruct(RegisterFunc registerFunc)
 {
 	REGISTER_FUNC(Export_SizeOfStruct_SizeOf_FSoftObjectPtr);
@@ -181,4 +228,15 @@ CSEXPORT void CSCONV Export_SizeOfStruct(RegisterFunc registerFunc)
 	REGISTER_FUNC(Export_SizeOfStruct_SizeOf_FFrame);
 	REGISTER_FUNC(Export_SizeOfStruct_SizeOf_TStatId);
 	REGISTER_FUNC(Export_SizeOfStruct_SizeOf_FActorSpawnParameters);
+	
+	// FTickFunction structs
+	REGISTER_FUNC(Export_SizeOfStruct_SizeOf_FActorComponentTickFunction);
+	REGISTER_FUNC(Export_SizeOfStruct_SizeOf_FActorTickFunction);
+	REGISTER_FUNC(Export_SizeOfStruct_SizeOf_FCharacterMovementComponentPostPhysicsTickFunction);
+	REGISTER_FUNC(Export_SizeOfStruct_SizeOf_FEndPhysicsTickFunction);
+	REGISTER_FUNC(Export_SizeOfStruct_SizeOf_FPrimitiveComponentPostPhysicsTickFunction);
+	REGISTER_FUNC(Export_SizeOfStruct_SizeOf_FSkeletalMeshComponentClothTickFunction);
+	REGISTER_FUNC(Export_SizeOfStruct_SizeOf_FSkeletalMeshComponentEndPhysicsTickFunction);
+	REGISTER_FUNC(Export_SizeOfStruct_SizeOf_FStartAsyncSimulationFunction);
+	REGISTER_FUNC(Export_SizeOfStruct_SizeOf_FStartPhysicsTickFunction);
 }

@@ -43,5 +43,17 @@ namespace UnrealEngine.Runtime.Native
         public static Del_SizeOf SizeOf_FText;
         public static Del_SizeOf SizeOf_FGuid;
         public static Del_SizeOf SizeOf_FActorSpawnParameters;
+        public static Del_SizeOf SizeOf_FTickPrerequisite;
+
+        // FTickFunction structs (we (dangerously) expect these to all be the same size to get the Target pointer)
+        public static Del_SizeOf SizeOf_FActorComponentTickFunction;
+        public static Del_SizeOf SizeOf_FActorTickFunction;
+        public static Del_SizeOf SizeOf_FCharacterMovementComponentPostPhysicsTickFunction;
+        public static Del_SizeOf SizeOf_FEndPhysicsTickFunction;
+        public static Del_SizeOf SizeOf_FPrimitiveComponentPostPhysicsTickFunction;
+        public static Del_SizeOf SizeOf_FSkeletalMeshComponentClothTickFunction;
+        public static Del_SizeOf SizeOf_FSkeletalMeshComponentEndPhysicsTickFunction;
+        public static Del_SizeOf SizeOf_FStartAsyncSimulationFunction;
+        public static Del_SizeOf SizeOf_FStartPhysicsTickFunction;
     }
 }
