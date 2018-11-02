@@ -10,7 +10,7 @@ namespace UnrealEngine.Engine
     {
         public List<T> GetAllActorsOfClass<T>() where T : AActor
         {
-            return UGameplayStatics.GetAllActorsOfClassList(this, UClass.GetClass<T>()).Cast<T>().ToList();
+            return UGameplayStatics.GetAllActorsOfClassList<T>(this).Cast<T>().ToList();
         }
 
         public AActor SpawnActor(UClass unrealClass, ref FVector location, ref FRotator rotation, ref FActorSpawnParameters parameters)
