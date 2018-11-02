@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnrealEngine.Runtime;
 using UnrealEngine.Runtime.Native;
 
@@ -7,9 +8,9 @@ namespace UnrealEngine.Engine
 {
     public partial class UWorld : UObject
     {
-        public List<AActor> GetAllActorsOfClass<T>() where T : AActor
+        public List<T> GetAllActorsOfClass<T>() where T : AActor
         {
-            return UGameplayStatics.GetAllActorsOfClassList(this, UClass.GetClass<T>());
+            return UGameplayStatics.GetAllActorsOfClassList(this, UClass.GetClass<T>()).Cast<T>().ToList();
         }
 
         public AActor SpawnActor(UClass unrealClass, ref FVector location, ref FRotator rotation, ref FActorSpawnParameters parameters)
