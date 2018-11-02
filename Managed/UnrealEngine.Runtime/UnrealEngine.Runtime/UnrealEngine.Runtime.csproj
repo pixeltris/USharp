@@ -385,6 +385,7 @@
     <Compile Include="Native\Native_UGameEngine.cs" />
     <Compile Include="Native\Native_UGameInstance.cs" />
     <Compile Include="Native\Internal\Native_USharpClass.cs" />
+    <Compile Include="Native\Native_UGameplayStatics.cs" />
     <Compile Include="Native\Properties\Native_UArrayProperty.cs" />
     <Compile Include="Native\Properties\Native_USoftClassProperty.cs" />
     <Compile Include="Native\Native_UBlueprint.cs" />
