@@ -9,7 +9,8 @@ namespace UnrealEngine.Runtime
     {
         private static HashSet<string> forceExportProperties = new HashSet<string>()
         {
-            "/Script/Engine.Actor:RootComponent"
+            "/Script/Engine.Actor:RootComponent",
+            "/Script/Engine.Actor:bAllowTickBeforeBeginPlay"
         };
         private static HashSet<string> forceHideProperties = new HashSet<string>();
 
@@ -62,11 +63,12 @@ namespace UnrealEngine.Runtime
             bool isOwnerStructAsClass = structInfo != null && structInfo.StructAsClass;
             
             StringBuilder modifiers = new StringBuilder();
-            if (property.HasAnyPropertyFlags(EPropertyFlags.DisableEditOnInstance) && !property.GetBoolMetaData(MDProp.AllowPrivateAccess))
-            {
-                modifiers.Append("private");
-            }
-            else if (!isOwnerStruct && property.HasAnyPropertyFlags(EPropertyFlags.NativeAccessSpecifierProtected | EPropertyFlags.Protected))
+            if ((// private (there is little point in allowing private code gen so make this protected instead?)
+                (property.HasAnyPropertyFlags(EPropertyFlags.DisableEditOnInstance) && !property.GetBoolMetaData(MDProp.AllowPrivateAccess)) ||
+                // protected
+                (!isOwnerStruct && property.HasAnyPropertyFlags(EPropertyFlags.NativeAccessSpecifierProtected | EPropertyFlags.Protected)))
+                // If this is being force exported make it public instead of protected
+                && !forceExportProperties.Contains(property.GetPathName()))
             {
                 modifiers.Append("protected");
             }
