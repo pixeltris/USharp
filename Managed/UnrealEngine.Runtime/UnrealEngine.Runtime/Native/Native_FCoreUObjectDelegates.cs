@@ -16,14 +16,14 @@ namespace UnrealEngine.Runtime.Native
         public delegate void Del_PreLoadMap(ref FScriptArray mapName);
         public delegate void Del_PostLoadMapWithWorld(IntPtr loadedWorld);
 
-        public delegate void Del_Reg_OnObjectModified(Del_OnObjectModified handler, ref FDelegateHandle handle, csbool enable);
-        public delegate void Del_Reg_OnAssetLoaded(Del_OnAssetLoaded handler, ref FDelegateHandle handle, csbool enable);
-        public delegate void Del_Reg_OnObjectSaved(Del_OnObjectSaved handler, ref FDelegateHandle handle, csbool enable);
-        public delegate void Del_Reg_PreLoadMap(Del_PreLoadMap handler, ref FDelegateHandle handle, csbool enable);
-        public delegate void Del_Reg_PostLoadMapWithWorld(Del_PostLoadMapWithWorld handler, ref FDelegateHandle handle, csbool enable);
-        public delegate void Del_Reg_PostDemoPlay(FSimpleMulticastDelegate handler, ref FDelegateHandle handle, csbool enable);
-        public delegate void Del_Reg_PreGarbageCollect(FSimpleMulticastDelegate handler, ref FDelegateHandle handle, csbool enable);
-        public delegate void Del_Reg_PostGarbageCollect(FSimpleMulticastDelegate handler, ref FDelegateHandle handle, csbool enable);
+        public delegate void Del_Reg_OnObjectModified(IntPtr instance, Del_OnObjectModified handler, ref FDelegateHandle handle, csbool enable);
+        public delegate void Del_Reg_OnAssetLoaded(IntPtr instance, Del_OnAssetLoaded handler, ref FDelegateHandle handle, csbool enable);
+        public delegate void Del_Reg_OnObjectSaved(IntPtr instance, Del_OnObjectSaved handler, ref FDelegateHandle handle, csbool enable);
+        public delegate void Del_Reg_PreLoadMap(IntPtr instance, Del_PreLoadMap handler, ref FDelegateHandle handle, csbool enable);
+        public delegate void Del_Reg_PostLoadMapWithWorld(IntPtr instance, Del_PostLoadMapWithWorld handler, ref FDelegateHandle handle, csbool enable);
+        public delegate void Del_Reg_PostDemoPlay(IntPtr instance, FSimpleMulticastDelegate handler, ref FDelegateHandle handle, csbool enable);
+        public delegate void Del_Reg_PreGarbageCollect(IntPtr instance, FSimpleMulticastDelegate handler, ref FDelegateHandle handle, csbool enable);
+        public delegate void Del_Reg_PostGarbageCollect(IntPtr instance, FSimpleMulticastDelegate handler, ref FDelegateHandle handle, csbool enable);
 
         public static Del_Reg_OnObjectModified Reg_OnObjectModified;
         public static Del_Reg_OnAssetLoaded Reg_OnAssetLoaded;

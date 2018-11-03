@@ -262,6 +262,62 @@ namespace UnrealEngine.Runtime
                 return resultUnsafe.Value;
             }
         }
+
+        static FModuleManager()
+        {
+            // Register this class with the native delegates hotreload manager so that our static delegates here
+            // are automatically unbound on unload
+            HotReload.RegisterNativeDelegateManager(typeof(FModuleManager));
+        }
+
+        /// <summary>
+        /// Delegate that is executed when the set of known modules changed, i.e. upon module load or unload.
+        /// 
+        /// The first parameter is the name of the module that changed.
+        /// The second parameter is the reason for the change.
+        /// </summary>
+        public static ModulesChangedHandler ModulesChanged = new ModulesChangedHandler();
+        public class ModulesChangedHandler : NativeMulticastDelegate<Native_FModuleManager.Del_ModulesChanged, Native_FModuleManager.Del_Reg_ModulesChanged, ModulesChangedHandler.Signature>
+        {
+            public delegate void Signature(FName moduleName, EModuleChangeReason reason);
+            private void NativeCallback(ref FName moduleName, EModuleChangeReason reason)
+            {
+                var evnt = managed.Delegate;
+                if (evnt != null)
+                {
+                    evnt(moduleName, reason);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Multicast delegate called to process any new loaded objects.
+        /// </summary>
+        public static ProcessLoadedObjectsHandler ProcessLoadedObjects = new ProcessLoadedObjectsHandler();
+        public class ProcessLoadedObjectsHandler : NativeSimpleMulticastDelegate<Native_FModuleManager.Del_Reg_ProcessLoadedObjectsHandler> { }
+    }
+
+    /// <summary>
+    /// Enumerates reasons for modules to change.
+    /// 
+    /// Values of this type will be passed into OnModuleChanged() delegates.
+    /// </summary>
+    public enum EModuleChangeReason : int
+    {
+        /// <summary>
+        /// A module has been loaded and is ready to be used.
+        /// </summary>
+        ModuleLoaded,
+
+        /// <summary>
+        /// A module has been unloaded and should no longer be used.
+        /// </summary>
+        ModuleUnloaded,
+
+        /// <summary>
+        /// The paths controlling which plug-ins are loaded have been changed and the given module has been found, but not yet loaded.
+        /// </summary>
+        PluginDirectoryChanged
     }
 
     /// <summary>

@@ -59,7 +59,7 @@ namespace UnrealEngine.Runtime
 
             FTicker ticker = new FTicker();
             ticker.del = del;
-            Native_FTicker.Reg_CoreTicker(ticker.callback, ref ticker.handle, true, delay);
+            Native_FTicker.Reg_CoreTicker(IntPtr.Zero, ticker.callback, ref ticker.handle, true, delay);
 
             handlers[ticker] = del.Method;
             handlersReverse[del.Method] = ticker;
@@ -90,7 +90,7 @@ namespace UnrealEngine.Runtime
                 handlers.Remove(ticker);
                 handlersReverse.Remove(del.Method);
 
-                Native_FTicker.Reg_CoreTicker(ticker.callback, ref ticker.handle, false, 0);
+                Native_FTicker.Reg_CoreTicker(IntPtr.Zero, ticker.callback, ref ticker.handle, false, 0);
             }
         }
 
@@ -119,7 +119,7 @@ namespace UnrealEngine.Runtime
         {
             foreach (KeyValuePair<FTicker, MethodInfo> handler in new Dictionary<FTicker, MethodInfo>(handlers))
             {
-                Native_FTicker.Reg_CoreTicker(handler.Key.callback, ref handler.Key.handle, false, 0);
+                Native_FTicker.Reg_CoreTicker(IntPtr.Zero, handler.Key.callback, ref handler.Key.handle, false, 0);
             }
             handlers.Clear();
             handlersReverse.Clear();

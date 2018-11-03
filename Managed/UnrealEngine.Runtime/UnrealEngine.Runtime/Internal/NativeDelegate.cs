@@ -8,7 +8,15 @@ using UnrealEngine.Runtime.Native;
 
 namespace UnrealEngine.Runtime
 {
-    public class NativeDelegate<TNativeDelegate, TRegisterNativeDelegate, TManagedDelegate>
+    public interface INativeDelegate
+    {
+        /// <summary>
+        /// Called on hotreload unload
+        /// </summary>
+        void OnUnload();
+    }
+
+    public class NativeDelegate<TNativeDelegate, TRegisterNativeDelegate, TManagedDelegate> : INativeDelegate
         where TNativeDelegate : class
         where TRegisterNativeDelegate : class
         where TManagedDelegate : class
@@ -24,14 +32,22 @@ namespace UnrealEngine.Runtime
 
         // Define a wrapper delegate which just calls registerNativeDelegate (we do this as we don't have access to a valid
         // delegate signature which we can call directly - so we define one here and make registerNativeDelegate the target)
-        private delegate void RegisterNativeMulticastDelegateWrapper(TNativeDelegate handler, ref FDelegateHandle handle, csbool enable);
+        private delegate void RegisterNativeMulticastDelegateWrapper(IntPtr instance, TNativeDelegate handler, ref FDelegateHandle handle, csbool enable);
         private delegate void RegisterNativeDelegateWrapper(TNativeDelegate handler, csbool enable);
         private RegisterNativeMulticastDelegateWrapper registerNativeMulticastDelegateWrapper;
         private RegisterNativeDelegateWrapper registerNativeDelegateWrapper;
 
+        public IntPtr TargetAddress { get; set; }
+
         public virtual bool IsMulticast
         {
             get { return false; }
+        }
+
+        public NativeDelegate(IntPtr targetObjAddress)
+            : this()
+        {
+            TargetAddress = targetObjAddress;
         }
 
         public NativeDelegate()
@@ -122,7 +138,7 @@ namespace UnrealEngine.Runtime
                 {
                     if (registerNativeMulticastDelegateWrapper != null && nativeCallback != null)
                     {
-                        registerNativeMulticastDelegateWrapper(nativeCallback, ref managed.Handle, true);
+                        registerNativeMulticastDelegateWrapper(TargetAddress, nativeCallback, ref managed.Handle, true);
                     }
                 }
                 else
@@ -185,7 +201,7 @@ namespace UnrealEngine.Runtime
                     {
                         if (registerNativeMulticastDelegateWrapper != null && nativeCallback != null)
                         {
-                            registerNativeMulticastDelegateWrapper(nativeCallback, ref managed.Handle, false);
+                            registerNativeMulticastDelegateWrapper(TargetAddress, nativeCallback, ref managed.Handle, false);
                         }
                     }
                     else
@@ -198,6 +214,12 @@ namespace UnrealEngine.Runtime
                     registeredNativeCallback = false;
                 }
             }
+        }
+        
+        public void OnUnload()
+        {
+            // Flag this class as unavailable to create new binds?
+            UnbindAll();
         }
 
         public void UnbindAll()

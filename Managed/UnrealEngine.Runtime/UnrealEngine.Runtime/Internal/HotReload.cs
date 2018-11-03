@@ -203,6 +203,9 @@ namespace UnrealEngine.Runtime
 
         internal static void UnbindNativeDelegates()
         {
+            // We could possibly add all INativeDelegate instances created to a list and then when hotreload occurs
+            // loop through all instances and call OnUnload()
+
             // TODO: We really need to save the state of bound functions and re-bind on hotreload. The issue is that
             // we wont know if those functions will even exist on reload (or those functions could be temporary
             // anonymous delegates, etc). However if Blueprint or C++ is the initiator of a delegate becoming bound
@@ -215,12 +218,12 @@ namespace UnrealEngine.Runtime
             {
                 foreach (FieldInfo field in type.GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static))
                 {
-                    if (field.FieldType.IsSameOrSubclassOfGeneric(typeof(NativeDelegate<,,>)))
+                    if (typeof(INativeDelegate).IsAssignableFrom(field.FieldType))
                     {
-                        object obj = field.GetValue(null);
+                        INativeDelegate obj = field.GetValue(null) as INativeDelegate;
                         if (obj != null)
                         {
-                            obj.GetType().GetMethod("UnbindAll").Invoke(obj, null);
+                            obj.OnUnload();
 
                             // There should be no more code which accesses delegates. Set the field to null so that
                             // we get a C# exception rather than creating invalid delegate state in native memory.

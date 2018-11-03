@@ -1118,7 +1118,7 @@ namespace UnrealEngine.Runtime
             {
                 FName functionName = new FName(functionInfo.GetName());
                 parentFunction = Native_UClass.FindFunctionByName(parentClass, ref functionName, true);
-                Debug.Assert(parentFunction != IntPtr.Zero);
+                Debug.Assert(parentFunction != IntPtr.Zero, "Couldn't find parent function for override '" + functionInfo.Path + "'");
 
                 Native_UStruct.SetSuperStruct(function, parentFunction);
                 EFunctionFlags parentFunctionFlags = Native_UFunction.Get_FunctionFlags(parentFunction);                

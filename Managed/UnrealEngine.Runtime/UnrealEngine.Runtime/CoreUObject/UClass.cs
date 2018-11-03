@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using System.Text;
@@ -14,7 +15,18 @@ namespace UnrealEngine.Runtime
     [UMetaPath("/Script/CoreUObject.Class", "CoreUObject", UnrealModuleType.Engine)]
     public class UClass : UStruct
     {
-        private static Dictionary<Type, UClass> classes = new Dictionary<Type, UClass>();
+        // Wrapper for holding onto a UClass and its address seperately in case a UClass gets destroyed by GC
+        struct UClassRef
+        {
+            public UClass Class;
+            public IntPtr Address;
+
+            public static implicit operator UClassRef(UClass unrealClass)
+            {
+                return new UClassRef() { Class = unrealClass, Address = unrealClass.Address };
+            }
+        }
+        private static Dictionary<Type, UClassRef> classes = new Dictionary<Type, UClassRef>();
         private static Dictionary<IntPtr, Type> classesByAddress = new Dictionary<IntPtr, Type>();
 
         // Hold onto seen class types for possible classes which are loaded after our Load() function is called
@@ -26,14 +38,48 @@ namespace UnrealEngine.Runtime
         public delegate IntPtr ClassVTableHelperCtorCallerType(IntPtr vtableHelper);
         public delegate void ClassAddReferencedObjectsType(IntPtr inThis, IntPtr referenceCollector);
 
+        private static bool loaded = false;
+
         internal static void Load()
         {
+            bool firstLoad = !loaded;
+
+            Debug.Assert(firstLoad);
+            if (firstLoad)
+            {
+                loaded = true;
+                FModuleManager.ModulesChanged.Bind(OnModulesChanged);
+                FModuleManager.ProcessLoadedObjects.Bind(ProcessLoadedObjects);
+            }
+
             classes.Clear();
             classesByAddress.Clear();
             seenClasses.Clear();
 
+            LoadNative(firstLoad);
+        }
+
+        static void OnModulesChanged(FName moduleName, EModuleChangeReason reason)
+        {
+            lastModuleCount = FModuleManager.Get().GetModuleCount();
+            if (reason == EModuleChangeReason.ModuleUnloaded)
+            {
+                LoadNative(false);
+            }
+        }
+
+        static void ProcessLoadedObjects()
+        {
+            lastModuleCount = FModuleManager.Get().GetModuleCount();
+            LoadNative(false);
+        }
+
+        private static int LoadNative(bool firstLoad)
+        {
             // Use two passes so that classesByAddress has all available types which are needed when
             // calling GCHelper.Find() in the second pass
+
+            int oldCount = classesByAddress.Count;
 
             // First pass to fill up classesByAddress collection
             foreach (KeyValuePair<Type, UMetaPathAttribute> nativeType in UnrealTypes.Native)
@@ -47,13 +93,30 @@ namespace UnrealEngine.Runtime
                     if (classAddress != IntPtr.Zero)
                     {
                         classesByAddress[classAddress] = type;
+                        if (!firstLoad)
+                        {
+                            seenClasses.Remove(type);
+                        }
+                    }
+                    else if (!firstLoad)
+                    {
+                        // Handle cases where a module is unloaded / UClass destroyed
+                        UClassRef oldClass;
+                        if (classes.TryGetValue(type, out oldClass))
+                        {
+                            classesByAddress.Remove(oldClass.Address);
+                            classes.Remove(type);
+                        }
                     }
                 }
             }
 
-            // It should now be safe to access GCHelper (which is required by the second pass to fill
-            // in the classes collection with the managed UClass objects)
-            GCHelper.Available = true;
+            if (firstLoad)
+            {
+                // It should now be safe to access GCHelper (which is required by the second pass to fill
+                // in the classes collection with the managed UClass objects)
+                GCHelper.Available = true;
+            }
 
             int unknownCount = 0;
             // Second pass fill up classes collection
@@ -84,6 +147,8 @@ namespace UnrealEngine.Runtime
                     }
                 }
             }
+
+            return classesByAddress.Count - oldCount;
         }
 
         internal static void Load(Assembly assembly)
@@ -91,6 +156,8 @@ namespace UnrealEngine.Runtime
             Dictionary<Type, UMetaPathAttribute> nativeTypes;
             if (UnrealTypes.AssembliesNativeTypes.TryGetValue(assembly, out nativeTypes))
             {
+                Dictionary<IntPtr, Type> newClassesByAddress = new Dictionary<IntPtr, Type>();
+
                 foreach (KeyValuePair<Type, UMetaPathAttribute> nativeType in nativeTypes)
                 {
                     Type type = nativeType.Key;
@@ -101,13 +168,19 @@ namespace UnrealEngine.Runtime
                         IntPtr classAddress = GetClassAddress(attribute.Path);
                         if (classAddress != IntPtr.Zero)
                         {
+                            // We need to add to both classesByAddress and newClassesByAddress as in the second loop we
+                            // will be using classesByAddress for lookups when we do GCHelper.Find<UClass>(classAddress);
                             classesByAddress[classAddress] = type;
+                            newClassesByAddress[classAddress] = type;
+
+                            // Also remove the type from seenClasses to re-allow a lazy load attempt
+                            seenClasses.Remove(type);
                         }
                     }
                 }
 
                 int unknownCount = 0;
-                foreach (KeyValuePair<IntPtr, Type> classByAddress in classesByAddress)
+                foreach (KeyValuePair<IntPtr, Type> classByAddress in newClassesByAddress)
                 {
                     IntPtr classAddress = classByAddress.Key;
                     Type type = classByAddress.Value;
@@ -139,7 +212,7 @@ namespace UnrealEngine.Runtime
 
         internal static void RegisterManagedClass(IntPtr classAddress, Type type)
         {
-            UClass existingClass;
+            UClassRef existingClass;
             if (classes.TryGetValue(type, out existingClass))
             {
                 classes.Remove(type);
@@ -342,10 +415,10 @@ namespace UnrealEngine.Runtime
         /// <returns>The UClass for the given type</returns>
         public static UClass GetClass(Type type)
         {
-            UClass result = null;
+            UClassRef result;
             if (classes.TryGetValue(type, out result))
             {
-                return result;
+                return result.Class;
             }
             
             if (type.IsEnum || type.IsValueType || typeof(IDelegateBase).IsAssignableFrom(type))
@@ -379,21 +452,6 @@ namespace UnrealEngine.Runtime
                 return null;
             }
 
-            if (seenClasses.Contains(type))
-            {
-                // Note: GetModuleCount uses a lock
-                // TODO: Find some multicast delegate which is called when a module is loaded or a new class type is created.
-                // - FModuleManager::Get().OnProcessLoadedObjectsCallback
-                if (FModuleManager.Get().GetModuleCount() != lastModuleCount)
-                {
-                    seenClasses.Clear();
-                }
-                else
-                {
-                    return null;
-                }
-            }
-
             if (!seenClasses.Contains(type))
             {
                 seenClasses.Add(type);
@@ -404,7 +462,7 @@ namespace UnrealEngine.Runtime
                     IntPtr classAddress = GetClassAddress(pathAttribute.Path);
                     if (classAddress == IntPtr.Zero)
                     {
-                        // Fallback if this class isn't loaded yet. TODO: Check if this is the correct method to call.
+                        // Fallback if this class isn't loaded yet.
                         classAddress = NativeReflection.LoadObject(Classes.UClass, IntPtr.Zero, pathAttribute.Path);
                     }
                     if (classAddress != IntPtr.Zero)
@@ -418,6 +476,12 @@ namespace UnrealEngine.Runtime
                         }
                     }
                 }
+            }
+            else
+            {
+                // We should be in sync with the FModuleManager module count which is important for lazy loading the class
+                // Note: GetModuleCount uses a lock
+                Debug.Assert(FModuleManager.Get().GetModuleCount() == lastModuleCount);
             }
 
             return null;

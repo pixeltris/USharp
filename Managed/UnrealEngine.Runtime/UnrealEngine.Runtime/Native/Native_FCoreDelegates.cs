@@ -11,20 +11,20 @@ namespace UnrealEngine.Runtime.Native
     {
         public delegate void Del_OnControllerConnectionChange(csbool connected, int userId, int controllerIndex);
 
-        public delegate void Del_Reg_OnControllerConnectionChange(Del_OnControllerConnectionChange handler, ref FDelegateHandle handle, csbool enable);
-        public delegate void Del_Reg_OnHandleSystemEnsure(FSimpleMulticastDelegate handler, ref FDelegateHandle handle, csbool enable);
-        public delegate void Del_Reg_OnHandleSystemError(FSimpleMulticastDelegate handler, ref FDelegateHandle handle, csbool enable);
-        public delegate void Del_Reg_OnShutdownAfterError(FSimpleMulticastDelegate handler, ref FDelegateHandle handle, csbool enable);
-        public delegate void Del_Reg_OnInit(FSimpleMulticastDelegate handler, ref FDelegateHandle handle, csbool enable);
-        public delegate void Del_Reg_OnExit(FSimpleMulticastDelegate handler, ref FDelegateHandle handle, csbool enable);
-        public delegate void Del_Reg_OnPreExit(FSimpleMulticastDelegate handler, ref FDelegateHandle handle, csbool enable);
-        public delegate void Del_Reg_OnBeginFrame(FSimpleMulticastDelegate handler, ref FDelegateHandle handle, csbool enable);
-        public delegate void Del_Reg_OnEndFrame(FSimpleMulticastDelegate handler, ref FDelegateHandle handle, csbool enable);
-        public delegate void Del_Reg_ApplicationWillDeactivateDelegate(FSimpleMulticastDelegate handler, ref FDelegateHandle handle, csbool enable);
-        public delegate void Del_Reg_ApplicationHasReactivatedDelegate(FSimpleMulticastDelegate handler, ref FDelegateHandle handle, csbool enable);
-        public delegate void Del_Reg_ApplicationWillEnterBackgroundDelegate(FSimpleMulticastDelegate handler, ref FDelegateHandle handle, csbool enable);
-        public delegate void Del_Reg_ApplicationHasEnteredForegroundDelegate(FSimpleMulticastDelegate handler, ref FDelegateHandle handle, csbool enable);
-        public delegate void Del_Reg_ApplicationWillTerminateDelegate(FSimpleMulticastDelegate handler, ref FDelegateHandle handle, csbool enable);
+        public delegate void Del_Reg_OnControllerConnectionChange(IntPtr instance, Del_OnControllerConnectionChange handler, ref FDelegateHandle handle, csbool enable);
+        public delegate void Del_Reg_OnHandleSystemEnsure(IntPtr instance, FSimpleMulticastDelegate handler, ref FDelegateHandle handle, csbool enable);
+        public delegate void Del_Reg_OnHandleSystemError(IntPtr instance, FSimpleMulticastDelegate handler, ref FDelegateHandle handle, csbool enable);
+        public delegate void Del_Reg_OnShutdownAfterError(IntPtr instance, FSimpleMulticastDelegate handler, ref FDelegateHandle handle, csbool enable);
+        public delegate void Del_Reg_OnInit(IntPtr instance, FSimpleMulticastDelegate handler, ref FDelegateHandle handle, csbool enable);
+        public delegate void Del_Reg_OnExit(IntPtr instance, FSimpleMulticastDelegate handler, ref FDelegateHandle handle, csbool enable);
+        public delegate void Del_Reg_OnPreExit(IntPtr instance, FSimpleMulticastDelegate handler, ref FDelegateHandle handle, csbool enable);
+        public delegate void Del_Reg_OnBeginFrame(IntPtr instance, FSimpleMulticastDelegate handler, ref FDelegateHandle handle, csbool enable);
+        public delegate void Del_Reg_OnEndFrame(IntPtr instance, FSimpleMulticastDelegate handler, ref FDelegateHandle handle, csbool enable);
+        public delegate void Del_Reg_ApplicationWillDeactivateDelegate(IntPtr instance, FSimpleMulticastDelegate handler, ref FDelegateHandle handle, csbool enable);
+        public delegate void Del_Reg_ApplicationHasReactivatedDelegate(IntPtr instance, FSimpleMulticastDelegate handler, ref FDelegateHandle handle, csbool enable);
+        public delegate void Del_Reg_ApplicationWillEnterBackgroundDelegate(IntPtr instance, FSimpleMulticastDelegate handler, ref FDelegateHandle handle, csbool enable);
+        public delegate void Del_Reg_ApplicationHasEnteredForegroundDelegate(IntPtr instance, FSimpleMulticastDelegate handler, ref FDelegateHandle handle, csbool enable);
+        public delegate void Del_Reg_ApplicationWillTerminateDelegate(IntPtr instance, FSimpleMulticastDelegate handler, ref FDelegateHandle handle, csbool enable);
 
         public static Del_Reg_OnControllerConnectionChange Reg_OnControllerConnectionChange;
         public static Del_Reg_OnHandleSystemEnsure Reg_OnHandleSystemEnsure;

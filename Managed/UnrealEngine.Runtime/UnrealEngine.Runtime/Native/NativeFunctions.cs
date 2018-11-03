@@ -54,7 +54,7 @@ namespace UnrealEngine.Runtime.Native
                         // Native_FName -> Export_FName_XXXXX
                         string nativeFunctionPrefix = "Export" + type.Name.Replace("Native", string.Empty) + "_";
 
-                        foreach (FieldInfo field in type.GetFields())
+                        foreach (FieldInfo field in type.GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static))
                         {
                             if (field.IsStatic && field.FieldType.IsSubclassOf(typeof(Delegate)))
                             {

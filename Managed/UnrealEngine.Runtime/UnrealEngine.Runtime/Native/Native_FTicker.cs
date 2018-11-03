@@ -11,7 +11,7 @@ namespace UnrealEngine.Runtime.Native
     {
         public delegate csbool Del_RegisterTicker(float deltaTime);
 
-        public delegate void Del_Reg_CoreTicker(Del_RegisterTicker handler, ref FDelegateHandle handle, csbool enable, float delay);
+        public delegate void Del_Reg_CoreTicker(IntPtr instance, Del_RegisterTicker handler, ref FDelegateHandle handle, csbool enable, float delay);
         public delegate void Del_Tick(float deltaTime);
 
         public static Del_Reg_CoreTicker Reg_CoreTicker;
