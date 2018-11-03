@@ -31,6 +31,9 @@
 // For FCoreRedirect
 #include "UObject/CoreRedirects.h"//CoreUObject
 
+// For FUObjectThreadContext
+#include "UObject/UObjectThreadContext.h"
+
 #if WITH_EDITOR
 // For Export_SharpHotReloadUtils.h
 #include "Kismet2/EnumEditorUtils.h"

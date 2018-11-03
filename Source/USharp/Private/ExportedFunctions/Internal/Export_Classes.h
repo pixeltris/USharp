@@ -23,6 +23,11 @@ CSEXPORT UClass* CSCONV Export_Classes_UMetaData()
 	return UMetaData::StaticClass();
 }
 
+CSEXPORT UClass* CSCONV Export_Classes_UObjectRedirector()
+{
+	return UObjectRedirector::StaticClass();
+}
+
 CSEXPORT UClass* CSCONV Export_Classes_UField()
 {
 	return UField::StaticClass();
@@ -276,6 +281,7 @@ CSEXPORT void CSCONV Export_Classes(RegisterFunc registerFunc)
 	REGISTER_FUNC(Export_Classes_UObject);
 	REGISTER_FUNC(Export_Classes_UPackage);
 	REGISTER_FUNC(Export_Classes_UMetaData);
+	REGISTER_FUNC(Export_Classes_UObjectRedirector);
 	REGISTER_FUNC(Export_Classes_UField);
 	REGISTER_FUNC(Export_Classes_UStruct);
 	REGISTER_FUNC(Export_Classes_UInterface);

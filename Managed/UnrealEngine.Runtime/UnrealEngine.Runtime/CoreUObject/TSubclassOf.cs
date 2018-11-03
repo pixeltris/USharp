@@ -103,6 +103,11 @@ namespace UnrealEngine.Runtime
         {
             return subclassOf.GetHashCode();
         }
+
+        public static implicit operator TSubclassOf<T>(UClass unrealClass)
+        {
+            return new TSubclassOf<T>(unrealClass);
+        }
     }
 
     // This represents the layout of the native TSubclassOf

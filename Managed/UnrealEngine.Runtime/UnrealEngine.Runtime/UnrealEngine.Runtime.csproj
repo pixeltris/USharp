@@ -48,6 +48,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AssetRegistry\FAssetData.cs" />
+    <Compile Include="CoreUObject\ConstructorHelpers.cs" />
     <Compile Include="CoreUObject\Enums\EClassCastFlags.cs" />
     <Compile Include="CoreUObject\Enums\EClassFlags.cs" />
     <Compile Include="CoreUObject\Enums\EDuplicateMode.cs" />
@@ -70,6 +71,7 @@
     <Compile Include="CoreUObject\FScriptInterface.cs" />
     <Compile Include="CoreUObject\CollectionHelpers\FScriptMapHelper.cs" />
     <Compile Include="CoreUObject\CollectionHelpers\FScriptSetHelper.cs" />
+    <Compile Include="CoreUObject\FUObjectThreadContext.cs" />
     <Compile Include="CoreUObject\ICppStructOps.cs" />
     <Compile Include="CoreUObject\Properties\USetProperty.cs" />
     <Compile Include="CoreUObject\TSoftClass.cs" />
@@ -81,6 +83,7 @@
     <Compile Include="CoreUObject\UInterface.cs" />
     <Compile Include="CoreUObject\UMetaData.cs" />
     <Compile Include="CoreUObject\UObjectBaseStatics.cs" />
+    <Compile Include="CoreUObject\UObjectRedirector.cs" />
     <Compile Include="Core\CollectionDebugView.cs" />
     <Compile Include="Core\ConsoleManager\EConsoleVariableFlags.cs" />
     <Compile Include="Core\ConsoleManager\IConsoleCommand.cs" />
@@ -375,6 +378,7 @@
     <Compile Include="Native\Native_FTickFunction.cs" />
     <Compile Include="Native\Native_FTimerManager.cs" />
     <Compile Include="Native\Native_FUObjectArray.cs" />
+    <Compile Include="Native\Native_FUObjectThreadContext.cs" />
     <Compile Include="Native\Native_FURL.cs" />
     <Compile Include="Native\Native_FWeakObjectPtr.cs" />
     <Compile Include="Native\Internal\Native_GCHelper.cs" />
@@ -390,6 +394,7 @@
     <Compile Include="Native\Native_UGameInstance.cs" />
     <Compile Include="Native\Internal\Native_USharpClass.cs" />
     <Compile Include="Native\Native_UGameplayStatics.cs" />
+    <Compile Include="Native\Native_UObjectRedirector.cs" />
     <Compile Include="Native\Properties\Native_UArrayProperty.cs" />
     <Compile Include="Native\Properties\Native_USoftClassProperty.cs" />
     <Compile Include="Native\Native_UBlueprint.cs" />

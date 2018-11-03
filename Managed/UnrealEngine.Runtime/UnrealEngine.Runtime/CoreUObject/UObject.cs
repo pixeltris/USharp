@@ -367,6 +367,39 @@ namespace UnrealEngine.Runtime
         }
 
         /// <summary>
+        /// Marks this object as <see cref="EInternalObjectFlags.PendingKill"/>.
+        /// </summary>
+        public void MarkPendingKill()
+        {
+            Native_UObjectBaseUtility.MarkPendingKill(Address);
+        }
+
+        /// <summary>
+        /// Unmarks this object as <see cref="EInternalObjectFlags.PendingKill"/>.
+        /// </summary>
+        public void ClearPendingKill()
+        {
+            Native_UObjectBaseUtility.ClearPendingKill(Address);
+        }
+
+        /// <summary>
+        /// Add an object to the root set. This prevents the object and all
+        /// its descendants from being deleted during garbage collection.
+        /// </summary>
+        public void AddToRoot()
+        {
+            Native_UObjectBaseUtility.AddToRoot(Address);
+        }
+
+        /// <summary>
+        /// Remove an object from the root set.
+        /// </summary>
+        public void RemoveFromRoot()
+        {
+            Native_UObjectBaseUtility.RemoveFromRoot(Address);
+        }
+
+        /// <summary>
         /// Sets passed in internal object flags.
         /// </summary>
         /// <param name="flagsToSet">Internal object flags to set.</param>

@@ -481,7 +481,7 @@ namespace UnrealEngine.Runtime
     // UObjectGlobals functions which work with IntPtr rather than UObject instances
     public partial class NativeReflection
     {
-        public static IntPtr AnyPackage = new IntPtr(-1);
+        public static readonly IntPtr AnyPackage = new IntPtr(-1);
 
         public static FName MakeUniqueObjectName(ObjectOuter outer, IntPtr unrealClass, FName baseName = default(FName))
         {

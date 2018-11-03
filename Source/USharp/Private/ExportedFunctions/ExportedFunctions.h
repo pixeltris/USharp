@@ -85,6 +85,7 @@
 #include "Export_FCoreRedirects.h"
 #include "Export_FThreading.h"
 #include "Export_FUObjectArray.h"
+#include "Export_FUObjectThreadContext.h"
 #include "Export_FTimerManager.h"
 #include "Export_FTicker.h"
 #include "Export_FTickFunction.h"
@@ -204,6 +205,7 @@ CSEXPORT void CSCONV RegisterFunctions(RegisterFunc registerFunc)
 	Export_FCoreRedirects(registerFunc);
 	Export_FThreading(registerFunc);
 	Export_FUObjectArray(registerFunc);
+	Export_FUObjectThreadContext(registerFunc);
 	Export_FTimerManager(registerFunc);
 	Export_FTicker(registerFunc);
 	Export_FTickFunction(registerFunc);

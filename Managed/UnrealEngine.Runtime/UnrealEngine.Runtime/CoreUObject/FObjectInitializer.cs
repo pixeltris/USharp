@@ -14,12 +14,25 @@ namespace UnrealEngine.Runtime
     [StructLayout(LayoutKind.Sequential)]
     public struct FObjectInitializer
     {
-        internal IntPtr NativeObject;
-        internal IntPtr NativeObjectInitializer;
+        private IntPtr NativeObject;
+        private IntPtr NativeObjectInitializer;
+
+        public bool IsNull
+        {
+            get { return NativeObjectInitializer == IntPtr.Zero; }
+        }
+
+        /// <summary>
+        /// The address of this <see cref="FObjectInitializer"/>
+        /// </summary>
+        public IntPtr Address
+        {
+            get { return NativeObjectInitializer; }
+        }
 
         public IntPtr ObjectAddress
         {
-            get { return Native_FObjectInitializer.GetObj(NativeObjectInitializer); }
+            get { return NativeObject; }//return Native_FObjectInitializer.GetObj(NativeObjectInitializer); }
         }
 
         public IntPtr ClassAddress
@@ -46,7 +59,8 @@ namespace UnrealEngine.Runtime
 
         public FObjectInitializer(IntPtr nativeObjectInitializer)
         {
-            NativeObject = Native_FObjectInitializer.GetObj(nativeObjectInitializer);
+            NativeObject = nativeObjectInitializer == IntPtr.Zero ? 
+                IntPtr.Zero : Native_FObjectInitializer.GetObj(nativeObjectInitializer);
             NativeObjectInitializer = nativeObjectInitializer;
         }
 

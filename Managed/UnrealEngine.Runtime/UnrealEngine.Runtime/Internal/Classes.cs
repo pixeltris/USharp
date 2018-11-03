@@ -20,6 +20,7 @@ namespace UnrealEngine.Runtime
         public static IntPtr UObject;
         public static IntPtr UPackage;
         public static IntPtr UMetaData;
+        public static IntPtr UObjectRedirector;
 
         public static IntPtr UField;
         public static IntPtr UStruct;
@@ -100,6 +101,7 @@ namespace UnrealEngine.Runtime
             UObject = Native_Classes.UObject();
             UPackage = Native_Classes.UPackage();
             UMetaData = Native_Classes.UMetaData();
+            UObjectRedirector = Native_Classes.UObjectRedirector();
 
             UField = Native_Classes.UField();
             UStruct = Native_Classes.UStruct();

@@ -16,6 +16,7 @@ namespace UnrealEngine.Runtime.Native
         public static Del_StaticClass UObject;
         public static Del_StaticClass UPackage;
         public static Del_StaticClass UMetaData;
+        public static Del_StaticClass UObjectRedirector;
         public static Del_StaticClass UField;
         public static Del_StaticClass UStruct;
         public static Del_StaticClass UInterface;

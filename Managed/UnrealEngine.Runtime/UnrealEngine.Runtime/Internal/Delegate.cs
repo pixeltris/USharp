@@ -27,6 +27,11 @@ namespace UnrealEngine.Runtime
         /// </summary>
         public TDelegate Invoke;
 
+        public TDelegate Broadcast
+        {
+            get { return Invoke; }
+        }
+
         public abstract bool IsBound { get; }
 
         public FDelegateBase()

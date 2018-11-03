@@ -377,15 +377,31 @@ namespace UnrealEngine.Runtime
         /// <summary>
         /// Load a class object.
         /// </summary>
-        public static UClass LoadClass<T>(ObjectOuter outer, string name, string filename, ELoadFlags loadFlags = ELoadFlags.None)
+        public static UClass LoadClass<T>(ObjectOuter outer, string name, string filename = null, ELoadFlags loadFlags = ELoadFlags.None)
         {
             UClass unrealClass = UClass.GetClass<T>();
+            if (unrealClass == null)
+            {
+                return null;
+            }
             using (FStringUnsafe nameUnsafe = new FStringUnsafe(name))
             using (FStringUnsafe filenameUnsafe = new FStringUnsafe(filename))
             {
                 return GCHelper.Find<UClass>(Native_UObjectGlobals.StaticLoadClass(
-                    unrealClass == null ? IntPtr.Zero : unrealClass.Address,
-                    outer.Address, ref nameUnsafe.Array, ref filenameUnsafe.Array, loadFlags, IntPtr.Zero));
+                    unrealClass.Address, outer.Address, ref nameUnsafe.Array, ref filenameUnsafe.Array, loadFlags, IntPtr.Zero));
+            }
+        }
+
+        /// <summary>
+        /// Load a class object.
+        /// </summary>
+        public static UClass LoadClass(UClass baseClass, ObjectOuter outer, string name, string filename = null, ELoadFlags loadFlags = ELoadFlags.None)
+        {
+            using (FStringUnsafe nameUnsafe = new FStringUnsafe(name))
+            using (FStringUnsafe filenameUnsafe = new FStringUnsafe(filename))
+            {
+                return GCHelper.Find<UClass>(Native_UObjectGlobals.StaticLoadClass(
+                    baseClass.Address, outer.Address, ref nameUnsafe.Array, ref filenameUnsafe.Array, loadFlags, IntPtr.Zero));
             }
         }
 
