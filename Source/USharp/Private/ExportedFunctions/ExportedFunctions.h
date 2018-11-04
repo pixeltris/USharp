@@ -166,6 +166,7 @@ CSEXPORT void CSCONV RegisterFunctions(RegisterFunc registerFunc)
 	Export_UEngineDelegates(registerFunc);
 	Export_UGameEngine(registerFunc);
 	Export_UWorld(registerFunc);
+	Export_FWorldDelegates(registerFunc);
 	Export_UGameplayStatics(registerFunc);
 	Export_UGameInstance(registerFunc);
 	Export_ULevel(registerFunc);

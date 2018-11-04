@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using UnrealEngine.Engine;
 using UnrealEngine.Runtime.Native;
+using UnrealEngine.UnrealEd;
 
 namespace UnrealEngine.Runtime
 {
@@ -38,6 +39,14 @@ namespace UnrealEngine.Runtime
         /// Called when HotReload occurs
         /// </summary>
         public virtual void OnUnload()
+        {
+        }
+
+        public virtual void OnPIEBegin(bool simulating)
+        {
+        }
+
+        public virtual void OnPIEEnd(bool simulating)
         {
         }
 
@@ -154,12 +163,42 @@ namespace UnrealEngine.Runtime
     }
 
     /// <summary>
+    /// A static variable which will be reset when PIE (Play In Editor) begins/ends<para/>
+    /// NOTE: The value will be reset on hotreload<para/>
+    /// </summary>
+    /// <typeparam name="T">The type of the static variable</typeparam>
+    public class GameStaticVar<T> : StaticVar
+    {
+        public T Value;
+
+        public override void OnPIEBegin(bool simulating)
+        {
+            Value = default(T);
+        }
+
+        public override void OnPIEEnd(bool simulating)
+        {
+            Value = default(T);
+        }
+
+        public static implicit operator T(GameStaticVar<T> value)
+        {
+            return value.Value;
+        }
+
+        public override string ToString()
+        {
+            return Value.ToString();
+        }
+    }
+
+    /// <summary>
     /// A static variable which can have a unique value for each UGameInstance<para/>
     /// NOTE: The value will be reset on hotreload<para/>
     /// NOTE: As each UGameInstance typically works with a single UWorld this is likely no different than using <see cref="WorldStaticVar{T}"/>
     /// </summary>
     /// <typeparam name="T">The type of the static variable</typeparam>
-    public class GameStaticVar<T> : StaticVar
+    public class GameInstanceStaticVar<T> : StaticVar
     {
         // TODO: Avoid using dictionaries
         protected Dictionary<IntPtr, T> values = new Dictionary<IntPtr, T>();
@@ -300,6 +339,9 @@ namespace UnrealEngine.Runtime
             UEngineDelegates.OnWorldAdded.Bind(OnWorldAdded);
             UEngineDelegates.OnWorldDestroyed.Bind(OnWorldDestroyed);
 
+            FEditorDelegates.PreBeginPIE.Bind(OnPreBeginPIE);
+            FEditorDelegates.EndPIE.Bind(OnEndPIE);
+
             FWorldDelegates.OnPostWorldCleanup.Bind(OnPostWorldCleanup);
         }
 
@@ -327,6 +369,24 @@ namespace UnrealEngine.Runtime
             foreach (StaticVar staticVar in Vars)
             {
                 staticVar.OnWorldDestroyed(world);
+            }
+        }
+
+        private static void OnPreBeginPIE(bool simulating)
+        {
+            // TODO: Only call this on types which override this function
+            foreach (StaticVar staticVar in Vars)
+            {
+                staticVar.OnPIEBegin(simulating);
+            }
+        }
+
+        private static void OnEndPIE(bool simulating)
+        {
+            // TODO: Only call this on types which override this function
+            foreach (StaticVar staticVar in Vars)
+            {
+                staticVar.OnPIEEnd(simulating);
             }
         }
 
