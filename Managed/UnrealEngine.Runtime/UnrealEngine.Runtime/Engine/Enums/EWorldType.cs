@@ -5,7 +5,7 @@ using System.Text;
 
 namespace UnrealEngine.Engine
 {
-    public enum EWorldType
+    public enum EWorldType : int
     {
         /// <summary>
         /// An untyped world, in most cases this will be the vestigial worlds of streamed in sub-levels

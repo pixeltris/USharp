@@ -16,6 +16,7 @@ namespace UnrealEngine.Runtime.Native
         public delegate void Del_Reg_OnHandleSystemError(IntPtr instance, FSimpleMulticastDelegate handler, ref FDelegateHandle handle, csbool enable);
         public delegate void Del_Reg_OnShutdownAfterError(IntPtr instance, FSimpleMulticastDelegate handler, ref FDelegateHandle handle, csbool enable);
         public delegate void Del_Reg_OnInit(IntPtr instance, FSimpleMulticastDelegate handler, ref FDelegateHandle handle, csbool enable);
+        public delegate void Del_Reg_OnPostEngineInit(IntPtr instance, FSimpleMulticastDelegate handler, ref FDelegateHandle handle, csbool enable);
         public delegate void Del_Reg_OnExit(IntPtr instance, FSimpleMulticastDelegate handler, ref FDelegateHandle handle, csbool enable);
         public delegate void Del_Reg_OnPreExit(IntPtr instance, FSimpleMulticastDelegate handler, ref FDelegateHandle handle, csbool enable);
         public delegate void Del_Reg_OnBeginFrame(IntPtr instance, FSimpleMulticastDelegate handler, ref FDelegateHandle handle, csbool enable);
@@ -31,6 +32,7 @@ namespace UnrealEngine.Runtime.Native
         public static Del_Reg_OnHandleSystemError Reg_OnHandleSystemError;
         public static Del_Reg_OnShutdownAfterError Reg_OnShutdownAfterError;
         public static Del_Reg_OnInit Reg_OnInit;
+        public static Del_Reg_OnPostEngineInit Reg_OnPostEngineInit;
         public static Del_Reg_OnExit Reg_OnExit;
         public static Del_Reg_OnPreExit Reg_OnPreExit;
         public static Del_Reg_OnBeginFrame Reg_OnBeginFrame;

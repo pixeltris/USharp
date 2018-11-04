@@ -135,7 +135,9 @@
     <Compile Include="Engine\FTimerHandle.cs" />
     <Compile Include="Engine\FTimerManager.cs" />
     <Compile Include="Engine\FURLPtr.cs" />
-    <Compile Include="Engine\FWorldContextPtr.cs" />
+    <Compile Include="Engine\FWorldContext.cs" />
+    <Compile Include="Engine\FWorldDelegates.cs" />
+    <Compile Include="Engine\UEngineDelegates.cs" />
     <Compile Include="Engine\UBlueprintFunctionLibrary.cs" />
     <Compile Include="Engine\UUserDefinedEnum.cs" />
     <Compile Include="Internal\Attributes\AttributeExtensions.cs" />
@@ -160,6 +162,7 @@
     <Compile Include="Internal\ManagedUnrealTypes.MetaData.cs" />
     <Compile Include="Internal\ManagedUnrealVisibility.cs" />
     <Compile Include="Internal\NativeReflectionCached.cs" />
+    <Compile Include="Internal\StaticVar.cs" />
     <Compile Include="Internal\StructAsClass.cs" />
     <Compile Include="Internal\StructDefault.cs" />
     <Compile Include="Internal\UFieldAddress.cs" />
@@ -335,6 +338,7 @@
     <Compile Include="Native\Native_FCoreRedirectObjectName.cs" />
     <Compile Include="Native\Native_FCoreRedirects.cs" />
     <Compile Include="Native\Native_FDelegateHandle.cs" />
+    <Compile Include="Native\Native_FEditorDelegates.cs" />
     <Compile Include="Native\Native_FFrame.cs" />
     <Compile Include="Native\Native_FFrameRef.cs" />
     <Compile Include="Native\Native_FGlobals.cs" />
@@ -386,10 +390,12 @@
     <Compile Include="Native\ConsoleManager\Native_IConsoleManager.cs" />
     <Compile Include="Native\Internal\Native_SizeOfStruct.cs" />
     <Compile Include="Native\Native_FWorldContext.cs" />
+    <Compile Include="Native\Native_FWorldDelegates.cs" />
     <Compile Include="Native\Native_ICppStructOps.cs" />
     <Compile Include="Native\Native_TStatId.cs" />
     <Compile Include="Native\Native_UEditorEngine.cs" />
     <Compile Include="Native\Native_UEngine.cs" />
+    <Compile Include="Native\Native_UEngineDelegates.cs" />
     <Compile Include="Native\Native_UGameEngine.cs" />
     <Compile Include="Native\Native_UGameInstance.cs" />
     <Compile Include="Native\Internal\Native_USharpClass.cs" />
@@ -441,6 +447,7 @@
     <Compile Include="Tests\SimpleFunctionParamTests.cs" />
     <Compile Include="Tests\StructTests.cs" />
     <Compile Include="Tests\Tests.cs" />
+    <Compile Include="UnrealEd\FEditorDelegates.cs" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Internal\CodeGenerator\CodeGenerator.AvailableTypes.cs" />

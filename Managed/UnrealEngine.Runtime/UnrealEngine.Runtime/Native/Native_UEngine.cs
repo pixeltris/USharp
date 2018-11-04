@@ -12,12 +12,36 @@ namespace UnrealEngine.Runtime.Native
     public static class Native_UEngine
     {
         public delegate csbool Del_CopyPropertiesForUnrelatedObjects(IntPtr oldObject, IntPtr newObject, ref FCopyPropertiesForUnrelatedObjectsParams parameters);
-        public delegate void Del_GetWorldContexts(IntPtr instance, IntPtr result);
-        public delegate IntPtr Del_GetWorldFromContextObject(IntPtr instance, IntPtr obj, EGetWorldErrorMode errorMode);
+        public delegate IntPtr Del_GetWorldFromContextObject(IntPtr obj, EGetWorldErrorMode errorMode);
+        public delegate IntPtr Del_GetWorldContextFromWorld(IntPtr world);
+        public delegate IntPtr Del_GetWorldContextFromGameViewport(IntPtr viewport);
+        public delegate IntPtr Del_GetWorldContextFromPendingNetGame(IntPtr pendingNetGame);
+        public delegate IntPtr Del_GetWorldContextFromPendingNetGameNetDriver(IntPtr pendingNetGame);
+        public delegate IntPtr Del_GetWorldContextFromHandle(ref FName worldContextHandle);
+        public delegate IntPtr Del_GetWorldContextFromPIEInstance(int pieInstance);
+        public delegate IntPtr Del_GetWorldContextFromWorldChecked(IntPtr world);
+        public delegate IntPtr Del_GetWorldContextFromGameViewportChecked(IntPtr viewport);
+        public delegate IntPtr Del_GetWorldContextFromPendingNetGameCheckedChecked(IntPtr pendingNetGame);
+        public delegate IntPtr Del_GetWorldContextFromPendingNetGameNetDriverChecked(IntPtr pendingNetGame);
+        public delegate IntPtr Del_GetWorldContextFromHandleChecked(ref FName worldContextHandle);
+        public delegate IntPtr Del_GetWorldContextFromPIEInstanceChecked(int pieInstance);
+        public delegate void Del_GetWorldContexts(IntPtr result);
 
         public static Del_CopyPropertiesForUnrelatedObjects CopyPropertiesForUnrelatedObjects;
-        public static Del_GetWorldContexts GetWorldContexts;
         public static Del_GetWorldFromContextObject GetWorldFromContextObject;
+        public static Del_GetWorldContextFromWorld GetWorldContextFromWorld;
+        public static Del_GetWorldContextFromGameViewport GetWorldContextFromGameViewport;
+        public static Del_GetWorldContextFromPendingNetGame GetWorldContextFromPendingNetGame;
+        public static Del_GetWorldContextFromPendingNetGameNetDriver GetWorldContextFromPendingNetGameNetDriver;
+        public static Del_GetWorldContextFromHandle GetWorldContextFromHandle;
+        public static Del_GetWorldContextFromPIEInstance GetWorldContextFromPIEInstance;
+        public static Del_GetWorldContextFromWorldChecked GetWorldContextFromWorldChecked;
+        public static Del_GetWorldContextFromGameViewportChecked GetWorldContextFromGameViewportChecked;
+        public static Del_GetWorldContextFromPendingNetGameCheckedChecked GetWorldContextFromPendingNetGameCheckedChecked;
+        public static Del_GetWorldContextFromPendingNetGameNetDriverChecked GetWorldContextFromPendingNetGameNetDriverChecked;
+        public static Del_GetWorldContextFromHandleChecked GetWorldContextFromHandleChecked;
+        public static Del_GetWorldContextFromPIEInstanceChecked GetWorldContextFromPIEInstanceChecked;
+        public static Del_GetWorldContexts GetWorldContexts;
     }
 
     // NOTE: Wrapper due to bool (see NativeFunctions "BoolInteropNotes")

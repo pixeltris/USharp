@@ -7,9 +7,36 @@ using UnrealEngine.Runtime.Native;
 
 namespace UnrealEngine.Engine
 {
-    public struct FWorldContextPtr
+    /// <summary>
+    /// FWorldContext
+    /// A context for dealing with UWorlds at the engine level. As the engine brings up and destroys world, we need a way to keep straight
+    /// what world belongs to what.
+    /// 
+    /// WorldContexts can be thought of as a track. By default we have 1 track that we load and unload levels on. Adding a second context is adding
+    /// a second track; another track of progression for worlds to live on. 
+    /// 
+    /// For the GameEngine, there will be one WorldContext until we decide to support multiple simultaneous worlds.
+    /// For the EditorEngine, there may be one WorldContext for the EditorWorld and one for the PIE World.
+    /// 
+    /// FWorldContext provides both a way to manage 'the current PIE UWorld*' as well as state that goes along with connecting/travelling to 
+    /// new worlds.
+    /// 
+    /// FWorldContext should remain internal to the UEngine classes. Outside code should not keep pointers or try to manage FWorldContexts directly.
+    /// Outside code can steal deal with UWorld*, and pass UWorld*s into Engine level functions. The Engine code can look up the relevant context 
+    /// for a given UWorld*.
+    /// 
+    /// For convenience, FWorldContext can maintain outside pointers to UWorld*s. For example, PIE can tie UWorld* UEditorEngine::PlayWorld to the PIE
+    /// world context. If the PIE UWorld changes, the UEditorEngine::PlayWorld pointer will be automatically updated. This is done with AddRef() and
+    /// SetCurrentWorld().
+    /// </summary>
+    public struct FWorldContext
     {
         public IntPtr Address;
+
+        public bool IsNull
+        {
+            get { return Address == IntPtr.Zero; }
+        }
 
         public EWorldType WorldType
         {
@@ -120,12 +147,12 @@ namespace UnrealEngine.Engine
             Native_FWorldContext.SetCurrentWorld(Address, world);
         }
         
-        public IntPtr World()
+        public IntPtr CurrentWorld
         {
-            return Native_FWorldContext.World(Address);
+            get { return Native_FWorldContext.World(Address); }
         }
         
-        public FWorldContextPtr(IntPtr address)
+        public FWorldContext(IntPtr address)
         {
             Address = address;
         }

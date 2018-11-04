@@ -19,7 +19,7 @@ namespace UnrealEngine.Runtime
         private UnrealBinaryHeapEx<T> beginFrame = new UnrealBinaryHeapEx<T>();
         private UnrealBinaryHeapEx<T> endFrame = new UnrealBinaryHeapEx<T>();
 
-        public ComparableYieldInstructions()
+        private ComparableYieldInstructions()
         {
             Coroutine.comparableCollections.Add(this);
         }        

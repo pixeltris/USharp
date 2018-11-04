@@ -61,11 +61,10 @@ namespace UnrealEngine.Engine
                     IntPtr editor = FGlobals.GEditor;
                     if (editor != IntPtr.Zero)
                     {
-                        FWorldContextPtr worldContextPtr = new FWorldContextPtr(
-                                Native_UEditorEngine.GetPIEWorldContext(editor));
-                        if (worldContextPtr.Address != IntPtr.Zero)
+                        FWorldContext worldContext = new FWorldContext(Native_UEditorEngine.GetPIEWorldContext(editor));
+                        if (worldContext.Address != IntPtr.Zero)
                         {
-                            IntPtr world = worldContextPtr.World();
+                            IntPtr world = worldContext.CurrentWorld;
                             if (world != IntPtr.Zero)
                             {
                                 return FTimerManagerCache.GetManager(Native_UWorld.GetTimerManager(world));

@@ -88,9 +88,20 @@ namespace UnrealEngine.Runtime.Native
                 // High = This is when UObject classes are loaded. Don't access UObjects at this or any higher priority.
                 // Medium = UObject classes are loaded and available to use at this priority.
 
+                // If GEngine is null we need to bind OnPostEngineInit to load anything which requires GEngine
+                if (FGlobals.GEngine == IntPtr.Zero)
+                {
+                    FCoreDelegates.OnPostEngineInit.Bind(OnPostEngineInit);
+                }
+
                 // Highest
                 GCHelper.OnNativeFunctionsRegistered();
                 Engine.FTimerManagerCache.OnNativeFunctionsRegistered();
+                if (FGlobals.GEngine != IntPtr.Zero)
+                {
+                    // StaticVarManager needs GEngine for binding delegates
+                    StaticVarManager.OnNativeFunctionsRegistered();
+                }
 
                 // VeryHigh
                 NativeReflection.OnNativeFunctionsRegistered();// Requires Classes to be initialized
@@ -107,6 +118,14 @@ namespace UnrealEngine.Runtime.Native
                 Tests.Tests.OnNativeFunctionsRegistered();
 #endif
             }
+        }
+
+        /// <summary>
+        /// Callback where GEngine is initialized and is safe to use
+        /// </summary>
+        private static void OnPostEngineInit()
+        {
+            StaticVarManager.OnNativeFunctionsRegistered();
         }
 
         private static void RegisterFunction(IntPtr func, string name)

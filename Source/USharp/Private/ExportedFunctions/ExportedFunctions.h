@@ -40,13 +40,16 @@
 #include "Export_UStructProperty.h"
 
 #include "Export_UEngine.h"
+#include "Export_UEngineDelegates.h"
 #include "Export_UGameEngine.h"
 #include "Export_UWorld.h"
+#include "Export_FWorldDelegates.h"
 #include "Export_UGameplayStatics.h"
 #include "Export_UGameInstance.h"
 #include "Export_ULevel.h"
 #include "Export_AActor.h"
 #include "Export_UEditorEngine.h"
+#include "Export_FEditorDelegates.h"
 
 #include "Export_FURL.h"
 #include "Export_FWorldContext.h"
@@ -160,6 +163,7 @@ CSEXPORT void CSCONV RegisterFunctions(RegisterFunc registerFunc)
 	Export_UStructProperty(registerFunc);
 	
 	Export_UEngine(registerFunc);
+	Export_UEngineDelegates(registerFunc);
 	Export_UGameEngine(registerFunc);
 	Export_UWorld(registerFunc);
 	Export_UGameplayStatics(registerFunc);
@@ -167,6 +171,7 @@ CSEXPORT void CSCONV RegisterFunctions(RegisterFunc registerFunc)
 	Export_ULevel(registerFunc);
 	Export_AActor(registerFunc);
 	Export_UEditorEngine(registerFunc);
+	Export_FEditorDelegates(registerFunc);
 
 	Export_FURL(registerFunc);
 	Export_FWorldContext(registerFunc);

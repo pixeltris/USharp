@@ -109,6 +109,7 @@ namespace UnrealEngine.Runtime
                 FMessage.Log(ELogVerbosity.Error, "HotReload.UnloadBegin failed. Exception: " + Environment.NewLine + e);
             }
 
+            StaticVarManager.OnUnload();
             EngineLoop.OnUnload();
             FThreading.OnUnload();
             FTicker.OnUnload();

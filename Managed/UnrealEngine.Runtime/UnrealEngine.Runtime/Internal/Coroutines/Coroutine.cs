@@ -92,11 +92,29 @@ namespace UnrealEngine.Runtime
 
         /// <summary>
         /// A tag which can be used to control multiple coroutines (currently pretty slow)
-        /// </summary>
-        public string Tag { get; set; }
+        /// </summary>        
+        public string Tag
+        {
+            get { return tag; }
+            set
+            {
+                if (mainCollectionIndex != -1 && tag != value)
+                {
+                    OnCoroutineTagChanged(this, tag, value);
+                }
+                tag = value;
+            }
+        }
+        private string tag;
 
         // Index into the main "coroutines" collection
         internal int mainCollectionIndex = -1;
+
+        // Index into the coroutinesByTag collection
+        internal int tagsCollectionIndex = -1;
+
+        // Index into the coroutinesByObject collection
+        internal int objectsCollectionIndex = -1;
 
         public bool IsPaused { get; set; }
 
@@ -126,6 +144,8 @@ namespace UnrealEngine.Runtime
             ReleaseInstructions();
             complete = false;
             mainCollectionIndex = -1;
+            tagsCollectionIndex = -1;
+            objectsCollectionIndex = -1;
             Owner = null;
             Tag = null;
             OnReset = null;

@@ -28,6 +28,11 @@ CSEXPORT void CSCONV Export_FCoreDelegates_Reg_OnInit(void* instance, void(*hand
 	REGISTER_DELEGATE(FCoreDelegates::OnInit);
 }
 
+CSEXPORT void CSCONV Export_FCoreDelegates_Reg_OnPostEngineInit(void* instance, void(*handler)(), FDelegateHandle* handle, csbool enable)
+{
+	REGISTER_DELEGATE(FCoreDelegates::OnPostEngineInit);
+}
+
 CSEXPORT void CSCONV Export_FCoreDelegates_Reg_OnExit(void* instance, void(*handler)(), FDelegateHandle* handle, csbool enable)
 {
 	REGISTER_DELEGATE(FCoreDelegates::OnExit);
@@ -80,6 +85,7 @@ CSEXPORT void CSCONV Export_FCoreDelegates(RegisterFunc registerFunc)
 	REGISTER_FUNC(Export_FCoreDelegates_Reg_OnHandleSystemError);
 	REGISTER_FUNC(Export_FCoreDelegates_Reg_OnShutdownAfterError);
 	REGISTER_FUNC(Export_FCoreDelegates_Reg_OnInit);
+	REGISTER_FUNC(Export_FCoreDelegates_Reg_OnPostEngineInit);
 	REGISTER_FUNC(Export_FCoreDelegates_Reg_OnExit);
 	REGISTER_FUNC(Export_FCoreDelegates_Reg_OnPreExit);
 	REGISTER_FUNC(Export_FCoreDelegates_Reg_OnBeginFrame);

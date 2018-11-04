@@ -21,7 +21,7 @@ namespace UnrealEngine.Engine
 
         public UWorld GetWorldFromContextObject(UObject obj)
         {
-            return GCHelper.Find<UWorld>(Native_UEngine.GetWorldFromContextObject(this.Address, obj.Address, EGetWorldErrorMode.ReturnNull));
+            return GCHelper.Find<UWorld>(Native_UEngine.GetWorldFromContextObject(obj.Address, EGetWorldErrorMode.ReturnNull));
         }
     }
 }

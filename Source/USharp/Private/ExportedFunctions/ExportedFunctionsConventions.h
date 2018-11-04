@@ -35,6 +35,11 @@
 #include "UObject/UObjectThreadContext.h"
 
 #if WITH_EDITOR
+// For FEditorDelegates
+#include "Editor.h"
+#endif
+
+#if WITH_EDITOR
 // For Export_SharpHotReloadUtils.h
 #include "Kismet2/EnumEditorUtils.h"
 #include "Kismet2/BlueprintEditorUtils.h"

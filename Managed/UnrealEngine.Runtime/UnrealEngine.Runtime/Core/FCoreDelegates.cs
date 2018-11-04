@@ -52,7 +52,13 @@ namespace UnrealEngine.Runtime
         /// Called when appInit is called.
         /// </summary>
         public static OnInitHandler OnInit = new OnInitHandler();
-        public class OnInitHandler : NativeSimpleMulticastDelegate<Native_FCoreDelegates.Del_Reg_OnInit> { }        
+        public class OnInitHandler : NativeSimpleMulticastDelegate<Native_FCoreDelegates.Del_Reg_OnInit> { }
+
+        /// <summary>
+        /// Called at the end of UEngine::Init, right before loading PostEngineInit modules for both normal execution and commandlets
+        /// </summary>
+        public static OnPostEngineInitHandler OnPostEngineInit = new OnPostEngineInitHandler();
+        public class OnPostEngineInitHandler : NativeSimpleMulticastDelegate<Native_FCoreDelegates.Del_Reg_OnPostEngineInit> { }
 
         /// <summary>
         /// Called when the application is about to exit.
