@@ -12,12 +12,6 @@ namespace UnrealEngine
     class EntryPoint
     {
         /// <summary>
-        /// HotReload data which is passed between the unloading/reloading appdomain
-        /// (the main appdomain will act as an intermediary for passing the data between these appdomains)
-        /// </summary>
-        public static byte[] HotReloadData;
-
-        /// <summary>
         /// Assembly paths which are considered for hotreload (hotreload will be triggered when any of these files are modified)
         /// </summary>
         public static string[] HotReloadAssemblyPaths;
@@ -32,13 +26,12 @@ namespace UnrealEngine
         /// <summary>
         /// If true we are running on the Mono runtime as opposed to the normal .NET Framework
         /// </summary>
-        public static bool IsMonoRuntime { get; private set; }
+        public static readonly bool IsMonoRuntime = Type.GetType("Mono.Runtime") != null;
 
         public static int DllMain(string arg)
         {
-            IsMonoRuntime = Type.GetType("Mono.Runtime") != null;
-
             Args args = new Args(arg);
+            SharedRuntimeState.Initialize((IntPtr)args.GetInt64("RuntimeState"));
             if (args.GetBool("Preloading"))
             {
                 Preloading = true;
@@ -62,9 +55,8 @@ namespace UnrealEngine
                     using (var subTiming = HotReload.Timing.Create(HotReload.Timing.DataStore_Load))
                     {
                         // If this is a hot-reload then set up the data store
-                        HotReload.Data = HotReload.DataStore.Load(HotReloadData);
+                        HotReload.Data = HotReload.DataStore.Load(SharedRuntimeState.GetHotReloadData());
                         beginUnload = HotReload.Data.BeginUnloadTime;
-                        HotReloadData = null;
                     }
 
                     HotReload.IsReloading = args.GetBool("Reloading");
@@ -76,8 +68,10 @@ namespace UnrealEngine
                         NativeFunctions.RegisterFunctions(address);
                     }
                 }
-                TimeSpan endTime = DateTime.Now.TimeOfDay;
 
+                SharedRuntimeState.SetHotReloadAssemblyPaths(HotReloadAssemblyPaths);
+
+                TimeSpan endTime = DateTime.Now.TimeOfDay;
                 FMessage.Log("BeginReload: " + beginReload + " (BeginUnload-BeginReload: " + (beginReload - beginUnload.TimeOfDay) + ")");
                 FMessage.Log("EndReload: " + endTime + " (BeginUnload-EndReload: " + (endTime - beginUnload.TimeOfDay) + ")");
                 HotReload.Timing.Print(isReloading);
@@ -86,7 +80,7 @@ namespace UnrealEngine
             }
         }
 
-        public static byte[] Unload()
+        public static void Unload()
         {
             DateTime beginUnloadTime = DateTime.Now;
             FMessage.Log("BeginUnload: " + beginUnloadTime.TimeOfDay);
@@ -97,9 +91,10 @@ namespace UnrealEngine
             byte[] data = HotReload.Data.Save();
             HotReload.Data.Close();
 
+            SharedRuntimeState.SetHotReloadData(data);
+
             TimeSpan endUnloadTime = DateTime.Now.TimeOfDay;
             FMessage.Log("EndUnload: " + endUnloadTime + " (" + (endUnloadTime - beginUnloadTime.TimeOfDay) + ")");
-            return data;
         }
 
         class Args

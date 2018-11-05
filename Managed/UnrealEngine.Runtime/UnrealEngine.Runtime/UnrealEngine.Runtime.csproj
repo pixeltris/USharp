@@ -47,7 +47,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="AssetRegistry\FAssetData.cs" />
+    <Compile Include="Internal\EntryPoint.Shared.cs" />
+	<Compile Include="AssetRegistry\FAssetData.cs" />
     <Compile Include="CoreUObject\ConstructorHelpers.cs" />
     <Compile Include="CoreUObject\Enums\EClassCastFlags.cs" />
     <Compile Include="CoreUObject\Enums\EClassFlags.cs" />

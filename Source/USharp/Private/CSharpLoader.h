@@ -16,12 +16,50 @@
 
 #include "USharpPCH.h"
 
+enum class EDotNetRuntime : int32
+{
+	None = 0x00000000,
+	CLR = 0x00000001,
+	Mono = 0x00000002,
+	Dual = CLR | Mono
+};
+
+inline EDotNetRuntime& operator |=(EDotNetRuntime& a, EDotNetRuntime b)
+{
+	return a = (EDotNetRuntime)((int32)a | (int32)b);
+}
+
+struct SharedRuntimeState
+{
+public:
+	EDotNetRuntime DesiredRuntimes;
+	EDotNetRuntime InitializedRuntimes;
+
+	EDotNetRuntime LoadedRuntimes;
+	EDotNetRuntime ActiveRuntime;
+	EDotNetRuntime NextRuntime;
+	int32 IsActiveRuntimeComplete;
+	uint32 RuntimeCounter;
+
+	int32 HotReloadDataLen;
+	int32 HotReloadDataLenInMemory;
+	uint8* HotReloadData;
+
+	int32 HotReloadAssemblyPathsLen;
+	int32 HotReloadAssemblyPathsLenInMemory;
+	uint8* HotReloadAssemblyPaths;
+
+	int32 StructSize;
+
+	void*(*Malloc)(SIZE_T, uint32);
+	void*(*Realloc)(void*, SIZE_T, uint32);
+	void(*Free)(void*);
+};
+
 class CSharpLoader
 {
 private:
-	bool usingMono;	
-	bool runtimeLoaded;
-	bool assemblyLoaded;
+	SharedRuntimeState runtimeState;
 	void* monoDomain;	
 #if PLATFORM_WINDOWS
 	ICLRMetaHost* metaHost;
@@ -35,10 +73,11 @@ private:
 
 	CSharpLoader();
 	TArray<FString> GetRuntimeVersions(bool mono);
-	bool ShouldLoadMono();
+	FString RuntimeTypeToString(EDotNetRuntime type);
+	bool RuntimeTypeHasFlag(EDotNetRuntime type, EDotNetRuntime flagToCheck);
 	bool LoadRuntimeMono();
 	bool LoadRuntimeMs();
-	bool LoadRuntime();	
+	bool LoadRuntime(bool loaderEnabled);
 	void SetupPaths();
 	FString GetMonoDllPath();
 	FString GetAssemblyPath(FString assemblyName);

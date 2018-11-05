@@ -26,7 +26,7 @@ namespace UnrealEngine
 
         private static AppDomain appDomain;
         private static int appDomainCount;
-        private static string assemblyPath;
+        private static string mainAssemblyPath;
         private static string mainAssemblyDirectory;
         private static string currentAssemblyDirectory;
        
@@ -37,10 +37,6 @@ namespace UnrealEngine
         private static string entryPointMethod = "DllMain";
         private static string entryPointArg = null;
         private static string unloadMethod = "Unload";
-
-        internal const string hotReloadAssemblyPathsName = "HotReloadAssemblyPaths";
-        internal const string hotReloadDataName = "HotReloadData";        
-        private static byte[] hotreloadData;
 
         // If true an AppDomain wont be created and the assembly will be loaded current AppDomain.
         public static bool LoadAssemblyWithoutAppDomain = false;
@@ -53,17 +49,18 @@ namespace UnrealEngine
 
         public static int DllMain(string arg)
         {
-            assemblyPath = null;
+            mainAssemblyPath = null;
 
             Args args = new Args(arg);
-            assemblyPath = args.GetString("MainAssembly");
-            if (!string.IsNullOrEmpty(assemblyPath))
+            mainAssemblyPath = args.GetString("MainAssembly");
+            SharedRuntimeState.Initialize((IntPtr)args.GetInt64("RuntimeState"));
+            if (!string.IsNullOrEmpty(mainAssemblyPath))
             {
-                if (string.IsNullOrEmpty(assemblyPath) || !File.Exists(assemblyPath))
+                if (string.IsNullOrEmpty(mainAssemblyPath) || !File.Exists(mainAssemblyPath))
                 {
                     return (int)AssemblyLoaderError.MainAssemblyNotFound;
                 }
-                mainAssemblyDirectory = Path.GetDirectoryName(assemblyPath);
+                mainAssemblyDirectory = Path.GetDirectoryName(mainAssemblyPath);
             }
             else
             {
@@ -76,7 +73,9 @@ namespace UnrealEngine
             {
                 return (int)AssemblyLoaderError.GameThreadHelpersNull;
             }
-            GameThreadHelper.Init(addTickerAddr, isInGameThreadAddr);
+            GameThreadHelper.Init(addTickerAddr, isInGameThreadAddr, OnRuntimeChanged);
+            
+            Debug.Assert(GameThreadHelper.IsInGameThread());
 
             entryPointArg = arg;
 
@@ -89,16 +88,87 @@ namespace UnrealEngine
                 return (int)AssemblyLoaderError.MainAssemblyPathNotProvided;
             }
 
+            if (SharedRuntimeState.IsMonoRuntime && SharedRuntimeState.IsRuntimeLoaded(EDotNetRuntime.CLR))
+            {
+                Debug.Assert(appDomain == null);
+
+                // Make sure the main assembly path exists
+                if (!File.Exists(mainAssemblyPath))
+                {
+                    return (int)AssemblyLoaderError.LoadFailed;
+                }
+
+                // Make sure we are using AppDomain loadding otherwise hotreload wont work which defeats the purpose of
+                // using multiple runtimes
+                if (LoadAssemblyWithoutAppDomain)
+                {
+                    return (int)AssemblyLoaderError.LoadFailed;
+                }
+
+                // Mono will be preloaded only. It will wait until the next runtime is set to target Mono at which point
+                // it will do a full load.
+                PreloadNextAppDomain();
+
+                // Watch for assembly changes (the paths should have been set up by the full load in the CLR runtime)
+                UpdateAssemblyWatchers();
+
+                return 0;
+            }
+
+            unsafe
+            {
+                SharedRuntimeState.Instance->ActiveRuntime = SharedRuntimeState.CurrentRuntime;
+            }
+
             if (!ReloadAppDomain())
             {
+                unsafe
+                {
+                    SharedRuntimeState.Instance->ActiveRuntime = EDotNetRuntime.None;
+                }
                 return (int)AssemblyLoaderError.LoadFailed;
             }
 
             return 0;
         }
 
-        private static void UpdateAssemblyWatchers(string[] assemblyPaths)
+        private static unsafe void OnRuntimeChanged()
         {
+            if (SharedRuntimeState.IsActiveRuntime)
+            {
+                if (!File.Exists(mainAssemblyPath))
+                {
+                    SharedRuntimeState.SetHotReloadData(null);                    
+
+                    // Cancel the runtime swap
+                    SharedRuntimeState.Instance->NextRuntime = EDotNetRuntime.None;
+                    SharedRuntimeState.Instance->IsActiveRuntimeComplete = 0;
+                    return;
+                }
+
+                if (appDomain != null)
+                {
+                    UnloadAppDomain();
+                }
+                Debug.Assert(appDomain == null, "UnloadAppDomain failed?");
+                Debug.Assert(!LoadAssemblyWithoutAppDomain, "AppDomain loading is required in order to swap runtimes");
+
+                PreloadNextAppDomain();
+                SharedRuntimeState.Instance->IsActiveRuntimeComplete = 1;
+            }
+            else
+            {
+                MessageBox.Show("Reload from " + SharedRuntimeState.CurrentRuntime);
+                SharedRuntimeState.Instance->ActiveRuntime = SharedRuntimeState.CurrentRuntime;
+                SharedRuntimeState.Instance->NextRuntime = EDotNetRuntime.None;
+                SharedRuntimeState.Instance->IsActiveRuntimeComplete = 0;
+                ReloadAppDomain();
+            }
+        }
+
+        private static void UpdateAssemblyWatchers()
+        {
+            string[] assemblyPaths = SharedRuntimeState.GetHotReloadAssemblyPaths();
             if (assemblyPaths != null)
             {
                 HashSet<string> newAssemblyPaths = new HashSet<string>();
@@ -196,9 +266,14 @@ namespace UnrealEngine
                 return result;
             }
 
-            if (!File.Exists(assemblyPath))
+            if (!SharedRuntimeState.IsActiveRuntime)
             {
-                hotreloadData = null;
+                return false;
+            }
+
+            if (!File.Exists(mainAssemblyPath))
+            {
+                SharedRuntimeState.SetHotReloadData(null);
                 return false;
             }
 
@@ -211,14 +286,14 @@ namespace UnrealEngine
             {
                 try
                 {
-                    AssemblyLoader loader = new AssemblyLoader(assemblyPath, entryPointType, entryPointMethod, entryPointArg, hotreloadData, false);
+                    AssemblyLoader loader = new AssemblyLoader(mainAssemblyPath, entryPointType, entryPointMethod, entryPointArg, false);
                     loader.Load();
                 }
                 catch (Exception e)
                 {
-                    MessageBox.Show("Failed to load assembly \"" + assemblyPath + "\" " +
+                    MessageBox.Show("Failed to load assembly \"" + mainAssemblyPath + "\" " +
                         Environment.NewLine + Environment.NewLine + e, errorMsgBoxTitle);
-                    hotreloadData = null;
+                    SharedRuntimeState.SetHotReloadData(null);
                     return false;
                 }
             }
@@ -228,7 +303,7 @@ namespace UnrealEngine
                 bool firstLoad = preloadAppDomainWaitHandle == null;
                 if (firstLoad)
                 {
-                    PreloadNextAppDomain(true);
+                    PreloadNextAppDomain();
                 }
                 else
                 {
@@ -245,13 +320,13 @@ namespace UnrealEngine
 
                     try
                     {
-                        AssemblyLoader loader = new AssemblyLoader(assemblyPath, entryPointType, entryPointMethod, entryPointArgEx, hotreloadData, false);
+                        AssemblyLoader loader = new AssemblyLoader(mainAssemblyPath, entryPointType, entryPointMethod, entryPointArgEx, false);
                         appDomain.DoCallBack(loader.Load);
-                        UpdateAssemblyWatchers(appDomain.GetData(hotReloadAssemblyPathsName) as string[]);
+                        UpdateAssemblyWatchers();
                     }
                     catch (Exception e)
                     {
-                        MessageBox.Show("Failed to create AppDomain for \"" + assemblyPath + "\" " +
+                        MessageBox.Show("Failed to create AppDomain for \"" + mainAssemblyPath + "\" " +
                             Environment.NewLine + Environment.NewLine + e, errorMsgBoxTitle);
                     }
                 }
@@ -259,13 +334,13 @@ namespace UnrealEngine
 
             if (!LoadAssemblyWithoutAppDomain)
             {
-                PreloadNextAppDomain(false);
+                PreloadNextAppDomain();
             }
-            hotreloadData = null;
+            SharedRuntimeState.SetHotReloadData(null);
             return true;
         }
 
-        private static void PreloadNextAppDomain(bool firstLoad)
+        private static void PreloadNextAppDomain()
         {
             if (preloadAppDomainWaitHandle == null)
             {
@@ -281,10 +356,6 @@ namespace UnrealEngine
                 preloadFailed = false;
 
                 string entryPointArgEx = entryPointArg + "|Preloading=true";
-                if (!firstLoad)
-                {
-                    entryPointArgEx += "|Reloading=true";
-                }
 
                 string appDomainName = "Domain" + Environment.TickCount + " " + appDomainCount++;
 
@@ -308,12 +379,12 @@ namespace UnrealEngine
                 preloadAppDomain = AppDomain.CreateDomain(appDomainName, null, appDomainSetup);
                 try
                 {
-                    AssemblyLoader loader = new AssemblyLoader(assemblyPath, entryPointType, entryPointMethod, entryPointArgEx, hotreloadData, true);
+                    AssemblyLoader loader = new AssemblyLoader(mainAssemblyPath, entryPointType, entryPointMethod, entryPointArgEx, true);
                     preloadAppDomain.DoCallBack(loader.Load);
                 }
                 catch (Exception e)
                 {
-                    MessageBox.Show("Failed to create AppDomain for \"" + assemblyPath + "\" " +
+                    MessageBox.Show("Failed to create AppDomain for \"" + mainAssemblyPath + "\" " +
                         Environment.NewLine + Environment.NewLine + e, errorMsgBoxTitle);
                     preloadFailed = true;
                     UnloadAppDomain(preloadAppDomain);
@@ -331,12 +402,10 @@ namespace UnrealEngine
                 {
                     AssemblyUnloader unloader = new AssemblyUnloader(entryPointType, unloadMethod);                    
                     appDomain.DoCallBack(unloader.Unload);
-                    hotreloadData = appDomain.GetData(hotReloadDataName) as byte[];
-                    appDomain.SetData(hotReloadDataName, null);
                 }
                 catch (Exception e)
                 {
-                    MessageBox.Show("HotReload Unload failed for \"" + assemblyPath + "\" " +
+                    MessageBox.Show("HotReload Unload failed for \"" + mainAssemblyPath + "\" " +
                         Environment.NewLine + Environment.NewLine + e, unloadErrorMsgBoxTitle);
                 }
                 
@@ -374,7 +443,7 @@ namespace UnrealEngine
                 if (domain != null)
                 {
                     domain = null;
-                    MessageBox.Show("Failed to unload AppDomain for \"" + assemblyPath + "\" " +
+                    MessageBox.Show("Failed to unload AppDomain for \"" + mainAssemblyPath + "\" " +
                         Environment.NewLine + Environment.NewLine + exception, unloadErrorMsgBoxTitle);
                 }
             }).Start();
@@ -450,17 +519,15 @@ namespace UnrealEngine
         private string entryPointArg;
 
         private string assemblyPath;
-        private byte[] hotReloadData;
 
         private bool isPreloading;
 
-        public AssemblyLoader(string path, string entryPointType, string entryPointMethod, string entryPointArg, byte[] hotReloadData, bool isPreloading)
+        public AssemblyLoader(string path, string entryPointType, string entryPointMethod, string entryPointArg, bool isPreloading)
         {
             this.entryPointType = entryPointType;
             this.entryPointMethod = entryPointMethod;
             this.entryPointArg = entryPointArg;
             this.assemblyPath = path;
-            this.hotReloadData = hotReloadData;
             this.isPreloading = isPreloading;
         }
 
@@ -470,12 +537,8 @@ namespace UnrealEngine
             if (dllMainMethod != null)
             {
                 Type entryPoint = dllMainMethod.DeclaringType;
-                entryPoint.GetField(EntryPoint.hotReloadDataName).SetValue(null, hotReloadData);
                 
                 dllMainMethod.Invoke(null, new object[] { entryPointArg });
-
-                AppDomain.CurrentDomain.SetData(EntryPoint.hotReloadAssemblyPathsName,
-                    entryPoint.GetField(EntryPoint.hotReloadAssemblyPathsName).GetValue(null) as string[]);
             }
             else
             {
@@ -487,11 +550,6 @@ namespace UnrealEngine
                 Type entryPoint = assembly.GetType(entryPointType);
                 if (entryPoint != null)
                 {
-                    if (!isPreloading)
-                    {
-                        entryPoint.GetField(EntryPoint.hotReloadDataName).SetValue(null, hotReloadData);
-                    }
-
                     dllMainMethod = entryPoint.GetMethod(entryPointMethod);
                     if (dllMainMethod != null)
                     {
@@ -506,12 +564,6 @@ namespace UnrealEngine
                     else
                     {
                         throw new Exception("Failed to find entry point method " + entryPointType + "." + entryPointMethod);
-                    }
-
-                    if (!isPreloading)
-                    {
-                        AppDomain.CurrentDomain.SetData(EntryPoint.hotReloadAssemblyPathsName,
-                            entryPoint.GetField(EntryPoint.hotReloadAssemblyPathsName).GetValue(null) as string[]);
                     }
                 }
                 else
@@ -551,186 +603,11 @@ namespace UnrealEngine
                     MethodInfo method = type.GetMethod(unloadMethod, bindingFlags);
                     if (method.GetParameters().Length == 0)
                     {
-                        AppDomain.CurrentDomain.SetData(EntryPoint.hotReloadDataName, method.Invoke(null, null));
+                        method.Invoke(null, null);
                         break;
                     }
                 }
             }
-        }
-    }
-
-    class Args
-    {
-        private Dictionary<string, string> args = new Dictionary<string, string>();
-
-        public Args(string arg)
-        {
-            if (arg != null)
-            {
-                string[] splitted = arg.Split(new char[] { '|' }, StringSplitOptions.RemoveEmptyEntries);
-                foreach (string str in splitted)
-                {
-                    int equalsIndex = str.IndexOf('=');
-                    if (equalsIndex > 0)
-                    {
-                        string key = str.Substring(0, equalsIndex).Trim();
-                        string value = str.Substring(equalsIndex + 1).Trim();
-                        if (!string.IsNullOrEmpty(key) && !string.IsNullOrEmpty(value))
-                        {
-                            args[key] = value;
-                        }
-                    }
-                }
-            }
-        }
-
-        public string this[string key]
-        {
-            get { return GetString(key); }
-        }
-
-        public bool Contains(string key)
-        {
-            return args.ContainsKey(key);
-        }
-
-        public string GetString(string key)
-        {
-            string value;
-            args.TryGetValue(key, out value);
-            return value;
-        }
-
-        public bool GetBool(string key)
-        {
-            string valueStr;
-            bool value;
-            if (args.TryGetValue(key, out valueStr) && bool.TryParse(valueStr, out value))
-            {
-                return value;
-            }
-            return false;
-        }
-
-        public int GetInt32(string key)
-        {
-            string valueStr;
-            int value;
-            if (args.TryGetValue(key, out valueStr) && int.TryParse(valueStr, out value))
-            {
-                return value;
-            }
-            return 0;
-        }
-
-        public long GetInt64(string key)
-        {
-            string valueStr;
-            long value;
-            if (args.TryGetValue(key, out valueStr) && long.TryParse(valueStr, out value))
-            {
-                return value;
-            }
-            return 0;
-        }
-    }
-
-    static class GameThreadHelper
-    {
-        public delegate void FSimpleDelegate();
-
-        private static FSimpleDelegate tickCallback;
-        private static AutoResetEvent waitHandle;
-
-        public delegate bool FTickerDelegate(float deltaTime);
-        private delegate void Del_AddStaticTicker(FTickerDelegate func, float delay);
-        private static Del_AddStaticTicker addStaticTicker;
-        private static FTickerDelegate ticker;
-
-        private delegate csbool Del_IsInGameThread();
-        private static Del_IsInGameThread isInGameThread;
-
-        public static void Init(IntPtr addTickerAddr, IntPtr isInGameThreadAddr)
-        {
-            isInGameThread = (Del_IsInGameThread)Marshal.GetDelegateForFunctionPointer(isInGameThreadAddr, typeof(Del_IsInGameThread));
-
-            Debug.Assert(IsInGameThread());
-            addStaticTicker = (Del_AddStaticTicker)Marshal.GetDelegateForFunctionPointer(addTickerAddr, typeof(Del_AddStaticTicker));
-            ticker = Tick;
-            addStaticTicker(ticker, 0.0f);
-        }
-
-        public static bool IsInGameThread()
-        {
-            return isInGameThread();
-        }
-
-        private static bool Tick(float deltaTime)
-        {
-            if (tickCallback != null)
-            {
-                tickCallback();
-                tickCallback = null;
-                waitHandle.Set();
-            }
-            return true;
-        }
-
-        public static void Run(FSimpleDelegate callback)
-        {
-            if (IsInGameThread())
-            {
-                callback();
-            }
-            else
-            {
-                Debug.Assert(waitHandle == null);
-                using (waitHandle = new AutoResetEvent(false))
-                {
-                    tickCallback = callback;
-                    waitHandle.WaitOne(Timeout.Infinite);
-                }
-                waitHandle = null;
-            }
-        }
-    }
-
-    /// <summary>
-    /// Used for bool interop between C# and C++
-    /// </summary>
-    [StructLayout(LayoutKind.Sequential)]
-    public struct csbool
-    {
-        private int val;
-        public bool Value
-        {
-            get { return val != 0; }
-            set { val = value ? 1 : 0; }
-        }
-
-        public csbool(int value)
-        {
-            val = value == 0 ? 0 : 1;
-        }
-
-        public csbool(bool value)
-        {
-            val = value ? 1 : 0;
-        }
-
-        public static implicit operator csbool(bool value)
-        {
-            return new csbool(value);
-        }
-
-        public static implicit operator bool(csbool value)
-        {
-            return value.Value;
-        }
-
-        public override string ToString()
-        {
-            return Value.ToString();
         }
     }
 }

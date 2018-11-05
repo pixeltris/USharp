@@ -154,6 +154,8 @@ namespace UnrealEngine.Runtime.Native
             bool reloading = HotReload.IsReloading;
             HotReload.MinimalReload = Native_SharpHotReloadUtils.Get_MinimalHotReload();
 
+            FMessage.Log("Runtime: " + SharedRuntimeState.GetRuntimeInfo());
+
             // HACK: Removing EPackageFlags.EditorOnly on the USharp package so that C# classes aren't tagged as
             //       EObjectMark.EditorOnly. The correct thing to do would be to seperate USharp into seperate 
             //       Editor/Runtime modules.
@@ -279,14 +281,11 @@ namespace UnrealEngine.Runtime.Native
                 string assemblyPath = Path.Combine(UnrealTypes.GameAssemblyDirectory, assemblyName);
                 if (File.Exists(assemblyPath))
                 {
-                    FMessage.Log("SUC RESOLVE ASSEM: '" + args.Name);
                     // Need to use LoadFrom instead of LoadFile to for shadow copying to work properly
                     Assembly assembly = Assembly.LoadFrom(assemblyPath);
                     return assembly;
                 }
-                FMessage.Log("FAIL RESOLVE ASSEM: !!!!!'" + assemblyName);
             }
-            FMessage.Log("FAIL RESOLVE ASSEM: '" + args.Name);
             return null;
         }
 
@@ -398,52 +397,4 @@ namespace UnrealEngine.Runtime.Native
             return new string[0];
         }
     }
-
-    /// <summary>
-    /// Used for bool interop between C# and C++
-    /// </summary>
-    [StructLayout(LayoutKind.Sequential)]
-    public struct csbool
-    {
-        private int val;
-        public bool Value
-        {
-            get { return val != 0; }
-            set { val = value ? 1 : 0; }
-        }
-
-        public csbool(int value)
-        {
-            val = value == 0 ? 0 : 1;
-        }
-
-        public csbool(bool value)
-        {
-            val = value ? 1 : 0;
-        }
-
-        public static implicit operator csbool(bool value)
-        {
-            return new csbool(value);
-        }
-
-        public static implicit operator bool(csbool value)
-        {
-            return value.Value;
-        }
-
-        public override string ToString()
-        {
-            return Value.ToString();
-        }
-    }
-
-    // BoolInteropNotes:
-    // Any structs which we want to pass between managed and native code with bools needs to be properly converted
-    // due to sizeof(bool) being implementation defined.
-    //
-    // Keep this list up to date and check functions are using the proper conversions
-    // FImplementedInterface
-    // FModuleStatus
-    // FCopyPropertiesForUnrelatedObjectsParams
 }

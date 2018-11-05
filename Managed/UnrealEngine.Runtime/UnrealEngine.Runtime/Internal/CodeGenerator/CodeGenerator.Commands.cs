@@ -17,7 +17,73 @@ namespace UnrealEngine.Runtime
             IConsoleManager.Get().RegisterConsoleCommand("USharpGen", "USharp generate C# code", GenerateCode);
             //IConsoleManager.Get().RegisterConsoleCommand("USharpGenSliced", "USharp generate C# code", GenerateCodeTimeSliced);
 
+            // Move these commands somewhere else?
+            IConsoleManager.Get().RegisterConsoleCommand("USharpRuntime", "Sets the .NET runtime that USharp will use (Mono/CLR)", SetDotNetRuntime);
             IConsoleManager.Get().RegisterConsoleCommand("USharpMinHotReload", "USharp hotreload will skip reintancing / CDO checks", SetMinimalHotReload);
+        }
+
+        private static unsafe void SetDotNetRuntime(string[] args)
+        {
+            const string enableDualRuntimesStr = 
+                "Dual runtimes are not enabled. Add 'dual' to /USharp/Binaries/Mono/DotNetRuntime.txt and reopen the editor.";
+
+            if (args != null && args.Length > 0)
+            {
+                if (SharedRuntimeState.IsRuntimeLoaded(EDotNetRuntime.Dual))
+                {
+                    EDotNetRuntime runtime = EDotNetRuntime.None;
+                    switch (args[0].ToLower())
+                    {
+                        case "mono":
+                            runtime = EDotNetRuntime.Mono;
+                            break;
+                        case "clr":
+                            runtime = EDotNetRuntime.CLR;
+                            break;
+                        case "swap":
+                            if (SharedRuntimeState.CurrentRuntime == EDotNetRuntime.CLR)
+                            {
+                                runtime = EDotNetRuntime.Mono;
+                            }
+                            else
+                            {
+                                runtime = EDotNetRuntime.CLR;
+                            }
+                            break;
+                    }
+                    if (runtime == EDotNetRuntime.None)
+                    {
+                        FMessage.Log("Unknown runtime '" + args[0] + "'. Available runtimes: Mono, CLR");
+                    }
+                    else if (SharedRuntimeState.Instance->NextRuntime != EDotNetRuntime.None)
+                    {
+                        FMessage.Log("Runtime change already queued (" + SharedRuntimeState.Instance->NextRuntime.ToString() + ")");
+                    }
+                    else if (SharedRuntimeState.Instance->ActiveRuntime == runtime)
+                    {
+                        FMessage.Log(runtime.ToString() + " is already the active runtime");
+                    }
+                    else
+                    {
+                        SharedRuntimeState.Instance->RuntimeCounter++;
+                        SharedRuntimeState.Instance->NextRuntime = runtime;
+                        FMessage.Log("Changing runtime to " + runtime.ToString() + "...");
+                    }
+                }
+                else
+                {
+                    FMessage.Log(enableDualRuntimesStr);
+                    FMessage.Log("Runtime: " + SharedRuntimeState.GetRuntimeInfo());
+                }
+            }
+            else
+            {
+                if (!SharedRuntimeState.IsRuntimeLoaded(EDotNetRuntime.Dual))
+                {
+                    FMessage.Log(enableDualRuntimesStr);
+                }
+                FMessage.Log("Runtime: " + SharedRuntimeState.GetRuntimeInfo());
+            }
         }
 
         private static void SetMinimalHotReload(string[] args)

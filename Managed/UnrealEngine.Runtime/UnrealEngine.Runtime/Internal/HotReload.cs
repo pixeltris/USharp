@@ -418,7 +418,7 @@ namespace UnrealEngine.Runtime
             public static DataStore Load(byte[] buffer)
             {
                 DataStore dataStore = new DataStore();
-                if (buffer != null && buffer.Length >= 12)
+                if (buffer != null && buffer.Length >= 12)// sizeof(DateTime) + sizeof(int)
                 {
                     // This will be disposed when calling DataStore.Close()
                     BinaryReader reader = new BinaryReader(new MemoryStream(buffer));

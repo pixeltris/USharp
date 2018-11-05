@@ -3,7 +3,6 @@
 #include "ExportedFunctions/ExportedFunctions.h"
 #include "CSharpProjectGeneration.h"
 
-
 //#define FORCE_MONO 1
 #define MONO_SGEN 1
 #define STATIC_MONO_LINK PLATFORM_IOS
@@ -113,8 +112,6 @@ CSharpLoader* CSharpLoader::singleton = NULL;
 
 CSharpLoader::CSharpLoader()
 {
-	usingMono = false;	
-	runtimeLoaded = false;
 	monoDomain = NULL;
 #if PLATFORM_WINDOWS
 	metaHost = NULL;
@@ -122,7 +119,50 @@ CSharpLoader::CSharpLoader()
 	runtimeInfo = NULL;
 #endif
 
+	runtimeState = {};
+	runtimeState.Malloc = &FMemory::Malloc;
+	runtimeState.Realloc = &FMemory::Realloc;
+	runtimeState.Free = &FMemory::Free;
+	runtimeState.StructSize = (int32)sizeof(SharedRuntimeState);
+
 	SetupPaths();
+
+#if FORCE_MONO
+	runtimeState.DesiredRuntimes = EDotNetRuntime::Mono
+#else
+	// Find the desired runtime type
+	FString monoDllPath = GetMonoDllPath();
+	if (FPaths::FileExists(monoDllPath))
+	{
+		FString dir = FPaths::GetPath(monoDllPath);
+		FString runtimeInfoFile = FPaths::ConvertRelativePathToFull(FPaths::Combine(dir, TEXT("DotNetRuntime.txt")));
+
+		TArray<FString> lines;
+		if (FFileHelper::LoadANSITextFileToStrings(*runtimeInfoFile, NULL, lines))
+		{
+			for (FString line : lines)
+			{
+				line.TrimStartAndEndInline();
+				if (line.Equals(TEXT("mono"), ESearchCase::IgnoreCase))
+				{
+					runtimeState.DesiredRuntimes |= EDotNetRuntime::Mono;
+				}
+				else if (line.Equals(TEXT("dual"), ESearchCase::IgnoreCase))
+				{
+					runtimeState.DesiredRuntimes |= EDotNetRuntime::Dual;
+				}
+				else if (line.Equals(TEXT("clr"), ESearchCase::IgnoreCase))
+				{
+					runtimeState.DesiredRuntimes |= EDotNetRuntime::CLR;
+				}
+			}
+		}
+	}
+	if (runtimeState.DesiredRuntimes == EDotNetRuntime::None)
+	{
+		runtimeState.DesiredRuntimes = EDotNetRuntime::CLR;
+	}
+#endif
 }
 
 CSharpLoader* CSharpLoader::GetInstance()
@@ -243,21 +283,6 @@ TArray<FString> CSharpLoader::GetRuntimeVersions(bool mono)
 	}
 
 	return runtimeVersions;
-}
-
-bool CSharpLoader::ShouldLoadMono()
-{
-#if FORCE_MONO
-	return true;
-#endif
-	FString dllPath = GetMonoDllPath();
-	if (FPaths::FileExists(dllPath))
-	{
-		FString dir, fileName, extension;
-		FPaths::Split(dllPath, dir, fileName, extension);
-		return FPaths::FileExists(FPaths::Combine(dir, TEXT("mono_enabled.txt")));
-	}
-	return false;
 }
 
 bool CSharpLoader::LoadRuntimeMono()
@@ -392,27 +417,53 @@ bool CSharpLoader::LoadRuntimeMs()
 #endif
 }
 
-bool CSharpLoader::LoadRuntime()
+bool CSharpLoader::LoadRuntime(bool loaderEnabled)
 {
-	if (runtimeLoaded)
+	if (runtimeState.InitializedRuntimes != EDotNetRuntime::None)
 	{
 		return true;
 	}
 
+	runtimeState.InitializedRuntimes = EDotNetRuntime::None;
+
 #if PLATFORM_WINDOWS
-	if (!ShouldLoadMono())
+	if (RuntimeTypeHasFlag(runtimeState.DesiredRuntimes, EDotNetRuntime::CLR) && LoadRuntimeMs())
 	{
-		runtimeLoaded = LoadRuntimeMs();
-		if (runtimeLoaded)
+		runtimeState.InitializedRuntimes |= EDotNetRuntime::CLR;
+		if (!RuntimeTypeHasFlag(runtimeState.DesiredRuntimes, EDotNetRuntime::Dual) || !loaderEnabled)
 		{
 			return true;
 		}
 	}
 #endif
 
-	usingMono = true;
-	runtimeLoaded = LoadRuntimeMono();
-	return runtimeLoaded;
+	if (RuntimeTypeHasFlag(runtimeState.DesiredRuntimes, EDotNetRuntime::Mono) && LoadRuntimeMono())
+	{
+		runtimeState.InitializedRuntimes |= EDotNetRuntime::Mono;
+	}
+
+	return runtimeState.InitializedRuntimes != EDotNetRuntime::None;
+}
+
+FString CSharpLoader::RuntimeTypeToString(EDotNetRuntime type)
+{
+	switch (type)
+	{
+		case EDotNetRuntime::CLR:
+			return TEXT("CLR");
+		case EDotNetRuntime::Mono:
+			return TEXT("Mono");
+		case EDotNetRuntime::Dual:
+			return TEXT("Dual (CLR+Mono)");
+		default:
+		case EDotNetRuntime::None:
+			return TEXT("Unknown");
+	}
+}
+
+bool CSharpLoader::RuntimeTypeHasFlag(EDotNetRuntime type, EDotNetRuntime flagToCheck)
+{
+	return ((int32)type & (int32)flagToCheck) == (int32)flagToCheck;
 }
 
 bool CSharpLoader::Load(FString assemblyPath, FString customArgs, FString loaderAssemblyPath, bool loaderEnabled)
@@ -421,15 +472,22 @@ bool CSharpLoader::Load(FString assemblyPath, FString customArgs, FString loader
 	{
 		return true;
 	}
-	
-	if (!LoadRuntime())
+
+	if (!loaderEnabled && runtimeState.DesiredRuntimes == EDotNetRuntime::Dual)
 	{
-		LogLoaderError(FString::Printf(TEXT("Failed to load the .NET runtime. Mono: %s"), usingMono ? TEXT("True") : TEXT("False")));
+		// If we aren't using the Loader program and the target runtime is set to Dual then only initialize CLR
+		runtimeState.DesiredRuntimes = EDotNetRuntime::CLR;
+	}
+	
+	if (!LoadRuntime(loaderEnabled))
+	{
+		FString desiredRuntimeStr = RuntimeTypeToString(runtimeState.DesiredRuntimes);
+		LogLoaderError(FString::Printf(TEXT("Failed to load .NET runtime %s"), *desiredRuntimeStr));
 		return false;
 	}
 
-	FString entryPointMethodArg = FString::Printf(TEXT("RegisterFuncs=%lld|AddTicker=%lld|IsInGameThread=%lld"), 
-		(int64)&RegisterFunctions, (int64)&Export_FTicker_AddStaticTicker, (int64)&Export_FThreading_IsInGameThread);
+	FString entryPointMethodArg = FString::Printf(TEXT("RegisterFuncs=%lld|AddTicker=%lld|IsInGameThread=%lld|RuntimeState=%lld"),
+		(int64)&RegisterFunctions, (int64)&Export_FTicker_AddStaticTicker, (int64)&Export_FThreading_IsInGameThread, (int64)&runtimeState);
 	if (!customArgs.IsEmpty())
 	{
 		entryPointMethodArg += TEXT("|") + customArgs;
@@ -449,7 +507,7 @@ bool CSharpLoader::Load(FString assemblyPath, FString customArgs, FString loader
 		// Shipping build: if the loader isn't found just load the main assembly directly
 		if (GetAssemblyPath(loaderAssemblyPath, fullAssemblyPath, WITH_EDITOR))
 		{
-			entryPointMethodArg = "MainAssembly=" + mainAssemblyPath + "|" + entryPointMethodArg;
+			entryPointMethodArg = TEXT("MainAssembly=") + mainAssemblyPath + TEXT("|") + entryPointMethodArg;
 		}
 		else
 		{
@@ -465,7 +523,7 @@ bool CSharpLoader::Load(FString assemblyPath, FString customArgs, FString loader
 	TCHAR* entryPointMethod = TEXT("DllMain");
 
 #if PLATFORM_WINDOWS
-	if (!usingMono)
+	if (RuntimeTypeHasFlag(runtimeState.InitializedRuntimes, EDotNetRuntime::CLR) && runtimeHost != NULL)
 	{
 		::DWORD retVal;
 		HRESULT hr = runtimeHost->ExecuteInDefaultAppDomain(*fullAssemblyPath, entryPointClass, entryPointMethod, *entryPointMethodArg, &retVal);
@@ -473,13 +531,14 @@ bool CSharpLoader::Load(FString assemblyPath, FString customArgs, FString loader
 		{
 			FString reason = GetLoadErrorReason(retVal);
 			LogLoaderError(FString::Printf(TEXT("Failed to call ExecuteInDefaultAppDomain. ErrorCode: 0x%08x (%u) Result: %d Reason: %s"), hr, hr, retVal, *reason));
-			return false;
 		}
-		assemblyLoaded = true;
-		return true;
+		else
+		{
+			runtimeState.LoadedRuntimes |= EDotNetRuntime::CLR;
+		}
 	}
 #endif
-	if (usingMono && monoDomain != NULL)
+	if (RuntimeTypeHasFlag(runtimeState.InitializedRuntimes, EDotNetRuntime::Mono) && monoDomain != NULL)
 	{
 		MonoAssembly* assembly = mono_domain_assembly_open((MonoDomain*)monoDomain, TCHAR_TO_ANSI(*fullAssemblyPath));
 		if (assembly == NULL)
@@ -535,11 +594,13 @@ bool CSharpLoader::Load(FString assemblyPath, FString customArgs, FString loader
 			LogLoaderError(errorString);
 			return false;
 		}
-		assemblyLoaded = true;
-		return true;
+		else
+		{
+			runtimeState.LoadedRuntimes |= EDotNetRuntime::Mono;
+		}
 	}
 
-	return false;
+	return runtimeState.LoadedRuntimes != EDotNetRuntime::None;
 }
 
 FString CSharpLoader::GetLoadErrorReason(int32 retVal)
@@ -570,7 +631,7 @@ FString CSharpLoader::GetLoadErrorReason(int32 retVal)
 
 bool CSharpLoader::IsLoaded()
 {
-	return runtimeLoaded && assemblyLoaded;
+	return runtimeState.LoadedRuntimes != EDotNetRuntime::None;
 }
 
 void CSharpLoader::LogLoaderError(FString error)
