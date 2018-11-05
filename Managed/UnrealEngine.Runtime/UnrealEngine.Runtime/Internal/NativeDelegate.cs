@@ -73,17 +73,28 @@ namespace UnrealEngine.Runtime
                     if (registerNativeDelegate != null)
                     {
                         Delegate del = registerNativeDelegate as Delegate;
+
+                        // Mono / .NET Framework have slightly different requirements for what we are doing with CreateDelegate
+                        // - Mono requires firstArg to be null to create a valid delegate
+                        // - NET Framework requires the del as context otherwise when the delegate is called an exception is thrown
+                        object firstArg = null;
+                        if (!EntryPoint.IsMonoRuntime)
+                        {
+                            firstArg = del;
+                        }
+
                         if (IsMulticast)
                         {
+                            System.Diagnostics.Debug.WriteLine(del.Method.ToString() + " --- " + del.Method.ToString());
                             registerNativeMulticastDelegateWrapper = (RegisterNativeMulticastDelegateWrapper)
                                 Delegate.CreateDelegate(typeof(RegisterNativeMulticastDelegateWrapper),
-                                    del, del.Method);
+                                    firstArg, del.Method);
                         }
                         else
                         {
                             registerNativeDelegateWrapper = (RegisterNativeDelegateWrapper)
                                 Delegate.CreateDelegate(typeof(RegisterNativeDelegateWrapper),
-                                    del, del.Method);
+                                    firstArg, del.Method);
                         }
                     }
                     else

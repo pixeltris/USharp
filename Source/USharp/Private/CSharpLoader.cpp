@@ -5,7 +5,7 @@
 
 
 //#define FORCE_MONO 1
-//#define MONO_SGEN 1
+#define MONO_SGEN 1
 #define STATIC_MONO_LINK PLATFORM_IOS
 
 #ifndef FORCE_MONO
@@ -41,6 +41,8 @@ typedef void MonoMethodDesc;
 typedef void MonoMethod;
 typedef void MonoObject;
 typedef void MonoString;
+typedef void MonoArray;
+typedef int32 gint32;
 
 struct _MonoObject
 {
@@ -51,23 +53,29 @@ struct _MonoObject
 struct MonoException
 {
 	_MonoObject object;
+	MonoString *class_name;
+	MonoString *message;
+	MonoObject *_data;
+	MonoObject *inner_ex;
+	MonoString *help_link;
 	/* Stores the IPs and the generic sharing infos
 	(vtable/MRGCTX) of the frames. */
-	void  *trace_ips;
-	MonoObject *inner_ex;
-	MonoString *message;
-	MonoString *help_link;
-	MonoString *class_name;
+	MonoArray  *trace_ips;
 	MonoString *stack_trace;
 	MonoString *remote_stack_trace;
-	int32	    remote_stack_index;
-	int32	    hresult;
+	gint32	    remote_stack_index;
+	/* Dynamic methods referenced by the stack trace */
+	MonoObject *dynamic_methods;
+	gint32	    hresult;
 	MonoString *source;
-	MonoObject *_data;
+	MonoObject *serialization_manager;
 	MonoObject *captured_traces;
-	void  *native_trace_ips;
+	MonoArray  *native_trace_ips;
+	gint32 caught_in_unmanaged;
 };
 
+typedef void(*import__mono_config_parse)(const char* filename);
+typedef void(*import__mono_domain_set_config)(MonoDomain *domain, const char* base_dir, const char* config_file_name);
 typedef void(*import__mono_set_dirs)(const char* assembly_dir, const char* config_dir);
 typedef void(*import__mono_debug_init)(MonoDebugFormat format);
 typedef MonoDomain*(*import__mono_jit_init_version)(const char* domain_name, const char* runtime_version);
@@ -83,6 +91,8 @@ typedef void*(*import__mono_object_unbox)(MonoObject* obj);
 typedef MonoString*(*import__mono_string_new)(MonoDomain *domain, const char *text);
 typedef char*(*import__mono_string_to_utf8)(MonoString* string_obj);
 
+import__mono_config_parse mono_config_parse;
+import__mono_domain_set_config mono_domain_set_config;
 import__mono_set_dirs mono_set_dirs;
 import__mono_debug_init mono_debug_init;
 import__mono_jit_init_version mono_jit_init_version;
@@ -139,10 +149,9 @@ void CSharpLoader::SetupPaths()
 FString CSharpLoader::GetMonoDllPath()
 {
 #if MONO_SGEN
-	FString dllName = FString("libmonosgen-2.0") + DLL_EXTENSION;
+	FString dllName = FString("mono-2.0-sgen") + DLL_EXTENSION;
 #else
-	//FString dllName = FString("libmonoboehm-2.0") + DLL_EXTENSION;
-	FString dllName = FString("mono-2.0") + DLL_EXTENSION;
+	FString dllName = FString("mono-2.0-boehm") + DLL_EXTENSION;
 #endif
 
 	for (FString path : monoLibPaths)
@@ -236,6 +245,21 @@ TArray<FString> CSharpLoader::GetRuntimeVersions(bool mono)
 	return runtimeVersions;
 }
 
+bool CSharpLoader::ShouldLoadMono()
+{
+#if FORCE_MONO
+	return true;
+#endif
+	FString dllPath = GetMonoDllPath();
+	if (FPaths::FileExists(dllPath))
+	{
+		FString dir, fileName, extension;
+		FPaths::Split(dllPath, dir, fileName, extension);
+		return FPaths::FileExists(FPaths::Combine(dir, TEXT("mono_enabled.txt")));
+	}
+	return false;
+}
+
 bool CSharpLoader::LoadRuntimeMono()
 {
 	FString dllPath = GetMonoDllPath();
@@ -257,6 +281,8 @@ bool CSharpLoader::LoadRuntimeMono()
 		return false;
 	
 #if !STATIC_MONO_LINK
+	mono_config_parse = (import__mono_config_parse)FPlatformProcess::GetDllExport(dllHandle, TEXT("mono_config_parse"));
+	mono_domain_set_config = (import__mono_domain_set_config)FPlatformProcess::GetDllExport(dllHandle, TEXT("mono_domain_set_config"));
 	mono_set_dirs = (import__mono_set_dirs)FPlatformProcess::GetDllExport(dllHandle, TEXT("mono_set_dirs"));
 	mono_debug_init = (import__mono_debug_init)FPlatformProcess::GetDllExport(dllHandle, TEXT("mono_debug_init"));
 	mono_jit_init_version = (import__mono_jit_init_version)FPlatformProcess::GetDllExport(dllHandle, TEXT("mono_jit_init_version"));
@@ -272,7 +298,9 @@ bool CSharpLoader::LoadRuntimeMono()
 	mono_string_new = (import__mono_string_new)FPlatformProcess::GetDllExport(dllHandle, TEXT("mono_string_new"));
 	mono_string_to_utf8 = (import__mono_string_to_utf8)FPlatformProcess::GetDllExport(dllHandle, TEXT("mono_string_to_utf8"));
 
-	if (mono_set_dirs == NULL ||
+	if (mono_config_parse == NULL ||
+		mono_domain_set_config == NULL ||
+		mono_set_dirs == NULL ||
 		mono_debug_init == NULL ||
 		mono_jit_init_version == NULL ||
 		mono_jit_init == NULL ||
@@ -297,7 +325,14 @@ bool CSharpLoader::LoadRuntimeMono()
 #if UE_BUILD_DEBUG || UE_BUILD_DEVELOPMENT
 	mono_debug_init(MONO_DEBUG_FORMAT_MONO);
 #endif
+	mono_config_parse(NULL);
 	monoDomain = (void*)mono_jit_init_version("DefaultDomain", TCHAR_TO_ANSI(*runtimeVersion));
+
+	// Workaround to avoid this exception:
+	// System.Configuration.ConfigurationErrorsException: Error Initializing the configuration system.
+	// ---> System.ArgumentException: The 'ExeConfigFilename' argument cannot be null.
+	mono_domain_set_config(monoDomain, ".", "");
+
 	return monoDomain != NULL;
 }
 
@@ -364,11 +399,14 @@ bool CSharpLoader::LoadRuntime()
 		return true;
 	}
 
-#if PLATFORM_WINDOWS && !FORCE_MONO
-	runtimeLoaded = LoadRuntimeMs();
-	if (runtimeLoaded)
+#if PLATFORM_WINDOWS
+	if (!ShouldLoadMono())
 	{
-		return true;
+		runtimeLoaded = LoadRuntimeMs();
+		if (runtimeLoaded)
+		{
+			return true;
+		}
 	}
 #endif
 
@@ -490,7 +528,7 @@ bool CSharpLoader::Load(FString assemblyPath, FString customArgs, FString loader
 			errorString.Append(TEXT("\n"));
 			while (exception != NULL)
 			{
-				errorString.Append(FString::Printf(TEXT("%s\n"), (TCHAR*)mono_string_to_utf8(exception->message)));
+				errorString.Append(FString::Printf(TEXT("%s\n"), UTF8_TO_TCHAR(mono_string_to_utf8(exception->message))));
 				exception = (MonoException*)exception->inner_ex;
 			}
 			errorString.Append(TEXT("\n"));

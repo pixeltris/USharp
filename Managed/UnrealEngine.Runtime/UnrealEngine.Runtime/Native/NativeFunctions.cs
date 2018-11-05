@@ -186,6 +186,7 @@ namespace UnrealEngine.Runtime.Native
             }
 
             // If any assemblies are loaded make sure to load their unreal types
+            AppDomain.CurrentDomain.AssemblyResolve += CurrentDomain_AssemblyResolve;
             AppDomain.CurrentDomain.AssemblyLoad += OnAssemblyLoad;
 
             using (var timing = HotReload.Timing.Create(HotReload.Timing.NativeFunctions_LoadAssemblies))
@@ -255,6 +256,38 @@ namespace UnrealEngine.Runtime.Native
                 // We likely created a bunch of garbage, best to clean it up now.
                 GC.Collect();
             }
+        }
+
+        private static Assembly CurrentDomain_AssemblyResolve(object sender, ResolveEventArgs args)
+        {
+            if (!string.IsNullOrEmpty(UnrealTypes.GameAssemblyDirectory))
+            {
+                string assemblyName = args.Name;
+
+                // Strip down the full assembly name down to a name which could be used as the file name
+                // "UnrealEngine, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"
+                for (int i = 0; i < 3; i++)
+                {
+                    int index = assemblyName.LastIndexOf(',');
+                    if (index >= 0)
+                    {
+                        assemblyName = assemblyName.Substring(0, index);
+                    }
+                }
+                assemblyName += ".dll";
+
+                string assemblyPath = Path.Combine(UnrealTypes.GameAssemblyDirectory, assemblyName);
+                if (File.Exists(assemblyPath))
+                {
+                    FMessage.Log("SUC RESOLVE ASSEM: '" + args.Name);
+                    // Need to use LoadFrom instead of LoadFile to for shadow copying to work properly
+                    Assembly assembly = Assembly.LoadFrom(assemblyPath);
+                    return assembly;
+                }
+                FMessage.Log("FAIL RESOLVE ASSEM: !!!!!'" + assemblyName);
+            }
+            FMessage.Log("FAIL RESOLVE ASSEM: '" + args.Name);
+            return null;
         }
 
         private static void OnAssemblyLoad(object sender, AssemblyLoadEventArgs args)
@@ -340,7 +373,8 @@ namespace UnrealEngine.Runtime.Native
                 assemblyPaths.Add(gameAssemblyFileName);
 
                 UnrealTypes.GameAssemblyPath = Path.GetFullPath(gameAssemblyFileName);
-                
+                UnrealTypes.GameAssemblyDirectory = Path.GetDirectoryName(UnrealTypes.GameAssemblyPath);
+
                 //string pdbFileName = Path.ChangeExtension(gameAssemblyFileName, ".pdb");
                 //byte[] assemblyBuffer = File.ReadAllBytes(gameAssemblyFileName);
                 //byte[] pdbBuffer = File.Exists(pdbFileName) ? File.ReadAllBytes(pdbFileName) : null;

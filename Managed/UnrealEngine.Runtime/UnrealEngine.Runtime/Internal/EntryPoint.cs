@@ -29,10 +29,16 @@ namespace UnrealEngine
         public static bool Preloading { get; private set; }
         public static bool Preloaded { get; private set; }
 
+        /// <summary>
+        /// If true we are running on the Mono runtime as opposed to the normal .NET Framework
+        /// </summary>
+        public static bool IsMonoRuntime { get; private set; }
+
         public static int DllMain(string arg)
         {
-            Args args = new Args(arg);
+            IsMonoRuntime = Type.GetType("Mono.Runtime") != null;
 
+            Args args = new Args(arg);
             if (args.GetBool("Preloading"))
             {
                 Preloading = true;

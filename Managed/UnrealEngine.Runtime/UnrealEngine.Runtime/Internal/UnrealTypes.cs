@@ -39,6 +39,7 @@ namespace UnrealEngine.Runtime
         public static Dictionary<string, Type> NativeByPath { get; private set; }
 
         public static string GameAssemblyPath { get; internal set; }
+        public static string GameAssemblyDirectory { get; internal set; }
 
         static UnrealTypes()
         {

@@ -35,6 +35,7 @@ private:
 
 	CSharpLoader();
 	TArray<FString> GetRuntimeVersions(bool mono);
+	bool ShouldLoadMono();
 	bool LoadRuntimeMono();
 	bool LoadRuntimeMs();
 	bool LoadRuntime();	

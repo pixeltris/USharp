@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
@@ -752,7 +753,7 @@ namespace UnrealEngine.Runtime
 #endif
     }
 
-    public class EnumMarshaler<T> where T : struct
+    public class EnumMarshaler<T> where T : struct, IConvertible
     {
         // The reflection system supports non-byte enums but Blueprint visible enums can only be a byte.
         const int defaultSize = 1;
@@ -793,18 +794,18 @@ namespace UnrealEngine.Runtime
         public static T FromNative(IntPtr nativeBuffer, int arrayIndex, IntPtr prop)
         {
             int size = prop == IntPtr.Zero ? enumSize : Native_UProperty.Get_ElementSize(prop);
-            //return FromNativeBoxed(nativeBuffer, arrayIndex, size);
-            return FromNativeUnsafe(nativeBuffer, arrayIndex, size);
+            return FromNativeConvert(nativeBuffer, arrayIndex, size);
+            //return FromNativeUnsafe(nativeBuffer, arrayIndex, size);//doesn't work with mono
         }
 
         public static void ToNative(IntPtr nativeBuffer, int arrayIndex, IntPtr prop, T value)
         {
             int size = prop == IntPtr.Zero ? enumSize : Native_UProperty.Get_ElementSize(prop);
-            //ToNativeBoxed(nativeBuffer, arrayIndex, value, size);
-            ToNativeUnsafe(nativeBuffer, arrayIndex, value, size);
+            ToNativeConvert(nativeBuffer, arrayIndex, value, size);
+            //ToNativeUnsafe(nativeBuffer, arrayIndex, value, size);//doesn't work with mono
         }
 
-        private static T FromNativeBoxed(IntPtr nativeBuffer, int arrayIndex, int size)
+        private static T FromNativeConvert(IntPtr nativeBuffer, int arrayIndex, int size)
         {
             IntPtr address = nativeBuffer + (arrayIndex * size);
 
@@ -822,35 +823,35 @@ namespace UnrealEngine.Runtime
             }
         }
 
-        public static void ToNativeBoxed(IntPtr nativeBuffer, int arrayIndex, T value, int size)
-        {
+        public static void ToNativeConvert(IntPtr nativeBuffer, int arrayIndex, T value, int size)
+        {            
             IntPtr address = nativeBuffer + (arrayIndex * size);
 
             switch (typeCode)
             {
                 case TypeCode.SByte:
-                    WriteValue(address, size, (byte)(object)value);
+                    WriteValue(address, size, value.ToSByte(CultureInfo.InvariantCulture));
                     break;
                 case TypeCode.Byte:
-                    WriteValue(address, size, (sbyte)(object)value);
+                    WriteValue(address, size, value.ToByte(CultureInfo.InvariantCulture));
                     break;
                 case TypeCode.Int16:
-                    WriteValue(address, size, (short)(object)value);
+                    WriteValue(address, size, value.ToInt16(CultureInfo.InvariantCulture));
                     break;
                 case TypeCode.UInt16:
-                    WriteValue(address, size, (ushort)(object)value);
+                    WriteValue(address, size, value.ToUInt16(CultureInfo.InvariantCulture));
                     break;
                 case TypeCode.Int32:
-                    WriteValue(address, size, (int)(object)value);
+                    WriteValue(address, size, value.ToUInt32(CultureInfo.InvariantCulture));
                     break;
                 case TypeCode.UInt32:
-                    WriteValue(address, size, (uint)(object)value);
+                    WriteValue(address, size, value.ToInt32(CultureInfo.InvariantCulture));
                     break;
                 case TypeCode.Int64:
-                    WriteValue(address, size, (long)(object)value);
+                    WriteValue(address, size, value.ToInt64(CultureInfo.InvariantCulture));
                     break;
                 case TypeCode.UInt64:
-                    WriteValue(address, size, (long)(ulong)(object)value);
+                    WriteValue(address, size, (long)value.ToUInt64(CultureInfo.InvariantCulture));
                     break;
             }
         }
@@ -887,22 +888,36 @@ namespace UnrealEngine.Runtime
             IntPtr address = nativeBuffer + (arrayIndex * size);
 
             unsafe
-            {
-                T val = value;
-                TypedReference valRef = __makeref(val);
+            {                
                 switch (size)
                 {
                     case 1:
-                        WriteValue(address, size, *(byte*)(*((IntPtr*)&valRef)));
+                        {
+                            T val = value;
+                            TypedReference valRef = __makeref(val);
+                            WriteValue(address, size, *(byte*)(*((IntPtr*)&valRef)));
+                        }
                         break;
                     case 2:
-                        WriteValue(address, size, *(short*)(*((IntPtr*)&valRef)));
+                        {
+                            T val = value;
+                            TypedReference valRef = __makeref(val);
+                            WriteValue(address, size, *(short*)(*((IntPtr*)&valRef)));
+                        }
                         break;
                     case 4:
-                        WriteValue(address, size, *(int*)(*((IntPtr*)&valRef)));
+                        {
+                            T val = value;
+                            TypedReference valRef = __makeref(val);
+                            WriteValue(address, size, *(int*)(*((IntPtr*)&valRef)));
+                        }
                         break;
                     case 8:
-                        WriteValue(address, size, *(long*)(*((IntPtr*)&valRef)));
+                        {
+                            T val = value;
+                            TypedReference valRef = __makeref(val);
+                            WriteValue(address, size, *(long*)(*((IntPtr*)&valRef)));
+                        }
                         break;
                 }
             }
