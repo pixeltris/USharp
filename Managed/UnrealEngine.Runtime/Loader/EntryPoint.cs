@@ -158,7 +158,6 @@ namespace UnrealEngine
             }
             else
             {
-                MessageBox.Show("Reload from " + SharedRuntimeState.CurrentRuntime);
                 SharedRuntimeState.Instance->ActiveRuntime = SharedRuntimeState.CurrentRuntime;
                 SharedRuntimeState.Instance->NextRuntime = EDotNetRuntime.None;
                 SharedRuntimeState.Instance->IsActiveRuntimeComplete = 0;
