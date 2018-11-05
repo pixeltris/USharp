@@ -81,29 +81,29 @@ namespace UnrealEngine.Runtime
 
         // WaitFor methods
 
-        public static WaitFor WaitFor(TimeSpan time, bool dilated = true)
+        public static WaitFor WaitFor(TimeSpan time)
         {
-            return YieldPools.WaitFor.PoolNew(time, dilated);
+            return YieldPools.WaitFor.PoolNew(time);
         }
 
-        public static WaitForMilliseconds WaitForMilliseconds(uint milliseconds, bool dilated = true)
+        public static WaitForMilliseconds WaitForMilliseconds(uint milliseconds)
         {
-            return YieldPools.WaitForMilliseconds.PoolNew(milliseconds, dilated);
+            return YieldPools.WaitForMilliseconds.PoolNew(milliseconds);
         }
 
-        public static WaitForMilliseconds WaitForMilliseconds(double milliseconds, bool dilated = true)
+        public static WaitForMilliseconds WaitForMilliseconds(double milliseconds)
         {
-            return YieldPools.WaitForMilliseconds.PoolNew(milliseconds, dilated);
+            return YieldPools.WaitForMilliseconds.PoolNew(milliseconds);
         }
 
-        public static WaitForSeconds WaitForSeconds(uint seconds, bool dilated = true)
+        public static WaitForSeconds WaitForSeconds(uint seconds)
         {
-            return YieldPools.WaitForSeconds.PoolNew(seconds, dilated);
+            return YieldPools.WaitForSeconds.PoolNew(seconds);
         }
 
-        public static WaitForSeconds WaitForSeconds(double seconds, bool dilated = true)
+        public static WaitForSeconds WaitForSeconds(double seconds)
         {
-            return YieldPools.WaitForSeconds.PoolNew(seconds, dilated);
+            return YieldPools.WaitForSeconds.PoolNew(seconds);
         }
 
         // WaitForReltime methods

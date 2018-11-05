@@ -6,117 +6,43 @@ using UnrealEngine.Runtime.Native;
 
 namespace UnrealEngine.Runtime
 {
-    // This doesn't update to the time dilation each tick.
-    // If this is on an actor and the actor changes the time dilation
-    // over a period of time then that time dilation currently wont
-    // be reflected on this instance. It will only be captured OnBegin.
-    //
-    // Probably need want a specialization or override IsComparable and add
-    // AutoUpdateDilation which sets IsComparable to false (this needs to be
-    // done early on and possibly getter only, set in constructor) - make
-    // "dilated" an enum? DilationMode { None, Dilated, AutoDilated/UpdateDilationOnTick }
-    // 
-    //
-    // We also need to allow changes of Time to be reflected properly
-    // currently it will have no impact.
-    //
     public class WaitFor : ComparableYieldInstruction<WaitFor>
     {
         public override bool KeepWaiting
         {
-            get { return endTime > EngineLoop.Time; }
-        }
-
-        private bool dilated;
-        public bool Dilated
-        {
-            get { return dilated; }
-            set
+            get
             {
-                if (dilated != value)
-                {
-                    dilated = value;
-                    if (dilated)
-                    {
-                        UpdateDilatedTime();
-                    }
-                }
+                return endTimeSeconds > WorldTimeHelper.GetTimeSecondsChecked(worldAddress);
             }
         }
 
+        public TimeSpan Time { get; internal set; }
+        
+        private float startTimeSeconds;
+        private float endTimeSeconds;
 
-        private TimeSpan timeDilation = TimeSpan.FromSeconds(1);
-        public TimeSpan TimeDilation
-        {
-            get { return timeDilation; }
-            private set
-            {
-                timeDilation = value;
-                UpdateTotalTime();
-            }
-        }
+        private IntPtr worldAddress;
 
-        private TimeSpan time;
-        public TimeSpan Time
-        {
-            get { return time; }
-            set
-            {
-                time = value;
-                UpdateTotalTime();
-            }
-        }
-
-        public TimeSpan TotalTime { get; private set; }
-
-        private TimeSpan endTime;
-        private TimeSpan startTime;
-
-        public WaitFor(TimeSpan time, bool dilated = true)
+        public WaitFor(TimeSpan time)
         {
             Time = time;
-            this.dilated = dilated;
         }
 
         public override void OnBegin()
         {
-            UpdateDilatedTime();
-            startTime = EngineLoop.Time;
-            endTime = startTime + TotalTime;
-        }
-
-        private void UpdateDilatedTime()
-        {
-            if (Dilated && Owner.Owner != null)
+            UObject ownerObj = Owner.Owner as UObject;
+            if (ownerObj != null && ownerObj.Address != IntPtr.Zero)
             {
-                UObject ownerObj = Owner.Owner as UObject;
-                if (ownerObj != null)
-                {
-                    TimeDilation = TimeSpan.FromSeconds(Native_AActor.GetActorTimeDilationOrDefault(
-                        ownerObj == null ? IntPtr.Zero : ownerObj.Address));
-                }
-                else
-                {
-                    TimeDilation = TimeSpan.FromSeconds(1);
-                }
+                worldAddress = Native_UObject.GetWorld(ownerObj.Address);
             }
-            UpdateTotalTime();
-        }
 
-        private void UpdateTotalTime()
-        {
-            TotalTime = TimeSpan.FromSeconds(time.TotalSeconds * (dilated ? TimeDilation.TotalSeconds : 1));
-        }        
+            startTimeSeconds = WorldTimeHelper.GetTimeSecondsChecked(worldAddress);
+            endTimeSeconds = (float)(startTimeSeconds + Time.TotalSeconds);
+        }
         
         public override int CompareTo(WaitFor other)
         {
-            return endTime.CompareTo(other.endTime);
-        }
-
-        internal void SetTime(TimeSpan time, bool dilated)
-        {
-            Time = time;
-            this.dilated = dilated;
+            return endTimeSeconds.CompareTo(other.endTimeSeconds);
         }
     }
 
@@ -125,14 +51,13 @@ namespace UnrealEngine.Runtime
         public double Seconds
         {
             get { return Time.TotalSeconds; }
-            set { Time = TimeSpan.FromSeconds(value); }
         }
 
-        public WaitForSeconds(uint seconds, bool dilated = true) : base(TimeSpan.FromSeconds(seconds), dilated)
+        public WaitForSeconds(uint seconds) : base(TimeSpan.FromSeconds(seconds))
         {
         }
 
-        public WaitForSeconds(double seconds, bool dilated = true) : base(TimeSpan.FromSeconds(seconds), dilated)
+        public WaitForSeconds(double seconds) : base(TimeSpan.FromSeconds(seconds))
         {
         }
     }
@@ -142,43 +67,13 @@ namespace UnrealEngine.Runtime
         public uint Milliseconds
         {
             get { return (uint)Time.TotalMilliseconds; }
-            set { Time = TimeSpan.FromMilliseconds(value); }
         }
 
-        public WaitForMilliseconds(double milliseconds, bool dilated = true) : base(TimeSpan.FromMilliseconds(milliseconds), dilated)
+        public WaitForMilliseconds(double milliseconds) : base(TimeSpan.FromMilliseconds(milliseconds))
         {
         }
 
-        public WaitForMilliseconds(uint milliseconds, bool dilated = true) : base(TimeSpan.FromMilliseconds(milliseconds), dilated)
-        {
-        }
-    }
-
-    public class WaitForRealtime : WaitFor
-    {
-        public WaitForRealtime(TimeSpan time) : base(time, false)
-        {
-        }
-    }
-
-    public class WaitForSecondsRealtime : WaitForSeconds
-    {
-        public WaitForSecondsRealtime(uint seconds) : base(seconds, false)
-        {
-        }
-
-        public WaitForSecondsRealtime(double seconds) : base(seconds, false)
-        {
-        }
-    }
-
-    public class WaitForMillisecondsRealtime : WaitForMilliseconds
-    {
-        public WaitForMillisecondsRealtime(uint milliseconds) : base(milliseconds, false)
-        {
-        }
-
-        public WaitForMillisecondsRealtime(double milliseconds) : base(milliseconds, false)
+        public WaitForMilliseconds(uint milliseconds) : base(TimeSpan.FromMilliseconds(milliseconds))
         {
         }
     }

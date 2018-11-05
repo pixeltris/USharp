@@ -34,8 +34,9 @@ namespace UnrealEngine.Runtime
             get { return startTime + stopwatch.Elapsed; }
         }
 
+        private static ulong lastTickCounter;
         public static ulong LastTickCounter { get; private set; }
-        public static ulong TickCounter { get; private set; }
+        public static ulong TickCounter { get; private set; }        
 
         private static uint lastFrameNumber;
         public static ulong LastFrameNumber { get; private set; }
@@ -45,12 +46,23 @@ namespace UnrealEngine.Runtime
         public static ulong LastFrameNumberRenderThread { get; private set; }
         public static ulong FrameNumberRenderThread { get; private set; }
 
+        public static WorldTimeHelper WorldTime;
+
+        /// <summary>
+        /// The same as TickCounter but only updated when the active world isn't paused
+        /// </summary>
+        public static ulong WorldTickCounter { get; private set; }
+        /// <summary>
+        /// The same as FrameNumber but only updated when the active world isn't paused
+        /// </summary>
+        public static ulong WorldFrameNumber { get; private set; }
+
         static EngineLoop()
         {
             stopwatch = new Stopwatch();
             stopwatch.Start();
         }
-        
+
         internal static void OnNativeFunctionsRegistered()
         {
             FTicker.AddTicker(Tick);
@@ -88,21 +100,29 @@ namespace UnrealEngine.Runtime
         private static void UpdateCounters()
         {
             LastTickCounter = TickCounter;
-            TickCounter = FGlobals.FrameCounter;
+            ulong tickCounter = FGlobals.FrameCounter;
+            ulong tickCounterDifference = tickCounter - lastTickCounter;
+            Debug.Assert(tickCounterDifference >= 0, "GFrameCounter decreased");
+            TickCounter = lastTickCounter = tickCounter;
             
             LastFrameNumber = FrameNumber;
             uint frameNumber = FGlobals.FrameNumber;
             uint frameNumberDifference = frameNumber - lastFrameNumber;
             Debug.Assert(frameNumberDifference >= 0, "GFrameNumber decreased");
-            lastFrameNumber = frameNumber;
-            FrameNumber += frameNumberDifference;
+            FrameNumber = lastFrameNumber = frameNumber;
 
             LastFrameNumberRenderThread = FrameNumberRenderThread;
             uint frameNumberRenderThread = FGlobals.FrameNumberRenderThread;
             uint frameNumberRenderThreadDifference = frameNumberRenderThread - lastFrameNumberRenderThread;
             Debug.Assert(frameNumberDifference >= 0, "GFrameNumberRenderThread decreased");
-            lastFrameNumberRenderThread = frameNumberRenderThread;
-            FrameNumberRenderThread += frameNumberRenderThreadDifference;
+            FrameNumberRenderThread = lastFrameNumberRenderThread = frameNumberRenderThread;
+
+            WorldTime.WorldAddress = FGlobals.GWorld;
+            if (!WorldTime.IsPaused)
+            {
+                WorldTickCounter += tickCounterDifference;
+                WorldFrameNumber += frameNumberDifference;
+            }
         }
 
         internal static void OnUnload()

@@ -43,10 +43,16 @@ namespace PluginInstaller
             PrintHelp();
             Console.WriteLine();
 
-            if (!string.IsNullOrEmpty(settings.EnginePath))
-            {                
+            if (!string.IsNullOrEmpty(settings.EnginePath) && Directory.Exists(settings.EnginePath))
+            {
                 Console.WriteLine("Targeting engine version '" + new DirectoryInfo(settings.EnginePath).Name + "'");
                 Console.WriteLine();
+            }
+            else
+            {
+                Console.WriteLine("Failed to find the engine folder! Make sure PluginInstaller.exe is under /Engine/Plugins/USharp/Binaries/Managed/PluginInstaller/PluginInstaller.exe");
+                Console.ReadLine();
+                return;
             }
 
             UpdateUSharpPluginContentFiles(false, false);

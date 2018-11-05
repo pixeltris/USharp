@@ -159,9 +159,9 @@ namespace UnrealEngine.Runtime
             {
                 return new WaitFor(TimeSpan.Zero);
             }
-            public WaitFor PoolNew(TimeSpan time, bool dilated = true)
+            public WaitFor PoolNew(TimeSpan time)
             {
-                return GetObject().PoolNew(time, dilated);
+                return GetObject().PoolNew(time);
             }
         }
 
@@ -171,13 +171,13 @@ namespace UnrealEngine.Runtime
             {
                 return new WaitForSeconds(0);
             }
-            public WaitForSeconds PoolNew(uint seconds, bool dilated = true)
+            public WaitForSeconds PoolNew(uint seconds)
             {
-                return GetObject().PoolNew(TimeSpan.FromSeconds(seconds), dilated);
+                return GetObject().PoolNew(TimeSpan.FromSeconds(seconds));
             }
-            public WaitForSeconds PoolNew(double seconds, bool dilated = true)
+            public WaitForSeconds PoolNew(double seconds)
             {
-                return GetObject().PoolNew(TimeSpan.FromSeconds(seconds), dilated);
+                return GetObject().PoolNew(TimeSpan.FromSeconds(seconds));
             }
         }
 
@@ -187,13 +187,13 @@ namespace UnrealEngine.Runtime
             {
                 return new WaitForMilliseconds(0);
             }
-            public WaitForMilliseconds PoolNew(uint milliseconds, bool dilated = true)
+            public WaitForMilliseconds PoolNew(uint milliseconds)
             {
-                return GetObject().PoolNew(TimeSpan.FromMilliseconds(milliseconds), dilated);
+                return GetObject().PoolNew(TimeSpan.FromMilliseconds(milliseconds));
             }
-            public WaitForMilliseconds PoolNew(double milliseconds, bool dilated = true)
+            public WaitForMilliseconds PoolNew(double milliseconds)
             {
-                return GetObject().PoolNew(TimeSpan.FromMilliseconds(milliseconds), dilated);
+                return GetObject().PoolNew(TimeSpan.FromMilliseconds(milliseconds));
             }
         }
 
@@ -207,7 +207,7 @@ namespace UnrealEngine.Runtime
             }
             public WaitForRealtime PoolNew(TimeSpan time)
             {
-                return GetObject().PoolNew(time, false);
+                return GetObject().PoolNewTime(time);
             }
         }
 
@@ -219,11 +219,11 @@ namespace UnrealEngine.Runtime
             }
             public WaitForSecondsRealtime PoolNew(uint seconds)
             {
-                return GetObject().PoolNew(TimeSpan.FromSeconds(seconds), false);
+                return GetObject().PoolNewTime(TimeSpan.FromSeconds(seconds));
             }
             public WaitForSecondsRealtime PoolNew(double seconds)
             {
-                return GetObject().PoolNew(TimeSpan.FromSeconds(seconds), false);
+                return GetObject().PoolNewTime(TimeSpan.FromSeconds(seconds));
             }
         }
 
@@ -235,11 +235,11 @@ namespace UnrealEngine.Runtime
             }
             public WaitForMillisecondsRealtime PoolNew(uint milliseconds)
             {
-                return GetObject().PoolNew(TimeSpan.FromMilliseconds(milliseconds), false);
+                return GetObject().PoolNewTime(TimeSpan.FromMilliseconds(milliseconds));
             }
             public WaitForMillisecondsRealtime PoolNew(double milliseconds)
             {
-                return GetObject().PoolNew(TimeSpan.FromMilliseconds(milliseconds), false);
+                return GetObject().PoolNewTime(TimeSpan.FromMilliseconds(milliseconds));
             }
         }
 
@@ -265,9 +265,15 @@ namespace UnrealEngine.Runtime
 
     internal static class YieldPoolExtensions
     {
-        internal static T PoolNew<T>(this T instruction, TimeSpan time, bool dilated = true) where T : WaitFor
+        internal static T PoolNew<T>(this T instruction, TimeSpan time) where T : WaitFor
         {
-            instruction.SetTime(time, dilated);
+            instruction.Time = time;
+            return instruction;
+        }
+
+        internal static T PoolNewTime<T>(this T instruction, TimeSpan time) where T : WaitForRealtime
+        {
+            instruction.Time = time;
             return instruction;
         }
     }

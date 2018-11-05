@@ -566,6 +566,15 @@ CSEXPORT csbool CSCONV Export_FGlobals_IsRunningClientOnly()
 	return IsRunningClientOnly();
 }
 
+///////////////////////////////////////////////////////////////////////////////
+// Engine\Source\Runtime\Engine\Classes\Engine\World.h
+///////////////////////////////////////////////////////////////////////////////
+
+CSEXPORT UWorld** CSCONV Export_FGlobals_Get_GWorldPtr()
+{
+	return (UWorld**)&GWorld;
+}
+
 CSEXPORT void CSCONV Export_FGlobals(RegisterFunc registerFunc)
 {
 	///////////////////////////////////////////////////////////////////////////////
@@ -703,4 +712,10 @@ CSEXPORT void CSCONV Export_FGlobals(RegisterFunc registerFunc)
 	REGISTER_FUNC(Export_FGlobals_IsRunningDedicatedServer);
 	REGISTER_FUNC(Export_FGlobals_IsRunningGame);
 	REGISTER_FUNC(Export_FGlobals_IsRunningClientOnly);
+	
+	
+	///////////////////////////////////////////////////////////////////////////////
+	// Engine\Source\Runtime\Engine\Classes\Engine\World.h
+	///////////////////////////////////////////////////////////////////////////////
+	REGISTER_FUNC(Export_FGlobals_Get_GWorldPtr);
 }

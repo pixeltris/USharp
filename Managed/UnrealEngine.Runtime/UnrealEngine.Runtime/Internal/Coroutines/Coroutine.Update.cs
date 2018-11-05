@@ -4,6 +4,8 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
+using UnrealEngine.Engine;
+using UnrealEngine.Runtime.Native;
 
 namespace UnrealEngine.Runtime
 {
@@ -17,7 +19,7 @@ namespace UnrealEngine.Runtime
 
         private static Dictionary<UObject, List<Coroutine>> coroutinesByObject = new Dictionary<UObject, List<Coroutine>>();
         private static Dictionary<string, List<Coroutine>> coroutinesByTag = new Dictionary<string, List<Coroutine>>();
-
+        
         internal static void ProcessCoroutines(CoroutineGroup group)
         {
             runningGroup = group;
@@ -57,30 +59,33 @@ namespace UnrealEngine.Runtime
             Coroutine endCoroutine = coroutines[coroutines.Count - 1];
             coroutines.RemoveAtSwapEx(ref coroutine.mainCollectionIndex, ref endCoroutine.mainCollectionIndex);
 
-            UObject owner = coroutine.Owner as UObject;
-            if (owner != null)
+            if (returnToPool)
             {
-                List<Coroutine> collection;
-                if (coroutinesByObject.TryGetValue(owner, out collection))
+                UObject owner;
+                if (coroutine.objectsCollectionIndex >= 0 && ((owner = coroutine.Owner as UObject) != null))
                 {
-                    Coroutine end = collection[collection.Count - 1];
-                    collection.RemoveAtSwapEx(ref coroutine.objectsCollectionIndex, ref end.objectsCollectionIndex);
+                    List<Coroutine> collection;
+                    if (coroutinesByObject.TryGetValue(owner, out collection))
+                    {
+                        Coroutine end = collection[collection.Count - 1];
+                        collection.RemoveAtSwapEx(ref coroutine.objectsCollectionIndex, ref end.objectsCollectionIndex);
+                    }
                 }
-            }
 
-            if (!string.IsNullOrEmpty(coroutine.Tag))
-            {
-                List<Coroutine> collection;
-                if (coroutinesByTag.TryGetValue(coroutine.Tag, out collection))
+                if (coroutine.tagsCollectionIndex >= 0 && !string.IsNullOrEmpty(coroutine.Tag))
                 {
-                    Coroutine end = collection[collection.Count - 1];
-                    collection.RemoveAtSwapEx(ref coroutine.tagsCollectionIndex, ref end.tagsCollectionIndex);
+                    List<Coroutine> collection;
+                    if (coroutinesByTag.TryGetValue(coroutine.Tag, out collection))
+                    {
+                        Coroutine end = collection[collection.Count - 1];
+                        collection.RemoveAtSwapEx(ref coroutine.tagsCollectionIndex, ref end.tagsCollectionIndex);
+                    }
                 }
-            }
 
-            if (returnToPool && coroutine.IsPooled)
-            {
-                CoroutinePool.ReturnObject(coroutine);
+                if (coroutine.IsPooled)
+                {
+                    CoroutinePool.ReturnObject(coroutine);
+                }
             }
         }
 
@@ -105,7 +110,10 @@ namespace UnrealEngine.Runtime
                 }
                 if (coroutine.Complete)
                 {
-                    CoroutineRemoveAtSwap(coroutine, true);
+                    Debug.Assert(coroutine.mainCollectionIndex != -1,
+                        "Defer CoroutineRemoveAtSwap so that the main ProcessCoroutines function cleans the coroutine up. " +
+                        "This allows coroutines to have .Stop() calls whilst itterating over collections");
+                    //CoroutineRemoveAtSwap(coroutine, true);
                 }
             }
         }
@@ -129,7 +137,7 @@ namespace UnrealEngine.Runtime
             UObject ownerObj = obj as UObject;
             if (ownerObj != null)
             {
-                IntPtr world = Native.Native_UEngine.GetWorldFromContextObject(ownerObj.Address, Engine.EGetWorldErrorMode.ReturnNull);
+                IntPtr world = Native_UObject.GetWorld(ownerObj.Address);
                 Debug.Assert(world != IntPtr.Zero, "UObject coroutines must be objects with a UWorld reference (e.g. AActor) - " + 
                     "this is so that the coroutine can be stopped when the world is destroyed.");
             }
@@ -187,9 +195,9 @@ namespace UnrealEngine.Runtime
 
         public static void StopCoroutine(IEnumerator coroutine)
         {
-            foreach (Coroutine routine in coroutines)
+            foreach (KeyValuePair<UObject, List<Coroutine>> obj in coroutinesByObject)
             {
-                if (routine.Enumerator == coroutine)
+                foreach (Coroutine routine in obj.Value)
                 {
                     routine.Stop();
                 }
@@ -199,7 +207,7 @@ namespace UnrealEngine.Runtime
         public static void StopCoroutine(UObject owner, IEnumerator coroutine)
         {
             List<Coroutine> collection = FindCoroutines(owner);
-            if (collection != null)
+            if (collection != null && collection.Count > 0)
             {
                 foreach (Coroutine routine in collection)
                 {
@@ -232,10 +240,7 @@ namespace UnrealEngine.Runtime
                     foreach (Coroutine coroutine in collection)
                     {
                         coroutine.Stop();
-                        coroutine.tagsCollectionIndex = -1;
                     }
-
-                    collection.Clear();
                 }
             }
         }
@@ -248,11 +253,7 @@ namespace UnrealEngine.Runtime
                 foreach (Coroutine coroutine in collection)
                 {
                     coroutine.Stop();
-                    coroutine.objectsCollectionIndex = -1;
                 }
-
-                // Possibly only remove the collection if the object is being destroyed and clear it instead?
-                coroutinesByObject.Remove(owner);
             }
         }
 
@@ -329,6 +330,43 @@ namespace UnrealEngine.Runtime
                 }
                 coroutine.tagsCollectionIndex = collection.Count;
                 collection.Add(coroutine);
+            }
+        }
+
+        internal static void OnNativeFunctionsRegistered()
+        {
+            FWorldDelegates.OnPostWorldCleanup.Bind(OnPostWorldCleanup);
+        }
+
+        private static void OnPostWorldCleanup(IntPtr world, bool sessionEnded, bool cleanupResources)
+        {
+            foreach (KeyValuePair<UObject, List<Coroutine>> obj in coroutinesByObject)
+            {
+                if (obj.Key.Address != IntPtr.Zero)
+                {
+                    IntPtr objWorld = Native_UObject.GetWorld(obj.Key.Address);
+                    if (objWorld == world)
+                    {
+                        StopAllCoroutines(obj.Key);
+                    }
+                }
+                else
+                {
+                    StopAllCoroutines(obj.Key);
+                }
+            }
+        }
+
+        internal static void RemoveObjectByGC(UObject obj)
+        {
+            List<Coroutine> collection;
+            if (coroutinesByObject.TryGetValue(obj, out collection))
+            {
+                foreach (Coroutine coroutine in collection)
+                {
+                    coroutine.Stop();
+                }
+                coroutinesByObject.Remove(obj);
             }
         }
     }

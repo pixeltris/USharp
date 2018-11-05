@@ -906,14 +906,11 @@ namespace UnrealEngine.Runtime
         {
             get
             {
-                if (FBuild.WithEditor)
-                {
-                    return Native_FGlobals.Get_GEditor();
-                }
-                else
-                {
-                    return IntPtr.Zero;
-                }
+#if WITH_EDITORONLY_DATA
+                return Native_FGlobals.Get_GEditor();
+#else
+                return IntPtr.Zero;
+#endif
             }
         }
 
@@ -973,6 +970,20 @@ namespace UnrealEngine.Runtime
             get { return Native_FGlobals.IsRunningClientOnly(); }
         }
 
+        ///////////////////////////////////////////////////////////////////////////////
+        // Engine\Source\Runtime\Engine\Classes\Engine\World.h
+        ///////////////////////////////////////////////////////////////////////////////
+
+        private static IntPtr* worldPtr;
+        /// <summary>
+        /// Global UWorld pointer. Use of this pointer should be avoided whenever possible.
+        /// (This points to the real UWorld inside the GWorld UWorldProxy class)
+        /// </summary>
+        public static IntPtr GWorld
+        {
+            get { return *worldPtr; }
+        }
+
         internal static void OnNativeFunctionsRegistered()
         {
             lastGCFramePtr = (ulong*)Native_FGlobals.Get_GLastGCFramePtr();
@@ -980,6 +991,7 @@ namespace UnrealEngine.Runtime
             frameCounterPtr = (ulong*)Native_FGlobals.Get_GFrameCounterPtr();
             frameNumberPtr = (uint*)Native_FGlobals.Get_GFrameNumberPtr();
             gpuFrameTimePtr = (uint*)Native_FGlobals.Get_GGPUFrameTimePtr();
+            worldPtr = (IntPtr*)Native_FGlobals.Get_GWorldPtr();
         }
     }
 }

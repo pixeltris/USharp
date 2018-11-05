@@ -1,6 +1,31 @@
-CSEXPORT UWorld* CSCONV Export_UWorld_Get_GWorld()
+CSEXPORT int32 CSCONV Export_UWorld_Offset_TimeSeconds()
 {
-	return GWorld;
+	return OffsetOf(&UWorld::TimeSeconds);
+}
+
+CSEXPORT int32 CSCONV Export_UWorld_Offset_UnpausedTimeSeconds()
+{
+	return OffsetOf(&UWorld::UnpausedTimeSeconds);
+}
+
+CSEXPORT int32 CSCONV Export_UWorld_Offset_RealTimeSeconds()
+{
+	return OffsetOf(&UWorld::RealTimeSeconds);
+}
+
+CSEXPORT int32 CSCONV Export_UWorld_Offset_DeltaTimeSeconds()
+{
+	return OffsetOf(&UWorld::DeltaTimeSeconds);
+}
+
+CSEXPORT int32 CSCONV Export_UWorld_Offset_PauseDelay()
+{
+	return OffsetOf(&UWorld::PauseDelay);
+}
+
+CSEXPORT csbool CSCONV Export_UWorld_Get_bDebugPauseExecution(UWorld* instance)
+{
+	return instance->bDebugPauseExecution;
 }
 
 CSEXPORT EWorldType::Type CSCONV Export_UWorld_Get_WorldType(UWorld* instance)
@@ -23,6 +48,11 @@ CSEXPORT FTimerManager& CSCONV Export_UWorld_GetTimerManager(UWorld* instance)
 	return instance->GetTimerManager();
 }
 
+CSEXPORT csbool CSCONV Export_UWorld_IsPaused(UWorld* instance)
+{
+	return instance->IsPaused();
+}
+
 CSEXPORT AActor* CSCONV Export_UWorld_SpawnActor(UWorld* instance, UClass* Class, FVector const& Location, FRotator const& Rotation, const FActorSpawnParameters& Params)
 {
 	return instance->SpawnActor(Class, &Location, &Rotation, Params);
@@ -30,10 +60,16 @@ CSEXPORT AActor* CSCONV Export_UWorld_SpawnActor(UWorld* instance, UClass* Class
 
 CSEXPORT void CSCONV Export_UWorld(RegisterFunc registerFunc)
 {
-	REGISTER_FUNC(Export_UWorld_Get_GWorld);
+	REGISTER_FUNC(Export_UWorld_Offset_TimeSeconds);
+	REGISTER_FUNC(Export_UWorld_Offset_UnpausedTimeSeconds);
+	REGISTER_FUNC(Export_UWorld_Offset_RealTimeSeconds);
+	REGISTER_FUNC(Export_UWorld_Offset_DeltaTimeSeconds);
+	REGISTER_FUNC(Export_UWorld_Offset_PauseDelay);
+	REGISTER_FUNC(Export_UWorld_Get_bDebugPauseExecution);
 	REGISTER_FUNC(Export_UWorld_Get_WorldType);
 	REGISTER_FUNC(Export_UWorld_GetLevels);
 	REGISTER_FUNC(Export_UWorld_GetGameInstance);
 	REGISTER_FUNC(Export_UWorld_GetTimerManager);
+	REGISTER_FUNC(Export_UWorld_IsPaused);
 	REGISTER_FUNC(Export_UWorld_SpawnActor);
 }

@@ -45,14 +45,14 @@ namespace UnrealEngine.Runtime
 
         public override bool KeepWaiting
         {
-            get { return TargetFrame > EngineLoop.FrameNumber; }
+            get { return TargetFrame > EngineLoop.WorldFrameNumber; }
         }
 
         public override void OnBegin()
         {
             if (isRelative)
             {
-                startFrame = EngineLoop.FrameNumber;
+                startFrame = EngineLoop.WorldFrameNumber;
                 UpdateRelativeFrame();
             }
         }

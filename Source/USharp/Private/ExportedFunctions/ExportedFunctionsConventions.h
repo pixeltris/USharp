@@ -76,6 +76,11 @@
 // Note: This requires the use of wrappers for native structs / function callbacks using bool
 typedef int32 csbool;
 
+template<typename T, typename U> constexpr int32 OffsetOf(U T::*member)
+{
+	return (int32)((char*)&((T*)nullptr->*member) - (char*)nullptr);
+}
+
 #define REGISTER_FUNC(FunctionName) registerFunc(&FunctionName, #FunctionName);
 
 #define REGISTER_LAMBDA(Delegate, Lambda) \

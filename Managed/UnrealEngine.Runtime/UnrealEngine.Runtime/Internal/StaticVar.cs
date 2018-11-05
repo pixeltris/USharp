@@ -336,12 +336,13 @@ namespace UnrealEngine.Runtime
 
         internal static void OnNativeFunctionsRegistered()
         {
-            UEngineDelegates.OnWorldAdded.Bind(OnWorldAdded);
-            UEngineDelegates.OnWorldDestroyed.Bind(OnWorldDestroyed);
-
             FEditorDelegates.PreBeginPIE.Bind(OnPreBeginPIE);
             FEditorDelegates.EndPIE.Bind(OnEndPIE);
 
+            // NOTE: UEngine::OnWorldAdded / UEngine::OnWorldDestroyed aren't great for tracking PIE worlds as they
+            //       are created by duplication. Use FWorldDelegates events instead.
+
+            FWorldDelegates.OnPostWorldCreation.Bind(OnPostWorldCreation);
             FWorldDelegates.OnPostWorldCleanup.Bind(OnPostWorldCleanup);
         }
 
@@ -351,24 +352,6 @@ namespace UnrealEngine.Runtime
             foreach (StaticVar staticVar in Vars)
             {
                 staticVar.OnUnload();
-            }
-        }
-
-        private static void OnWorldAdded(IntPtr world)
-        {
-            // TODO: Only call this on types which override this function
-            foreach (StaticVar staticVar in Vars)
-            {
-                staticVar.OnWorldAdded(world);
-            }
-        }
-
-        private static void OnWorldDestroyed(IntPtr world)
-        {
-            // TODO: Only call this on types which override this function
-            foreach (StaticVar staticVar in Vars)
-            {
-                staticVar.OnWorldDestroyed(world);
             }
         }
 
@@ -390,6 +373,15 @@ namespace UnrealEngine.Runtime
             }
         }
 
+        private static void OnPostWorldCreation(IntPtr world)
+        {
+            // TODO: Only call this on types which override this function
+            foreach (StaticVar staticVar in Vars)
+            {
+                staticVar.OnWorldDestroyed(world);
+            }
+        }
+
         private static void OnPostWorldCleanup(IntPtr world, bool sessionEnded, bool cleanupResources)
         {
             // At this point UGameInstance::WorldContext should have been set to nullptr. While WorldContext being nullptr
@@ -407,14 +399,15 @@ namespace UnrealEngine.Runtime
             //     }
             // }
 
+            // TODO: Only call this on types which override this function
             IntPtr gameInstance = Native_UWorld.GetGameInstance(world);
-            if (gameInstance != IntPtr.Zero)
+            foreach (StaticVar staticVar in Vars)
             {
-                // TODO: Only call this on types which override this function
-                foreach (StaticVar staticVar in Vars)
+                if (gameInstance != IntPtr.Zero)
                 {
-                    staticVar.OnGameInstanceShutdown(world);
+                    staticVar.OnGameInstanceShutdown(gameInstance);
                 }
+                staticVar.OnWorldDestroyed(world);
             }
         }
     }

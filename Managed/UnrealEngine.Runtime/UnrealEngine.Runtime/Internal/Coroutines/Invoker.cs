@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using UnrealEngine.Engine;
+using UnrealEngine.Runtime.Native;
 
 namespace UnrealEngine.Runtime
 {
@@ -28,6 +30,7 @@ namespace UnrealEngine.Runtime
         /// </summary>
         public bool IsPooled { get; internal set; }
 
+        internal IntPtr OwnerWorld;
         public object Owner { get; internal set; }
         public bool IsRepeated { get; private set; }
         public InvokerType Type { get; private set; }
@@ -138,15 +141,6 @@ namespace UnrealEngine.Runtime
         private InvokerHandlerWithObject handlerWithObject;
         private InvokerHandlerWithInvoker handlerWithInvoker;
         private InvokerHandlerWithObjectInvoker handlerWithObjectInvoker;
-
-        public Invoker()
-        {
-        }
-
-        public Invoker(object owner)
-        {
-            Owner = owner;
-        }
 
         internal void SetHandler(InvokerHandlerType handlerType, Delegate handler)
         {
@@ -378,15 +372,15 @@ namespace UnrealEngine.Runtime
                 switch (Type)
                 {
                     case InvokerType.Delay:
-                        BeginValue = startingValue = (ulong)EngineLoop.Time.Ticks;
+                        BeginValue = startingValue = (ulong)WorldTimeHelper.GetTimeChecked(OwnerWorld).Ticks;
                         break;
 
                     case InvokerType.Ticks:
-                        BeginValue = startingValue = EngineLoop.TickCounter;
+                        BeginValue = startingValue = EngineLoop.WorldTickCounter;
                         break;
 
                     case InvokerType.Frames:
-                        BeginValue = startingValue = EngineLoop.FrameNumber;
+                        BeginValue = startingValue = EngineLoop.WorldFrameNumber;
                         break;
                 }
             }
@@ -470,6 +464,7 @@ namespace UnrealEngine.Runtime
             Tag = null;
             TagId = 0;
 
+            OwnerWorld = IntPtr.Zero;
             Owner = null;
             IsRepeated = false;
             Type = default(InvokerType);
@@ -582,7 +577,7 @@ namespace UnrealEngine.Runtime
             {
                 if (RepeatConstantTime && Type == InvokerType.Delay)
                 {
-                    ulong realTime = (ulong)EngineLoop.Time.Ticks;
+                    ulong realTime = (ulong)WorldTimeHelper.GetTimeChecked(OwnerWorld).Ticks;
                     BeginValue = value + (realTime - EndValue);
                 }
                 else
@@ -759,7 +754,41 @@ namespace UnrealEngine.Runtime
                 RemoveIdTagFromCollection();
                 RemoveStringTagFromCollection();
             }
-        }        
+        }
+
+        internal static void OnNativeFunctionsRegistered()
+        {
+            FWorldDelegates.OnPostWorldCleanup.Bind(OnPostWorldCleanup);
+        }
+
+        private static void OnPostWorldCleanup(IntPtr world, bool sessionEnded, bool cleanupResources)
+        {
+            List<UObject> objectsToRemove = new List<UObject>();
+            foreach (KeyValuePair<UObject, List<Invoker>> obj in invokersByUObject)
+            {
+                if (obj.Key.Address != IntPtr.Zero)
+                {
+                    IntPtr objWorld = Native_UObject.GetWorld(obj.Key.Address);
+                    if (objWorld == world)
+                    {
+                        objectsToRemove.Add(obj.Key);
+                    }
+                }
+                else
+                {
+                    objectsToRemove.Add(obj.Key);
+                }
+            }
+            foreach (UObject obj in objectsToRemove)
+            {
+                StopAllInvokers(obj, true);
+            }
+        }
+
+        internal static void RemoveObjectByGC(UObject owner)
+        {
+            StopAllInvokers(owner, true);
+        }
     }    
 
     class InvokerCollectionGroup
@@ -798,12 +827,12 @@ namespace UnrealEngine.Runtime
 
             if (ticksInvokers.Count > 0)
             {
-                Process(ticksInvokers, EngineLoop.TickCounter);
+                Process(ticksInvokers, EngineLoop.WorldTickCounter);
             }
 
             if (framesInvokers.Count > 0)
             {
-                Process(framesInvokers, EngineLoop.FrameNumber);
+                Process(framesInvokers, EngineLoop.WorldFrameNumber);
             }
         }
 
@@ -837,8 +866,8 @@ namespace UnrealEngine.Runtime
 
             while (invokers.Count > 0)
             {
-                ulong value = (ulong)EngineLoop.Time.Ticks;
                 Invoker invoker = invokers.HeapTop();
+                ulong value = (ulong)WorldTimeHelper.GetTimeChecked(invoker.OwnerWorld).Ticks;
                 if (invoker.EndValue <= value /*&& invoker != lastInvoker*/)
                 {
                     invokers.HeapPopDiscard();

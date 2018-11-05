@@ -135,6 +135,12 @@ namespace UnrealEngine.Runtime.Native
         public delegate csbool Del_IsRunningDedicatedServer();
         public delegate csbool Del_IsRunningGame();
         public delegate csbool Del_IsRunningClientOnly();
+        ///////////////////////////////////////////////////////////////////////////////
+        // Engine\Source\Runtime\Engine\Classes\Engine\World.h
+        ///////////////////////////////////////////////////////////////////////////////
+        public delegate IntPtr Del_Get_GWorldPtr();
+
+
 
         ///////////////////////////////////////////////////////////////////////////////
         // Engine\Source\Runtime\Core\Public\HAL\MemoryBase.h
@@ -262,5 +268,9 @@ namespace UnrealEngine.Runtime.Native
         public static Del_IsRunningDedicatedServer IsRunningDedicatedServer;
         public static Del_IsRunningGame IsRunningGame;
         public static Del_IsRunningClientOnly IsRunningClientOnly;
+        ///////////////////////////////////////////////////////////////////////////////
+        // Engine\Source\Runtime\Engine\Classes\Engine\World.h
+        ///////////////////////////////////////////////////////////////////////////////
+        public static Del_Get_GWorldPtr Get_GWorldPtr;
     }
 }

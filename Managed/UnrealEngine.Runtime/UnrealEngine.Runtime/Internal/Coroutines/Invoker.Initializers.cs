@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
+using UnrealEngine.Runtime.Native;
 
 namespace UnrealEngine.Runtime
 {
@@ -12,7 +14,18 @@ namespace UnrealEngine.Runtime
         private static Invoker StartInvoker(object obj, InvokerHandlerType handlerType, Delegate handler, InvokerType type,
             ulong value, ulong repeatValue, CoroutineGroup group = CoroutineGroup.Tick, bool pool = PoolByDefault)
         {
+            IntPtr world = IntPtr.Zero;
+            UObject ownerObj = obj as UObject;
+            if (ownerObj != null)
+            {
+                world = Native_UObject.GetWorld(ownerObj.Address);
+                Debug.Assert(world != IntPtr.Zero, "UObject invokers must be objects with a UWorld reference (e.g. AActor) - " +
+                    "this is so that the invoker can be stopped when the world is destroyed.");
+            }
+
             Invoker invoker = pool ? InvokerPool.GetObject() : new Invoker();
+            invoker.OwnerWorld = world;
+            invoker.Owner = obj;
             invoker.SetHandler(handlerType, handler);
             switch (type)
             {
@@ -135,6 +148,11 @@ namespace UnrealEngine.Runtime
 
         public static void StopAllInvokers(UObject owner)
         {
+            StopAllInvokers(owner, false);
+        }
+
+        public static void StopAllInvokers(UObject owner, bool fullyRemove)
+        {
             List<Invoker> invokers;
             if (owner != null && invokersByUObject.TryGetValue(owner, out invokers))
             {
@@ -143,8 +161,9 @@ namespace UnrealEngine.Runtime
                     Invoker invoker = invokers[i];
                     invoker.Stop();
                 }
-                if (invokers.Count == 0)
+                if (fullyRemove)
                 {
+                    Debug.Assert(invokers.Count == 0, "Tried to stop all invokers for UObject but there are still some alive");
                     invokersByUObject.Remove(owner);
                 }
             }

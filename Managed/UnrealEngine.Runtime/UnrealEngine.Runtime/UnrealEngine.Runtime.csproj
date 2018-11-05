@@ -154,6 +154,7 @@
     <Compile Include="Internal\Attributes\UPropertyAttribute.cs" />
     <Compile Include="Internal\Classes.cs" />
     <Compile Include="Internal\CodeGenerator\CodeManagers\FileWriterCodeManager.cs" />
+    <Compile Include="Internal\Coroutines\WaitForRealtime.cs" />
     <Compile Include="Internal\EventNotRewrittenException.cs" />
     <Compile Include="Internal\IInterface.cs" />
     <Compile Include="Internal\ManagedUnrealTypeInfo.Exception.cs" />
@@ -323,6 +324,7 @@
     <Compile Include="Core\Math\FVector.cs" />
     <Compile Include="Core\Math\FVector2D.cs" />
     <Compile Include="Core\Math\FVector4.cs" />
+    <Compile Include="Internal\WorldTimeHelper.cs" />
     <Compile Include="Native\ConsoleManager\Native_IConsoleVariable.cs" />
     <Compile Include="Native\ConsoleManager\Native_IConsoleObject.cs" />
     <Compile Include="Native\ConsoleManager\Native_IConsoleCommand.cs" />

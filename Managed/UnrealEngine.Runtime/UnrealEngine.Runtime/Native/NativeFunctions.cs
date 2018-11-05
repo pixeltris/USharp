@@ -97,10 +97,12 @@ namespace UnrealEngine.Runtime.Native
                 // Highest
                 GCHelper.OnNativeFunctionsRegistered();
                 Engine.FTimerManagerCache.OnNativeFunctionsRegistered();
+                WorldTimeHelper.OnNativeFunctionsRegistered();
                 if (FGlobals.GEngine != IntPtr.Zero)
                 {
-                    // StaticVarManager needs GEngine for binding delegates
+                    // Needs GEngine for binding delegates
                     StaticVarManager.OnNativeFunctionsRegistered();
+                    Coroutine.OnNativeFunctionsRegistered();
                 }
 
                 // VeryHigh
@@ -126,6 +128,7 @@ namespace UnrealEngine.Runtime.Native
         private static void OnPostEngineInit()
         {
             StaticVarManager.OnNativeFunctionsRegistered();
+            Coroutine.OnNativeFunctionsRegistered();
         }
 
         private static void RegisterFunction(IntPtr func, string name)

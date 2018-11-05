@@ -45,14 +45,14 @@ namespace UnrealEngine.Runtime
 
         public override bool KeepWaiting
         {
-            get { return TargetTick > EngineLoop.TickCounter; }
+            get { return TargetTick > EngineLoop.WorldTickCounter; }
         }
 
         public override void OnBegin()
         {
             if (isRelative)
             {
-                startTick = EngineLoop.TickCounter;
+                startTick = EngineLoop.WorldTickCounter;
                 UpdateRelativeTick();
             }
         }
