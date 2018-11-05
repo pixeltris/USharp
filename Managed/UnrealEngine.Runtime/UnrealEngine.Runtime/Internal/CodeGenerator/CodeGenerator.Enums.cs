@@ -129,7 +129,7 @@ namespace UnrealEngine.Runtime
                         int underscorePos = rawName.IndexOf("_");
                         if (underscorePos >= 0)
                         {
-                            commonPrefix = rawName.Substring(underscorePos + 1);
+                            commonPrefix = rawName.Substring(0, underscorePos + 1);
                             ++commonPrefixCount;
                         }
                     }
