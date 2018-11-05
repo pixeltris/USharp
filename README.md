@@ -11,16 +11,8 @@ Join the gitter chat room for quick help / discussion https://gitter.im/USharp/L
 # Features
 
 - Hotreload
-- .NET Framework and mono support (mono hasn't been tested in a long time) 
+- .NET Framework and mono support
 - Debugging in Visual Studio with both C# and C++ (when using the .NET runtime)
-
-# Issues / caveats
-
-- This project depends on a lot of PInvoked functions which could potentially behave differently on different C++ compilers. **This project may not work on some target platforms.**
-- Like mono-ue this project depends on lots of generated code and IL weaving. It probably isn't the best for performance and there is a huge amount of generated code everywhere.
-- The weaved IL currently seems to break edit-and-continue debugging (issue with cecil?)
-- There is currently too much marshaling on structs / collections (list, map, set). Marshaling needs to be redesigned to avoid copies of entire collections / structs on trivial calls between C# / native code. Additionally marshaling of delegates needs to be redesigned (various issues such as being referenced as a copy of the delegate).
-- There currently isn't a seperate editor/runtime module which may have a variety of issues (code generator output, differences in shipping / editor builds). USharp.uplugin "Type" would need to be manually changed to "Runtime" for a shipping build.
 
 # Plugin Setup
 
@@ -34,6 +26,13 @@ _This is a very rough guide. TODO: Improve_
 When you first open the editor with USharp enabled it should create a C# project under "YourProjectName/Managed/". Use this to write your C# game code (see the Test.cs file for rough samples of code).
 
 Use the "USharpGen modules" command to generate the wrapper code (which will give you access to AActor classes and others). This will briefly freeze the engine while it generates the files. Once it is complete check the console for the sln file path, compile it and reference the outputted assembly from your C# game project.
+
+# Issues / caveats
+
+- This project depends on a lot of PInvoked functions which could potentially behave differently on different C++ compilers. **This project may not work on some target platforms.**
+- Like mono-ue this project depends on lots of generated code and IL weaving. It probably isn't the best for performance and there is a huge amount of generated code everywhere.
+- The weaved IL currently seems to break edit-and-continue debugging (issue with cecil?)
+- There is currently too much marshaling on structs / collections (list, map, set). Marshaling needs to be redesigned to avoid copies of entire collections / structs on trivial calls between C# / native code. Additionally marshaling of delegates needs to be redesigned (various issues such as being referenced as a copy of the delegate).
 
 ---
 
