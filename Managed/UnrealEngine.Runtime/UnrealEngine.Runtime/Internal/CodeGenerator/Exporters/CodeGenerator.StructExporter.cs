@@ -9,7 +9,6 @@ namespace UnrealEngine.Runtime
     public partial class CodeGenerator
     {
         // TODO: Move this "project defined" stuff elsewhere and provide better configuration of it
-        // (also need some way to map custom marshalers such as FSoftObjectPath)
         enum ProjectDefinedType
         {
             Struct,
@@ -24,6 +23,7 @@ namespace UnrealEngine.Runtime
             Dictionary<string, ProjectDefinedType> result = new Dictionary<string, ProjectDefinedType>()
             {
                 { "/Script/CoreUObject.SoftObjectPath", ProjectDefinedType.Struct },
+                { "/Script/CoreUObject.SoftClassPath", ProjectDefinedType.Struct },
                 { "/Script/Engine.TimerHandle", ProjectDefinedType.BlittableStruct },
                 { "/Script/CoreUObject.Guid", ProjectDefinedType.BlittableStruct },// This should map to System.Guid
                 { "/Script/Engine.ESpawnActorCollisionHandlingMethod", ProjectDefinedType.Enum },

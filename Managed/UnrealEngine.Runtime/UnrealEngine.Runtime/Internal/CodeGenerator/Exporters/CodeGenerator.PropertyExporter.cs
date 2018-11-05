@@ -730,13 +730,7 @@ namespace UnrealEngine.Runtime
                 case EPropertyType.Struct:
                     {
                         UStruct unrealStruct = (property as UStructProperty).Struct;
-                        if (unrealStruct.PathName == "/Script/CoreUObject.SoftObjectPath")
-                        {
-                            // We should probably just add FromNative/ToNative methods to FSoftObjectPath instead of doing a path check
-                            // - Also how does this impact AssemblyRewriter?
-                            return Names.FSoftObjectPathMarshaler;
-                        }
-                        else if (IsClassOrStructAsClass(unrealStruct))
+                        if (IsClassOrStructAsClass(unrealStruct))
                         {
                             return Names.StructAsClassMarshaler + "<" + GetTypeName(property, namespaces) + ">";
                         }
