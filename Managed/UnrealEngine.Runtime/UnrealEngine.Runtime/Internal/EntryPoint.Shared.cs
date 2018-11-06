@@ -232,19 +232,17 @@ namespace UnrealEngine
         IntPtr MallocFuncPtr;
         IntPtr ReallocFuncPtr;
         IntPtr FreeFuncPtr;
+        IntPtr MessageBoxPtr;
 
         static MallocDel Malloc;
         static ReallocDel Realloc;
         static FreeDel Free;
+        public static MessageBoxDel MessageBox;
 
         delegate IntPtr MallocDel(IntPtr count, uint alignment = 0);
         delegate IntPtr ReallocDel(IntPtr original, IntPtr count, uint alignment = 0);
         delegate void FreeDel(IntPtr original);
-
-        /// <summary>
-        /// True if the currently executing code is under the Mono runtime
-        /// </summary>
-        public static bool IsMonoRuntime { get; private set; }
+        public delegate void MessageBoxDel([MarshalAs(UnmanagedType.LPStr)] string text, [MarshalAs(UnmanagedType.LPStr)] string title);
 
         /// <summary>
         /// True if the currently executing code is the active runtime
@@ -258,15 +256,38 @@ namespace UnrealEngine
         /// The runtime for the currently executing code.
         /// Note that this is different to <see cref="ActiveRuntime"/>
         /// </summary>
-        public static EDotNetRuntime CurrentRuntime
+        public static readonly EDotNetRuntime CurrentRuntime;
+
+        /// <summary>
+        /// True if the currently executing code is under Mono runtime
+        /// </summary>
+        public static readonly bool IsMono;
+        /// <summary>
+        /// True if the currently executing code is under CoreCLR (.NET Core)
+        /// </summary>
+        public static readonly bool IsCoreCLR;
+        /// <summary>
+        /// True if the currently executing code is under CLR (.NET Framework)
+        /// </summary>
+        public static readonly bool IsCLR;
+
+        static SharedRuntimeState()
         {
-            get
+            if (Type.GetType("Mono.Runtime") != null)
             {
-                if (IsMonoRuntime)
-                {
-                    return EDotNetRuntime.Mono;
-                }
-                return EDotNetRuntime.CLR;
+                IsMono = true;
+                CurrentRuntime = EDotNetRuntime.Mono;
+            }
+            // We need DoCallBack for our AppDomain loading (.NET Core doesn't support this)
+            else if (typeof(AppDomain).GetMethod("DoCallBack") == null)
+            {
+                IsCoreCLR = true;
+                CurrentRuntime = EDotNetRuntime.CoreCLR;
+            }
+            else
+            {
+                IsCLR = true;
+                CurrentRuntime = EDotNetRuntime.CLR;
             }
         }
 
@@ -277,19 +298,34 @@ namespace UnrealEngine
         }
         public static void Initialize(IntPtr address)
         {
-            IsMonoRuntime = Type.GetType("Mono.Runtime") != null;
-
             Address = address;
 
             Debug.Assert(
                 Instance->MallocFuncPtr != IntPtr.Zero &&
                 Instance->ReallocFuncPtr != IntPtr.Zero &&
                 Instance->FreeFuncPtr != IntPtr.Zero &&
+                Instance->MessageBoxPtr != IntPtr.Zero &&
                 Instance->StructSize == Marshal.SizeOf(typeof(SharedRuntimeState)));
 
             Malloc = (MallocDel)Marshal.GetDelegateForFunctionPointer(Instance->MallocFuncPtr, typeof(MallocDel));
             Realloc = (ReallocDel)Marshal.GetDelegateForFunctionPointer(Instance->ReallocFuncPtr, typeof(ReallocDel));
             Free = (FreeDel)Marshal.GetDelegateForFunctionPointer(Instance->FreeFuncPtr, typeof(FreeDel));
+            MessageBox = (MessageBoxDel)Marshal.GetDelegateForFunctionPointer(Instance->MessageBoxPtr, typeof(MessageBoxDel));
+        }
+
+        public static bool HaveMultipleRuntimesInitialized()
+        {
+            return HasMoreThanOneFlag(Instance->InitializedRuntimes);
+        }
+
+        public static bool HaveMultipleRuntimesLoaded()
+        {
+            return HasMoreThanOneFlag(Instance->LoadedRuntimes);
+        }
+
+        private static bool HasMoreThanOneFlag(EDotNetRuntime flags)
+        {
+            return (flags & (flags - 1)) != 0;// has more than 1 flag
         }
 
         public static bool IsRuntimeInitialized(EDotNetRuntime runtime)
@@ -297,9 +333,14 @@ namespace UnrealEngine
             return (Instance->InitializedRuntimes & runtime) == runtime;
         }
 
-        public static bool IsRuntimeLoaded(EDotNetRuntime runtime)
+        public static EDotNetRuntime GetInitializedRuntimes()
         {
-            return (Instance->LoadedRuntimes & runtime) == runtime;
+            return Instance->InitializedRuntimes;
+        }
+
+        public static EDotNetRuntime GetLoadedRuntimes()
+        {
+            return Instance->LoadedRuntimes;
         }
 
         public static byte[] GetHotReloadData()
@@ -388,26 +429,27 @@ namespace UnrealEngine
 
         public static string GetRuntimeInfo()
         {
-            // NOTE: We should probably be calling IsRuntimeLoaded but Mono wont be loaded on the first call
-            //       where dual loading is enabled and CLR loads first.
-
             string info = string.Empty;
-            if (IsMonoRuntime)
+            if (IsMono)
             {
                 info = "Mono";
-                if (IsRuntimeInitialized(EDotNetRuntime.CLR))
-                {
-                    info += " (switch to CLR with the command USharpRuntime CLR)";
-                }
+            }
+            else if (IsCoreCLR)
+            {
+                info = "CoreCLR";
             }
             else
             {
                 info = "CLR";
-                if (IsRuntimeInitialized(EDotNetRuntime.Mono))
-                {
-                    info += " (switch to Mono with the command USharpRuntime Mono)";
-                }
             }
+
+            // NOTE: We should probably be calling checking for loaded runtimes instead of initialized but on the first
+            //       call to GetRuntimeInfo we will be in the middle of loading initialized runtimes
+            if (HaveMultipleRuntimesInitialized())
+            {
+                info += " (" + GetInitializedRuntimes().ToString() + " are initialized)";
+            }
+
             return info;
         }
     }
@@ -416,9 +458,18 @@ namespace UnrealEngine
     internal enum EDotNetRuntime : int
     {
         None = 0x00000000,
+        /// <summary>
+        /// .NET Framework
+        /// </summary>
         CLR = 0x00000001,
+        /// <summary>
+        /// Mono
+        /// </summary>
         Mono = 0x00000002,
-        Dual = CLR | Mono
+        /// <summary>
+        /// .NET Core
+        /// </summary>
+        CoreCLR = 0x00000004
     }
 }
 

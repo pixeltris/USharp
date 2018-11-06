@@ -10,6 +10,7 @@ namespace UnrealEngine.Runtime
         private static HashSet<string> forceExportProperties = new HashSet<string>()
         {
             "/Script/Engine.Actor:RootComponent",
+            "/Script/Engine.Actor:InputComponent",
             "/Script/Engine.Actor:bAllowTickBeforeBeginPlay"
         };
         private static HashSet<string> forceHideProperties = new HashSet<string>();

@@ -78,7 +78,7 @@ namespace UnrealEngine.Runtime
                         // - Mono requires firstArg to be null to create a valid delegate
                         // - NET Framework requires the del as context otherwise when the delegate is called an exception is thrown
                         object firstArg = null;
-                        if (!EntryPoint.IsMonoRuntime)
+                        if (!SharedRuntimeState.IsMono)
                         {
                             firstArg = del;
                         }

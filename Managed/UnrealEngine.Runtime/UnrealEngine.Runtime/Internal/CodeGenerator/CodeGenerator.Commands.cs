@@ -24,12 +24,14 @@ namespace UnrealEngine.Runtime
 
         private static unsafe void SetDotNetRuntime(string[] args)
         {
-            const string enableDualRuntimesStr = 
-                "Dual runtimes are not enabled. Add 'dual' to /USharp/Binaries/Mono/DotNetRuntime.txt and reopen the editor.";
+            // It's probably possible to dynamically load runtimes by adding a function to SharedRuntimeState (and slightly modifying
+            // the current load checks inside of CSharpLoader::Load)
+            const string enableMoreRuntimesStr = 
+                "Only one runtime has been loaded. Modify /USharp/Binaries/Managed/DotNetRuntime.txt to add more runtimes and then reopen the editor.";
 
             if (args != null && args.Length > 0)
             {
-                if (SharedRuntimeState.IsRuntimeLoaded(EDotNetRuntime.Dual))
+                if (SharedRuntimeState.HaveMultipleRuntimesLoaded())
                 {
                     EDotNetRuntime runtime = EDotNetRuntime.None;
                     switch (args[0].ToLower())
@@ -40,15 +42,8 @@ namespace UnrealEngine.Runtime
                         case "clr":
                             runtime = EDotNetRuntime.CLR;
                             break;
-                        case "swap":
-                            if (SharedRuntimeState.CurrentRuntime == EDotNetRuntime.CLR)
-                            {
-                                runtime = EDotNetRuntime.Mono;
-                            }
-                            else
-                            {
-                                runtime = EDotNetRuntime.CLR;
-                            }
+                        case "coreclr":
+                            runtime = EDotNetRuntime.CoreCLR;
                             break;
                     }
                     if (runtime == EDotNetRuntime.None)
@@ -72,15 +67,15 @@ namespace UnrealEngine.Runtime
                 }
                 else
                 {
-                    FMessage.Log(enableDualRuntimesStr);
+                    FMessage.Log(ELogVerbosity.Error, enableMoreRuntimesStr);
                     FMessage.Log("Runtime: " + SharedRuntimeState.GetRuntimeInfo());
                 }
             }
             else
             {
-                if (!SharedRuntimeState.IsRuntimeLoaded(EDotNetRuntime.Dual))
+                if (!SharedRuntimeState.HaveMultipleRuntimesLoaded())
                 {
-                    FMessage.Log(enableDualRuntimesStr);
+                    FMessage.Log(enableMoreRuntimesStr);
                 }
                 FMessage.Log("Runtime: " + SharedRuntimeState.GetRuntimeInfo());
             }

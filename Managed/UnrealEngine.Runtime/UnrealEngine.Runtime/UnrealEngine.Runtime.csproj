@@ -34,9 +34,6 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="envdte, Version=8.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
-      <EmbedInteropTypes>True</EmbedInteropTypes>
-    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
@@ -48,7 +45,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Internal\EntryPoint.Shared.cs" />
-	<Compile Include="AssetRegistry\FAssetData.cs" />
+    <Compile Include="AssetRegistry\FAssetData.cs" />
     <Compile Include="CoreUObject\ConstructorHelpers.cs" />
     <Compile Include="CoreUObject\Enums\EClassCastFlags.cs" />
     <Compile Include="CoreUObject\Enums\EClassFlags.cs" />
@@ -176,7 +173,6 @@
     <Compile Include="Internal\CodeGenerator\CodeGenerator.StructInfo.cs" />
     <Compile Include="Internal\CodeGenerator\CodeGeneratorSettings.cs" />
     <Compile Include="Internal\CodeGenerator\CodeManagers\CodeManager.cs" />
-    <Compile Include="Internal\CodeGenerator\CodeManagers\VisualStudioCodeManager.cs" />
     <Compile Include="Internal\CodeGenerator\CSharpTextBuilder.cs" />
     <Compile Include="Internal\CodeGenerator\Exporters\CodeGenerator.EnumExporter.cs" />
     <Compile Include="Internal\CodeGenerator\Exporters\CodeGenerator.FunctionExporter.cs" />

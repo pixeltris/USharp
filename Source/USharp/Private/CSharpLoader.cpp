@@ -5,7 +5,7 @@
 
 //#define FORCE_MONO 1
 #define MONO_SGEN 1
-#define STATIC_MONO_LINK PLATFORM_IOS
+#define MONO_STATIC_LINK PLATFORM_IOS
 
 #ifndef FORCE_MONO
 #define FORCE_MONO 0
@@ -23,7 +23,18 @@
 #define DLL_EXTENSION TEXT(".dll")
 #endif
 
-#if !STATIC_MONO_LINK
+#ifndef HRESULT
+#define HRESULT int
+#endif
+#ifndef SUCCEEDED
+#define SUCCEEDED(hr) ((hr) >= 0)
+#endif
+#ifndef FAILED
+#define FAILED(hr) ((hr) < 0)
+#endif
+
+
+#if !MONO_STATIC_LINK
 typedef enum
 {
 	MONO_DEBUG_FORMAT_NONE,
@@ -108,10 +119,36 @@ import__mono_string_new mono_string_new;
 import__mono_string_to_utf8 mono_string_to_utf8;
 #endif
 
+// CoreCLR functions
+// https://github.com/dotnet/coreclr/blob/master/src/coreclr/hosts/inc/coreclrhost.h
+
+typedef int(*import__coreclr_initialize)(const char* exePath, const char* appDomainFriendlyName, int propertyCount, const char** propertyKeys, const char** propertyValues, void** hostHandle, unsigned int* domainId);
+typedef int(*import__coreclr_shutdown)(void* hostHandle, unsigned int domainId);
+typedef int(*import__coreclr_shutdown_2)(void* hostHandle, unsigned int domainId, int* latchedExitCode);
+typedef int(*import__coreclr_create_delegate)(void* hostHandle, unsigned int domainId, const char* entryPointAssemblyName, const char* entryPointTypeName, const char* entryPointMethodName, void** delegate);
+typedef int(*import__coreclr_execute_assembly)(void* hostHandle, unsigned int domainId, int argc, const char** argv, const char* managedAssemblyPath, unsigned int* exitCode);
+
+import__coreclr_initialize coreclr_initialize;
+import__coreclr_shutdown coreclr_shutdown;
+import__coreclr_shutdown_2 coreclr_shutdown_2;
+import__coreclr_create_delegate coreclr_create_delegate;
+import__coreclr_execute_assembly coreclr_execute_assembly;
+
+// The signature of the C# entry point method
+typedef int32(*ManagedEntryPointSig)(const char* arg);
+
 CSharpLoader* CSharpLoader::singleton = NULL;
+
+void MessageDialogProxy(char* text, char* title)
+{
+	FText textTemp = FText::FromString(FString(ANSI_TO_TCHAR(text)));
+	FText titleTemp = FText::FromString(FString(ANSI_TO_TCHAR(title)));
+	FMessageDialog::Open(EAppMsgType::Ok, textTemp, &titleTemp);
+}
 
 CSharpLoader::CSharpLoader()
 {
+	coreCLRHandle = NULL;
 	monoDomain = NULL;
 #if PLATFORM_WINDOWS
 	metaHost = NULL;
@@ -123,6 +160,7 @@ CSharpLoader::CSharpLoader()
 	runtimeState.Malloc = &FMemory::Malloc;
 	runtimeState.Realloc = &FMemory::Realloc;
 	runtimeState.Free = &FMemory::Free;
+	runtimeState.MessageBox = &MessageDialogProxy;
 	runtimeState.StructSize = (int32)sizeof(SharedRuntimeState);
 
 	SetupPaths();
@@ -130,12 +168,11 @@ CSharpLoader::CSharpLoader()
 #if FORCE_MONO
 	runtimeState.DesiredRuntimes = EDotNetRuntime::Mono
 #else
-	// Find the desired runtime type
-	FString monoDllPath = GetMonoDllPath();
-	if (FPaths::FileExists(monoDllPath))
+	// Find the desired runtimes to use
+	FString runtimeInfoFile = FPaths::Combine(GetPluginBinariesDir(), TEXT("Managed"), TEXT("DotNetRuntime.txt"));
+	if (FPaths::FileExists(runtimeInfoFile))
 	{
-		FString dir = FPaths::GetPath(monoDllPath);
-		FString runtimeInfoFile = FPaths::ConvertRelativePathToFull(FPaths::Combine(dir, TEXT("DotNetRuntime.txt")));
+		runtimeInfoFile = FPaths::ConvertRelativePathToFull(runtimeInfoFile);
 
 		TArray<FString> lines;
 		if (FFileHelper::LoadANSITextFileToStrings(*runtimeInfoFile, NULL, lines))
@@ -147,20 +184,25 @@ CSharpLoader::CSharpLoader()
 				{
 					runtimeState.DesiredRuntimes |= EDotNetRuntime::Mono;
 				}
-				else if (line.Equals(TEXT("dual"), ESearchCase::IgnoreCase))
-				{
-					runtimeState.DesiredRuntimes |= EDotNetRuntime::Dual;
-				}
 				else if (line.Equals(TEXT("clr"), ESearchCase::IgnoreCase))
 				{
 					runtimeState.DesiredRuntimes |= EDotNetRuntime::CLR;
+				}
+				else if (line.Equals(TEXT("coreclr"), ESearchCase::IgnoreCase))
+				{
+					runtimeState.DesiredRuntimes |= EDotNetRuntime::CoreCLR;
 				}
 			}
 		}
 	}
 	if (runtimeState.DesiredRuntimes == EDotNetRuntime::None)
 	{
+#if PLATFORM_WINDOWS
+		// .NET Framework / CLR is preferable for windows for good debugging support
 		runtimeState.DesiredRuntimes = EDotNetRuntime::CLR;
+#else
+		runtimeState.DesiredRuntimes = EDotNetRuntime::Mono;
+#endif
 	}
 #endif
 }
@@ -184,17 +226,15 @@ void CSharpLoader::SetupPaths()
 	// Mono should be under "/Binaries/Mono/" or "/Binaries/ThirdParty/Mono/"
 	monoLibPaths.Add(FPaths::Combine(*PluginsBaseDir, TEXT("Mono/")));
 	monoLibPaths.Add(FPaths::Combine(*PluginsBaseDir, TEXT("ThirdParty/Mono/")));
+
+	// CoreCLR should be under "/Binaries/CoreCLR/" or "/Binaries/ThirdParty/CoreCLR/"
+	coreCLRLibPaths.Add(FPaths::Combine(*PluginsBaseDir, TEXT("CoreCLR/")));
+	coreCLRLibPaths.Add(FPaths::Combine(*PluginsBaseDir, TEXT("ThirdParty/CoreCLR/")));
 }
 
-FString CSharpLoader::GetMonoDllPath()
+FString CSharpLoader::GetLibPath(const FString& dllName, const TArray<FString>& libPaths)
 {
-#if MONO_SGEN
-	FString dllName = FString("mono-2.0-sgen") + DLL_EXTENSION;
-#else
-	FString dllName = FString("mono-2.0-boehm") + DLL_EXTENSION;
-#endif
-
-	for (FString path : monoLibPaths)
+	for (FString path : libPaths)
 	{
 		FString dllPath = FPaths::Combine(*path, *dllName);
 		if (FPaths::FileExists(dllPath))
@@ -204,6 +244,22 @@ FString CSharpLoader::GetMonoDllPath()
 	}
 
 	return dllName;
+}
+
+FString CSharpLoader::GetMonoDllPath()
+{
+#if MONO_SGEN
+	FString dllName = FString(TEXT("mono-2.0-sgen")) + DLL_EXTENSION;
+#else
+	FString dllName = FString(TEXT("mono-2.0-boehm")) + DLL_EXTENSION;
+#endif
+	return GetLibPath(dllName, monoLibPaths);
+}
+
+FString CSharpLoader::GetCoreCLRDllPath()
+{
+	FString dllName = FString(TEXT("coreclr")) + DLL_EXTENSION;
+	return GetLibPath(dllName, coreCLRLibPaths);
 }
 
 FString CSharpLoader::GetAssemblyPath(FString assemblyName)
@@ -216,7 +272,8 @@ FString CSharpLoader::GetAssemblyPath(FString assemblyName)
 		FString assemblyPath = FPaths::Combine(*path, *assemblyName);
 		if (FPaths::FileExists(assemblyPath))
 		{
-			return assemblyPath;
+			// The calling CSharpLoader::Load() code expects absolute file paths
+			return FPaths::ConvertRelativePathToFull(assemblyPath);
 		}
 	}
 	
@@ -247,7 +304,7 @@ bool CSharpLoader::GetAssemblyPath(FString assemblyPath, FString& outAssemblyPat
 	return true;
 }
 
-TArray<FString> CSharpLoader::GetRuntimeVersions(bool mono)
+TArray<FString> CSharpLoader::GetRuntimeVersions(EDotNetRuntime runtime)
 {
 	TArray<FString> runtimeVersions;
 
@@ -258,7 +315,7 @@ TArray<FString> CSharpLoader::GetRuntimeVersions(bool mono)
 	versions.Add("v1.0.3705");
 
 #if PLATFORM_WINDOWS
-	if (!mono)
+	if (runtime == EDotNetRuntime::CLR)
 	{
 		TCHAR winDir[MAX_PATH];
 		GetWindowsDirectory(winDir, MAX_PATH);
@@ -274,7 +331,7 @@ TArray<FString> CSharpLoader::GetRuntimeVersions(bool mono)
 	}
 #endif
 
-	if (mono)
+	if (runtime == EDotNetRuntime::Mono)
 	{
 		for (auto version : versions)
 		{
@@ -293,7 +350,7 @@ bool CSharpLoader::LoadRuntimeMono()
 		return false;
 	}
 
-	TArray<FString> runtimeVersions = GetRuntimeVersions(true);
+	TArray<FString> runtimeVersions = GetRuntimeVersions(EDotNetRuntime::Mono);
 	if (runtimeVersions.Num() == 0)
 	{
 		return false;
@@ -305,7 +362,7 @@ bool CSharpLoader::LoadRuntimeMono()
 	if (dllHandle == NULL)
 		return false;
 	
-#if !STATIC_MONO_LINK
+#if !MONO_STATIC_LINK
 	mono_config_parse = (import__mono_config_parse)FPlatformProcess::GetDllExport(dllHandle, TEXT("mono_config_parse"));
 	mono_domain_set_config = (import__mono_domain_set_config)FPlatformProcess::GetDllExport(dllHandle, TEXT("mono_domain_set_config"));
 	mono_set_dirs = (import__mono_set_dirs)FPlatformProcess::GetDllExport(dllHandle, TEXT("mono_set_dirs"));
@@ -361,10 +418,42 @@ bool CSharpLoader::LoadRuntimeMono()
 	return monoDomain != NULL;
 }
 
-bool CSharpLoader::LoadRuntimeMs()
+bool CSharpLoader::LoadRuntimeCoreCLR()
+{
+	FString dllPath = GetCoreCLRDllPath();
+	if (!FPaths::FileExists(dllPath))
+	{
+		return false;
+	}
+
+	void* dllHandle = FPlatformProcess::GetDllHandle(*dllPath);
+	if (dllHandle == NULL)
+	{
+		return false;
+	}
+
+	coreclr_initialize = (import__coreclr_initialize)FPlatformProcess::GetDllExport(dllHandle, TEXT("coreclr_initialize"));
+	coreclr_shutdown = (import__coreclr_shutdown)FPlatformProcess::GetDllExport(dllHandle, TEXT("coreclr_shutdown"));
+	coreclr_shutdown_2 = (import__coreclr_shutdown_2)FPlatformProcess::GetDllExport(dllHandle, TEXT("coreclr_shutdown_2"));
+	coreclr_create_delegate = (import__coreclr_create_delegate)FPlatformProcess::GetDllExport(dllHandle, TEXT("coreclr_create_delegate"));
+	coreclr_execute_assembly = (import__coreclr_execute_assembly)FPlatformProcess::GetDllExport(dllHandle, TEXT("coreclr_execute_assembly"));
+
+	if (coreclr_initialize == NULL ||
+		coreclr_shutdown == NULL ||
+		coreclr_shutdown_2 == NULL ||
+		coreclr_create_delegate == NULL ||
+		coreclr_execute_assembly == NULL)
+	{
+		return false;
+	}
+
+	return true;
+}
+
+bool CSharpLoader::LoadRuntimeCLR()
 {
 #if PLATFORM_WINDOWS
-	TArray<FString> runtimeVersions = GetRuntimeVersions(false);
+	TArray<FString> runtimeVersions = GetRuntimeVersions(EDotNetRuntime::CLR);
 	if (runtimeVersions.Num() == 0)
 	{
 		return false;
@@ -417,29 +506,33 @@ bool CSharpLoader::LoadRuntimeMs()
 #endif
 }
 
-bool CSharpLoader::LoadRuntime(bool loaderEnabled)
+bool CSharpLoader::LoadRuntimes(bool loaderEnabled)
 {
 	if (runtimeState.InitializedRuntimes != EDotNetRuntime::None)
 	{
 		return true;
 	}
 
-	runtimeState.InitializedRuntimes = EDotNetRuntime::None;
-
 #if PLATFORM_WINDOWS
-	if (RuntimeTypeHasFlag(runtimeState.DesiredRuntimes, EDotNetRuntime::CLR) && LoadRuntimeMs())
+	if ((runtimeState.InitializedRuntimes == EDotNetRuntime::None || loaderEnabled) &&
+		RuntimeTypeHasFlag(runtimeState.DesiredRuntimes, EDotNetRuntime::CLR) && LoadRuntimeCLR())
 	{
 		runtimeState.InitializedRuntimes |= EDotNetRuntime::CLR;
-		if (!RuntimeTypeHasFlag(runtimeState.DesiredRuntimes, EDotNetRuntime::Dual) || !loaderEnabled)
-		{
-			return true;
-		}
 	}
 #endif
 
-	if (RuntimeTypeHasFlag(runtimeState.DesiredRuntimes, EDotNetRuntime::Mono) && LoadRuntimeMono())
+	if ((runtimeState.InitializedRuntimes == EDotNetRuntime::None || loaderEnabled) &&
+		RuntimeTypeHasFlag(runtimeState.DesiredRuntimes, EDotNetRuntime::Mono) && LoadRuntimeMono())
 	{
 		runtimeState.InitializedRuntimes |= EDotNetRuntime::Mono;
+	}
+
+	// .NET Core doesn't support AppDomain loading. As hotreload / runtime switching currently depends on
+	// AppDomain loading we can only load CoreCLR if it's the only enabled runtime.
+	if (runtimeState.InitializedRuntimes == EDotNetRuntime::None &&
+		RuntimeTypeHasFlag(runtimeState.DesiredRuntimes, EDotNetRuntime::CoreCLR) && LoadRuntimeCoreCLR())
+	{
+		runtimeState.InitializedRuntimes |= EDotNetRuntime::CoreCLR;
 	}
 
 	return runtimeState.InitializedRuntimes != EDotNetRuntime::None;
@@ -447,18 +540,26 @@ bool CSharpLoader::LoadRuntime(bool loaderEnabled)
 
 FString CSharpLoader::RuntimeTypeToString(EDotNetRuntime type)
 {
-	switch (type)
+	if (type == EDotNetRuntime::None)
 	{
-		case EDotNetRuntime::CLR:
-			return TEXT("CLR");
-		case EDotNetRuntime::Mono:
-			return TEXT("Mono");
-		case EDotNetRuntime::Dual:
-			return TEXT("Dual (CLR+Mono)");
-		default:
-		case EDotNetRuntime::None:
-			return TEXT("Unknown");
+		return TEXT("Unknown");
 	}
+
+	FString Result;
+	if (RuntimeTypeHasFlag(type, EDotNetRuntime::CLR))
+	{
+		Result += TEXT(", CLR");
+	}
+	if (RuntimeTypeHasFlag(type, EDotNetRuntime::Mono))
+	{
+		Result += TEXT(", Mono");
+	}
+	if (RuntimeTypeHasFlag(type, EDotNetRuntime::CoreCLR))
+	{
+		Result += TEXT(", CoreCLR");
+	}
+	Result.RemoveFromStart(TEXT(", "));
+	return Result;
 }
 
 bool CSharpLoader::RuntimeTypeHasFlag(EDotNetRuntime type, EDotNetRuntime flagToCheck)
@@ -473,16 +574,20 @@ bool CSharpLoader::Load(FString assemblyPath, FString customArgs, FString loader
 		return true;
 	}
 
-	if (!loaderEnabled && runtimeState.DesiredRuntimes == EDotNetRuntime::Dual)
+	// Use absolute paths
+	if (FPaths::FileExists(assemblyPath))
 	{
-		// If we aren't using the Loader program and the target runtime is set to Dual then only initialize CLR
-		runtimeState.DesiredRuntimes = EDotNetRuntime::CLR;
+		assemblyPath = FPaths::ConvertRelativePathToFull(assemblyPath);
+	}
+	if (FPaths::FileExists(loaderAssemblyPath))
+	{
+		loaderAssemblyPath = FPaths::ConvertRelativePathToFull(loaderAssemblyPath);
 	}
 	
-	if (!LoadRuntime(loaderEnabled))
+	if (!LoadRuntimes(loaderEnabled))
 	{
 		FString desiredRuntimeStr = RuntimeTypeToString(runtimeState.DesiredRuntimes);
-		LogLoaderError(FString::Printf(TEXT("Failed to load .NET runtime %s"), *desiredRuntimeStr));
+		LogLoaderError(FString::Printf(TEXT("Failed to load .NET runtimes (%s)"), *desiredRuntimeStr));
 		return false;
 	}
 
@@ -498,11 +603,11 @@ bool CSharpLoader::Load(FString assemblyPath, FString customArgs, FString loader
 	{
 		return false;
 	}
-		
+	
 	if (loaderEnabled)
 	{
-		FString mainAssemblyPath = FPaths::ConvertRelativePathToFull(fullAssemblyPath);
-		
+		FString mainAssemblyPath = fullAssemblyPath;
+
 		// Editor build: if the loader isn't found treat this is as an error
 		// Shipping build: if the loader isn't found just load the main assembly directly
 		if (GetAssemblyPath(loaderAssemblyPath, fullAssemblyPath, WITH_EDITOR))
@@ -519,14 +624,15 @@ bool CSharpLoader::Load(FString assemblyPath, FString customArgs, FString loader
 
 	CSharpProjectGeneration::GenerateProject();
 
-	TCHAR* entryPointClass = TEXT("UnrealEngine.EntryPoint");
-	TCHAR* entryPointMethod = TEXT("DllMain");
+	const TCHAR* entryPointClass = TEXT("UnrealEngine.EntryPoint");
+	const TCHAR* entryPointMethod = TEXT("DllMain");
 
 #if PLATFORM_WINDOWS
-	if (RuntimeTypeHasFlag(runtimeState.InitializedRuntimes, EDotNetRuntime::CLR) && runtimeHost != NULL)
+	if (RuntimeTypeHasFlag(runtimeState.InitializedRuntimes, EDotNetRuntime::CLR))
 	{
 		::DWORD retVal;
-		HRESULT hr = runtimeHost->ExecuteInDefaultAppDomain(*fullAssemblyPath, entryPointClass, entryPointMethod, *entryPointMethodArg, &retVal);
+		HRESULT hr = runtimeHost->ExecuteInDefaultAppDomain(TCHAR_TO_WCHAR(*fullAssemblyPath), TCHAR_TO_WCHAR(entryPointClass), 
+			TCHAR_TO_WCHAR(entryPointMethod), TCHAR_TO_WCHAR(*entryPointMethodArg), &retVal);
 		if (FAILED(hr) || retVal != 0)
 		{
 			FString reason = GetLoadErrorReason(retVal);
@@ -538,7 +644,93 @@ bool CSharpLoader::Load(FString assemblyPath, FString customArgs, FString loader
 		}
 	}
 #endif
-	if (RuntimeTypeHasFlag(runtimeState.InitializedRuntimes, EDotNetRuntime::Mono) && monoDomain != NULL)
+	if (RuntimeTypeHasFlag(runtimeState.InitializedRuntimes, EDotNetRuntime::CoreCLR))
+	{
+#if PLATFORM_WINDOWS
+		FString fileSplitter = TEXT(";");
+#else
+		FString fileSplitter = TEXT(":");
+#endif
+
+		FString assemblName = FPaths::GetBaseFilename(fullAssemblyPath);
+		FString assemblyDir = FPaths::GetPath(fullAssemblyPath);
+		FString coreCLRDir = FPaths::ConvertRelativePathToFull(FPaths::GetPath(GetCoreCLRDllPath()));
+
+		// Use both the CoreCLR directory and the target assembly directory for APP_PATHS so that
+		// it can resolve CoreCLR system assemblies
+		FString appPaths = coreCLRDir + fileSplitter + assemblyDir;
+		auto appPathsCStr = StringCast<ANSICHAR>(*appPaths);
+
+		// I'm not sure if this should be the path of the target assembly or the path of the running exe
+		// It doesn't seem to matter what you use here.
+		FString exePath = fullAssemblyPath;
+		auto exePathCStr = StringCast<ANSICHAR>(*exePath);
+
+		// We may need to trust more assemblies, for now just add our target assembly
+		FString trustedAssemblies = fullAssemblyPath;
+		auto trustedAssembliesCtr = StringCast<ANSICHAR>(*trustedAssemblies);
+
+		// FString dllPath = GetCoreCLRDllPath();
+		const char* propertyKeys[] =
+		{
+			"TRUSTED_PLATFORM_ASSEMBLIES",
+			"APP_PATHS"
+		};
+		const char* propertyValues[] =
+		{
+			// TRUSTED_PLATFORM_ASSEMBLIES
+			trustedAssembliesCtr.Get(),
+			// APP_PATHS
+			appPathsCStr.Get()
+		};
+
+		unsigned int domainId;
+
+		int hr = coreclr_initialize(
+			exePathCStr.Get(),
+			"USharpAppDomain",
+			sizeof(propertyValues) / sizeof(char*),
+			propertyKeys,
+			propertyValues,
+			&coreCLRHandle,
+			&domainId);
+
+		if (FAILED(hr))
+		{
+			LogLoaderError(FString::Printf(TEXT("coreclr_initialize failed. ErrorCode: 0x%08x (%u)"), hr, hr));
+		}
+		else
+		{
+			ManagedEntryPointSig entryPoint;
+
+			hr = coreclr_create_delegate(
+				coreCLRHandle,
+				domainId,
+				TCHAR_TO_ANSI(*assemblName),
+				TCHAR_TO_ANSI(entryPointClass),
+				TCHAR_TO_ANSI(entryPointMethod),
+				(void**)(&entryPoint));
+
+			if (FAILED(hr))
+			{
+				LogLoaderError(FString::Printf(TEXT("coreclr_create_delegate failed. ErrorCode: 0x%08x (%u)"), hr, hr));
+			}
+			else
+			{
+				int32 retVal = entryPoint(TCHAR_TO_ANSI(*entryPointMethodArg));
+				if (retVal != 0)
+				{
+					FString reason = GetLoadErrorReason(retVal);
+					LogLoaderError(FString::Printf(TEXT(".NET Core failed to call the assembly entry point. Reason: %s"), *reason));
+				}
+				else
+				{
+					runtimeState.LoadedRuntimes |= EDotNetRuntime::CoreCLR;
+				}
+			}
+		}
+	}
+	if (RuntimeTypeHasFlag(runtimeState.InitializedRuntimes, EDotNetRuntime::Mono))
 	{
 		MonoAssembly* assembly = mono_domain_assembly_open((MonoDomain*)monoDomain, TCHAR_TO_ANSI(*fullAssemblyPath));
 		if (assembly == NULL)
@@ -605,28 +797,15 @@ bool CSharpLoader::Load(FString assemblyPath, FString customArgs, FString loader
 
 FString CSharpLoader::GetLoadErrorReason(int32 retVal)
 {
-	FString reason;
-	if (retVal == 1000)
+	switch (retVal)
 	{
-		reason = TEXT("Main assembly path not provided");
+		case 1000: return TEXT("Main assembly path not provided");
+		case 1001: return TEXT("Couldn't find main assembly");
+		case 1002: return TEXT("Main assembly must be in a sub folder to the loader");
+		case 1003: return TEXT("Functions used to run the loader in the game thread are null");
+		case 1004: return TEXT("Failed to load the main assembly");
+		default: return TEXT("");
 	}
-	else if(retVal == 1001)
-	{
-		reason = TEXT("Couldn't find main assembly");
-	}
-	else if (retVal == 1002)
-	{
-		reason = TEXT("Main assembly must be in a sub folder to the loader");
-	}
-	else if (retVal == 1003)
-	{
-		reason = TEXT("Functions used to run the loader in the game thread are null");
-	}
-	else if(retVal == 1004)
-	{
-		reason = TEXT("Failed to load the main assembly");
-	}
-	return reason;
 }
 
 bool CSharpLoader::IsLoaded()

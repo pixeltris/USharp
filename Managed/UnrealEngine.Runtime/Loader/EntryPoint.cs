@@ -7,7 +7,6 @@ using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
-using System.Windows.Forms;
 
 // NOTE: Do not change the name of this (entry point lookup is "UnrealEngine.EntryPoint.DllMain")
 namespace UnrealEngine
@@ -49,8 +48,6 @@ namespace UnrealEngine
 
         public static int DllMain(string arg)
         {
-            mainAssemblyPath = null;
-
             Args args = new Args(arg);
             mainAssemblyPath = args.GetString("MainAssembly");
             SharedRuntimeState.Initialize((IntPtr)args.GetInt64("RuntimeState"));
@@ -65,6 +62,12 @@ namespace UnrealEngine
             else
             {
                 return (int)AssemblyLoaderError.MainAssemblyPathNotProvided;
+            }
+
+            if (SharedRuntimeState.IsCoreCLR)
+            {
+                // .NET Core doesn't support appdomain loading
+                LoadAssemblyWithoutAppDomain = true;
             }
 
             IntPtr addTickerAddr = (IntPtr)args.GetInt64("AddTicker");
@@ -88,8 +91,10 @@ namespace UnrealEngine
                 return (int)AssemblyLoaderError.MainAssemblyPathNotProvided;
             }
 
-            if (SharedRuntimeState.IsMonoRuntime && SharedRuntimeState.IsRuntimeLoaded(EDotNetRuntime.CLR))
+            // If there is already a loaded runtime only do a pre-load
+            if (SharedRuntimeState.GetLoadedRuntimes() != EDotNetRuntime.None)
             {
+                Debug.Assert(!SharedRuntimeState.IsCoreCLR, "TODO: .NET Core hotreload support (something non-AppDomain related)");
                 Debug.Assert(appDomain == null);
 
                 // Make sure the main assembly path exists
@@ -105,11 +110,10 @@ namespace UnrealEngine
                     return (int)AssemblyLoaderError.LoadFailed;
                 }
 
-                // Mono will be preloaded only. It will wait until the next runtime is set to target Mono at which point
-                // it will do a full load.
+                // Preload now and then do a full load when NextRuntime is set to this runtime type
                 PreloadNextAppDomain();
 
-                // Watch for assembly changes (the paths should have been set up by the full load in the CLR runtime)
+                // Watch for assembly changes (the paths should have been set up by the full load in the other runtime)
                 UpdateAssemblyWatchers();
 
                 return 0;
@@ -120,7 +124,16 @@ namespace UnrealEngine
                 SharedRuntimeState.Instance->ActiveRuntime = SharedRuntimeState.CurrentRuntime;
             }
 
-            if (!ReloadAppDomain())
+            bool loaded;
+            if (LoadAssemblyWithoutAppDomain)
+            {
+                loaded = LoadWithoutUsingAppDomains();
+            }
+            else
+            {
+                loaded = ReloadAppDomain();
+            }
+            if (!loaded)
             {
                 unsafe
                 {
@@ -281,62 +294,58 @@ namespace UnrealEngine
                 UnloadAppDomain();
             }
 
-            if (LoadAssemblyWithoutAppDomain)
-            {
-                try
-                {
-                    AssemblyLoader loader = new AssemblyLoader(mainAssemblyPath, entryPointType, entryPointMethod, entryPointArg, false);
-                    loader.Load();
-                }
-                catch (Exception e)
-                {
-                    MessageBox.Show("Failed to load assembly \"" + mainAssemblyPath + "\" " +
-                        Environment.NewLine + Environment.NewLine + e, errorMsgBoxTitle);
-                    SharedRuntimeState.SetHotReloadData(null);
-                    return false;
-                }
-            }
-            else
-            {
-                string entryPointArgEx = entryPointArg;
-                bool firstLoad = preloadAppDomainWaitHandle == null;
-                if (firstLoad)
-                {
-                    PreloadNextAppDomain();
-                }
-                else
-                {
-                    entryPointArgEx += "|Reloading=true";
-                }
-
-                preloadAppDomainWaitHandle.WaitOne(Timeout.Infinite);
-                preloadAppDomainWaitHandle.Reset();
-
-                if (!preloadFailed)
-                {
-                    appDomain = preloadAppDomain;
-                    preloadAppDomain = null;
-
-                    try
-                    {
-                        AssemblyLoader loader = new AssemblyLoader(mainAssemblyPath, entryPointType, entryPointMethod, entryPointArgEx, false);
-                        appDomain.DoCallBack(loader.Load);
-                        UpdateAssemblyWatchers();
-                    }
-                    catch (Exception e)
-                    {
-                        MessageBox.Show("Failed to create AppDomain for \"" + mainAssemblyPath + "\" " +
-                            Environment.NewLine + Environment.NewLine + e, errorMsgBoxTitle);
-                    }
-                }
-            }
-
-            if (!LoadAssemblyWithoutAppDomain)
+            string entryPointArgEx = entryPointArg;
+            bool firstLoad = preloadAppDomainWaitHandle == null;
+            if (firstLoad)
             {
                 PreloadNextAppDomain();
             }
+            else
+            {
+                entryPointArgEx += "|Reloading=true";
+            }
+
+            preloadAppDomainWaitHandle.WaitOne(Timeout.Infinite);
+            preloadAppDomainWaitHandle.Reset();
+
+            if (!preloadFailed)
+            {
+                appDomain = preloadAppDomain;
+                preloadAppDomain = null;
+
+                try
+                {
+                    AssemblyLoader loader = new AssemblyLoader(mainAssemblyPath, entryPointType, entryPointMethod, entryPointArgEx, false);
+                    appDomain.DoCallBack(loader.Load);
+                    UpdateAssemblyWatchers();
+                }
+                catch (Exception e)
+                {
+                    MessageBox("Failed to create AppDomain for \"" + mainAssemblyPath + "\" " +
+                        Environment.NewLine + Environment.NewLine + e, errorMsgBoxTitle);
+                }
+            }
+
+            PreloadNextAppDomain();
             SharedRuntimeState.SetHotReloadData(null);
             return true;
+        }
+
+        private static bool LoadWithoutUsingAppDomains()
+        {
+            try
+            {
+                AssemblyLoader loader = new AssemblyLoader(mainAssemblyPath, entryPointType, entryPointMethod, entryPointArg, false);
+                loader.Load();
+                return true;
+            }
+            catch (Exception e)
+            {
+                MessageBox("Failed to load assembly \"" + mainAssemblyPath + "\" " +
+                    Environment.NewLine + Environment.NewLine + e, errorMsgBoxTitle);
+                SharedRuntimeState.SetHotReloadData(null);
+                return false;
+            }
         }
 
         private static void PreloadNextAppDomain()
@@ -383,7 +392,7 @@ namespace UnrealEngine
                 }
                 catch (Exception e)
                 {
-                    MessageBox.Show("Failed to create AppDomain for \"" + mainAssemblyPath + "\" " +
+                    MessageBox("Failed to create AppDomain for \"" + mainAssemblyPath + "\" " +
                         Environment.NewLine + Environment.NewLine + e, errorMsgBoxTitle);
                     preloadFailed = true;
                     UnloadAppDomain(preloadAppDomain);
@@ -404,7 +413,7 @@ namespace UnrealEngine
                 }
                 catch (Exception e)
                 {
-                    MessageBox.Show("HotReload Unload failed for \"" + mainAssemblyPath + "\" " +
+                    MessageBox("HotReload Unload failed for \"" + mainAssemblyPath + "\" " +
                         Environment.NewLine + Environment.NewLine + e, unloadErrorMsgBoxTitle);
                 }
                 
@@ -442,7 +451,7 @@ namespace UnrealEngine
                 if (domain != null)
                 {
                     domain = null;
-                    MessageBox.Show("Failed to unload AppDomain for \"" + mainAssemblyPath + "\" " +
+                    MessageBox("Failed to unload AppDomain for \"" + mainAssemblyPath + "\" " +
                         Environment.NewLine + Environment.NewLine + exception, unloadErrorMsgBoxTitle);
                 }
             }).Start();
@@ -480,6 +489,16 @@ namespace UnrealEngine
                 }
             }
             return false;
+        }
+
+        private static unsafe void MessageBox(string text, string title)
+        {
+            SharedRuntimeState.MessageBox(text, title);
+        }
+
+        private static void MessageBox(string text)
+        {
+            MessageBox(text, "C# Loader Error");
         }
     }
 

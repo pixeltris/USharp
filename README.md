@@ -11,8 +11,8 @@ Join the gitter chat room for quick help / discussion https://gitter.im/USharp/L
 # Features
 
 - Hotreload
-- .NET Framework and mono support
-- Debugging in Visual Studio with both C# and C++ (when using the .NET runtime)
+- .NET Framework, .NET Core and Mono support
+- Dynamically switch between the .NET Framework and Mono runtimes for an improved debugging / runtime experience without having to reopen the editor
 
 # Plugin Setup
 

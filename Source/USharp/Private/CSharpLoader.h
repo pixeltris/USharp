@@ -19,9 +19,9 @@
 enum class EDotNetRuntime : int32
 {
 	None = 0x00000000,
-	CLR = 0x00000001,
-	Mono = 0x00000002,
-	Dual = CLR | Mono
+	CLR = 0x00000001,//.NET Framework
+	Mono = 0x00000002,//Mono
+	CoreCLR = 0x00000004//.NET Core
 };
 
 inline EDotNetRuntime& operator |=(EDotNetRuntime& a, EDotNetRuntime b)
@@ -29,6 +29,7 @@ inline EDotNetRuntime& operator |=(EDotNetRuntime& a, EDotNetRuntime b)
 	return a = (EDotNetRuntime)((int32)a | (int32)b);
 }
 
+// Global state to be shared between Mono/CLR. Should only be accessed on the game thread.
 struct SharedRuntimeState
 {
 public:
@@ -54,12 +55,14 @@ public:
 	void*(*Malloc)(SIZE_T, uint32);
 	void*(*Realloc)(void*, SIZE_T, uint32);
 	void(*Free)(void*);
+	void(*MessageBox)(char*, char*);
 };
 
 class CSharpLoader
 {
 private:
 	SharedRuntimeState runtimeState;
+	void* coreCLRHandle;
 	void* monoDomain;	
 #if PLATFORM_WINDOWS
 	ICLRMetaHost* metaHost;
@@ -68,18 +71,22 @@ private:
 #endif
 	TArray<FString> csharpPaths;
 	TArray<FString> monoLibPaths;
+	TArray<FString> coreCLRLibPaths;
 
 	static CSharpLoader* singleton;
 
 	CSharpLoader();
-	TArray<FString> GetRuntimeVersions(bool mono);
+	TArray<FString> GetRuntimeVersions(EDotNetRuntime runtime);
 	FString RuntimeTypeToString(EDotNetRuntime type);
 	bool RuntimeTypeHasFlag(EDotNetRuntime type, EDotNetRuntime flagToCheck);
 	bool LoadRuntimeMono();
-	bool LoadRuntimeMs();
-	bool LoadRuntime(bool loaderEnabled);
+	bool LoadRuntimeCoreCLR();
+	bool LoadRuntimeCLR();
+	bool LoadRuntimes(bool loaderEnabled);
 	void SetupPaths();
+	FString GetLibPath(const FString& dllName, const TArray<FString>& libPaths);
 	FString GetMonoDllPath();
+	FString GetCoreCLRDllPath();
 	FString GetAssemblyPath(FString assemblyName);
 	bool GetAssemblyPath(FString assemblyPath, FString& outAssemblyPath, bool showLoadError);
 	FString GetLoadErrorReason(int32 retVal);	

@@ -1,4 +1,10 @@
-﻿using Microsoft.Win32;
+﻿// TODO: Manually add the envdte COM API to this solution so we can skip the reference which wont resolve on other platforms?
+//       Or add envdte locally? (if that is allowed distribution wise)
+//
+//    <Reference Include="envdte, Version=8.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+//      <EmbedInteropTypes>True</EmbedInteropTypes>
+//    </Reference>
+using Microsoft.Win32;
 using System;
 using System.Collections.Generic;
 using System.IO;
