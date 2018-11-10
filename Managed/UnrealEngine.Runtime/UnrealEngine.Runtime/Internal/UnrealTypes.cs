@@ -77,7 +77,7 @@ namespace UnrealEngine.Runtime
         public static void Load()
         {
             Assembly thisAssembly = Assembly.GetExecutingAssembly();
-            foreach (Assembly assembly in AppDomain.CurrentDomain.GetAssemblies())
+            foreach (Assembly assembly in CurrentAssemblyContext.GetAssemblies())
             {
                 LoadInternal(thisAssembly, assembly);
             }

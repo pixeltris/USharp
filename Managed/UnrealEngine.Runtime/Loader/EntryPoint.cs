@@ -16,14 +16,14 @@ namespace UnrealEngine
     /// </summary>
     public class EntryPoint
     {
-        // Preload the next app domain in another thread as this can take ~1 second which would
+        // Preload the next assembly context (AppDomain) in another thread as this can take ~1 second which would
         // slow down hotreloading if we didn't preload it.
-        private static AppDomain preloadAppDomain;
-        private static AutoResetEvent preloadAppDomainWaitHandle;
+        private static Runtime.AssemblyContextRef preloadedContextRef = Runtime.AssemblyContextRef.Invalid;
+        private static AutoResetEvent preloadContextWaitHandle;
         private static bool preloadFailed;
         internal const string preloadEntryPointDataName = "EntryPoint";// Used to cache the entry point method on prereload
 
-        private static AppDomain appDomain;
+        private static Runtime.AssemblyContextRef mainContextRef = Runtime.AssemblyContextRef.Invalid;
         private static int appDomainCount;
         private static string mainAssemblyPath;
         private static string mainAssemblyDirectory;
@@ -37,8 +37,8 @@ namespace UnrealEngine
         private static string entryPointArg = null;
         private static string unloadMethod = "Unload";
 
-        // If true an AppDomain wont be created and the assembly will be loaded current AppDomain.
-        public static bool LoadAssemblyWithoutAppDomain = false;
+        // If true the assembly will be loaded directly (hot hotreload support).
+        public static bool LoadAssemblyWithoutContexts = false;
 
         // If this is true the loader assemblies will be shadow copied.
         public static bool ShadowCopyAssembly = true;
@@ -49,8 +49,11 @@ namespace UnrealEngine
         public static int DllMain(string arg)
         {
             Args args = new Args(arg);
-            mainAssemblyPath = args.GetString("MainAssembly");
+
             SharedRuntimeState.Initialize((IntPtr)args.GetInt64("RuntimeState"));
+            Runtime.AssemblyContext.Initialize();
+
+            mainAssemblyPath = args.GetString("MainAssembly");
             if (!string.IsNullOrEmpty(mainAssemblyPath))
             {
                 if (string.IsNullOrEmpty(mainAssemblyPath) || !File.Exists(mainAssemblyPath))
@@ -62,12 +65,6 @@ namespace UnrealEngine
             else
             {
                 return (int)AssemblyLoaderError.MainAssemblyPathNotProvided;
-            }
-
-            if (SharedRuntimeState.IsCoreCLR)
-            {
-                // .NET Core doesn't support appdomain loading
-                LoadAssemblyWithoutAppDomain = true;
             }
 
             IntPtr addTickerAddr = (IntPtr)args.GetInt64("AddTicker");
@@ -94,8 +91,7 @@ namespace UnrealEngine
             // If there is already a loaded runtime only do a pre-load
             if (SharedRuntimeState.GetLoadedRuntimes() != EDotNetRuntime.None)
             {
-                Debug.Assert(!SharedRuntimeState.IsCoreCLR, "TODO: .NET Core hotreload support (something non-AppDomain related)");
-                Debug.Assert(appDomain == null);
+                Debug.Assert(mainContextRef.IsInvalid);
 
                 // Make sure the main assembly path exists
                 if (!File.Exists(mainAssemblyPath))
@@ -103,15 +99,15 @@ namespace UnrealEngine
                     return (int)AssemblyLoaderError.LoadFailed;
                 }
 
-                // Make sure we are using AppDomain loadding otherwise hotreload wont work which defeats the purpose of
+                // Make sure we are using assmbly contexts loadding otherwise hotreload wont work which defeats the purpose of
                 // using multiple runtimes
-                if (LoadAssemblyWithoutAppDomain)
+                if (LoadAssemblyWithoutContexts)
                 {
                     return (int)AssemblyLoaderError.LoadFailed;
                 }
 
                 // Preload now and then do a full load when NextRuntime is set to this runtime type
-                PreloadNextAppDomain();
+                PreloadNextContext();
 
                 // Watch for assembly changes (the paths should have been set up by the full load in the other runtime)
                 UpdateAssemblyWatchers();
@@ -125,13 +121,13 @@ namespace UnrealEngine
             }
 
             bool loaded;
-            if (LoadAssemblyWithoutAppDomain)
+            if (LoadAssemblyWithoutContexts)
             {
-                loaded = LoadWithoutUsingAppDomains();
+                loaded = LoadWithoutUsingContexts();
             }
             else
             {
-                loaded = ReloadAppDomain();
+                loaded = ReloadMainContext();
             }
             if (!loaded)
             {
@@ -159,22 +155,21 @@ namespace UnrealEngine
                     return;
                 }
 
-                if (appDomain != null)
+                if (!mainContextRef.IsInvalid)
                 {
-                    UnloadAppDomain();
+                    UnloadMainContext();
                 }
-                Debug.Assert(appDomain == null, "UnloadAppDomain failed?");
-                Debug.Assert(!LoadAssemblyWithoutAppDomain, "AppDomain loading is required in order to swap runtimes");
-
-                PreloadNextAppDomain();
+                Debug.Assert(mainContextRef.IsInvalid, "UnloadMainContext failed?");
+                Debug.Assert(!LoadAssemblyWithoutContexts, "Assembly context loading is required in order to swap runtimes");
+                
                 SharedRuntimeState.Instance->IsActiveRuntimeComplete = 1;
             }
-            else
+            else if (SharedRuntimeState.Instance->NextRuntime == SharedRuntimeState.CurrentRuntime)
             {
                 SharedRuntimeState.Instance->ActiveRuntime = SharedRuntimeState.CurrentRuntime;
                 SharedRuntimeState.Instance->NextRuntime = EDotNetRuntime.None;
                 SharedRuntimeState.Instance->IsActiveRuntimeComplete = 0;
-                ReloadAppDomain();
+                ReloadMainContext();
             }
         }
 
@@ -263,18 +258,18 @@ namespace UnrealEngine
 
                 if (hasChanged)
                 {
-                    ReloadAppDomain();
+                    ReloadMainContext();
                     lastAssemblyUpdate = DateTime.Now;
                 }
             }
         }
 
-        private static bool ReloadAppDomain()
+        private static bool ReloadMainContext(bool threaded = true)
         {
             if (!GameThreadHelper.IsInGameThread())
             {
                 bool result = false;
-                GameThreadHelper.Run(delegate { result = ReloadAppDomain(); });
+                GameThreadHelper.Run(delegate { result = ReloadMainContext(); });
                 return result;
             }
 
@@ -289,53 +284,58 @@ namespace UnrealEngine
                 return false;
             }
 
-            if (appDomain != null)
+            if (!mainContextRef.IsInvalid)
             {
-                UnloadAppDomain();
+                UnloadMainContext(threaded);
             }
 
             string entryPointArgEx = entryPointArg;
-            bool firstLoad = preloadAppDomainWaitHandle == null;
+            bool firstLoad = preloadContextWaitHandle == null;
             if (firstLoad)
             {
-                PreloadNextAppDomain();
+                PreloadNextContext(threaded);
             }
             else
             {
                 entryPointArgEx += "|Reloading=true";
             }
 
-            preloadAppDomainWaitHandle.WaitOne(Timeout.Infinite);
-            preloadAppDomainWaitHandle.Reset();
+            preloadContextWaitHandle.WaitOne(Timeout.Infinite);
+            preloadContextWaitHandle.Reset();
 
             if (!preloadFailed)
             {
-                appDomain = preloadAppDomain;
-                preloadAppDomain = null;
+                Debug.Assert(!preloadedContextRef.IsInvalid, "Preloaded context shouldn't be invalid");
+
+                mainContextRef = preloadedContextRef;
+                preloadedContextRef = Runtime.AssemblyContextRef.Invalid;
+
+                entryPointArgEx += "|AssemblyContext=" + mainContextRef.Format();
 
                 try
                 {
-                    AssemblyLoader loader = new AssemblyLoader(mainAssemblyPath, entryPointType, entryPointMethod, entryPointArgEx, false);
-                    appDomain.DoCallBack(loader.Load);
+                    AssemblyLoader loader = new AssemblyLoader(mainAssemblyPath, entryPointType, entryPointMethod, entryPointArgEx, false, mainContextRef);
+                    mainContextRef.DoCallBack(loader.Load);
                     UpdateAssemblyWatchers();
                 }
                 catch (Exception e)
                 {
-                    MessageBox("Failed to create AppDomain for \"" + mainAssemblyPath + "\" " +
+                    MessageBox("Failed to create assembly context for \"" + mainAssemblyPath + "\" " +
                         Environment.NewLine + Environment.NewLine + e, errorMsgBoxTitle);
                 }
             }
 
-            PreloadNextAppDomain();
+            PreloadNextContext(threaded);
             SharedRuntimeState.SetHotReloadData(null);
             return true;
         }
 
-        private static bool LoadWithoutUsingAppDomains()
+        private static bool LoadWithoutUsingContexts()
         {
             try
             {
-                AssemblyLoader loader = new AssemblyLoader(mainAssemblyPath, entryPointType, entryPointMethod, entryPointArg, false);
+                AssemblyLoader loader = new AssemblyLoader(
+                    mainAssemblyPath, entryPointType, entryPointMethod, entryPointArg, false, Runtime.AssemblyContextRef.Invalid);
                 loader.Load();
                 return true;
             }
@@ -348,68 +348,109 @@ namespace UnrealEngine
             }
         }
 
-        private static void PreloadNextAppDomain()
+        private static void PreloadNextContext(bool threaded = true)
         {
-            if (preloadAppDomainWaitHandle == null)
+            if (preloadContextWaitHandle == null)
             {
-                preloadAppDomainWaitHandle = new AutoResetEvent(false);
+                preloadContextWaitHandle = new AutoResetEvent(false);
             }
             else
             {
-                preloadAppDomainWaitHandle.Reset();
+                preloadContextWaitHandle.Reset();
             }
 
-            new Thread(delegate ()
+            DoPreloadNextContext(threaded);
+        }
+
+        private static void DoPreloadNextContext(bool threaded)
+        {
+            if (threaded)
+            {
+                new Thread(delegate ()
+                {
+                    DoPreloadNextContext(false);
+                }).Start();
+            }
+            else
             {
                 preloadFailed = false;
+                CreatePreloadedContext(entryPointArg + "|Preloading=true");
+                preloadContextWaitHandle.Set();
+            }
+        }
 
-                string entryPointArgEx = entryPointArg + "|Preloading=true";
+        private static void CreatePreloadedContext(string entryPointArg)
+        {
+            Runtime.AssemblyContextRef contextRef = Runtime.AssemblyContextRef.Invalid;
 
-                string appDomainName = "Domain" + Environment.TickCount + " " + appDomainCount++;
+            if (SharedRuntimeState.CurrentRuntime == EDotNetRuntime.CoreCLR)
+            {
+                contextRef = Runtime.AssemblyContext.Create();
+            }
+            else
+            {
+                // Seperate method to avoid issues with .NET Core
+                contextRef = CreatePreloadedContextAppDomain(entryPointArg);
+            }
 
-                AppDomainSetup appDomainSetup = new AppDomainSetup();
-                appDomainSetup.ApplicationBase = currentAssemblyDirectory;
-                appDomainSetup.ApplicationName = appDomainName;
-                if (ShadowCopyAssembly)
-                {
-                    appDomainSetup.ShadowCopyFiles = "true";
+            entryPointArg += "|AssemblyContext=" + contextRef.Format();
 
-                    // Main assembly must be in the same or sub directory (limitation of PrivateBinPath)
-                    string subDirectory;
-                    IsSameOrSubDirectory(currentAssemblyDirectory, mainAssemblyDirectory, out subDirectory);
-                    if (!string.IsNullOrEmpty(subDirectory))
-                    {
-                        appDomainSetup.PrivateBinPath = subDirectory;
-                    }
-                }
+            if (!contextRef.IsInvalid)
+            {
+                Debug.Assert(preloadedContextRef.IsInvalid, "Trying to preload when there is already something preloaded");
 
-                //preloadAppDomain = AppDomain.CreateDomain(appDomainName, null, mainAssemblyDirectory, ".", false);
-                preloadAppDomain = AppDomain.CreateDomain(appDomainName, null, appDomainSetup);
                 try
                 {
-                    AssemblyLoader loader = new AssemblyLoader(mainAssemblyPath, entryPointType, entryPointMethod, entryPointArgEx, true);
-                    preloadAppDomain.DoCallBack(loader.Load);
+                    AssemblyLoader loader = new AssemblyLoader(mainAssemblyPath, entryPointType, entryPointMethod, entryPointArg, true, contextRef);
+                    contextRef.DoCallBack(loader.Load);
+                    preloadedContextRef = contextRef;
                 }
                 catch (Exception e)
                 {
-                    MessageBox("Failed to create AppDomain for \"" + mainAssemblyPath + "\" " +
-                        Environment.NewLine + Environment.NewLine + e, errorMsgBoxTitle);
+                    GameThreadHelper.Run(delegate ()// For stylized message box (as we may not be in the game thread)
+                    {
+                        MessageBox("Failed to create assembly context for \"" + mainAssemblyPath + "\" " +
+                            Environment.NewLine + Environment.NewLine + e, errorMsgBoxTitle);
+                    });
                     preloadFailed = true;
-                    UnloadAppDomain(preloadAppDomain);
+                    UnloadContext(contextRef);
                 }
-
-                preloadAppDomainWaitHandle.Set();
-            }).Start();
+            }
         }
 
-        private static void UnloadAppDomain()
+        private static Runtime.AssemblyContextRef CreatePreloadedContextAppDomain(string entryPointArgEx)
         {
-            if (appDomain != null)
+            string appDomainName = "Domain" + Environment.TickCount + " " + appDomainCount++;
+
+            AppDomainSetup appDomainSetup = new AppDomainSetup();
+            appDomainSetup.ApplicationBase = currentAssemblyDirectory;
+            appDomainSetup.ApplicationName = appDomainName;
+            if (ShadowCopyAssembly)
+            {
+                appDomainSetup.ShadowCopyFiles = "true";
+
+                // Main assembly must be in the same or sub directory (limitation of PrivateBinPath)
+                string subDirectory;
+                IsSameOrSubDirectory(currentAssemblyDirectory, mainAssemblyDirectory, out subDirectory);
+                if (!string.IsNullOrEmpty(subDirectory))
+                {
+                    appDomainSetup.PrivateBinPath = subDirectory;
+                }
+            }
+
+            //AppDomain preloadAppDomain = AppDomain.CreateDomain(appDomainName, null, mainAssemblyDirectory, ".", false);
+            AppDomain preloadAppDomain = AppDomain.CreateDomain(appDomainName, null, appDomainSetup);
+            return Runtime.AssemblyContext.Create(preloadAppDomain);
+        }
+
+        private static void UnloadMainContext(bool threaded = true)
+        {
+            if (!mainContextRef.IsInvalid)
             {
                 try
                 {
-                    AssemblyUnloader unloader = new AssemblyUnloader(entryPointType, unloadMethod);                    
-                    appDomain.DoCallBack(unloader.Unload);
+                    AssemblyUnloader unloader = new AssemblyUnloader(entryPointType, unloadMethod, mainContextRef);
+                    mainContextRef.DoCallBack(unloader.Unload);
                 }
                 catch (Exception e)
                 {
@@ -417,44 +458,96 @@ namespace UnrealEngine
                         Environment.NewLine + Environment.NewLine + e, unloadErrorMsgBoxTitle);
                 }
                 
-                AppDomain oldAppDomain = appDomain;
-                appDomain = null;
+                Runtime.AssemblyContextRef oldContextRef = mainContextRef;
+                mainContextRef = Runtime.AssemblyContextRef.Invalid;
 
-                UnloadAppDomain(oldAppDomain);
+                UnloadContext(oldContextRef, threaded);
             }            
         }
 
-        private static void UnloadAppDomain(AppDomain domain)
+        private static void UnloadContext(Runtime.AssemblyContextRef contextRef, bool threaded = true)
         {
-            // Run the AppDomain.Unload on a seperate thread to avoid waiting for it.
-            new Thread(delegate ()
+            if (threaded)
+            {
+                // Run the Unload on a seperate thread to avoid waiting for it.
+                new Thread(delegate ()
+                {
+                    UnloadContext(contextRef, false);
+                }).Start();
+            }
+            else
             {
                 Exception exception = null;
+                bool unloaded = false;
 
-                for (int i = 0; i < 3; i++)
+                if (SharedRuntimeState.CurrentRuntime == EDotNetRuntime.CoreCLR)
                 {
+                    WeakReference weakRef = contextRef.GetWeakReference();
+
                     try
                     {
-                        AppDomain.Unload(domain);
-                        domain = null;
-                        break;
+                        // Just fire and hope for the best
+                        contextRef.Unload();
+                        unloaded = true;
                     }
                     catch (Exception e)
                     {
                         exception = e;
+                    }
+
+                    if (unloaded && weakRef != null)
+                    {
+                        for (int i = 0; i < 15 && weakRef.IsAlive; i++)
+                        {
+                            GC.Collect();
+                            GC.WaitForPendingFinalizers();
+                            if (i > 10)
+                            {
+                                Thread.Sleep(100);
+                            }
+                        }
+
+                        if (weakRef.IsAlive)
+                        {
+                            exception = new Exception(".NET Core couldn't unload the AssemblyLoadContext. There is likely some global event" +
+                                " which is being bound to. You will crash on the next load due to the state not being cleaned up properly.");
+                            unloaded = false;
+                        }
+                    }
+                }
+                else
+                {
+                    for (int i = 0; i < 3; i++)
+                    {
+                        try
+                        {
+                            contextRef.Unload();
+                            unloaded = true;
+                            break;
+                        }
+                        catch (CannotUnloadAppDomainException e)
+                        {
+                            exception = e;
+                        }
+                        catch (AppDomainUnloadedException e)
+                        {
+                            exception = e;
+                        }
 
                         // Give it a little more time and then try again
                         Thread.Sleep(300);
                     }
                 }
 
-                if (domain != null)
+                if (!unloaded)
                 {
-                    domain = null;
-                    MessageBox("Failed to unload AppDomain for \"" + mainAssemblyPath + "\" " +
-                        Environment.NewLine + Environment.NewLine + exception, unloadErrorMsgBoxTitle);
+                    GameThreadHelper.Run(delegate ()// For stylized message box (as we may not be in the game thread)
+                    {
+                        MessageBox("Failed to unload assembly context for \"" + mainAssemblyPath + "\" " +
+                            Environment.NewLine + Environment.NewLine + exception, unloadErrorMsgBoxTitle);
+                    });
                 }
-            }).Start();
+            }
         }
 
         private static bool IsSameOrSubDirectory(string basePath, string path)
@@ -539,31 +632,35 @@ namespace UnrealEngine
         private string assemblyPath;
 
         private bool isPreloading;
+        private KeyValuePair<long, long> assemblyContextRef;
 
-        public AssemblyLoader(string path, string entryPointType, string entryPointMethod, string entryPointArg, bool isPreloading)
+        public AssemblyLoader(string path, string entryPointType, string entryPointMethod, string entryPointArg, 
+            bool isPreloading, Runtime.AssemblyContextRef assemblyContextRef)
         {
             this.entryPointType = entryPointType;
             this.entryPointMethod = entryPointMethod;
             this.entryPointArg = entryPointArg;
             this.assemblyPath = path;
             this.isPreloading = isPreloading;
+            this.assemblyContextRef = assemblyContextRef;
         }
 
         public void Load()
         {
-            MethodInfo dllMainMethod = AppDomain.CurrentDomain.GetData(EntryPoint.preloadEntryPointDataName) as MethodInfo;
-            if (dllMainMethod != null)
+            // Don't save the MethodInfo if this is CoreCLR as this will keep the target assembly alive
+            MethodInfo dllMainMethod = null;
+            if (SharedRuntimeState.CurrentRuntime != EDotNetRuntime.CoreCLR)
             {
-                Type entryPoint = dllMainMethod.DeclaringType;
-                
+                dllMainMethod = AppDomain.CurrentDomain.GetData(EntryPoint.preloadEntryPointDataName) as MethodInfo;
+            }
+
+            if (dllMainMethod != null)
+            {             
                 dllMainMethod.Invoke(null, new object[] { entryPointArg });
             }
             else
             {
-                Assembly assembly = null;
-
-                //assembly = Assembly.Load(AssemblyName.GetAssemblyName(assemblyPath));
-                assembly = Assembly.LoadFrom(assemblyPath);
+                Assembly assembly = ((Runtime.AssemblyContextRef)assemblyContextRef).LoadFrom(assemblyPath);
 
                 Type entryPoint = assembly.GetType(entryPointType);
                 if (entryPoint != null)
@@ -573,7 +670,7 @@ namespace UnrealEngine
                     {
                         dllMainMethod.Invoke(null, new object[] { entryPointArg });
 
-                        if (isPreloading)
+                        if (isPreloading && SharedRuntimeState.CurrentRuntime != EDotNetRuntime.CoreCLR)
                         {
                             // If this is a preload cache the entrypoint for the main load
                             AppDomain.CurrentDomain.SetData(EntryPoint.preloadEntryPointDataName, dllMainMethod);
@@ -597,33 +694,34 @@ namespace UnrealEngine
     {
         private string entryPointType;
         private string unloadMethod;
+        private KeyValuePair<long, long> assemblyContextRef;
 
-        public AssemblyUnloader(string entryPointType, string unloadMethod)
+        public AssemblyUnloader(string entryPointType, string unloadMethod, Runtime.AssemblyContextRef assemblyContextRef)
         {
             this.entryPointType = entryPointType;
             this.unloadMethod = unloadMethod;
+            this.assemblyContextRef = assemblyContextRef;
         }
 
         public void Unload()
         {
             BindingFlags bindingFlags = BindingFlags.Public | BindingFlags.Static | BindingFlags.NonPublic;
-            foreach (Assembly assembly in AppDomain.CurrentDomain.GetAssemblies())
-            {
-                if (assembly.FullName == typeof(AssemblyUnloader).Assembly.FullName)
-                {
-                    // Skip the loader assembly
-                    continue;
-                }
 
-                Type type = assembly.GetType(entryPointType, false);
-                if (type != null)
+            Assembly[] assemblies = ((Runtime.AssemblyContextRef)assemblyContextRef).GetAssemblies();
+            foreach (Assembly assembly in assemblies)
+            {
+                if (assembly.FullName.StartsWith("UnrealEngine.Runtime"))
                 {
-                    MethodInfo method = type.GetMethod(unloadMethod, bindingFlags);
-                    if (method.GetParameters().Length == 0)
+                    Type type = assembly.GetType(entryPointType, false);
+                    if (type != null)
                     {
-                        method.Invoke(null, null);
-                        break;
+                        MethodInfo method = type.GetMethod(unloadMethod, bindingFlags);
+                        if (method.GetParameters().Length == 0)
+                        {
+                            method.Invoke(null, null);
+                        }
                     }
+                    break;
                 }
             }
         }

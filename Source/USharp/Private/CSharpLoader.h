@@ -48,14 +48,15 @@ public:
 
 	int32 HotReloadAssemblyPathsLen;
 	int32 HotReloadAssemblyPathsLenInMemory;
-	uint8* HotReloadAssemblyPaths;
-
-	int32 StructSize;
+	uint8* HotReloadAssemblyPaths;	
 
 	void*(*Malloc)(SIZE_T, uint32);
 	void*(*Realloc)(void*, SIZE_T, uint32);
 	void(*Free)(void*);
 	void(*MessageBox)(char*, char*);
+	void(*LogMsg)(uint8, char*);
+	
+	int32 StructSize;
 };
 
 class CSharpLoader

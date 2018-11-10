@@ -154,7 +154,7 @@ namespace UnrealEngine.Runtime.Native
             bool reloading = HotReload.IsReloading;
             HotReload.MinimalReload = Native_SharpHotReloadUtils.Get_MinimalHotReload();
 
-            FMessage.Log("Runtime: " + SharedRuntimeState.GetRuntimeInfo());
+            FMessage.Log("Runtime: " + SharedRuntimeState.GetRuntimeInfo(false));
 
             // HACK: Removing EPackageFlags.EditorOnly on the USharp package so that C# classes aren't tagged as
             //       EObjectMark.EditorOnly. The correct thing to do would be to seperate USharp into seperate 
@@ -188,8 +188,12 @@ namespace UnrealEngine.Runtime.Native
             }
 
             // If any assemblies are loaded make sure to load their unreal types
-            AppDomain.CurrentDomain.AssemblyResolve += CurrentDomain_AssemblyResolve;
-            AppDomain.CurrentDomain.AssemblyLoad += OnAssemblyLoad;
+            if (!AssemblyContext.IsCoreCLR)// .NET Core should resolve with AssemblyLoadContext.Resolving
+            {
+                CurrentAssemblyContext.AssemblyResolve += CurrentDomain_AssemblyResolve;
+            }
+            CurrentAssemblyContext.AssemblyLoad += OnAssemblyLoad;
+            CurrentAssemblyContext.Resolving += CurrentAssemblyContext_Resolving;
 
             using (var timing = HotReload.Timing.Create(HotReload.Timing.NativeFunctions_LoadAssemblies))
             {
@@ -260,12 +264,20 @@ namespace UnrealEngine.Runtime.Native
             }
         }
 
+        private static Assembly CurrentAssemblyContext_Resolving(AssemblyName arg)
+        {
+            return OnAssemblyResolve(arg.FullName);
+        }
+
         private static Assembly CurrentDomain_AssemblyResolve(object sender, ResolveEventArgs args)
+        {
+            return OnAssemblyResolve(args.Name);
+        }
+
+        private static Assembly OnAssemblyResolve(string assemblyName)
         {
             if (!string.IsNullOrEmpty(UnrealTypes.GameAssemblyDirectory))
             {
-                string assemblyName = args.Name;
-
                 // Strip down the full assembly name down to a name which could be used as the file name
                 // "UnrealEngine, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"
                 for (int i = 0; i < 3; i++)
@@ -282,7 +294,7 @@ namespace UnrealEngine.Runtime.Native
                 if (File.Exists(assemblyPath))
                 {
                     // Need to use LoadFrom instead of LoadFile to for shadow copying to work properly
-                    Assembly assembly = Assembly.LoadFrom(assemblyPath);
+                    Assembly assembly = CurrentAssemblyContext.LoadFrom(assemblyPath);
                     return assembly;
                 }
             }
@@ -380,7 +392,7 @@ namespace UnrealEngine.Runtime.Native
                 //Assembly assembly = Assembly.Load(assemblyBuffer, pdbBuffer);
 
                 // Need to use LoadFrom instead of LoadFile to for shadow copying to work properly
-                Assembly assembly = Assembly.LoadFrom(gameAssemblyFileName);
+                Assembly assembly = CurrentAssemblyContext.LoadFrom(gameAssemblyFileName);
 
                 string[] dependencies = ResolveAssemblyDependencies(assembly);
                 foreach (string assemblyPath in dependencies)

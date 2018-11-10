@@ -146,6 +146,13 @@ void MessageDialogProxy(char* text, char* title)
 	FMessageDialog::Open(EAppMsgType::Ok, textTemp, &titleTemp);
 }
 
+void LogMsgProxy(uint8 verbosity, char* message)
+{
+	FString categoryName = TEXT("USharp");
+	FString messageStr = FString(ANSI_TO_TCHAR(message));
+	FMsg::Logf(__FILE__, __LINE__, FName(*categoryName), (ELogVerbosity::Type)verbosity, TEXT("%s"), *messageStr);
+}
+
 CSharpLoader::CSharpLoader()
 {
 	coreCLRHandle = NULL;
@@ -161,6 +168,7 @@ CSharpLoader::CSharpLoader()
 	runtimeState.Realloc = &FMemory::Realloc;
 	runtimeState.Free = &FMemory::Free;
 	runtimeState.MessageBox = &MessageDialogProxy;
+	runtimeState.LogMsg = &LogMsgProxy;
 	runtimeState.StructSize = (int32)sizeof(SharedRuntimeState);
 
 	SetupPaths();
@@ -527,9 +535,7 @@ bool CSharpLoader::LoadRuntimes(bool loaderEnabled)
 		runtimeState.InitializedRuntimes |= EDotNetRuntime::Mono;
 	}
 
-	// .NET Core doesn't support AppDomain loading. As hotreload / runtime switching currently depends on
-	// AppDomain loading we can only load CoreCLR if it's the only enabled runtime.
-	if (runtimeState.InitializedRuntimes == EDotNetRuntime::None &&
+	if ((runtimeState.InitializedRuntimes == EDotNetRuntime::None || loaderEnabled) &&
 		RuntimeTypeHasFlag(runtimeState.DesiredRuntimes, EDotNetRuntime::CoreCLR) && LoadRuntimeCoreCLR())
 	{
 		runtimeState.InitializedRuntimes |= EDotNetRuntime::CoreCLR;
