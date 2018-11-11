@@ -163,7 +163,7 @@ namespace UnrealEngine.Runtime
 
         public static void PreProcessAssemblies()
         {
-            foreach (Assembly assembly in CurrentAssemblyContext.GetAssemblies())
+            foreach (Assembly assembly in AppDomain.CurrentDomain.GetAssemblies())
             {
                 PreProcessAssembly(assembly);
             }
@@ -262,7 +262,7 @@ namespace UnrealEngine.Runtime
                                 try
                                 {
                                     // NOTE: This depends on NativeFunctions.OnAssemblyLoad loading the type info
-                                    CurrentAssemblyContext.LoadFrom(assemblyPath);
+                                    Assembly.LoadFrom(assemblyPath);
                                 }
                                 catch
                                 {
