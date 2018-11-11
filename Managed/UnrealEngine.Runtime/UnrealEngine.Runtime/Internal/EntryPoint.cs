@@ -30,8 +30,9 @@ namespace UnrealEngine
             if (!SharedRuntimeState.Initialized)
             {
                 SharedRuntimeState.Initialize((IntPtr)args.GetInt64("RuntimeState"));
-
-                AssemblyContextRef currentContext = AssemblyContextRef.Parse(args.GetString("AssemblyContext"));
+                
+                AssemblyContextRef currentContext;
+                AssemblyContextRef.TryParse(args.GetString("AssemblyContext"), out currentContext);
                 AssemblyContext.Initialize(currentContext);
                 CurrentAssemblyContext.Initialize(currentContext);
             }

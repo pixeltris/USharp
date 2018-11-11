@@ -29,8 +29,14 @@ namespace UnrealEngine.Runtime
 
         internal static void Initialize(AssemblyContextRef reference)
         {
+            if (reference.IsInvalid)
+            {
+                Reference = AssemblyContextRef.Invalid;
+                return;
+            }
+
             Reference = reference;
-            initialized = true;
+            initialized = reference.IsInvalid;
 
             if (AssemblyContext.IsCoreCLR)
             {
@@ -48,7 +54,7 @@ namespace UnrealEngine.Runtime
 
         public static string GetFilePath(Assembly assembly)
         {
-            if (AssemblyContext.IsCoreCLR)
+            if (AssemblyContext.IsCoreCLR && !Reference.IsInvalid)
             {
                 string path;
                 if (assemblyPaths.TryGetValue(assembly, out path))
@@ -87,7 +93,7 @@ namespace UnrealEngine.Runtime
             {
                 return Assembly.LoadFrom(assemblyPath);
             }
-            if (AssemblyContext.IsCoreCLR)
+            if (AssemblyContext.IsCoreCLR && !Reference.IsInvalid)
             {
                 // TODO: Use custom "shadow copying" as visual studio will hold onto the pdb file.
 
