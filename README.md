@@ -2,7 +2,7 @@
 
 USharp is a plugin for Unreal Engine (4.20) which allows for programming in C#.
 
-This project adapts various parts of mono-ue https://mono-ue.github.io/ and is roughly similar but has support for both mono and the .NET Framework. The C++ code used is mostly PInvoke methods and the equivalent mono-ue backend code is [mostly written in C#](https://github.com/pixeltris/USharp/tree/master/Managed/UnrealEngine.Runtime/UnrealEngine.Runtime/Internal).
+This project adapts various parts of mono-ue https://mono-ue.github.io/ and is roughly similar but has support for Mono, .NET Framework and .NET Core. The C++ code used is mostly PInvoke methods and the equivalent mono-ue backend code is [mostly written in C#](https://github.com/pixeltris/USharp/tree/master/Managed/UnrealEngine.Runtime/UnrealEngine.Runtime/Internal).
 
 _This project currently isn't usable for most use cases. There are a lot of bugs and lacking features. [Check back soon for updates!](https://github.com/pixeltris/USharp/projects/2)_
 
@@ -11,8 +11,7 @@ Join the gitter chat room for quick help / discussion https://gitter.im/USharp/L
 # Features
 
 - Hotreload
-- .NET Framework, .NET Core and Mono support
-- Dynamically switch between the .NET Framework and Mono runtimes for an improved debugging / runtime experience without having to reopen the editor
+- Dynamically switch between .NET Framework, .NET Core and Mono for an improved debugging / runtime experience without having to reopen the editor.
 
 # Plugin Setup
 

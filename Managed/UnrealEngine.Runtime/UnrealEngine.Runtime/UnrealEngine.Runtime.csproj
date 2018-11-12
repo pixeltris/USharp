@@ -44,6 +44,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Internal\AppDomainDiagnostic.cs" />
+    <Compile Include="Internal\CurrentAssemblyContext.cs" />
+    <Compile Include="Internal\EntryPoint.Shared.AssemblyContext.cs" />
     <Compile Include="Internal\EntryPoint.Shared.cs" />
     <Compile Include="AssetRegistry\FAssetData.cs" />
     <Compile Include="CoreUObject\ConstructorHelpers.cs" />

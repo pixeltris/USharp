@@ -89,8 +89,15 @@ namespace UnrealEngine
     {
         public delegate void FSimpleDelegate();
 
-        private static FSimpleDelegate tickCallback;
-        private static AutoResetEvent waitHandle;
+        class CallbackInfo
+        {
+            public FSimpleDelegate Callback;
+            public AutoResetEvent WaitHandle;
+        }
+
+        private static Queue<CallbackInfo> callbacks = new Queue<CallbackInfo>();
+        //private static FSimpleDelegate tickCallback;
+        //private static AutoResetEvent waitHandle;
 
         public delegate bool FTickerDelegate(float deltaTime);
         private delegate void Del_AddStaticTicker(FTickerDelegate func, float delay);
@@ -138,15 +145,18 @@ namespace UnrealEngine
                 }
             }
 
-            if (tickCallback != null)
+            lock (callbacks)
             {
-                tickCallback();
-                tickCallback = null;
-                waitHandle.Set();
+                while (callbacks.Count > 0)
+                {
+                    CallbackInfo callbackInfo = callbacks.Dequeue();
+                    callbackInfo.Callback();
+                    callbackInfo.WaitHandle.Set();
+                }
             }
             return true;
         }
-
+        
         public static void Run(FSimpleDelegate callback)
         {
             if (IsInGameThread())
@@ -155,13 +165,17 @@ namespace UnrealEngine
             }
             else
             {
-                Debug.Assert(waitHandle == null);
-                using (waitHandle = new AutoResetEvent(false))
+                CallbackInfo callbackInfo = new CallbackInfo()
                 {
-                    tickCallback = callback;
-                    waitHandle.WaitOne(Timeout.Infinite);
+                    Callback = callback,
+                    WaitHandle = new AutoResetEvent(false)
+                };
+                lock (callbacks)
+                {
+                    callbacks.Enqueue(callbackInfo);
                 }
-                waitHandle = null;
+                callbackInfo.WaitHandle.WaitOne(Timeout.Infinite);
+                callbackInfo.WaitHandle.Close();
             }
         }
     }
@@ -225,24 +239,27 @@ namespace UnrealEngine
         /// Length of the memory which may be larger than the current data length
         /// </summary>
         int HotReloadAssemblyPathsLenInMemory;
-        IntPtr HotReloadAssemblyPaths;
-
-        int StructSize;
+        IntPtr HotReloadAssemblyPaths;        
 
         IntPtr MallocFuncPtr;
         IntPtr ReallocFuncPtr;
         IntPtr FreeFuncPtr;
         IntPtr MessageBoxPtr;
+        IntPtr LogPtr;
 
-        static MallocDel Malloc;
-        static ReallocDel Realloc;
-        static FreeDel Free;
+        int StructSize;
+
+        public static MallocDel Malloc;
+        public static ReallocDel Realloc;
+        public static FreeDel Free;
         public static MessageBoxDel MessageBox;
+        public static LogMsgDel LogMsg;
 
-        delegate IntPtr MallocDel(IntPtr count, uint alignment = 0);
-        delegate IntPtr ReallocDel(IntPtr original, IntPtr count, uint alignment = 0);
-        delegate void FreeDel(IntPtr original);
+        public delegate IntPtr MallocDel(IntPtr count, uint alignment = 0);
+        public delegate IntPtr ReallocDel(IntPtr original, IntPtr count, uint alignment = 0);
+        public delegate void FreeDel(IntPtr original);
         public delegate void MessageBoxDel([MarshalAs(UnmanagedType.LPStr)] string text, [MarshalAs(UnmanagedType.LPStr)] string title);
+        public delegate void LogMsgDel(byte verbosity, [MarshalAs(UnmanagedType.LPStr)] string message);
 
         /// <summary>
         /// True if the currently executing code is the active runtime
@@ -258,40 +275,28 @@ namespace UnrealEngine
         /// </summary>
         public static readonly EDotNetRuntime CurrentRuntime;
 
-        /// <summary>
-        /// True if the currently executing code is under Mono runtime
-        /// </summary>
-        public static readonly bool IsMono;
-        /// <summary>
-        /// True if the currently executing code is under CoreCLR (.NET Core)
-        /// </summary>
-        public static readonly bool IsCoreCLR;
-        /// <summary>
-        /// True if the currently executing code is under CLR (.NET Framework)
-        /// </summary>
-        public static readonly bool IsCLR;
-
         static SharedRuntimeState()
         {
-            if (Type.GetType("Mono.Runtime") != null)
+            if (Runtime.AssemblyContext.IsMono)
             {
-                IsMono = true;
                 CurrentRuntime = EDotNetRuntime.Mono;
             }
-            // We need DoCallBack for our AppDomain loading (.NET Core doesn't support this)
-            else if (typeof(AppDomain).GetMethod("DoCallBack") == null)
+            else if (Runtime.AssemblyContext.IsCoreCLR)
             {
-                IsCoreCLR = true;
                 CurrentRuntime = EDotNetRuntime.CoreCLR;
             }
             else
             {
-                IsCLR = true;
                 CurrentRuntime = EDotNetRuntime.CLR;
             }
         }
 
-        static IntPtr Address;
+        public static bool Initialized
+        {
+            get { return Address != IntPtr.Zero; }
+        }
+
+        static IntPtr Address;        
         internal static SharedRuntimeState* Instance
         {
             get { return (SharedRuntimeState*)Address; }
@@ -305,12 +310,14 @@ namespace UnrealEngine
                 Instance->ReallocFuncPtr != IntPtr.Zero &&
                 Instance->FreeFuncPtr != IntPtr.Zero &&
                 Instance->MessageBoxPtr != IntPtr.Zero &&
+                Instance->LogPtr != IntPtr.Zero &&
                 Instance->StructSize == Marshal.SizeOf(typeof(SharedRuntimeState)));
 
             Malloc = (MallocDel)Marshal.GetDelegateForFunctionPointer(Instance->MallocFuncPtr, typeof(MallocDel));
             Realloc = (ReallocDel)Marshal.GetDelegateForFunctionPointer(Instance->ReallocFuncPtr, typeof(ReallocDel));
             Free = (FreeDel)Marshal.GetDelegateForFunctionPointer(Instance->FreeFuncPtr, typeof(FreeDel));
             MessageBox = (MessageBoxDel)Marshal.GetDelegateForFunctionPointer(Instance->MessageBoxPtr, typeof(MessageBoxDel));
+            LogMsg = (LogMsgDel)Marshal.GetDelegateForFunctionPointer(Instance->LogPtr, typeof(LogMsgDel));
         }
 
         public static bool HaveMultipleRuntimesInitialized()
@@ -333,6 +340,11 @@ namespace UnrealEngine
             return (Instance->InitializedRuntimes & runtime) == runtime;
         }
 
+        public static bool IsRuntimeLoaded(EDotNetRuntime runtime)
+        {
+            return (Instance->LoadedRuntimes & runtime) == runtime;
+        }
+
         public static EDotNetRuntime GetInitializedRuntimes()
         {
             return Instance->InitializedRuntimes;
@@ -349,19 +361,23 @@ namespace UnrealEngine
         }
 
         public static string[] GetHotReloadAssemblyPaths()
-        {
-            string[] result;
+        {            
             byte[] buffer = GetData(Instance->HotReloadAssemblyPaths, Instance->HotReloadAssemblyPathsLen);
-            using (BinaryReader reader = new BinaryReader(new MemoryStream(buffer)))
+            if (buffer != null && buffer.Length > 0)
             {
-                int count = reader.ReadInt32();
-                result = new string[count];
-                for (int i = 0; i < count; i++)
+                string[] result;
+                using (BinaryReader reader = new BinaryReader(new MemoryStream(buffer)))
                 {
-                    result[i] = reader.ReadString();
+                    int count = reader.ReadInt32();
+                    result = new string[count];
+                    for (int i = 0; i < count; i++)
+                    {
+                        result[i] = reader.ReadString();
+                    }
                 }
+                return result;
             }
-            return result;
+            return new string[0];
         }
 
         public static void SetHotReloadData(byte[] data)
@@ -427,14 +443,14 @@ namespace UnrealEngine
             }
         }
 
-        public static string GetRuntimeInfo()
+        public static string GetRuntimeInfo(bool loadedRuntimesInfo)
         {
             string info = string.Empty;
-            if (IsMono)
+            if (CurrentRuntime == EDotNetRuntime.Mono)
             {
                 info = "Mono";
             }
-            else if (IsCoreCLR)
+            else if (CurrentRuntime == EDotNetRuntime.CoreCLR)
             {
                 info = "CoreCLR";
             }
@@ -443,14 +459,42 @@ namespace UnrealEngine
                 info = "CLR";
             }
 
-            // NOTE: We should probably be calling checking for loaded runtimes instead of initialized but on the first
-            //       call to GetRuntimeInfo we will be in the middle of loading initialized runtimes
-            if (HaveMultipleRuntimesInitialized())
+            if (loadedRuntimesInfo)
             {
-                info += " (" + GetInitializedRuntimes().ToString() + " are initialized)";
+                if (HaveMultipleRuntimesLoaded())
+                {
+                    info += " (" + GetLoadedRuntimes().ToString() + " are loaded)";
+                }
+            }
+            else
+            {
+                if (HaveMultipleRuntimesInitialized())
+                {
+                    info += " (" + GetInitializedRuntimes().ToString() + " are initialized)";
+                }
             }
 
             return info;
+        }
+
+        public static void Log(byte verbosity, string message)
+        {
+            LogMsg(verbosity, message);
+        }
+
+        public static void Log(string message)
+        {
+            Log(5, message);
+        }
+
+        public static void LogWarning(string message)
+        {
+            Log(3, message);
+        }
+
+        public static void LogError(string message)
+        {
+            Log(2, message);
         }
     }
 

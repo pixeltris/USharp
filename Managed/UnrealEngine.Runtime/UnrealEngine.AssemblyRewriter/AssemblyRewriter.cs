@@ -173,7 +173,7 @@ namespace UnrealEngine.Runtime
                 readerParams.SymbolReaderProvider = new PdbReaderProvider();
                 readerParams.ReadSymbols = true;
                 writerParams.WriteSymbols = true;
-            };
+            }
 
             assembly = AssemblyDefinition.ReadAssembly(assemblyPath, readerParams);
 

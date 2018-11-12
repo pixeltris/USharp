@@ -31,6 +31,33 @@ namespace UnrealEngine.Runtime
 
             if (args != null && args.Length > 0)
             {
+                if (args[0].ToLower() == "diag")
+                {
+                    // Diagnostics...
+                    FMessage.Log("============================================================================================");
+                    FMessage.Log("Loaded modules in " + SharedRuntimeState.CurrentRuntime + ":");
+                    foreach (System.Reflection.Assembly assembly in AppDomain.CurrentDomain.GetAssemblies())
+                    {
+                        FMessage.Log(assembly.FullName);
+                    }
+
+                    // Also print out the loaded AppDomain instances when under the .NET Framework (CLR)
+                    if (AssemblyContext.IsCLR)
+                    {
+                        FMessage.Log("================ Domains:");
+                        string[] appDomains = AppDomainDiagnostic.GetNames();
+                        if (appDomains != null)
+                        {
+                            foreach (string appDomain in appDomains)
+                            {
+                                FMessage.Log(appDomain);
+                            }
+                        }
+                    }
+
+                    return;
+                }
+
                 if (SharedRuntimeState.HaveMultipleRuntimesLoaded())
                 {
                     EDotNetRuntime runtime = EDotNetRuntime.None;
@@ -48,7 +75,11 @@ namespace UnrealEngine.Runtime
                     }
                     if (runtime == EDotNetRuntime.None)
                     {
-                        FMessage.Log("Unknown runtime '" + args[0] + "'. Available runtimes: Mono, CLR");
+                        FMessage.Log("Unknown runtime '" + args[0] + "'. Current runtime: " + SharedRuntimeState.GetRuntimeInfo(true));
+                    }
+                    else if (!SharedRuntimeState.IsRuntimeLoaded(runtime))
+                    {
+                        FMessage.Log(runtime + " isn't loaded. Current runtime: " + SharedRuntimeState.GetRuntimeInfo(true));
                     }
                     else if (SharedRuntimeState.Instance->NextRuntime != EDotNetRuntime.None)
                     {
@@ -68,7 +99,7 @@ namespace UnrealEngine.Runtime
                 else
                 {
                     FMessage.Log(ELogVerbosity.Error, enableMoreRuntimesStr);
-                    FMessage.Log("Runtime: " + SharedRuntimeState.GetRuntimeInfo());
+                    FMessage.Log("Runtime: " + SharedRuntimeState.GetRuntimeInfo(true));
                 }
             }
             else
@@ -77,7 +108,7 @@ namespace UnrealEngine.Runtime
                 {
                     FMessage.Log(enableMoreRuntimesStr);
                 }
-                FMessage.Log("Runtime: " + SharedRuntimeState.GetRuntimeInfo());
+                FMessage.Log("Runtime: " + SharedRuntimeState.GetRuntimeInfo(true));
             }
         }
 

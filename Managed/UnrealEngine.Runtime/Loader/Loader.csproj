@@ -47,6 +47,7 @@
   <ItemGroup>
     <Compile Include="EntryPoint.cs" />
     <Compile Include="..\UnrealEngine.Runtime\Internal\EntryPoint.Shared.cs" />
+    <Compile Include="..\UnrealEngine.Runtime\Internal\EntryPoint.Shared.AssemblyContext.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
