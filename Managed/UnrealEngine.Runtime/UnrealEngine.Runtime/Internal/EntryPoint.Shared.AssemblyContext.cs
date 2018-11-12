@@ -77,7 +77,7 @@ namespace UnrealEngine.Runtime
                 AssemblyContextProxy.Initialize(false);
             }
 
-            if (!IsCoreCLR)
+            if (!IsCoreCLR && !currentContext.IsInvalid)
             {
                 AppDomain.CurrentDomain.SetData(CurrentAppDomainContextRefKey, currentContext.Format());
             }
@@ -518,6 +518,11 @@ namespace UnrealEngine.Runtime
 
         public void Unload()
         {
+            if (IsInvalid)
+            {
+                return;
+            }
+
             if (AssemblyContext.IsCoreCLR)
             {
                 AssemblyContextProxy.Unload(this);
@@ -536,6 +541,11 @@ namespace UnrealEngine.Runtime
         /// </summary>
         public WeakReference GetWeakReference()
         {
+            if (IsInvalid)
+            {
+                return null;
+            }
+
             AssemblyContext context = AssemblyContext.InternalGetContext(this);
             if (context != null)
             {
@@ -558,7 +568,7 @@ namespace UnrealEngine.Runtime
 
         public Assembly[] GetAssemblies()
         {
-            if (AssemblyContext.IsCoreCLR)
+            if (AssemblyContext.IsCoreCLR && !IsInvalid)
             {
                 return AssemblyContextProxy.GetAssemblies(this);
             }
@@ -570,7 +580,7 @@ namespace UnrealEngine.Runtime
 
         public Assembly LoadFrom(string assemblyPath)
         {
-            if (AssemblyContext.IsCoreCLR)
+            if (AssemblyContext.IsCoreCLR && !IsInvalid)
             {
                 return AssemblyContextProxy.LoadFrom(this, assemblyPath);
             }
@@ -587,7 +597,7 @@ namespace UnrealEngine.Runtime
 
         public Assembly LoadFromStream(Stream assembly, Stream assemblySymbols)
         {
-            if (AssemblyContext.IsCoreCLR)
+            if (AssemblyContext.IsCoreCLR && !IsInvalid)
             {
                 return AssemblyContextProxy.LoadFromStream(this, assembly, assemblySymbols);
             }
@@ -599,7 +609,7 @@ namespace UnrealEngine.Runtime
 
         public void DoCallBack(CrossAssemblyContextDelegate callBackDelegate)
         {
-            if (AssemblyContext.IsCoreCLR)
+            if (AssemblyContext.IsCoreCLR || IsInvalid)
             {
                 // Just call the method directly as there are no app domains
                 callBackDelegate();
@@ -641,7 +651,7 @@ namespace UnrealEngine.Runtime
             return new AssemblyContextRef(pair.Key, pair.Value);
         }
 
-        public static AssemblyContextRef Parse(string str)
+        public static bool TryParse(string str, out AssemblyContextRef value)
         {
             if (str != null)
             {
@@ -650,10 +660,22 @@ namespace UnrealEngine.Runtime
                 if (splitted.Length >= 2 && splitted[0].StartsWith("I:") && splitted[1].StartsWith("O:") &&
                     long.TryParse(splitted[0].Substring(2), out id) && long.TryParse(splitted[1].Substring(2), out owner))
                 {
-                    return new AssemblyContextRef(id, owner);
+                    value = new AssemblyContextRef(id, owner);
+                    return true;
                 }
             }
-            throw new FormatException("Badly formated AssemblyContextRef string '" + str + "'");
+            value = AssemblyContextRef.Invalid;
+            return false;
+        }
+
+        public static AssemblyContextRef Parse(string str)
+        {
+            AssemblyContextRef result;
+            if (!TryParse(str, out result))
+            {
+                throw new FormatException("Badly formated AssemblyContextRef string '" + str + "'");
+            }
+            return result;
         }
 
         public static bool operator ==(AssemblyContextRef a, AssemblyContextRef b)
@@ -696,6 +718,8 @@ namespace UnrealEngine.Runtime
     /// </summary>
     static class AssemblyContextProxy
     {
+        private static bool initialized;
+
         // These delegates are used on CoreCLR only!
         delegate bool IsFullyUnloadedDel(KeyValuePair<long, long> contextRef);
         private static IsFullyUnloadedDel internalIsFullyUnloaded;
@@ -739,6 +763,7 @@ namespace UnrealEngine.Runtime
             {
                 if (AssemblyContext.IsCoreCLR)// AssemblyContextProxyCoreCLR
                 {
+                    const string functionsKeyName = "AssemblyContextProxyCoreCLR";
                     if (isContextMaintainer)
                     {
                         object[] values =
@@ -756,23 +781,28 @@ namespace UnrealEngine.Runtime
                             internalAddResolvingEvent = InternalAddResolvingEvent,
                             internalRemoveResolvingEvent = InternalRemoveResolvingEvent
                         };
-                        AppDomain.CurrentDomain.SetData("AssemblyContextProxyCoreCLR", values);
+                        AppDomain.CurrentDomain.SetData(functionsKeyName, values);
+                        initialized = true;
                     }
                     else
                     {
-                        object[] values = AppDomain.CurrentDomain.GetData("AssemblyContextProxyCoreCLR") as object[];
-                        internalIsFullyUnloaded = (IsFullyUnloadedDel)Delegate.CreateDelegate(typeof(IsFullyUnloadedDel), (values[0] as Delegate).Method);
-                        internalGetContextState = (GetContextStateDel)Delegate.CreateDelegate(typeof(GetContextStateDel), (values[1] as Delegate).Method);
-                        internalUnload = (UnloadDel)Delegate.CreateDelegate(typeof(UnloadDel), (values[2] as Delegate).Method);
-                        internalGetAssemblies = (GetAssembliesDel)Delegate.CreateDelegate(typeof(GetAssembliesDel), (values[3] as Delegate).Method);
-                        internalLoadFrom = (LoadFromDel)Delegate.CreateDelegate(typeof(LoadFromDel), (values[4] as Delegate).Method);
-                        internalLoadFromStream = (LoadFromStreamDel)Delegate.CreateDelegate(typeof(LoadFromStreamDel), (values[5] as Delegate).Method);
-                        internalGetContextRef = (GetContextRefDel)Delegate.CreateDelegate(typeof(GetContextRefDel), (values[6] as Delegate).Method);
-                        internalCreate = (CreateDel)Delegate.CreateDelegate(typeof(CreateDel), (values[7] as Delegate).Method);
-                        internalAddUnloadingEvent = (AddUnloadingEventDel)Delegate.CreateDelegate(typeof(AddUnloadingEventDel), (values[8] as Delegate).Method);
-                        internalRemoveUnloadingEvent = (RemoveUnloadingEventDel)Delegate.CreateDelegate(typeof(RemoveUnloadingEventDel), (values[9] as Delegate).Method);
-                        internalAddResolvingEvent = (AddResolvingEventDel)Delegate.CreateDelegate(typeof(AddResolvingEventDel), (values[10] as Delegate).Method);
-                        internalRemoveResolvingEvent = (RemoveResolvingEventDel)Delegate.CreateDelegate(typeof(RemoveResolvingEventDel), (values[11] as Delegate).Method);
+                        object[] values = AppDomain.CurrentDomain.GetData(functionsKeyName) as object[];
+                        if (values != null)
+                        {
+                            internalIsFullyUnloaded = (IsFullyUnloadedDel)Delegate.CreateDelegate(typeof(IsFullyUnloadedDel), (values[0] as Delegate).Method);
+                            internalGetContextState = (GetContextStateDel)Delegate.CreateDelegate(typeof(GetContextStateDel), (values[1] as Delegate).Method);
+                            internalUnload = (UnloadDel)Delegate.CreateDelegate(typeof(UnloadDel), (values[2] as Delegate).Method);
+                            internalGetAssemblies = (GetAssembliesDel)Delegate.CreateDelegate(typeof(GetAssembliesDel), (values[3] as Delegate).Method);
+                            internalLoadFrom = (LoadFromDel)Delegate.CreateDelegate(typeof(LoadFromDel), (values[4] as Delegate).Method);
+                            internalLoadFromStream = (LoadFromStreamDel)Delegate.CreateDelegate(typeof(LoadFromStreamDel), (values[5] as Delegate).Method);
+                            internalGetContextRef = (GetContextRefDel)Delegate.CreateDelegate(typeof(GetContextRefDel), (values[6] as Delegate).Method);
+                            internalCreate = (CreateDel)Delegate.CreateDelegate(typeof(CreateDel), (values[7] as Delegate).Method);
+                            internalAddUnloadingEvent = (AddUnloadingEventDel)Delegate.CreateDelegate(typeof(AddUnloadingEventDel), (values[8] as Delegate).Method);
+                            internalRemoveUnloadingEvent = (RemoveUnloadingEventDel)Delegate.CreateDelegate(typeof(RemoveUnloadingEventDel), (values[9] as Delegate).Method);
+                            internalAddResolvingEvent = (AddResolvingEventDel)Delegate.CreateDelegate(typeof(AddResolvingEventDel), (values[10] as Delegate).Method);
+                            internalRemoveResolvingEvent = (RemoveResolvingEventDel)Delegate.CreateDelegate(typeof(RemoveResolvingEventDel), (values[11] as Delegate).Method);
+                            initialized = true;
+                        }
                     }
                 }
             }
@@ -814,14 +844,19 @@ namespace UnrealEngine.Runtime
 
         public static AssemblyContextRef GetContextRef(Assembly assembly)
         {
-            if (AssemblyContext.IsCoreCLR)
+            if (AssemblyContext.IsCoreCLR && initialized)
             {
                 return internalGetContextRef(assembly);
             }
             else
             {
-                // NOTE: We use a string instead of the struct as we include the .cs file in each project seperately
-                return AssemblyContextRef.Parse(AppDomain.CurrentDomain.GetData(AssemblyContext.CurrentAppDomainContextRefKey) as string);
+                object currentContext = AppDomain.CurrentDomain.GetData(AssemblyContext.CurrentAppDomainContextRefKey);
+                if (currentContext != null)
+                {
+                    // NOTE: We use a string instead of the struct as we include the .cs file in each project seperately
+                    return AssemblyContextRef.Parse(currentContext as string);
+                }
+                return AssemblyContextRef.Invalid;
             }
         }
 
