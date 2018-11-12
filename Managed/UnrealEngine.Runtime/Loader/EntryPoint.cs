@@ -48,94 +48,107 @@ namespace UnrealEngine
 
         public static int DllMain(string arg)
         {
-            Args args = new Args(arg);
-
-            SharedRuntimeState.Initialize((IntPtr)args.GetInt64("RuntimeState"));
-            Runtime.AssemblyContext.Initialize();
-
-            mainAssemblyPath = args.GetString("MainAssembly");
-            if (!string.IsNullOrEmpty(mainAssemblyPath))
+            try
             {
-                if (string.IsNullOrEmpty(mainAssemblyPath) || !File.Exists(mainAssemblyPath))
+                Args args = new Args(arg);
+
+                SharedRuntimeState.Initialize((IntPtr)args.GetInt64("RuntimeState"));
+                Runtime.AssemblyContext.Initialize();
+
+                mainAssemblyPath = args.GetString("MainAssembly");
+                if (!string.IsNullOrEmpty(mainAssemblyPath))
                 {
-                    return (int)AssemblyLoaderError.MainAssemblyNotFound;
+                    if (string.IsNullOrEmpty(mainAssemblyPath) || !File.Exists(mainAssemblyPath))
+                    {
+                        return (int)AssemblyLoaderError.MainAssemblyNotFound;
+                    }
+                    mainAssemblyDirectory = Path.GetDirectoryName(mainAssemblyPath);
                 }
-                mainAssemblyDirectory = Path.GetDirectoryName(mainAssemblyPath);
-            }
-            else
-            {
-                return (int)AssemblyLoaderError.MainAssemblyPathNotProvided;
-            }
-
-            IntPtr addTickerAddr = (IntPtr)args.GetInt64("AddTicker");
-            IntPtr isInGameThreadAddr = (IntPtr)args.GetInt64("IsInGameThread");
-            if (addTickerAddr == IntPtr.Zero || isInGameThreadAddr == IntPtr.Zero)
-            {
-                return (int)AssemblyLoaderError.GameThreadHelpersNull;
-            }
-            GameThreadHelper.Init(addTickerAddr, isInGameThreadAddr, OnRuntimeChanged);
-            
-            Debug.Assert(GameThreadHelper.IsInGameThread());
-
-            entryPointArg = arg;
-
-            string currentAssemblyPath = Assembly.GetExecutingAssembly().Location;
-            string currentAssemblyFileName = Path.GetFileNameWithoutExtension(currentAssemblyPath);
-            currentAssemblyDirectory = Path.GetDirectoryName(currentAssemblyPath);
-
-            if (!IsSameOrSubDirectory(currentAssemblyDirectory, mainAssemblyDirectory))
-            {
-                return (int)AssemblyLoaderError.MainAssemblyPathNotProvided;
-            }
-
-            // If there is already a loaded runtime only do a pre-load
-            if (SharedRuntimeState.GetLoadedRuntimes() != EDotNetRuntime.None)
-            {
-                Debug.Assert(mainContextRef.IsInvalid);
-
-                // Make sure the main assembly path exists
-                if (!File.Exists(mainAssemblyPath))
+                else
                 {
-                    return (int)AssemblyLoaderError.LoadFailed;
+                    return (int)AssemblyLoaderError.MainAssemblyPathNotProvided;
                 }
 
-                // Make sure we are using assmbly contexts loadding otherwise hotreload wont work which defeats the purpose of
-                // using multiple runtimes
-                if (LoadAssemblyWithoutContexts)
+                IntPtr addTickerAddr = (IntPtr)args.GetInt64("AddTicker");
+                IntPtr isInGameThreadAddr = (IntPtr)args.GetInt64("IsInGameThread");
+                if (addTickerAddr == IntPtr.Zero || isInGameThreadAddr == IntPtr.Zero)
                 {
-                    return (int)AssemblyLoaderError.LoadFailed;
+                    return (int)AssemblyLoaderError.GameThreadHelpersNull;
+                }
+                GameThreadHelper.Init(addTickerAddr, isInGameThreadAddr, OnRuntimeChanged);
+
+                Debug.Assert(GameThreadHelper.IsInGameThread());
+
+                entryPointArg = arg;
+
+                string currentAssemblyPath = Assembly.GetExecutingAssembly().Location;
+                string currentAssemblyFileName = Path.GetFileNameWithoutExtension(currentAssemblyPath);
+                currentAssemblyDirectory = Path.GetDirectoryName(currentAssemblyPath);
+
+                if (!IsSameOrSubDirectory(currentAssemblyDirectory, mainAssemblyDirectory))
+                {
+                    return (int)AssemblyLoaderError.MainAssemblyPathNotProvided;
                 }
 
-                // Preload now and then do a full load when NextRuntime is set to this runtime type
-                PreloadNextContext();
+                // If there is already a loaded runtime only do a pre-load
+                if (SharedRuntimeState.GetLoadedRuntimes() != EDotNetRuntime.None)
+                {
+                    Debug.Assert(mainContextRef.IsInvalid);
 
-                // Watch for assembly changes (the paths should have been set up by the full load in the other runtime)
-                UpdateAssemblyWatchers();
+                    // Make sure the main assembly path exists
+                    if (!File.Exists(mainAssemblyPath))
+                    {
+                        return (int)AssemblyLoaderError.LoadFailed;
+                    }
 
-                return 0;
-            }
+                    // Make sure we are using assmbly contexts loadding otherwise hotreload wont work which defeats the purpose of
+                    // using multiple runtimes
+                    if (LoadAssemblyWithoutContexts)
+                    {
+                        return (int)AssemblyLoaderError.LoadFailed;
+                    }
 
-            unsafe
-            {
-                SharedRuntimeState.Instance->ActiveRuntime = SharedRuntimeState.CurrentRuntime;
-            }
+                    // Preload now and then do a full load when NextRuntime is set to this runtime type
+                    PreloadNextContext();
 
-            bool loaded;
-            if (LoadAssemblyWithoutContexts)
-            {
-                loaded = LoadWithoutUsingContexts();
-            }
-            else
-            {
-                loaded = ReloadMainContext();
-            }
-            if (!loaded)
-            {
+                    // Watch for assembly changes (the paths should have been set up by the full load in the other runtime)
+                    UpdateAssemblyWatchers();
+
+                    return 0;
+                }
+
                 unsafe
                 {
-                    SharedRuntimeState.Instance->ActiveRuntime = EDotNetRuntime.None;
+                    SharedRuntimeState.Instance->ActiveRuntime = SharedRuntimeState.CurrentRuntime;
                 }
-                return (int)AssemblyLoaderError.LoadFailed;
+
+                bool loaded;
+                if (LoadAssemblyWithoutContexts)
+                {
+                    loaded = LoadWithoutUsingContexts();
+                }
+                else
+                {
+                    loaded = ReloadMainContext();
+                }
+                if (!loaded)
+                {
+                    unsafe
+                    {
+                        SharedRuntimeState.Instance->ActiveRuntime = EDotNetRuntime.None;
+                    }
+                    return (int)AssemblyLoaderError.LoadFailed;
+                }
+            }
+            catch (Exception e)
+            {
+                string exceptionStr = "Entry point exception (Loader): " + e;
+                if (SharedRuntimeState.Initialized)
+                {
+                    SharedRuntimeState.LogError(exceptionStr);
+                    SharedRuntimeState.MessageBox(exceptionStr, errorMsgBoxTitle);
+                }
+                return (int)AssemblyLoaderError.Exception;
             }
 
             return 0;
@@ -619,7 +632,8 @@ namespace UnrealEngine
         MainAssemblyNotFound,
         MainAssemblyNotInSubFolder,
         GameThreadHelpersNull,
-        LoadFailed
+        LoadFailed,
+        Exception
     }
 
     [Serializable]

@@ -25,63 +25,81 @@ namespace UnrealEngine
 
         public static int DllMain(string arg)
         {
-            Args args = new Args(arg);
-
-            if (!SharedRuntimeState.Initialized)
+            try
             {
-                SharedRuntimeState.Initialize((IntPtr)args.GetInt64("RuntimeState"));
-                
-                AssemblyContextRef currentContext;
-                AssemblyContextRef.TryParse(args.GetString("AssemblyContext"), out currentContext);
-                AssemblyContext.Initialize(currentContext);
-                CurrentAssemblyContext.Initialize(currentContext);
-            }
+                Args args = new Args(arg);
 
-            if (args.GetBool("Preloading"))
-            {
-                Preloading = true;
-                IntPtr address = (IntPtr)args.GetInt64("RegisterFuncs");
-                if (address != IntPtr.Zero)
+                if (!SharedRuntimeState.Initialized)
                 {
-                    NativeFunctions.RegisterFunctions(address);
-                    Preloaded = true;
+                    SharedRuntimeState.Initialize((IntPtr)args.GetInt64("RuntimeState"));
+
+                    AssemblyContextRef currentContext;
+                    AssemblyContextRef.TryParse(args.GetString("AssemblyContext"), out currentContext);
+                    AssemblyContext.Initialize(currentContext);
+                    CurrentAssemblyContext.Initialize(currentContext);
                 }
-                Preloading = false;
-                return 0;
-            }
-            else
-            {
-                DateTime beginUnload = default(DateTime);
-                TimeSpan beginReload = DateTime.Now.TimeOfDay;
 
-                bool isReloading = false;
-                using (var timing = HotReload.Timing.Create(HotReload.Timing.TotalLoadTime))
+                if (args.GetBool("Preloading"))
                 {
-                    using (var subTiming = HotReload.Timing.Create(HotReload.Timing.DataStore_Load))
-                    {
-                        // If this is a hot-reload then set up the data store
-                        HotReload.Data = HotReload.DataStore.Load(SharedRuntimeState.GetHotReloadData());
-                        beginUnload = HotReload.Data.BeginUnloadTime;
-                    }
-
-                    HotReload.IsReloading = args.GetBool("Reloading");
-                    isReloading = HotReload.IsReloading;
-
+                    Preloading = true;
                     IntPtr address = (IntPtr)args.GetInt64("RegisterFuncs");
                     if (address != IntPtr.Zero)
                     {
                         NativeFunctions.RegisterFunctions(address);
+                        Preloaded = true;
                     }
+                    Preloading = false;
+                    return 0;
                 }
+                else
+                {
+                    unsafe
+                    {
+                        SharedRuntimeState.Instance->ActiveRuntime = SharedRuntimeState.CurrentRuntime;
+                    }
 
-                SharedRuntimeState.SetHotReloadAssemblyPaths(HotReloadAssemblyPaths);
+                    DateTime beginUnload = default(DateTime);
+                    TimeSpan beginReload = DateTime.Now.TimeOfDay;
 
-                TimeSpan endTime = DateTime.Now.TimeOfDay;
-                FMessage.Log("BeginReload: " + beginReload + " (BeginUnload-BeginReload: " + (beginReload - beginUnload.TimeOfDay) + ")");
-                FMessage.Log("EndReload: " + endTime + " (BeginUnload-EndReload: " + (endTime - beginUnload.TimeOfDay) + ")");
-                HotReload.Timing.Print(isReloading);
-                HotReload.Timing.PrintAll();
-                return 0;
+                    bool isReloading = false;
+                    using (var timing = HotReload.Timing.Create(HotReload.Timing.TotalLoadTime))
+                    {
+                        using (var subTiming = HotReload.Timing.Create(HotReload.Timing.DataStore_Load))
+                        {
+                            // If this is a hot-reload then set up the data store
+                            HotReload.Data = HotReload.DataStore.Load(SharedRuntimeState.GetHotReloadData());
+                            beginUnload = HotReload.Data.BeginUnloadTime;
+                        }
+
+                        HotReload.IsReloading = args.GetBool("Reloading");
+                        isReloading = HotReload.IsReloading;
+
+                        IntPtr address = (IntPtr)args.GetInt64("RegisterFuncs");
+                        if (address != IntPtr.Zero)
+                        {
+                            NativeFunctions.RegisterFunctions(address);
+                        }
+                    }
+
+                    SharedRuntimeState.SetHotReloadAssemblyPaths(HotReloadAssemblyPaths);
+
+                    TimeSpan endTime = DateTime.Now.TimeOfDay;
+                    FMessage.Log("BeginReload: " + beginReload + " (BeginUnload-BeginReload: " + (beginReload - beginUnload.TimeOfDay) + ")");
+                    FMessage.Log("EndReload: " + endTime + " (BeginUnload-EndReload: " + (endTime - beginUnload.TimeOfDay) + ")");
+                    HotReload.Timing.Print(isReloading);
+                    HotReload.Timing.PrintAll();
+                    return 0;
+                }
+            }
+            catch (Exception e)
+            {
+                string exceptionStr = "Entry point exception (UnrealEngine.Runtime): " + e;
+                if (SharedRuntimeState.Initialized)
+                {
+                    SharedRuntimeState.LogError(exceptionStr);
+                    SharedRuntimeState.MessageBox(exceptionStr, "Error");
+                }
+                return 1005;// AssemblyLoaderError.Exception
             }
         }
 

@@ -810,6 +810,7 @@ FString CSharpLoader::GetLoadErrorReason(int32 retVal)
 		case 1002: return TEXT("Main assembly must be in a sub folder to the loader");
 		case 1003: return TEXT("Functions used to run the loader in the game thread are null");
 		case 1004: return TEXT("Failed to load the main assembly");
+		case 1005: return TEXT("An exception occured when calling the C# entry point function");
 		default: return TEXT("");
 	}
 }

@@ -77,7 +77,7 @@ namespace UnrealEngine.Runtime
                 AssemblyContextProxy.Initialize(false);
             }
 
-            if (!IsCoreCLR)
+            if (!IsCoreCLR && !currentContext.IsInvalid)
             {
                 AppDomain.CurrentDomain.SetData(CurrentAppDomainContextRefKey, currentContext.Format());
             }
@@ -518,6 +518,11 @@ namespace UnrealEngine.Runtime
 
         public void Unload()
         {
+            if (IsInvalid)
+            {
+                return;
+            }
+
             if (AssemblyContext.IsCoreCLR)
             {
                 AssemblyContextProxy.Unload(this);
@@ -536,6 +541,11 @@ namespace UnrealEngine.Runtime
         /// </summary>
         public WeakReference GetWeakReference()
         {
+            if (IsInvalid)
+            {
+                return null;
+            }
+
             AssemblyContext context = AssemblyContext.InternalGetContext(this);
             if (context != null)
             {
@@ -558,10 +568,7 @@ namespace UnrealEngine.Runtime
 
         public Assembly[] GetAssemblies()
         {
-            if (!AssemblyContext.IsCoreCLR || IsInvalid)
-            {
-            }
-            if (AssemblyContext.IsCoreCLR)
+            if (AssemblyContext.IsCoreCLR && !IsInvalid)
             {
                 return AssemblyContextProxy.GetAssemblies(this);
             }
@@ -573,7 +580,7 @@ namespace UnrealEngine.Runtime
 
         public Assembly LoadFrom(string assemblyPath)
         {
-            if (AssemblyContext.IsCoreCLR)
+            if (AssemblyContext.IsCoreCLR && !IsInvalid)
             {
                 return AssemblyContextProxy.LoadFrom(this, assemblyPath);
             }
@@ -590,7 +597,7 @@ namespace UnrealEngine.Runtime
 
         public Assembly LoadFromStream(Stream assembly, Stream assemblySymbols)
         {
-            if (AssemblyContext.IsCoreCLR)
+            if (AssemblyContext.IsCoreCLR && !IsInvalid)
             {
                 return AssemblyContextProxy.LoadFromStream(this, assembly, assemblySymbols);
             }
@@ -602,7 +609,7 @@ namespace UnrealEngine.Runtime
 
         public void DoCallBack(CrossAssemblyContextDelegate callBackDelegate)
         {
-            if (AssemblyContext.IsCoreCLR)
+            if (AssemblyContext.IsCoreCLR || IsInvalid)
             {
                 // Just call the method directly as there are no app domains
                 callBackDelegate();

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -29,6 +30,8 @@ namespace UnrealEngine.Runtime
 
         internal static void Initialize(AssemblyContextRef reference)
         {
+            Debug.Assert(!initialized);
+
             if (reference.IsInvalid)
             {
                 Reference = AssemblyContextRef.Invalid;
@@ -36,7 +39,7 @@ namespace UnrealEngine.Runtime
             }
 
             Reference = reference;
-            initialized = reference.IsInvalid;
+            initialized = true;
 
             if (AssemblyContext.IsCoreCLR)
             {
