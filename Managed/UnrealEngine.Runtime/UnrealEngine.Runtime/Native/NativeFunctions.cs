@@ -77,6 +77,7 @@ namespace UnrealEngine.Runtime.Native
                 StructValidator.ValidateStructs();// Validate native struct sizes match the managed struct sizes before running any handlers
                 BoolMarshaler.OnNativeFunctionsRegistered();
                 FStringMarshaler.OnNativeFunctionsRegistered();
+                Engine.FKey.OnNativeFunctionsRegistered();
             }
 
             if (!EntryPoint.Preloading)
@@ -188,8 +189,9 @@ namespace UnrealEngine.Runtime.Native
             }
 
             // If any assemblies are loaded make sure to load their unreal types
-            if (!AssemblyContext.IsCoreCLR)// .NET Core should resolve with AssemblyLoadContext.Resolving
+            if (!AssemblyContext.IsCoreCLR || CurrentAssemblyContext.Reference.IsInvalid)
             {
+                // .NET Core should resolve with AssemblyLoadContext.Resolving (unless the contexts aren't set up)
                 CurrentAssemblyContext.AssemblyResolve += CurrentDomain_AssemblyResolve;
             }
             CurrentAssemblyContext.AssemblyLoad += OnAssemblyLoad;

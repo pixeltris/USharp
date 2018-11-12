@@ -32,16 +32,10 @@ namespace UnrealEngine.Runtime
         {
             Debug.Assert(!initialized);
 
-            if (reference.IsInvalid)
-            {
-                Reference = AssemblyContextRef.Invalid;
-                return;
-            }
-
-            Reference = reference;
             initialized = true;
+            Reference = reference;
 
-            if (AssemblyContext.IsCoreCLR)
+            if (AssemblyContext.IsCoreCLR && !reference.IsInvalid)
             {
                 // No need to remove these events, they will be cleared up when the unload is called on the context
                 AssemblyContextProxy.AddUnloadingEvent(reference, onUnloading);
