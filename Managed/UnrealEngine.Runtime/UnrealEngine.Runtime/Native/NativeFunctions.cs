@@ -77,7 +77,7 @@ namespace UnrealEngine.Runtime.Native
                 StructValidator.ValidateStructs();// Validate native struct sizes match the managed struct sizes before running any handlers
                 BoolMarshaler.OnNativeFunctionsRegistered();
                 FStringMarshaler.OnNativeFunctionsRegistered();
-                Engine.FKey.OnNativeFunctionsRegistered();
+                //Engine.FKey.OnNativeFunctionsRegistered();
             }
 
             if (!EntryPoint.Preloading)
