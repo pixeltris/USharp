@@ -149,6 +149,11 @@ CSEXPORT int32 CSCONV Export_SizeOfStruct_SizeOf_FActorSpawnParameters()
 	return sizeof(FActorSpawnParameters);
 }
 
+CSEXPORT int32 CSCONV Export_SizeOfStruct_SizeOf_FKey()
+{
+	return sizeof(FKey);
+}
+
 // FTickFunction structs
 
 CSEXPORT int32 CSCONV Export_SizeOfStruct_SizeOf_FActorComponentTickFunction()
@@ -228,6 +233,7 @@ CSEXPORT void CSCONV Export_SizeOfStruct(RegisterFunc registerFunc)
 	REGISTER_FUNC(Export_SizeOfStruct_SizeOf_FFrame);
 	REGISTER_FUNC(Export_SizeOfStruct_SizeOf_TStatId);
 	REGISTER_FUNC(Export_SizeOfStruct_SizeOf_FActorSpawnParameters);
+	REGISTER_FUNC(Export_SizeOfStruct_SizeOf_FKey);
 	
 	// FTickFunction structs
 	REGISTER_FUNC(Export_SizeOfStruct_SizeOf_FActorComponentTickFunction);

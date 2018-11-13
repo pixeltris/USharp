@@ -155,30 +155,12 @@ namespace UnrealEngine.Runtime
 
         protected IntPtr GetFunctionAddress(TDelegate evnt)
         {
-            IntPtr functionAddress;
-            UObject target;
-            GetFunctionAddress(evnt, out functionAddress, out target);
-            return functionAddress;
+            return NativeReflection.LookupTable.GetFunctionAddress(evnt as Delegate);
         }
 
         protected bool GetFunctionAddress(TDelegate evnt, out IntPtr functionAddress, out UObject target)
         {
-            Delegate del = evnt as Delegate;
-            if (del != null)
-            {
-                target = del.Target as UObject;
-                if (target != null)
-                {
-                    functionAddress = NativeReflection.LookupTable.FindFunction(target, del.Method);
-                    if (functionAddress != IntPtr.Zero)
-                    {
-                        return true;
-                    }
-                }
-            }
-            target = null;
-            functionAddress = IntPtr.Zero;
-            return false;
+            return NativeReflection.LookupTable.GetFunctionAddress(evnt as Delegate, out functionAddress, out target);
         }
 
         public TDelegateClass Copy<TDelegateClass>() where TDelegateClass : FDelegateBase<TDelegate>, new()

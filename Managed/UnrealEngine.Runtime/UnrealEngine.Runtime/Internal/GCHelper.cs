@@ -201,7 +201,7 @@ namespace UnrealEngine.Runtime
             FMessage.Log("GC " + (objRef.Managed == null ? "null" : objRef.Managed.GetType().ToString()) + " (" + gcHandlePtr.ToString("X16") + ")");
             Coroutine.RemoveObjectByGC(objRef.Managed);
             Invoker.RemoveObjectByGC(objRef.Managed);
-            objRef.Managed.ReleaseInjectedInterfaces();            
+            objRef.Managed.ReleaseInjectedInterfaces();
             objRef.Managed.objRef = null;// This will make UObject.IsDestroyed true
             objRef.Managed.Address = IntPtr.Zero;// Reset the address
             References.Remove(objRef.Native);

@@ -23,10 +23,11 @@ namespace UnrealEngine.Runtime
             Dictionary<string, ProjectDefinedType> result = new Dictionary<string, ProjectDefinedType>()
             {
                 { "/Script/CoreUObject.SoftObjectPath", ProjectDefinedType.Struct },
-                { "/Script/CoreUObject.SoftClassPath", ProjectDefinedType.Struct },
-                { "/Script/Engine.TimerHandle", ProjectDefinedType.BlittableStruct },
+                { "/Script/CoreUObject.SoftClassPath", ProjectDefinedType.Struct },                
                 { "/Script/CoreUObject.Guid", ProjectDefinedType.BlittableStruct },// This should map to System.Guid
+                { "/Script/Engine.TimerHandle", ProjectDefinedType.BlittableStruct },
                 { "/Script/Engine.ESpawnActorCollisionHandlingMethod", ProjectDefinedType.Enum },
+                { "/Script/InputCore.Key", ProjectDefinedType.Struct },
 
                 // UKismetArrayLibrary has a bunch of methods which have generic args (T), this doesn't really work with marshalers.
                 // - Add code to ignore any functions which have a T arg or a T return type?
@@ -47,6 +48,11 @@ namespace UnrealEngine.Runtime
                 if (attributes.Length > 0 && !string.IsNullOrEmpty(attributes[0].Path))
                 {
                     string path = attributes[0].Path;
+                    if (result.ContainsKey(path))
+                    {
+                        continue;
+                    }
+
                     if (type.IsClass)
                     {
                         result[path] = ProjectDefinedType.Class;
@@ -57,10 +63,13 @@ namespace UnrealEngine.Runtime
                     }
                     else
                     {
-                        result[path] = ProjectDefinedType.Struct;
                         if (type.IsLayoutSequential || type.IsExplicitLayout)
                         {
                             result[path] = ProjectDefinedType.BlittableStruct;
+                        }
+                        else
+                        {
+                            result[path] = ProjectDefinedType.Struct;
                         }
                     }
                 }
