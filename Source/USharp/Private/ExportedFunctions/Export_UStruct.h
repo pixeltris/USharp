@@ -123,10 +123,11 @@ CSEXPORT void CSCONV Export_UStruct_SerializeBin(UStruct* instance, FArchive& Ar
 	instance->SerializeBin(Ar, Data);
 }
 
-//CSEXPORT void CSCONV Export_UStruct_SerializeBinEx(UStruct* instance, FArchive& Ar, void* Data, void const* DefaultData, UStruct* DefaultStruct)
-//{
-//	instance->SerializeBinEx(Ar, Data, DefaultData, DefaultStruct);
-//}
+CSEXPORT void CSCONV Export_UStruct_SerializeBinEx(UStruct* instance, FArchive& Ar, void* Data, void const* DefaultData, UStruct* DefaultStruct)
+{
+	FStructuredArchiveFromArchive _structuredFromArchive(Ar);
+	instance->SerializeBinEx(_structuredFromArchive.GetSlot(), Data, DefaultData, DefaultStruct);
+}
 
 CSEXPORT void CSCONV Export_UStruct_SerializeTaggedProperties(UStruct* instance, FArchive& Ar, uint8* Data, UStruct* DefaultsStruct, uint8* Defaults, const UObject* BreakRecursionIfFullyLoad)
 {
@@ -232,7 +233,7 @@ CSEXPORT void CSCONV Export_UStruct(RegisterFunc registerFunc)
 	REGISTER_FUNC(Export_UStruct_StaticLink);
 	REGISTER_FUNC(Export_UStruct_Link);
 	REGISTER_FUNC(Export_UStruct_SerializeBin);
-	//REGISTER_FUNC(Export_UStruct_SerializeBinEx);
+	REGISTER_FUNC(Export_UStruct_SerializeBinEx);
 	REGISTER_FUNC(Export_UStruct_SerializeTaggedProperties);
 	REGISTER_FUNC(Export_UStruct_InitializeStruct);
 	REGISTER_FUNC(Export_UStruct_DestroyStruct);
