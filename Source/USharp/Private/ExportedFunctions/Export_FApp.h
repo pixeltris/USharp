@@ -27,26 +27,26 @@ CSEXPORT void CSCONV Export_FApp_GetBuildVersion(FString& result)
 	result = FApp::GetBuildVersion();
 }
 
-CSEXPORT void CSCONV Export_FApp_GetDeploymentName(FString& result)
-{
-#if ENGINE_MINOR_VERSION >= 21
-	// Using Source Code From UE 4.20 App Source File GetDeploymentName()
-	static TCHAR StaticDeploymentName[64] = { 0 };
-	static bool bHaveDeployment = false;
-
-	if (!bHaveDeployment)
-	{
-		// use -epicapp value from the commandline. Default deployment is not captured by this,
-		// but this may not be a problem as that would be the case only during the development
-		FParse::Value(FCommandLine::Get(), TEXT("EPICAPP="), StaticDeploymentName, ARRAY_COUNT(StaticDeploymentName) - 1);
-		bHaveDeployment = true;
-	}
-
-	result = StaticDeploymentName;
-#else
-	result = FApp::GetDeploymentName();
-#endif
-}
+//CSEXPORT void CSCONV Export_FApp_GetDeploymentName(FString& result)
+//{
+//#if ENGINE_MINOR_VERSION >= 21
+//	// Using Source Code From UE 4.20 App Source File GetDeploymentName()
+//	static TCHAR StaticDeploymentName[64] = { 0 };
+//	static bool bHaveDeployment = false;
+//
+//	if (!bHaveDeployment)
+//	{
+//		// use -epicapp value from the commandline. Default deployment is not captured by this,
+//		// but this may not be a problem as that would be the case only during the development
+//		FParse::Value(FCommandLine::Get(), TEXT("EPICAPP="), StaticDeploymentName, ARRAY_COUNT(StaticDeploymentName) - 1);
+//		bHaveDeployment = true;
+//	}
+//
+//	result = StaticDeploymentName;
+//#else
+//	result = FApp::GetDeploymentName();
+//#endif
+//}
 
 CSEXPORT void CSCONV Export_FApp_GetBuildDate(FString& result)
 {
@@ -314,7 +314,7 @@ CSEXPORT void CSCONV Export_FApp(RegisterFunc registerFunc)
 	REGISTER_FUNC(Export_FApp_GetBuildConfiguration);
 	REGISTER_FUNC(Export_FApp_IsRunningDebug);
 	REGISTER_FUNC(Export_FApp_GetBuildVersion);
-	REGISTER_FUNC(Export_FApp_GetDeploymentName);
+	//REGISTER_FUNC(Export_FApp_GetDeploymentName);
 	REGISTER_FUNC(Export_FApp_GetBuildDate);
 	REGISTER_FUNC(Export_FApp_GetEngineIsPromotedBuild);
 	REGISTER_FUNC(Export_FApp_GetEpicProductIdentifier);

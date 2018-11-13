@@ -58,14 +58,14 @@ namespace UnrealEngine.Runtime
         /// Gets the deployment name (also known as "EpicApp" in the launcher), e.g. DevPlaytest, PublicTest, Live etc.
         /// </summary>
         /// <returns>The branch name (guaranteed not to be nullptr).</returns>
-        public static string GetDeploymentName()
-        {
-            using (FStringUnsafe resultUnsafe = FStringPool.New())
-            {
-                Native_FApp.GetDeploymentName(ref resultUnsafe.Array);
-                return resultUnsafe.Value;
-            }
-        }
+        //public static string GetDeploymentName()
+        //{
+        //    using (FStringUnsafe resultUnsafe = FStringPool.New())
+        //    {
+        //        Native_FApp.GetDeploymentName(ref resultUnsafe.Array);
+        //        return resultUnsafe.Value;
+        //    }
+        //}
 
         /// <summary>
         /// Gets the date at which this application was built.
