@@ -38,14 +38,14 @@ CSEXPORT csbool CSCONV Export_FTickFunction_IsCompletionHandleValid(FTickFunctio
 	return instance->IsCompletionHandleValid();
 }
 
-CSEXPORT TEnumAsByte<enum ETickingGroup> CSCONV Export_FTickFunction_GetActualTickGroup(FTickFunction* instance)
+CSEXPORT uint8 CSCONV Export_FTickFunction_GetActualTickGroup(FTickFunction* instance)
 {
-	return instance->GetActualTickGroup();
+	return (uint8)instance->GetActualTickGroup();
 }
 
-CSEXPORT TEnumAsByte<enum ETickingGroup> CSCONV Export_FTickFunction_GetActualEndTickGroup(FTickFunction* instance)
+CSEXPORT uint8 CSCONV Export_FTickFunction_GetActualEndTickGroup(FTickFunction* instance)
 {
-	return instance->GetActualEndTickGroup();
+	return (uint8)instance->GetActualEndTickGroup();
 }
 
 CSEXPORT void CSCONV Export_FTickFunction_AddPrerequisite(FTickFunction* instance, UObject* TargetObject, struct FTickFunction& TargetTickFunction)

@@ -39,7 +39,9 @@ namespace UnrealBuildTool.Rules
                     "Core",
                     "CoreUObject",
                     "Engine",
-                    "Projects"
+                    "Projects",
+                    "InputCore",
+                    "Slate"
                     // ... add other public dependencies that you statically link with here ...
                 }
                 );

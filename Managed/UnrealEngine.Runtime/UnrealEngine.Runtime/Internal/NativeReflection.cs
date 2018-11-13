@@ -1276,6 +1276,33 @@ namespace UnrealEngine.Runtime
                     }
                 }
             }
+            
+            public static IntPtr GetFunctionAddress(Delegate del)
+            {
+                IntPtr functionAddress;
+                UObject target;
+                GetFunctionAddress(del, out functionAddress, out target);
+                return functionAddress;
+            }
+
+            public static bool GetFunctionAddress(Delegate del, out IntPtr functionAddress, out UObject target)
+            {
+                if (del != null)
+                {
+                    target = del.Target as UObject;
+                    if (target != null)
+                    {
+                        functionAddress = NativeReflection.LookupTable.FindFunction(target, del.Method);
+                        if (functionAddress != IntPtr.Zero)
+                        {
+                            return true;
+                        }
+                    }
+                }
+                target = null;
+                functionAddress = IntPtr.Zero;
+                return false;
+            }
         }
     }
 }

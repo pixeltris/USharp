@@ -34,6 +34,11 @@
 // For FUObjectThreadContext
 #include "UObject/UObjectThreadContext.h"
 
+// For FKey, FKeyDetails, FInputBinding, etc
+#include "InputCoreTypes.h"
+#include "Components/InputComponent.h"
+#include "Framework/Commands/InputChord.h"
+
 #if WITH_EDITOR
 // For FEditorDelegates
 #include "Editor.h"
