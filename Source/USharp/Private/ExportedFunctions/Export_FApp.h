@@ -10,12 +10,16 @@ CSEXPORT int32/*EBuildConfigurations::Type*/ CSCONV Export_FApp_GetBuildConfigur
 
 CSEXPORT csbool CSCONV Export_FApp_IsRunningDebug()
 {
+#if ENGINE_MINOR_VERSION >= 21
 	// Using Source Code From UE 4.20 App Source File IsRunningDebug()
 	static FString RunConfig;
 	static const bool bHasRunConfig = FParse::Value(FCommandLine::Get(), TEXT("RunConfig="), RunConfig);
 	static const bool bRunningDebug = FParse::Param(FCommandLine::Get(), TEXT("debug"))
 		|| (bHasRunConfig && RunConfig.StartsWith(TEXT("Debug")));
 	return bRunningDebug;
+#else
+	return FApp::IsRunningDebug();
+#endif
 }
 
 CSEXPORT void CSCONV Export_FApp_GetBuildVersion(FString& result)
@@ -25,6 +29,7 @@ CSEXPORT void CSCONV Export_FApp_GetBuildVersion(FString& result)
 
 CSEXPORT void CSCONV Export_FApp_GetDeploymentName(FString& result)
 {
+#if ENGINE_MINOR_VERSION >= 21
 	// Using Source Code From UE 4.20 App Source File GetDeploymentName()
 	static TCHAR StaticDeploymentName[64] = { 0 };
 	static bool bHaveDeployment = false;
@@ -38,6 +43,9 @@ CSEXPORT void CSCONV Export_FApp_GetDeploymentName(FString& result)
 	}
 
 	result = StaticDeploymentName;
+#else
+	result = FApp::GetDeploymentName();
+#endif
 }
 
 CSEXPORT void CSCONV Export_FApp_GetBuildDate(FString& result)

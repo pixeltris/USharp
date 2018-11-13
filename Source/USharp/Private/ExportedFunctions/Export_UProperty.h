@@ -165,20 +165,32 @@ CSEXPORT csbool CSCONV Export_UProperty_Identical_InContainer(UProperty* instanc
 
 CSEXPORT void CSCONV Export_UProperty_SerializeBinProperty(UProperty* instance, FArchive& Ar, void* Data)
 {
+#if ENGINE_MINOR_VERSION >= 21
 	FStructuredArchiveFromArchive _structuredFromArchive(Ar);
 	instance->SerializeBinProperty(_structuredFromArchive.GetSlot(), Data);
+#else
+	instance->SerializeBinProperty(Ar, Data);
+#endif
 }
 
 CSEXPORT void CSCONV Export_UProperty_SerializeNonMatchingBinProperty(UProperty* instance, FArchive& Ar, void* Data, void const* DefaultData, UStruct* DefaultStruct)
 {
+#if ENGINE_MINOR_VERSION >= 21
 	FStructuredArchiveFromArchive _structuredFromArchive(Ar);
 	instance->SerializeNonMatchingBinProperty(_structuredFromArchive.GetSlot(), Data, DefaultData, DefaultStruct);
+#else
+	instance->SerializeNonMatchingBinProperty(Ar, Data, DefaultData, DefaultStruct);
+#endif
 }
 
 CSEXPORT void CSCONV Export_UProperty_SerializeItem(UProperty* instance, FArchive& Ar, void* Value, void const* Defaults)
 {
+#if ENGINE_MINOR_VERSION >= 21
 	FStructuredArchiveFromArchive _structuredFromArchive(Ar);
 	instance->SerializeItem(_structuredFromArchive.GetSlot(), Value, Defaults);
+#else
+	instance->SerializeItem(Ar, Value, Defaults);
+#endif
 }
 
 CSEXPORT csbool CSCONV Export_UProperty_NetSerializeItem(UProperty* instance, FArchive& Ar, UPackageMap* Map, void* Data, TArray<uint8>* MetaData)

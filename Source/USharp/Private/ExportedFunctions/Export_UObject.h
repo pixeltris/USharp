@@ -110,7 +110,11 @@ CSEXPORT void CSCONV Export_UObject_PostEditChangeChainProperty(UObject* instanc
 
 CSEXPORT TSharedPtr<ITransactionObjectAnnotation> CSCONV Export_UObject_GetTransactionAnnotation(UObject* instance)
 {
+#if ENGINE_MINOR_VERSION >= 21
 	return instance->FindOrCreateTransactionAnnotation();
+#else
+	return instance->GetTransactionAnnotation();
+#endif
 }
 
 CSEXPORT void CSCONV Export_UObject_PreEditUndo(UObject* instance)

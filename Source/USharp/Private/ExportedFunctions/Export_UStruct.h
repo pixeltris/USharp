@@ -125,8 +125,12 @@ CSEXPORT void CSCONV Export_UStruct_SerializeBin(UStruct* instance, FArchive& Ar
 
 CSEXPORT void CSCONV Export_UStruct_SerializeBinEx(UStruct* instance, FArchive& Ar, void* Data, void const* DefaultData, UStruct* DefaultStruct)
 {
+#if ENGINE_MINOR_VERSION >= 21
 	FStructuredArchiveFromArchive _structuredFromArchive(Ar);
 	instance->SerializeBinEx(_structuredFromArchive.GetSlot(), Data, DefaultData, DefaultStruct);
+#else
+	PropertyToUpdate.Property->SerializeItem(CurrentValueWriter, InstanceValuePtr);
+#endif
 }
 
 CSEXPORT void CSCONV Export_UStruct_SerializeTaggedProperties(UStruct* instance, FArchive& Ar, uint8* Data, UStruct* DefaultsStruct, uint8* Defaults, const UObject* BreakRecursionIfFullyLoad)

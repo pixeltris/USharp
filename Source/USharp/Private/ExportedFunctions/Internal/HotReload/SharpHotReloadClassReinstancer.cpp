@@ -6,6 +6,7 @@
 #include "UObject/UObjectIterator.h"
 #include "UObject/Package.h"
 #include "Serialization/ArchiveReplaceObjectRef.h"
+#include "Runtime/Launch/Resources/Version.h" 
 #if WITH_ENGINE
 #include "Engine/Blueprint.h"
 #include "Engine/BlueprintGeneratedClass.h"
@@ -683,9 +684,12 @@ void FSharpHotReloadClassReinstancer::UpdateDefaultProperties()
 					// Serialize current value to a byte array as we don't have the previous CDO to compare against, we only have its serialized property data
 					CurrentValueSerializedData.Empty(CurrentValueSerializedData.Num() + CurrentValueSerializedData.GetSlack());
 					FPropertyValueMemoryWriter CurrentValueWriter(CurrentValueSerializedData);
+#if ENGINE_MINOR_VERSION >= 21
 					FStructuredArchiveFromArchive _structuredFromArchive(CurrentValueWriter);
 					PropertyToUpdate.Property->SerializeItem(_structuredFromArchive.GetSlot(), InstanceValuePtr);
-
+#else
+					PropertyToUpdate.Property->SerializeItem(CurrentValueWriter, InstanceValuePtr);
+#endif
 					// Update only when the current value on the instance is identical to the original CDO
 					if (CurrentValueSerializedData.Num() == PropertyToUpdate.OldSerializedSize &&
 						FMemory::Memcmp(CurrentValueSerializedData.GetData(), PropertyToUpdate.OldSerializedValuePtr, CurrentValueSerializedData.Num()) == 0)

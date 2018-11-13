@@ -315,7 +315,11 @@ CSEXPORT void CSCONV Export_UClass_GetDefaultObjectName(UClass* instance, FName&
 
 CSEXPORT uint8* CSCONV Export_UClass_GetPersistentUberGraphFrame(UClass* instance, UObject* Obj, UFunction* FuncToCheck)
 {
+#if ENGINE_MINOR_VERSION >= 21
 	return GetPersistentUberGraphFrame(FuncToCheck, Obj);
+#else
+	return instance->GetPersistentUberGraphFrame(Obj, FuncToCheck);
+#endif
 }
 
 CSEXPORT void CSCONV Export_UClass_CreatePersistentUberGraphFrame(UClass* instance, UObject* Obj)
