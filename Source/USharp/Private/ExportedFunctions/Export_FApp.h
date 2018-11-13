@@ -10,7 +10,12 @@ CSEXPORT int32/*EBuildConfigurations::Type*/ CSCONV Export_FApp_GetBuildConfigur
 
 CSEXPORT csbool CSCONV Export_FApp_IsRunningDebug()
 {
-	return FApp::IsRunningDebug();
+	// Using Source Code From UE 4.20 App Source File IsRunningDebug()
+	static FString RunConfig;
+	static const bool bHasRunConfig = FParse::Value(FCommandLine::Get(), TEXT("RunConfig="), RunConfig);
+	static const bool bRunningDebug = FParse::Param(FCommandLine::Get(), TEXT("debug"))
+		|| (bHasRunConfig && RunConfig.StartsWith(TEXT("Debug")));
+	return bRunningDebug;
 }
 
 CSEXPORT void CSCONV Export_FApp_GetBuildVersion(FString& result)
@@ -20,7 +25,19 @@ CSEXPORT void CSCONV Export_FApp_GetBuildVersion(FString& result)
 
 CSEXPORT void CSCONV Export_FApp_GetDeploymentName(FString& result)
 {
-	result = FApp::GetDeploymentName();
+	// Using Source Code From UE 4.20 App Source File GetDeploymentName()
+	static TCHAR StaticDeploymentName[64] = { 0 };
+	static bool bHaveDeployment = false;
+
+	if (!bHaveDeployment)
+	{
+		// use -epicapp value from the commandline. Default deployment is not captured by this,
+		// but this may not be a problem as that would be the case only during the development
+		FParse::Value(FCommandLine::Get(), TEXT("EPICAPP="), StaticDeploymentName, ARRAY_COUNT(StaticDeploymentName) - 1);
+		bHaveDeployment = true;
+	}
+
+	result = StaticDeploymentName;
 }
 
 CSEXPORT void CSCONV Export_FApp_GetBuildDate(FString& result)

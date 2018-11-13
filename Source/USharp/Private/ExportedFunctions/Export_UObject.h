@@ -110,7 +110,7 @@ CSEXPORT void CSCONV Export_UObject_PostEditChangeChainProperty(UObject* instanc
 
 CSEXPORT TSharedPtr<ITransactionObjectAnnotation> CSCONV Export_UObject_GetTransactionAnnotation(UObject* instance)
 {
-	return instance->GetTransactionAnnotation();
+	return instance->FindOrCreateTransactionAnnotation();
 }
 
 CSEXPORT void CSCONV Export_UObject_PreEditUndo(UObject* instance)
