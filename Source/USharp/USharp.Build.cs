@@ -16,6 +16,8 @@ namespace UnrealBuildTool.Rules
         {
             bEnableExceptions = true;
             PCHUsage = ModuleRules.PCHUsageMode.NoSharedPCHs;
+            PrivatePCHHeaderFile = "Private/USharpPCH.h";
+
             PublicIncludePaths.AddRange(
                 new string[] {
                     // ... add public include paths required here ...
