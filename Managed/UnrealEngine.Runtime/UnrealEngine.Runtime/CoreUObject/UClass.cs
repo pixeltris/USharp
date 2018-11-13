@@ -1251,14 +1251,14 @@ namespace UnrealEngine.Runtime
         /// prioritize them earlier in the ExportMap.
         /// </summary>
         /// <returns>A list of dependencies that need to be created before this class is recreated (on load).</returns>
-        public UObject[] GetRequiredPreloadDependencies()
-        {
-            using (TArrayUnsafe<UObject> result = new TArrayUnsafe<UObject>())
-            {
-                Native_UClass.GetRequiredPreloadDependencies(Address, result.Address);
-                return result.ToArray();
-            }
-        }
+        //public UObject[] GetRequiredPreloadDependencies()
+        //{
+        //    using (TArrayUnsafe<UObject> result = new TArrayUnsafe<UObject>())
+        //    {
+        //        Native_UClass.GetRequiredPreloadDependencies(Address, result.Address);
+        //        return result.ToArray();
+        //    }
+        //}
 
         /// <summary>
         /// Initializes the ClassReps and NetFields arrays used by replication.

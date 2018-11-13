@@ -418,10 +418,10 @@ namespace UnrealEngine.Engine
         /// <summary>
         /// Get the current last assigned handle
         /// </summary>
-        public static void ValidateHandle(ref FTimerHandle inOutHandle)
-        {
-            Native_FTimerManager.ValidateHandle(ref inOutHandle);
-        }
+        //public static void ValidateHandle(ref FTimerHandle inOutHandle)
+        //{
+        //    Native_FTimerManager.ValidateHandle(ref inOutHandle);
+        //}
 
         // TODO: Change the parameter to use a concrete type UGameInstance
         /// <summary>
