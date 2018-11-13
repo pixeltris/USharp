@@ -15,8 +15,7 @@ namespace UnrealBuildTool.Rules
         public USharp(ReadOnlyTargetRules Target) : base(Target)
         {
             bEnableExceptions = true;
-            PCHUsage = ModuleRules.PCHUsageMode.UseExplicitOrSharedPCHs;
-        
+            PCHUsage = ModuleRules.PCHUsageMode.NoSharedPCHs;
             PublicIncludePaths.AddRange(
                 new string[] {
                     // ... add public include paths required here ...
