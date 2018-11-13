@@ -108,6 +108,17 @@
 #include "Export_FMath.h"
 #include "Export_FParse.h"
 
+#include "Export_FKey.h"
+#include "Export_FInputBinding.h"
+#include "Export_FInputActionBinding.h"
+#include "Export_FInputKeyBinding.h"
+#include "Export_FInputTouchBinding.h"
+#include "Export_FInputAxisBinding.h"
+#include "Export_FInputAxisKeyBinding.h"
+#include "Export_FInputVectorAxisBinding.h"
+#include "Export_FInputGestureBinding.h"
+#include "Export_UInputComponent.h"
+
 #include "Export_IConsoleObject.h"
 #include "Export_IConsoleCommand.h"
 #include "Export_IConsoleVariable.h"
@@ -230,6 +241,17 @@ CSEXPORT void CSCONV RegisterFunctions(RegisterFunc registerFunc)
 	Export_FApp(registerFunc);
 	Export_FMath(registerFunc);
 	Export_FParse(registerFunc);
+	
+	Export_FKey(registerFunc);
+	Export_FInputBinding(registerFunc);
+	Export_FInputActionBinding(registerFunc);
+	Export_FInputKeyBinding(registerFunc);
+	Export_FInputTouchBinding(registerFunc);
+	Export_FInputAxisBinding(registerFunc);
+	Export_FInputAxisKeyBinding(registerFunc);
+	Export_FInputVectorAxisBinding(registerFunc);
+	Export_FInputGestureBinding(registerFunc);
+	Export_UInputComponent(registerFunc);
 	
 	Export_IConsoleObject(registerFunc);
 	Export_IConsoleCommand(registerFunc);

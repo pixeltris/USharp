@@ -4,6 +4,7 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using UnrealEngine.Engine;
+using UnrealEngine.InputCore;
 using UnrealEngine.Runtime.Native;
 
 namespace UnrealEngine.Runtime
@@ -45,6 +46,7 @@ namespace UnrealEngine.Runtime
             ValidateStructSize<Guid>(Native_SizeOfStruct.SizeOf_FGuid);
             ValidateStructSize<FActorSpawnParametersInterop>(Native_SizeOfStruct.SizeOf_FActorSpawnParameters);
             ValidateStructSize<FTickPrerequisite>(Native_SizeOfStruct.SizeOf_FTickPrerequisite);
+            ValidateStructSize<FKey>(Native_SizeOfStruct.SizeOf_FKey);
 
             ValidateFTickFunctionStructSize();
         }

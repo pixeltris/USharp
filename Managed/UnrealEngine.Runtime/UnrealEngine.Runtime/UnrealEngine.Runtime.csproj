@@ -44,6 +44,15 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="InputCore\EKeys.cs" />
+    <Compile Include="InputCore\FKey.cs" />
+    <None Include="InjectedClasses\Engine\ActorComponent_Injected.cs" />
+    <None Include="InjectedClasses\Engine\Actor_Injected.cs" />
+    <None Include="InjectedClasses\Engine\Engine_Injected.cs" />
+    <None Include="InjectedClasses\Engine\GameplayStatics_Injected.cs" />
+    <None Include="InjectedClasses\Engine\WorldContextExtensions.cs" />
+    <None Include="InjectedClasses\Engine\World_Injected.cs" />
+    <None Include="InjectedClasses\Engine\InputComponent_Injected.cs" />
     <Compile Include="Internal\AppDomainDiagnostic.cs" />
     <Compile Include="Internal\CurrentAssemblyContext.cs" />
     <Compile Include="Internal\EntryPoint.Shared.AssemblyContext.cs" />
@@ -345,6 +354,15 @@
     <Compile Include="Native\Native_FFrameRef.cs" />
     <Compile Include="Native\Native_FGlobals.cs" />
     <Compile Include="Native\Native_FCoreNet.cs" />
+    <Compile Include="Native\Native_FInputActionBinding.cs" />
+    <Compile Include="Native\Native_FInputAxisBinding.cs" />
+    <Compile Include="Native\Native_FInputAxisKeyBinding.cs" />
+    <Compile Include="Native\Native_FInputBinding.cs" />
+    <Compile Include="Native\Native_FInputGestureBinding.cs" />
+    <Compile Include="Native\Native_FInputKeyBinding.cs" />
+    <Compile Include="Native\Native_FInputTouchBinding.cs" />
+    <Compile Include="Native\Native_FInputVectorAxisBinding.cs" />
+    <Compile Include="Native\Native_FKey.cs" />
     <Compile Include="Native\Native_FMath.cs" />
     <Compile Include="Native\Native_FMemory.cs" />
     <Compile Include="Native\Native_FMulticastScriptDelegate.cs" />
@@ -402,6 +420,7 @@
     <Compile Include="Native\Native_UGameInstance.cs" />
     <Compile Include="Native\Internal\Native_USharpClass.cs" />
     <Compile Include="Native\Native_UGameplayStatics.cs" />
+    <Compile Include="Native\Native_UInputComponent.cs" />
     <Compile Include="Native\Native_UObjectRedirector.cs" />
     <Compile Include="Native\Properties\Native_UArrayProperty.cs" />
     <Compile Include="Native\Properties\Native_USoftClassProperty.cs" />
@@ -468,6 +487,9 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Core\Math\InterpCurve\" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="InjectedClasses\LoadNativeType.txt" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
