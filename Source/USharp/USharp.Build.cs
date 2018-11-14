@@ -126,23 +126,32 @@ namespace UnrealBuildTool.Rules
                 string coreCLROutputDir = Path.Combine(projectDir, "Binaries", "CoreCLR");
                 string monoOutputDir = Path.Combine(projectDir, "Binaries", "Mono");
                 string dotNetRuntimeTextFile = Path.Combine(projectDir, "Binaries", "Managed", "DotNetRuntime" + ".txt");
-
-                if(Directory.Exists(coreCLROutputDir))
-                {
-                    //Add CoreCLR Folder Inside Project Binaries Folder
-                    AddToRuntimeDependenciesRecursively(new DirectoryInfo(coreCLROutputDir));
-                }
-
-                if(Directory.Exists(monoOutputDir))
-                {
-                    //Add Mono Folder Inside Project Binaries Folder
-                    AddToRuntimeDependenciesRecursively(new DirectoryInfo(monoOutputDir));
-                }
+                bool bCopyOverCoreCLR = false;
+                bool bCopyOverMono = false;
 
                 if(File.Exists(dotNetRuntimeTextFile))
                 {
+                    string _runtimeContent = File.ReadAllText(dotNetRuntimeTextFile);
+                    bCopyOverCoreCLR = _runtimeContent.Contains("CoreCLR");
+                    bCopyOverMono = _runtimeContent.Contains("Mono");
+
+                    //Only Add Runtime Files If TextFile Contains Runtimes
+                    if(bCopyOverCoreCLR == false && bCopyOverMono == false) return;
+
                     //Add DotNetRuntime Text File From Project Binaries Managed Folder
                     AddFileToRuntimeDependencies(dotNetRuntimeTextFile);
+
+                    //Only Add One Runtime Folder, Don't Add Both
+                    if(Directory.Exists(coreCLROutputDir) && bCopyOverCoreCLR)
+                    {
+                        //Add CoreCLR Folder Inside Project Binaries Folder
+                        AddToRuntimeDependenciesRecursively(new DirectoryInfo(coreCLROutputDir));
+                    }
+                    else if(Directory.Exists(monoOutputDir) && bCopyOverMono)
+                    {
+                        //Add Mono Folder Inside Project Binaries Folder
+                        AddToRuntimeDependenciesRecursively(new DirectoryInfo(monoOutputDir));
+                    }
                 }
             }
         }
