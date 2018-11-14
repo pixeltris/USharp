@@ -61,13 +61,9 @@ _Assuming your working from a Windows PC._
 - You can switch back to .NET Framework by replacing the text with 'CLR'.
 
 ### Setting Up Mono/.NET Core For Packaging
-- Inside Your Project Folder, If you don't see a 'Binaries' folder, create it.
-- Inside Your Project's Binary Folder, Create a 'Managed' folder if it doesn't exist.
-- Copy the 'DotNetRuntime' text file from your "USharp\Binaries\Managed" folder, and paste it into your "ProjectName\Binaries\Managed" folder.
-- _If the DotNetRuntime doesn't exist in the folder provided, none of the runtime folders will be copied over._
+- If you set up Mono or .NET Core Successfully, the packaging should automatically copy over the files into the packaged game. 
+- _If the DotNetRuntime text file doesn't exist in the "Binaries\Managed" Folder, none of the runtime folders will be copied over._
 - If DotNetRuntime contains more than one runtime: 'CoreCLR' and 'Mono', they'll both be copied over. This can make your package larger than you desire and make the game unplayable._
-- Copy the "CoreCLR" or "Mono" folder from your "USharp\Binaries" folder and paste it into your "ProjectName\Binaries" folder.
-- When you package your game, the USharp build file will automatically add these files to the runtime dependencies if they are in the right folder paths.
 
 # Issues / caveats
 
