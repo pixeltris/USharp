@@ -28,6 +28,12 @@ Use the "USharpGen modules" command to generate the wrapper code (which will giv
 you can compile the solution automatically by using the "USharpGen compile" command. If the command produces an error, try deleting the modules folder, regenerate the modules,
 and then compile manually.  
 
+_Note: If your managed solution can't resolve UnrealRuntime/UnrealEngine references_
+- If you change the name of your project, or move around your usharp plugin folder or project folder, please follow these steps.
+- Delete the ".usharpGenerated" and "USharp.ProjectGeneratedVariables.props" files from your project managed folder.
+- Open Up Your Project and Your References Should Be Regenerated.
+- Regenerate the modules if your UnrealEngine reference still can't be resolved.
+
 # Optional Mono / .NET Core Setup
 
 _Mono And .NET Core may not work as intended._
@@ -53,6 +59,13 @@ _Assuming your working from a Windows PC._
 - Inside the "USharp\Binaries\Managed" Folder, Create a text file called 'DotNetRuntime' if it doesn't already exist.
 - Open it up, type 'CoreCLR', and save.
 - You can switch back to .NET Framework by replacing the text with 'CLR'.
+
+### Setting Up Mono/.NET Core For Packaging
+- Inside Your Project Folder, If you don't see a 'Binaries' folder, create it.
+- Inside Your Project's Binary Folder, Create a 'Managed' folder if it doesn't exist.
+- Copy the 'DotNetRuntime' text file from your "USharp\Binaries\Managed" folder, and paste it into your "ProjectName\Binaries\Managed" folder.
+- Copy the "CoreCLR" or "Mono" folder from your "USharp\Binaries" folder and paste it into your "ProjectName\Binaries" folder.
+- When you package your game, the USharp build file will automatically add these files to the runtime dependencies if they are in the right folder paths.
 
 # Issues / caveats
 
