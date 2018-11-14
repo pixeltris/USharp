@@ -131,9 +131,19 @@ namespace UnrealBuildTool.Rules
 
                 if(File.Exists(dotNetRuntimeTextFile))
                 {
-                    string _runtimeContent = File.ReadAllText(dotNetRuntimeTextFile);
-                    bCopyOverCoreCLR = _runtimeContent.Contains("CoreCLR");
-                    bCopyOverMono = _runtimeContent.Contains("Mono");
+                    foreach(string _line in File.ReadAllLines(dotNetRuntimeTextFile))
+                    {
+                        string _adjustedLine = _line.Trim();
+                        _adjustedLine = _adjustedLine.ToLower();
+                        if (_adjustedLine.Equals("mono", StringComparison.OrdinalIgnoreCase))
+                        {
+                            bCopyOverMono = true;
+                        }
+                        else if (_adjustedLine.Equals("coreclr", StringComparison.OrdinalIgnoreCase))
+                        {
+                            bCopyOverCoreCLR = true;
+                        }
+                    }
 
                     //Only Add Runtime Files If TextFile Contains Runtimes
                     if(bCopyOverCoreCLR == false && bCopyOverMono == false) return;
@@ -146,7 +156,7 @@ namespace UnrealBuildTool.Rules
                         //Add CoreCLR Folder Inside Project Binaries Folder
                         AddToRuntimeDependenciesRecursively(new DirectoryInfo(coreCLROutputDir));
                     }
-                    
+
                     if(Directory.Exists(monoOutputDir) && bCopyOverMono)
                     {
                         //Add Mono Folder Inside Project Binaries Folder
