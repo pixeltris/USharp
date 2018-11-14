@@ -30,10 +30,10 @@ and then compile manually.
 
 # Optional Mono / .NET Core Setup
 
-_Mono And .NET Core may not work as intended.
+_Mono And .NET Core may not work as intended._
 
 ### Mono Setup
-_Assuming your working from a Windows PC.
+_Assuming your working from a Windows PC._
 - Download and install the latest version of Mono using the 64bit installer.
 - You should have a Mono folder wherever you installed it ("C:\Program Files\Mono" by default) 
 - Create A New Folder Called 'Mono' Inside Your "USharp\Binaries" Path.
@@ -43,7 +43,7 @@ _Assuming your working from a Windows PC.
 - You can switch back to .NET Framework by replacing the text with 'CLR'.
 
 ### .NET Core Setup
-_Assuming your working from a Windows PC.
+_Assuming your working from a Windows PC._
 - Download and install the 3.0 .NET Core Nightly Build SDK By Going To The Official DotNet Core Github Page
 - Go To (https://github.com/dotnet/core), Click On The 'NET Core daily builds', and Download the .NET Core 3.0 SDK
 - You should have a dotnet folder whereever you installed it ("C:\Program Files\dotnet" by default)
