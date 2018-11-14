@@ -1053,8 +1053,10 @@ namespace UnrealEngine.Runtime
         private static IntPtr CreateFunction(IntPtr outer, IntPtr parentClass, ManagedUnrealFunctionInfo functionInfo,
             UFunction.FuncInvokerNative funcInvoker)
         {
-            // NOTE: We don't want to set EObjectFlags.MarkAsNative here. If we did the function would be held onto by the GC
-            //       and the function along with its owning class wouldn't be cleaned up on hotreload.
+            // NOTE: We need EObjectFlags.MarkAsNative to allow packages to include this as an import. Imports are an important
+            //       part of package saving to ensure our referenced fields are serialized properly. Import gathering uses a 
+            //       Obj->IsNative() check for import inclusion (see FArchiveSaveTagImports::operator<<)
+            // NOTE: EObjectFlags.MarkAsNative will likely stop our classes from being GCed on hotreload. Unmark them on hotreload?
             EObjectFlags objectFlags = EObjectFlags.Public | EObjectFlags.Transient | EObjectFlags.MarkAsNative;
             IntPtr function = NativeReflection.NewObject(outer, Runtime.Classes.UFunction, new FName(functionInfo.GetName()), objectFlags);
             
@@ -1305,7 +1307,11 @@ namespace UnrealEngine.Runtime
                 return IntPtr.Zero;
             }
 
-            EObjectFlags objectFlags = EObjectFlags.Public | EObjectFlags.Transient;
+            // NOTE: We need EObjectFlags.MarkAsNative to allow packages to include this as an import. Imports are an important
+            //       part of package saving to ensure our referenced fields are serialized properly. Import gathering uses a 
+            //       Obj->IsNative() check for import inclusion (see FArchiveSaveTagImports::operator<<)
+            // NOTE: EObjectFlags.MarkAsNative will likely stop our classes from being GCed on hotreload. Unmark them on hotreload?
+            EObjectFlags objectFlags = EObjectFlags.Public | EObjectFlags.Transient | EObjectFlags.MarkAsNative;
             IntPtr property = NativeReflection.NewObject(outer, propertyClass, new FName(propertyName), objectFlags);
 
             if (isFixedSizeArray && fixedSizeArrayDim > 1)

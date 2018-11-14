@@ -44,6 +44,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="CoreUObject\Enums\Script.cs" />
     <Compile Include="InputCore\EKeys.cs" />
     <Compile Include="InputCore\FKey.cs" />
     <None Include="InjectedClasses\Engine\ActorComponent_Injected.cs" />
@@ -173,6 +174,7 @@
     <Compile Include="Internal\ManagedUnrealTypes.MetaData.cs" />
     <Compile Include="Internal\ManagedUnrealVisibility.cs" />
     <Compile Include="Internal\NativeReflectionCached.cs" />
+    <Compile Include="Internal\ScriptDisassembler.cs" />
     <Compile Include="Internal\StaticVar.cs" />
     <Compile Include="Internal\StructAsClass.cs" />
     <Compile Include="Internal\StructDefault.cs" />
