@@ -65,7 +65,7 @@ _Assuming your working from a Windows PC._
 - Inside Your Project's Binary Folder, Create a 'Managed' folder if it doesn't exist.
 - Copy the 'DotNetRuntime' text file from your "USharp\Binaries\Managed" folder, and paste it into your "ProjectName\Binaries\Managed" folder.
 - _If the DotNetRuntime doesn't exist in the folder provided, none of the runtime folders will be copied over._
-- _Make sure DotNetRuntime only contains one runtime: 'CoreCLR' or 'Mono'. If DotNetRuntime contains both CoreCLR and Mono, only CoreCLR will be added._
+- If DotNetRuntime contains more than one runtime: 'CoreCLR' and 'Mono', they'll both be copied over. This can make your package larger than you desire and make the game unplayable._
 - Copy the "CoreCLR" or "Mono" folder from your "USharp\Binaries" folder and paste it into your "ProjectName\Binaries" folder.
 - When you package your game, the USharp build file will automatically add these files to the runtime dependencies if they are in the right folder paths.
 
