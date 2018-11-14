@@ -15,7 +15,9 @@ namespace UnrealBuildTool.Rules
         public USharp(ReadOnlyTargetRules Target) : base(Target)
         {
             bEnableExceptions = true;
-            PCHUsage = ModuleRules.PCHUsageMode.UseExplicitOrSharedPCHs;
+            PCHUsage = ModuleRules.PCHUsageMode.NoSharedPCHs;
+            PrivatePCHHeaderFile = "Private/USharpPCH.h";
+
             PublicIncludePaths.AddRange(
                 new string[] {
                     // ... add public include paths required here ...
@@ -122,45 +124,75 @@ namespace UnrealBuildTool.Rules
                     CopyFilesRecursive(new DirectoryInfo(managedDir), new DirectoryInfo(managedOutputDir), true);
                 }
 
-                //Add CoreCLR/Mono Folders To RuntimeDependencies If They Exists
-                string coreCLROutputDir = Path.Combine(projectDir, "Binaries", "CoreCLR");
-                string monoOutputDir = Path.Combine(projectDir, "Binaries", "Mono");
-                string dotNetRuntimeTextFile = Path.Combine(projectDir, "Binaries", "Managed", "DotNetRuntime" + ".txt");
-                bool bCopyOverCoreCLR = false;
-                bool bCopyOverMono = false;
-
-                if(File.Exists(dotNetRuntimeTextFile))
+                if (Directory.Exists(ModuleDirectory))
                 {
-                    foreach(string _line in File.ReadAllLines(dotNetRuntimeTextFile))
+                    string binDir = Path.Combine(ModuleDirectory, "..", "..", "Binaries");
+                    string managedBinDir = Path.Combine(binDir, "Managed");
+
+                    //Add CoreCLR/Mono Folders To RuntimeDependencies If They Exists
+                    string sourceCoreCLRDir = Path.Combine(binDir, "CoreCLR");
+                    string sourceMonoDir = Path.Combine(binDir, "Mono");
+                    string sourceDotNetRuntimeTextFile = Path.Combine(managedBinDir, "DotNetRuntime" + ".txt");
+
+                    string destCoreCLRDir = Path.Combine(projectDir, "Binaries", "CoreCLR"); 
+                    string destMonoDir = Path.Combine(projectDir, "Binaries", "Mono");
+                    string destDotNetRuntimeTextFile = Path.Combine(projectDir, "Binaries", "Managed", "DotNetRuntime" + ".txt");
+
+                    bool bCopyOverCoreCLR = false;
+                    bool bCopyOverMono = false;
+
+                    if (File.Exists(sourceDotNetRuntimeTextFile))
                     {
-                        string _adjustedLine = _line.Trim();
-                        _adjustedLine = _adjustedLine.ToLower();
-                        if (_adjustedLine.Equals("mono", StringComparison.OrdinalIgnoreCase))
+                        foreach (string _line in File.ReadAllLines(sourceDotNetRuntimeTextFile))
                         {
-                            bCopyOverMono = true;
+                            string _adjustedLine = _line.Trim();
+                            _adjustedLine = _adjustedLine.ToLower();
+                            if (_adjustedLine.Equals("mono", StringComparison.OrdinalIgnoreCase))
+                            {
+                                if (Directory.Exists(sourceMonoDir))
+                                {
+                                    bCopyOverMono = true;
+                                }
+                            }
+                            else if (_adjustedLine.Equals("coreclr", StringComparison.OrdinalIgnoreCase))
+                            {
+                                if (Directory.Exists(sourceCoreCLRDir))
+                                {
+                                    bCopyOverCoreCLR = true;
+                                }
+                            }
                         }
-                        else if (_adjustedLine.Equals("coreclr", StringComparison.OrdinalIgnoreCase))
+
+                        //Only Add Runtime Files If TextFile Contains Runtimes
+                        if (bCopyOverCoreCLR == false && bCopyOverMono == false) return;
+
+                        //Copy DotNetRuntime Text File To Project Binaries Managed Folder
+                        FileInfo _destTextInfo = new FileInfo(destDotNetRuntimeTextFile);
+                        if(_destTextInfo.Directory.Exists == false)
                         {
-                            bCopyOverCoreCLR = true;
+                            Directory.CreateDirectory(_destTextInfo.DirectoryName);
                         }
-                    }
+                        CopyFile(sourceDotNetRuntimeTextFile, destDotNetRuntimeTextFile, true);
 
-                    //Only Add Runtime Files If TextFile Contains Runtimes
-                    if(bCopyOverCoreCLR == false && bCopyOverMono == false) return;
+                        if (bCopyOverCoreCLR)
+                        {
+                            if(Directory.Exists(destCoreCLRDir) == false)
+                            {
+                                Directory.CreateDirectory(destCoreCLRDir);
+                            }
+                            //Copy CoreCLR Folder Into Project Binaries Folder
+                            CopyFilesRecursive(new DirectoryInfo(sourceCoreCLRDir), new DirectoryInfo(destCoreCLRDir), true);
+                        }
 
-                    //Add DotNetRuntime Text File From Project Binaries Managed Folder
-                    AddFileToRuntimeDependencies(dotNetRuntimeTextFile);
-
-                    if(Directory.Exists(coreCLROutputDir) && bCopyOverCoreCLR)
-                    {
-                        //Add CoreCLR Folder Inside Project Binaries Folder
-                        AddToRuntimeDependenciesRecursively(new DirectoryInfo(coreCLROutputDir));
-                    }
-
-                    if(Directory.Exists(monoOutputDir) && bCopyOverMono)
-                    {
-                        //Add Mono Folder Inside Project Binaries Folder
-                        AddToRuntimeDependenciesRecursively(new DirectoryInfo(monoOutputDir));
+                        if (bCopyOverMono)
+                        {
+                            if (Directory.Exists(destMonoDir) == false)
+                            {
+                                Directory.CreateDirectory(destMonoDir);
+                            }
+                            //Copy CoreCLR Folder Into Project Binaries Folder
+                            CopyFilesRecursive(new DirectoryInfo(sourceMonoDir), new DirectoryInfo(destMonoDir), true);
+                        }
                     }
                 }
             }
