@@ -141,13 +141,13 @@ namespace UnrealBuildTool.Rules
                     //Add DotNetRuntime Text File From Project Binaries Managed Folder
                     AddFileToRuntimeDependencies(dotNetRuntimeTextFile);
 
-                    //Only Add One Runtime Folder, Don't Add Both
                     if(Directory.Exists(coreCLROutputDir) && bCopyOverCoreCLR)
                     {
                         //Add CoreCLR Folder Inside Project Binaries Folder
                         AddToRuntimeDependenciesRecursively(new DirectoryInfo(coreCLROutputDir));
                     }
-                    else if(Directory.Exists(monoOutputDir) && bCopyOverMono)
+                    
+                    if(Directory.Exists(monoOutputDir) && bCopyOverMono)
                     {
                         //Add Mono Folder Inside Project Binaries Folder
                         AddToRuntimeDependenciesRecursively(new DirectoryInfo(monoOutputDir));
