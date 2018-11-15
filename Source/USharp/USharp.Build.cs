@@ -15,8 +15,6 @@ namespace UnrealBuildTool.Rules
         public USharp(ReadOnlyTargetRules Target) : base(Target)
         {
             bEnableExceptions = true;
-            PCHUsage = ModuleRules.PCHUsageMode.NoSharedPCHs;
-            PrivatePCHHeaderFile = "Private/USharpPCH.h";
 
             PublicIncludePaths.AddRange(
                 new string[] {
