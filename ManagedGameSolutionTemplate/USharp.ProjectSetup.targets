@@ -2,7 +2,7 @@
   <!-- inject defines and override output path -->
   <PropertyGroup>
     <DefineConstants>$(UE4Defines);$(DefineConstants)</DefineConstants>
-    <OutDir>$(MSBuildStartupDirectory)\Binaries</OutDir>
+    <OutDir>$(SolutionDir)\Binaries</OutDir>
     <OutputPath>$(OutDir)</OutputPath>
     <AssemblyName>$(UE4GameName)-Managed</AssemblyName>
   </PropertyGroup>
