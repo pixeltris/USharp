@@ -589,13 +589,6 @@ bool CSharpLoader::Load(FString assemblyPath, FString customArgs, FString loader
 	{
 		loaderAssemblyPath = FPaths::ConvertRelativePathToFull(loaderAssemblyPath);
 	}
-	
-	if (!LoadRuntimes(loaderEnabled))
-	{
-		FString desiredRuntimeStr = RuntimeTypeToString(runtimeState.DesiredRuntimes);
-		LogLoaderError(FString::Printf(TEXT("Failed to load .NET runtimes (%s)"), *desiredRuntimeStr));
-		return false;
-	}
 
 	FString entryPointMethodArg = FString::Printf(TEXT("RegisterFuncs=%lld|AddTicker=%lld|IsInGameThread=%lld|RuntimeState=%lld"),
 		(int64)&RegisterFunctions, (int64)&Export_FTicker_AddStaticTicker, (int64)&Export_FThreading_IsInGameThread, (int64)&runtimeState);
@@ -624,10 +617,19 @@ bool CSharpLoader::Load(FString assemblyPath, FString customArgs, FString loader
 		{
 #if WITH_EDITOR
 			return false;
+#else
+			loaderEnabled = false;
 #endif
 		}
 	}
 
+	if (!LoadRuntimes(loaderEnabled))
+	{
+		FString desiredRuntimeStr = RuntimeTypeToString(runtimeState.DesiredRuntimes);
+		LogLoaderError(FString::Printf(TEXT("Failed to load .NET runtimes (%s)"), *desiredRuntimeStr));
+		return false;
+	}
+	
 	CSharpProjectGeneration::GenerateProject();
 
 	const TCHAR* entryPointClass = TEXT("UnrealEngine.EntryPoint");
