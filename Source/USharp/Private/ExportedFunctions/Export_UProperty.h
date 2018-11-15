@@ -163,21 +163,6 @@ CSEXPORT csbool CSCONV Export_UProperty_Identical_InContainer(UProperty* instanc
 	return instance->Identical_InContainer(A, B, ArrayIndex, PortFlags);
 }
 
-CSEXPORT void CSCONV Export_UProperty_SerializeBinProperty(UProperty* instance, FArchive& Ar, void* Data)
-{
-	instance->SerializeBinProperty(Ar, Data);
-}
-
-CSEXPORT void CSCONV Export_UProperty_SerializeNonMatchingBinProperty(UProperty* instance, FArchive& Ar, void* Data, void const* DefaultData, UStruct* DefaultStruct)
-{
-	instance->SerializeNonMatchingBinProperty(Ar, Data, DefaultData, DefaultStruct);
-}
-
-CSEXPORT void CSCONV Export_UProperty_SerializeItem(UProperty* instance, FArchive& Ar, void* Value, void const* Defaults)
-{
-	instance->SerializeItem(Ar, Value, Defaults);
-}
-
 CSEXPORT csbool CSCONV Export_UProperty_NetSerializeItem(UProperty* instance, FArchive& Ar, UPackageMap* Map, void* Data, TArray<uint8>* MetaData)
 {
 	return instance->NetSerializeItem(Ar, Map, Data, MetaData);
@@ -443,9 +428,6 @@ CSEXPORT void CSCONV Export_UProperty(RegisterFunc registerFunc)
 	REGISTER_FUNC(Export_UProperty_Link);
 	REGISTER_FUNC(Export_UProperty_Identical);
 	REGISTER_FUNC(Export_UProperty_Identical_InContainer);
-	REGISTER_FUNC(Export_UProperty_SerializeBinProperty);
-	REGISTER_FUNC(Export_UProperty_SerializeNonMatchingBinProperty);
-	REGISTER_FUNC(Export_UProperty_SerializeItem);
 	REGISTER_FUNC(Export_UProperty_NetSerializeItem);
 	REGISTER_FUNC(Export_UProperty_ExportTextItem);
 	REGISTER_FUNC(Export_UProperty_ImportText);

@@ -30,10 +30,8 @@ namespace UnrealEngine.Runtime.Native
         public delegate void Del_PostEditChange(IntPtr instance);
         public delegate void Del_PostEditChangeProperty(IntPtr instance, IntPtr propertyChangedEvent);
         public delegate void Del_PostEditChangeChainProperty(IntPtr instance, IntPtr propertyChangedEvent);
-        public delegate IntPtr Del_GetTransactionAnnotation(IntPtr instance);
         public delegate void Del_PreEditUndo(IntPtr instance);
         public delegate void Del_PostEditUndo(IntPtr instance);
-        public delegate void Del_PostEditUndoAnnotation(IntPtr instance, IntPtr transactionAnnotation);
         public delegate void Del_PostRename(IntPtr instance, IntPtr oldOuter, ref FName oldName);
         public delegate void Del_PostDuplicate(IntPtr instance, csbool duplicateForPIE);
         public delegate csbool Del_NeedsLoadForClient(IntPtr instance);
@@ -134,10 +132,8 @@ namespace UnrealEngine.Runtime.Native
         public static Del_PostEditChange PostEditChange;
         public static Del_PostEditChangeProperty PostEditChangeProperty;
         public static Del_PostEditChangeChainProperty PostEditChangeChainProperty;
-        public static Del_GetTransactionAnnotation GetTransactionAnnotation;
         public static Del_PreEditUndo PreEditUndo;
         public static Del_PostEditUndo PostEditUndo;
-        public static Del_PostEditUndoAnnotation PostEditUndoAnnotation;
         public static Del_PostRename PostRename;
         public static Del_PostDuplicate PostDuplicate;
         public static Del_NeedsLoadForClient NeedsLoadForClient;
