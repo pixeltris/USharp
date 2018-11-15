@@ -1,5 +1,4 @@
 #include "ModulePaths.h"
-#include "USharpPCH.h"
 #include "Interfaces/IPluginManager.h"
 
 TOptional<TMap<FName, FString>> FModulePaths::ModulePathsCache;

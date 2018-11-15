@@ -15,7 +15,7 @@ namespace UnrealBuildTool.Rules
         public USharp(ReadOnlyTargetRules Target) : base(Target)
         {
             bEnableExceptions = true;
-
+        
             PublicIncludePaths.AddRange(
                 new string[] {
                     // ... add public include paths required here ...
