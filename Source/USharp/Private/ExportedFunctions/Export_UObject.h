@@ -108,11 +108,6 @@ CSEXPORT void CSCONV Export_UObject_PostEditChangeChainProperty(UObject* instanc
 	instance->PostEditChangeChainProperty(PropertyChangedEvent);
 }
 
-CSEXPORT TSharedPtr<ITransactionObjectAnnotation> CSCONV Export_UObject_GetTransactionAnnotation(UObject* instance)
-{
-	return instance->GetTransactionAnnotation();
-}
-
 CSEXPORT void CSCONV Export_UObject_PreEditUndo(UObject* instance)
 {
 	instance->PreEditUndo();
@@ -121,11 +116,6 @@ CSEXPORT void CSCONV Export_UObject_PreEditUndo(UObject* instance)
 CSEXPORT void CSCONV Export_UObject_PostEditUndo(UObject* instance)
 {
 	instance->PostEditUndo();
-}
-
-CSEXPORT void CSCONV Export_UObject_PostEditUndoAnnotation(UObject* instance, TSharedPtr<ITransactionObjectAnnotation> TransactionAnnotation)
-{
-	instance->PostEditUndo(TransactionAnnotation);
 }
 #endif
 
@@ -565,10 +555,8 @@ void CSCONV Export_UObject(RegisterFunc registerFunc)
 	REGISTER_FUNC(Export_UObject_PostEditChange);
 	REGISTER_FUNC(Export_UObject_PostEditChangeProperty);
 	REGISTER_FUNC(Export_UObject_PostEditChangeChainProperty);
-	REGISTER_FUNC(Export_UObject_GetTransactionAnnotation);
 	REGISTER_FUNC(Export_UObject_PreEditUndo);
 	REGISTER_FUNC(Export_UObject_PostEditUndo);
-	REGISTER_FUNC(Export_UObject_PostEditUndoAnnotation);
 #endif
 	REGISTER_FUNC(Export_UObject_PostRename);
 	REGISTER_FUNC(Export_UObject_PostDuplicate);

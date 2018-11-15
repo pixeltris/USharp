@@ -720,6 +720,48 @@ namespace UnrealEngine.Runtime
         }
 
         /// <summary>
+        /// Returns the name of this object (with no path information)
+        /// </summary>
+        /// <param name="obj">object to retrieve the name for; NULL gives "None"</param>
+        /// <returns>Name of the object.</returns>
+        public static string GetNameSafe(UObject obj)
+        {
+            if (obj == null)
+            {
+                return "None";
+            }
+            return obj.GetName();
+        }
+
+        /// <summary>
+        /// Returns the path name of this object
+        /// </summary>
+        /// <param name="obj">object to retrieve the path name for; NULL gives "None"</param>
+        /// <returns>path name of the object.</returns>
+        public static string GetPathNameSafe(UObject obj)
+        {
+            if (obj == null)
+            {
+                return "None";
+            }
+            return obj.GetPathName();
+        }
+
+        /// <summary>
+        /// Returns the full name of this object
+        /// </summary>
+        /// <param name="obj">object to retrieve the full name for; NULL (or a null class!) gives "None"</param>
+        /// <returns>full name of the object.</returns>
+        public static string GetFullNameSafe(UObject obj)
+        {
+            if (obj == null || Native_UObjectBase.GetClass(obj.Address) == IntPtr.Zero)
+            {
+                return "None";
+            }
+            return obj.GetFullName();
+        }
+
+        /// <summary>
         /// Invokes a UFunction of the given name using the CDO (class default object)
         /// </summary>
         public static object DynamicInvokeStatic<T>(string functionName, object[] parameters) where T : UObject

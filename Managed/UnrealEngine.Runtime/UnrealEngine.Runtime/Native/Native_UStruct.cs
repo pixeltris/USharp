@@ -35,7 +35,6 @@ namespace UnrealEngine.Runtime.Native
         public delegate void Del_StaticLink(IntPtr instance, csbool relinkExistingProperties);
         public delegate void Del_Link(IntPtr instance, IntPtr ar, csbool relinkExistingProperties);
         public delegate void Del_SerializeBin(IntPtr instance, IntPtr ar, IntPtr data);
-        public delegate void Del_SerializeBinEx(IntPtr instance, IntPtr ar, IntPtr data, IntPtr defaultData, IntPtr defaultStruct);
         public delegate void Del_SerializeTaggedProperties(IntPtr instance, IntPtr ar, IntPtr data, IntPtr defaultsStruct, IntPtr defaults, IntPtr breakRecursionIfFullyLoad);
         public delegate void Del_InitializeStruct(IntPtr instance, IntPtr dest, int arrayDim);
         public delegate void Del_DestroyStruct(IntPtr instance, IntPtr dest, int arrayDim);
@@ -77,7 +76,6 @@ namespace UnrealEngine.Runtime.Native
         public static Del_StaticLink StaticLink;
         public static Del_Link Link;
         public static Del_SerializeBin SerializeBin;
-        public static Del_SerializeBinEx SerializeBinEx;
         public static Del_SerializeTaggedProperties SerializeTaggedProperties;
         public static Del_InitializeStruct InitializeStruct;
         public static Del_DestroyStruct DestroyStruct;

@@ -313,11 +313,6 @@ CSEXPORT void CSCONV Export_UClass_GetDefaultObjectName(UClass* instance, FName&
 	result = instance->GetDefaultObjectName();
 }
 
-CSEXPORT uint8* CSCONV Export_UClass_GetPersistentUberGraphFrame(UClass* instance, UObject* Obj, UFunction* FuncToCheck)
-{
-	return instance->GetPersistentUberGraphFrame(Obj, FuncToCheck);
-}
-
 CSEXPORT void CSCONV Export_UClass_CreatePersistentUberGraphFrame(UClass* instance, UObject* Obj)
 {
 	instance->CreatePersistentUberGraphFrame(Obj);
@@ -453,9 +448,9 @@ CSEXPORT UObject* CSCONV Export_UClass_GetArchetypeForCDO(UClass* instance)
 	return instance->GetArchetypeForCDO();
 }
 
-CSEXPORT void CSCONV Export_UClass_GetRequiredPreloadDependencies(UClass* instance, TArray<UObject*>& DependenciesOut)
+CSEXPORT void CSCONV Export_UClass_GetDefaultObjectPreloadDependencies(UClass* instance, TArray<UObject*>& OutDeps)
 {
-	instance->GetRequiredPreloadDependencies(DependenciesOut);
+	instance->GetDefaultObjectPreloadDependencies(OutDeps);
 }
 
 CSEXPORT void CSCONV Export_UClass_SetUpRuntimeReplicationData(UClass* instance)
@@ -536,7 +531,6 @@ CSEXPORT void CSCONV Export_UClass(RegisterFunc registerFunc)
 	REGISTER_FUNC(Export_UClass_GetDefaultsCount);
 	REGISTER_FUNC(Export_UClass_GetDefaultObject);
 	REGISTER_FUNC(Export_UClass_GetDefaultObjectName);
-	REGISTER_FUNC(Export_UClass_GetPersistentUberGraphFrame);
 	REGISTER_FUNC(Export_UClass_CreatePersistentUberGraphFrame);
 	REGISTER_FUNC(Export_UClass_DestroyPersistentUberGraphFrame);
 	REGISTER_FUNC(Export_UClass_GetDefaultSubobjectByName);
@@ -564,7 +558,7 @@ CSEXPORT void CSCONV Export_UClass(RegisterFunc registerFunc)
 	REGISTER_FUNC(Export_UClass_HasProperty);
 	REGISTER_FUNC(Export_UClass_FindArchetype);
 	REGISTER_FUNC(Export_UClass_GetArchetypeForCDO);
-	REGISTER_FUNC(Export_UClass_GetRequiredPreloadDependencies);
+	REGISTER_FUNC(Export_UClass_GetDefaultObjectPreloadDependencies);
 	REGISTER_FUNC(Export_UClass_SetUpRuntimeReplicationData);
 	REGISTER_FUNC(Export_UClass_IsSafeToSerializeToStructuredArchives);
 }

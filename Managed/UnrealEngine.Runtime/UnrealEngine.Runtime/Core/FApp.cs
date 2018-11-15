@@ -34,14 +34,6 @@ namespace UnrealEngine.Runtime
         }
 
         /// <summary>
-        /// Gets whether the application is running with Debug game libraries (set from commandline)
-        /// </summary>
-        public static bool IsRunningDebug()
-        {
-            return Native_FApp.IsRunningDebug();
-        }
-
-        /// <summary>
         /// Gets the unique version string for this build. This string is not assumed to have any particular format other being a unique identifier for the build.
         /// </summary>
         /// <returns>The build version</returns>
@@ -50,19 +42,6 @@ namespace UnrealEngine.Runtime
             using (FStringUnsafe resultUnsafe = FStringPool.New())
             {
                 Native_FApp.GetBuildVersion(ref resultUnsafe.Array);
-                return resultUnsafe.Value;
-            }
-        }
-
-        /// <summary>
-        /// Gets the deployment name (also known as "EpicApp" in the launcher), e.g. DevPlaytest, PublicTest, Live etc.
-        /// </summary>
-        /// <returns>The branch name (guaranteed not to be nullptr).</returns>
-        public static string GetDeploymentName()
-        {
-            using (FStringUnsafe resultUnsafe = FStringPool.New())
-            {
-                Native_FApp.GetDeploymentName(ref resultUnsafe.Array);
                 return resultUnsafe.Value;
             }
         }

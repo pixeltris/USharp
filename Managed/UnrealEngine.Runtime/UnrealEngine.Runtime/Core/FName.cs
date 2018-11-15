@@ -70,6 +70,15 @@ namespace UnrealEngine.Runtime
             Number = number;
         }
 
+        internal FName(int comparisonIndex, int displayIndex, int number)
+        {
+            ComparisonIndex = comparisonIndex;
+#if WITH_EDITORONLY_DATA
+            DisplayIndex = displayIndex;
+#endif
+            Number = number;
+        }
+
         public override string ToString()
         {
             using (FStringUnsafe resultUnsafe = new FStringUnsafe())
@@ -151,6 +160,7 @@ namespace UnrealEngine.Runtime
     /// The minimum amount of data required to reconstruct a name
     /// This is smaller than FName, but you lose the case-preserving behavior
     /// </summary>
+    [StructLayout(LayoutKind.Sequential)]
     public struct FMinimalName
     {
         /// <summary>
@@ -169,6 +179,11 @@ namespace UnrealEngine.Runtime
             Number = number;
         }
 
+        public static FMinimalName FromName(FName name)
+        {
+            return new FMinimalName(name.ComparisonIndex, name.Number);
+        }
+
         public FName ToName()
         {
             return new FName(Index, Number);
@@ -180,6 +195,7 @@ namespace UnrealEngine.Runtime
     /// This will be the same size as FName when WITH_CASE_PRESERVING_NAME is 1, and is used to store an FName in cases where 
     /// the size of FName must be constant between build configurations (eg, blueprint bytecode)
     /// </summary>
+    [StructLayout(LayoutKind.Sequential)]
     public struct FScriptName
     {
         /// <summary>
@@ -196,5 +212,29 @@ namespace UnrealEngine.Runtime
         /// Number portion of the string/number pair (stored internally as 1 more than actual, so zero'd memory will be the default, no-instance case)
         /// </summary>
         public int Number;
+
+        public FScriptName(int comparisonIndex, int displayIndex, int number)
+        {
+            ComparisonIndex = comparisonIndex;
+            DisplayIndex = displayIndex;
+            Number = number;
+        }
+
+        public static FScriptName FromName(FName name)
+        {
+            return new FScriptName(
+                name.ComparisonIndex,
+#if WITH_EDITORONLY_DATA
+                name.DisplayIndex,
+#else
+                name.ComparisonIndex,
+#endif
+                name.Number);
+        }
+
+        public FName ToName()
+        {
+            return new FName(ComparisonIndex, DisplayIndex, Number);
+        }
     }
 }

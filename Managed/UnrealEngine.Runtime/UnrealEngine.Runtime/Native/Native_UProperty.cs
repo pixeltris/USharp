@@ -42,9 +42,6 @@ namespace UnrealEngine.Runtime.Native
         public delegate int Del_Link(IntPtr instance, IntPtr ar);
         public delegate csbool Del_Identical(IntPtr instance, IntPtr a, IntPtr b, uint portFlags);
         public delegate csbool Del_Identical_InContainer(IntPtr instance, IntPtr a, IntPtr b, int arrayIndex, uint portFlags);
-        public delegate void Del_SerializeBinProperty(IntPtr instance, IntPtr ar, IntPtr data);
-        public delegate void Del_SerializeNonMatchingBinProperty(IntPtr instance, IntPtr ar, IntPtr data, IntPtr defaultData, IntPtr defaultStruct);
-        public delegate void Del_SerializeItem(IntPtr instance, IntPtr ar, IntPtr value, IntPtr defaults);
         public delegate csbool Del_NetSerializeItem(IntPtr instance, IntPtr ar, IntPtr map, IntPtr data, IntPtr metaData);
         public delegate void Del_ExportTextItem(IntPtr instance, ref FScriptArray valueStr, IntPtr propertyValue, IntPtr defaultValue, IntPtr parent, int portFlags, IntPtr exportRootScope);
         public delegate void Del_ImportText(IntPtr instance, ref FScriptArray buffer, IntPtr data, int portFlags, IntPtr ownerObject, IntPtr errorText, ref FScriptArray result);
@@ -125,9 +122,6 @@ namespace UnrealEngine.Runtime.Native
         public static Del_Link Link;
         public static Del_Identical Identical;
         public static Del_Identical_InContainer Identical_InContainer;
-        public static Del_SerializeBinProperty SerializeBinProperty;
-        public static Del_SerializeNonMatchingBinProperty SerializeNonMatchingBinProperty;
-        public static Del_SerializeItem SerializeItem;
         public static Del_NetSerializeItem NetSerializeItem;
         public static Del_ExportTextItem ExportTextItem;
         public static Del_ImportText ImportText;

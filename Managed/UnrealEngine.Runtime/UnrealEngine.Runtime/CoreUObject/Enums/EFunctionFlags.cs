@@ -81,10 +81,10 @@ namespace UnrealEngine.Runtime
         /// </summary>
         NetMulticast = 0x00004000,
 
-        ///// <summary>
-        ///// Function is used as the merge 'ubergraph' for a blueprint, only assigned when using the persistent 'ubergraph' frame
-        ///// </summary>
-        //UbergraphFunction = 0x00008000,// added 4.21
+        /// <summary>
+        /// Function is used as the merge 'ubergraph' for a blueprint, only assigned when using the persistent 'ubergraph' frame
+        /// </summary>
+        UbergraphFunction = 0x00008000,// added 4.21
 
         /// <summary>
         /// Function is a multi-cast delegate signature (also requires FUNC_Delegate to be set!)
