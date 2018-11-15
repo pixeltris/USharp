@@ -274,28 +274,22 @@ namespace UnrealBuildTool.Rules
 
                 FileInfo srcFileInfo = new FileInfo(sourceFileName);
                 FileInfo destFileInfo = new FileInfo(destFileName);
-                if (srcFileInfo.Exists && destFileInfo.Exists &&
-                    srcFileInfo.Length == destFileInfo.Length &&
-                    srcFileInfo.LastWriteTimeUtc == destFileInfo.LastWriteTimeUtc)
+                if (!destFileInfo.Exists ||
+                    srcFileInfo.Length != destFileInfo.Length ||
+                    srcFileInfo.LastWriteTimeUtc != destFileInfo.LastWriteTimeUtc)
                 {
-                    // This file likely hasn't been modified, don't bother copying it.
-                    return;
-                }
-
-                //Console.WriteLine("USharp-CopyFile: '" + sourceFileName + "');
-
-                bool copied = false;
-                try
-                {
-                    File.Copy(sourceFileName, destFileName, overwrite);
-                    copied = true;
-                }
-                catch
-                {
-                    Console.WriteLine("USharp-CopyFile: Failed to copy to '{0}'", destFileName);
+                    // Only copy the file if it has been modified (but always add it to RuntimeDependencies)
+                    try
+                    {
+                        File.Copy(sourceFileName, destFileName, overwrite);
+                    }
+                    catch
+                    {
+                        Console.WriteLine("USharp-CopyFile: Failed to copy to '{0}'", destFileName);
+                    }
                 }
                                 
-                if (copied)
+                if (File.Exists(destFileName))
                 {
                     string relativePath = outputRelativeDir.MakeRelativeUri(new Uri(destFileName, UriKind.Absolute)).ToString();
                     RuntimeDependencies.Add("$(ProjectDir)/" + relativePath, StagedFileType.NonUFS);
