@@ -187,7 +187,7 @@ namespace UnrealBuildTool.Rules
                                 }
 
                                 // Copy the CoreCLR folder into the project binaries folder
-                                CopyFilesRecursive(new DirectoryInfo(sourceCoreCLRDir), new DirectoryInfo(destCoreCLRDir), true);
+                                CopyFilesRecursive(new DirectoryInfo(sourceCoreCLRDir), new DirectoryInfo(destCoreCLRDir), true, true);
                             }
 
                             if (copyMono)
@@ -198,7 +198,7 @@ namespace UnrealBuildTool.Rules
                                 }
 
                                 // Copy the Mono folder into the project binaries folder
-                                CopyFilesRecursive(new DirectoryInfo(sourceMonoDir), new DirectoryInfo(destMonoDir), true);
+                                CopyFilesRecursive(new DirectoryInfo(sourceMonoDir), new DirectoryInfo(destMonoDir), true, true);
                             }
                         }
                     }
@@ -232,7 +232,7 @@ namespace UnrealBuildTool.Rules
         }
         
         // Adapted from PluginInstaller/Program.cs
-        private void CopyFilesRecursive(DirectoryInfo source, DirectoryInfo target, bool overwrite)
+        private void CopyFilesRecursive(DirectoryInfo source, DirectoryInfo target, bool overwrite, bool checkFilesExist = false)
         {
             if (!target.Exists)
             {
@@ -245,12 +245,12 @@ namespace UnrealBuildTool.Rules
             }
             foreach (FileInfo file in source.GetFiles())
             {
-                CopyFile(file.FullName, Path.Combine(target.FullName, file.Name), overwrite);
+                CopyFile(file.FullName, Path.Combine(target.FullName, file.Name), overwrite, checkFilesExist);
             }
         }
 
         // Adapted from PluginInstaller/Program.cs
-        private void CopyFile(string sourceFileName, string destFileName, bool overwrite)
+        private void CopyFile(string sourceFileName, string destFileName, bool overwrite, bool checkFileExist = false)
         {
             if (!copyPdbs && Path.GetExtension(sourceFileName) == ".pdb")
             {
@@ -272,14 +272,18 @@ namespace UnrealBuildTool.Rules
                     }
                 }
 
-                FileInfo srcFileInfo = new FileInfo(sourceFileName);
-                FileInfo destFileInfo = new FileInfo(destFileName);
-                if (srcFileInfo.Exists && destFileInfo.Exists &&
-                    srcFileInfo.Length == destFileInfo.Length &&
-                    srcFileInfo.LastWriteTimeUtc == destFileInfo.LastWriteTimeUtc)
+                if (checkFileExist)
                 {
-                    // This file likely hasn't been modified, don't bother copying it.
-                    return;
+                    //Only Check File Info On Certain Files, Otherwise Important DLLs Won't Be Copied Over.
+                    FileInfo srcFileInfo = new FileInfo(sourceFileName);
+                    FileInfo destFileInfo = new FileInfo(destFileName);
+                    if (srcFileInfo.Exists && destFileInfo.Exists &&
+                        srcFileInfo.Length == destFileInfo.Length &&
+                        srcFileInfo.LastWriteTimeUtc == destFileInfo.LastWriteTimeUtc)
+                    {
+                        // This file likely hasn't been modified, don't bother copying it.
+                        return;
+                    }
                 }
 
                 //Console.WriteLine("USharp-CopyFile: '" + sourceFileName + "');
