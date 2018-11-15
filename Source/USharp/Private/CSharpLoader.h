@@ -1,7 +1,5 @@
 #pragma once
 
-#include "CoreMinimal.h"
-
 #if PLATFORM_WINDOWS
 
 #include "Windows/AllowWindowsPlatformTypes.h"
@@ -15,6 +13,8 @@
 #include "Windows/HideWindowsPlatformTypes.h"
 
 #endif
+
+#include "USharpPCH.h"
 
 enum class EDotNetRuntime : int32
 {

@@ -1,5 +1,6 @@
 #include "CSharpProjectGeneration.h"
 
+#include "USharpPCH.h"
 #include "CSharpLoader.h"
 
 #include "Core.h"
