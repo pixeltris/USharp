@@ -1,6 +1,6 @@
 # USharp
 
-USharp is a plugin for Unreal Engine (4.20) which allows for programming in C#.
+USharp is a plugin for Unreal Engine (4.21) which allows for programming in C#.
 
 This project adapts various parts of mono-ue https://mono-ue.github.io/ and is roughly similar but has support for Mono, .NET Framework and .NET Core. The C++ code used is mostly PInvoke methods and the equivalent mono-ue backend code is [mostly written in C#](https://github.com/pixeltris/USharp/tree/master/Managed/UnrealEngine.Runtime/UnrealEngine.Runtime/Internal).
 
@@ -41,29 +41,29 @@ _Mono And .NET Core may not work as intended._
 ### Mono Setup
 _Assuming your working from a Windows PC._
 - Download and install the latest version of Mono using the 64bit installer.
-- You should have a Mono folder wherever you installed it ("C:\Program Files\Mono" by default) 
-- Create A New Folder Called 'Mono' Inside Your "USharp\Binaries" Path.
-- Copy Over The 'etc' and 'lib' folders, as well as the 'mono-2.0-sgen.dll' from the 'bin' folder over to the "USharp\Binaries\Mono" folder
-- Inside the "USharp\Binaries\Managed" Folder, Create a text file called 'DotNetRuntime' if it doesn't already exist.
+- You should have a Mono folder wherever you installed it ("C:/Program Files/Mono" by default) 
+- Create A New Folder Called 'Mono' Inside Your "USharp/Binaries" Path.
+- Copy Over The 'etc' and 'lib' folders, as well as the 'mono-2.0-sgen.dll' from the 'bin' folder over to the "USharp/Binaries/Mono" folder
+- Inside the "USharp/Binaries/Managed" Folder, Create a text file called 'DotNetRuntime.txt' if it doesn't already exist.
 - Open it up, type 'Mono', and save.
-- You can switch back to .NET Framework by replacing the text with 'CLR'.
+- You can switch back to .NET Framework by replacing the text with 'CLR' (or use both and switch between them with the USharpRuntime command within the editor).
 
 ### .NET Core Setup
 _Assuming your working from a Windows PC._
 - Download and install the 3.0 .NET Core Nightly Build SDK By Going To The Official DotNet Core Github Page
-- Go To (https://github.com/dotnet/core), Click On The 'NET Core daily builds', and Download the .NET Core 3.0 SDK
-- You should have a dotnet folder whereever you installed it ("C:\Program Files\dotnet" by default)
-- Create A New Folder Called 'CoreCLR' Inside Your "USharp\Binaries" Path.
+- Go To (https://github.com/dotnet/core), Click On The 'NET Core daily builds', and Download the .NET Core 3.0 SDK [(direct link)](https://dotnetcli.blob.core.windows.net/dotnet/Sdk/master/dotnet-sdk-latest-win-x64.exe)
+- You should have a dotnet folder whereever you installed it ("C:/Program Files/dotnet" by default)
+- Create A New Folder Called 'CoreCLR' Inside Your "USharp/Binaries" Path.
 - Open up the folder for the latest 3.0 sdk inside "dotnet/sdk/3.0.X"
 - Copy Over All The Files INSIDE this folder into the 'CoreCLR' folder you just created.
-- Inside the "USharp\Binaries\Managed" Folder, Create a text file called 'DotNetRuntime' if it doesn't already exist.
+- Inside the "USharp/Binaries/Managed" Folder, Create a text file called 'DotNetRuntime.txt' if it doesn't already exist.
 - Open it up, type 'CoreCLR', and save.
-- You can switch back to .NET Framework by replacing the text with 'CLR'.
+- You can switch back to .NET Framework by replacing the text with 'CLR' (or use both and switch between them with the USharpRuntime command within the editor).
 
 ### Setting Up Mono/.NET Core For Packaging
-- If you set up Mono or .NET Core Successfully, the packaging should automatically copy over the files into the packaged game. 
-- _If the DotNetRuntime text file doesn't exist in the "Binaries\Managed" Folder, none of the runtime folders will be copied over._
-- If DotNetRuntime contains more than one runtime: 'CoreCLR' and 'Mono', they'll both be copied over. This can make your package larger than you desire and make the game unplayable._
+- For packaging you will need to modify the DotNetRuntime.txt file to include the runtimes you want to target. Add a line 'Package:CoreCLR' or 'Package:Mono' depending on which runtime you want to target.
+- _If the DotNetRuntime.txt file doesn't exist in the "Binaries/Managed" Folder, none of the runtime folders will be copied over._
+- If DotNetRuntime.txt contains more than one runtime: 'Package:CoreCLR' and 'Package:Mono', they'll both be copied over. This can make your package larger than you desire._
 
 # Issues / caveats
 
