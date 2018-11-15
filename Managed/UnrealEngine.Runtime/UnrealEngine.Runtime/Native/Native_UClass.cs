@@ -97,7 +97,7 @@ namespace UnrealEngine.Runtime.Native
         public delegate csbool Del_HasProperty(IntPtr instance, IntPtr inProperty);
         public delegate IntPtr Del_FindArchetype(IntPtr instance, IntPtr archetypeClass, ref FName archetypeName);
         public delegate IntPtr Del_GetArchetypeForCDO(IntPtr instance);
-        public delegate void Del_GetRequiredPreloadDependencies(IntPtr instance, IntPtr dependenciesOut);
+        public delegate void Del_GetDefaultObjectPreloadDependencies(IntPtr instance, IntPtr outDeps);
         public delegate void Del_SetUpRuntimeReplicationData(IntPtr instance);
         public delegate csbool Del_IsSafeToSerializeToStructuredArchives(IntPtr inClass);
         
@@ -189,7 +189,7 @@ namespace UnrealEngine.Runtime.Native
         public static Del_HasProperty HasProperty;
         public static Del_FindArchetype FindArchetype;
         public static Del_GetArchetypeForCDO GetArchetypeForCDO;
-        public static Del_GetRequiredPreloadDependencies GetRequiredPreloadDependencies;
+        public static Del_GetDefaultObjectPreloadDependencies GetDefaultObjectPreloadDependencies;
         public static Del_SetUpRuntimeReplicationData SetUpRuntimeReplicationData;
         public static Del_IsSafeToSerializeToStructuredArchives IsSafeToSerializeToStructuredArchives;
     }

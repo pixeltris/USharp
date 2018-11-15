@@ -83,11 +83,6 @@ CSEXPORT void CSCONV Export_FTimerManager_ListTimers(FTimerManager* instance)
 	instance->ListTimers();
 }
 
-CSEXPORT void CSCONV Export_FTimerManager_ValidateHandle(FTimerHandle& InOutHandle)
-{
-	FTimerManager::ValidateHandle(InOutHandle);
-}
-
 CSEXPORT void CSCONV Export_FTimerManager_SetGameInstance(FTimerManager* instance, UGameInstance* InGameInstance)
 {
 	instance->SetGameInstance(InGameInstance);
@@ -112,6 +107,5 @@ CSEXPORT void CSCONV Export_FTimerManager(RegisterFunc registerFunc)
 	REGISTER_FUNC(Export_FTimerManager_HasBeenTickedThisFrame);
 	REGISTER_FUNC(Export_FTimerManager_K2_FindDynamicTimerHandle);
 	REGISTER_FUNC(Export_FTimerManager_ListTimers);
-	REGISTER_FUNC(Export_FTimerManager_ValidateHandle);
 	REGISTER_FUNC(Export_FTimerManager_SetGameInstance);
 }

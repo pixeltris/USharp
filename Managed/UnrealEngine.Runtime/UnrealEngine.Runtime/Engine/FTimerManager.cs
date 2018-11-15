@@ -415,14 +415,6 @@ namespace UnrealEngine.Engine
             Native_FTimerManager.ListTimers(Address);
         }
 
-        /// <summary>
-        /// Get the current last assigned handle
-        /// </summary>
-        public static void ValidateHandle(ref FTimerHandle inOutHandle)
-        {
-            Native_FTimerManager.ValidateHandle(ref inOutHandle);
-        }
-
         // TODO: Change the parameter to use a concrete type UGameInstance
         /// <summary>
         /// Used by the UGameInstance constructor to set this manager's owning game instance.

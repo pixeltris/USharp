@@ -97,10 +97,10 @@ namespace UnrealEngine.Runtime
         /// </summary>
         Const = 0x00010000,
 
-        ///// <summary>
-        ///// Class flag indicating the class is having its layout changed, and therefore is not ready for a CDO to be created
-        ///// </summary>
-        //LayoutChanging = 0x00020000,// 4.16:PointersDefaultToAutoWeak, 4.17:removed, 4.21:LayoutChanging
+        /// <summary>
+        /// Class flag indicating the class is having its layout changed, and therefore is not ready for a CDO to be created
+        /// </summary>
+        LayoutChanging = 0x00020000,// 4.16:PointersDefaultToAutoWeak, 4.17:removed, 4.21:LayoutChanging
 
         /// <summary>
         /// Indicates that the class was created from blueprint source material

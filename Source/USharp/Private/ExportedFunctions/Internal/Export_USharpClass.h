@@ -1,4 +1,5 @@
 #include "SharpClass.h"
+#include "ActorTick.h"
 
 // typedef void (FNativeFuncPtr)(UObject* Context, FFrame* TheStack, RESULT_DECL);
 void FallbackFunctionInvoker(UObject* Context, FFrame& Stack, RESULT_DECL)
@@ -116,6 +117,37 @@ void SharpClassConstructor(const FObjectInitializer& ObjectInitializer)
 	if (SharpClass->ManagedConstructor != nullptr)
 	{
 		SharpClass->ManagedConstructor(ObjectInitializer);
+		
+		if (!SharpClass->HasAnyClassFlags(CLASS_CompiledFromBlueprint))
+		{
+			// Very unsafe stuff going on here!
+			//
+			// In 4.21 AActor::Tick/UActorComponent::TickComponent were changed so that they only call
+			// ReceiveTick() if the class is flagged as CLASS_CompiledFromBlueprint. To fix this we swap out
+			// the default PrimaryActorTick/PrimaryComponentTick with custom implementations which call
+			// ReceiveTick() if it isn't a CLASS_CompiledFromBlueprint (aka a C# class).
+			// 
+			// NOTE: We currently do this by swapping out the VTable. This isn't very protable so we need to
+			//       find an alternative to this. (Inject a seperate tick function?)
+			// NOTE: There is already some VTable swapping in UE4 (UClass::HotReloadPrivateStaticClass) but that 
+			//       is designed to be used on PC platforms only.
+			if ((SharpClass->ClassCastFlags & CASTCLASS_AActor) == CASTCLASS_AActor)
+			{
+				AActor* Actor = Cast<AActor>(ObjectInitializer.GetObj());
+				
+				check(sizeof(FActorTickFunction) == sizeof(FSharpActorTickFunction));
+				FSharpActorTickFunction Temp;
+				*(void**)&Actor->PrimaryActorTick = *(void**)&Temp;// Swap out the VTable
+			}
+			else if (SharpClass->IsChildOf<UActorComponent>())
+			{
+				UActorComponent* ActorComponent = Cast<UActorComponent>(ObjectInitializer.GetObj());
+				
+				check(sizeof(FActorComponentTickFunction) == sizeof(FSharpActorComponentTickFunction));
+				FSharpActorComponentTickFunction Temp;
+				*(void**)&ActorComponent->PrimaryComponentTick = *(void**)&Temp;// Swap out the VTable
+			}
+		}
 		return;
 	}
 	
