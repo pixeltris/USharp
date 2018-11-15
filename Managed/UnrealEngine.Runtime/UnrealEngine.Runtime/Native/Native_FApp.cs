@@ -11,9 +11,7 @@ namespace UnrealEngine.Runtime.Native
     {
         public delegate void Del_GetBranchName(ref FScriptArray result);
         public delegate EBuildConfiguration Del_GetBuildConfiguration();
-        public delegate csbool Del_IsRunningDebug();
         public delegate void Del_GetBuildVersion(ref FScriptArray result);
-        public delegate void Del_GetDeploymentName(ref FScriptArray result);
         public delegate void Del_GetBuildDate(ref FScriptArray result);
         public delegate csbool Del_GetEngineIsPromotedBuild();
         public delegate void Del_GetEpicProductIdentifier(ref FScriptArray result);
@@ -69,9 +67,7 @@ namespace UnrealEngine.Runtime.Native
 
         public static Del_GetBranchName GetBranchName;
         public static Del_GetBuildConfiguration GetBuildConfiguration;
-        public static Del_IsRunningDebug IsRunningDebug;
         public static Del_GetBuildVersion GetBuildVersion;
-        public static Del_GetDeploymentName GetDeploymentName;
         public static Del_GetBuildDate GetBuildDate;
         public static Del_GetEngineIsPromotedBuild GetEngineIsPromotedBuild;
         public static Del_GetEpicProductIdentifier GetEpicProductIdentifier;

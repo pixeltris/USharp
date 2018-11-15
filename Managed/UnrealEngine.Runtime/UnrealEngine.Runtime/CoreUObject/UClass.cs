@@ -1239,23 +1239,14 @@ namespace UnrealEngine.Runtime
         }
 
         /// <summary>
-        /// On save, we order a package's exports in class dependency order (so that
-        /// on load, we create the class dependencies before we create the class). 
-        /// More often than not, the class doesn't require any non-struct objects 
-        /// before it is created/serialized (only super-classes, and its UField 
-        /// members, see FExportReferenceSorter::operator&lt;&lt;() for reference). 
-        /// However, in some special occasions, there might be an export that we 
-        /// would like force loaded prior to the class's serialization (like  
-        /// component templates for blueprint classes). This function returns a list
-        /// of those non-struct dependencies, so that FExportReferenceSorter knows to 
-        /// prioritize them earlier in the ExportMap.
+        /// Returns all objects that should be preloaded before the class default object is serialized at load time. Only used by the EDL.
         /// </summary>
-        /// <returns>A list of dependencies that need to be created before this class is recreated (on load).</returns>
+        /// <returns>All objects that should be preloaded before the class default object is serialized at load time.</returns>
         public UObject[] GetRequiredPreloadDependencies()
         {
             using (TArrayUnsafe<UObject> result = new TArrayUnsafe<UObject>())
             {
-                Native_UClass.GetRequiredPreloadDependencies(Address, result.Address);
+                Native_UClass.GetDefaultObjectPreloadDependencies(Address, result.Address);
                 return result.ToArray();
             }
         }

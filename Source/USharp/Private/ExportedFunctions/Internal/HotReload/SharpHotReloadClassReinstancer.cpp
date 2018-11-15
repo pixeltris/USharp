@@ -259,7 +259,7 @@ void FSharpHotReloadClassReinstancer::SerializeCDOProperties(UObject* InObject, 
 
 	public:
 		/** Serializes all script properties of the provided DefaultObject */
-		FCDOWriter(FCDOPropertyData& InOutData, UObject* DefaultObject, TSet<UObject*>& InVisitedObjects, FName InSubobjectName = NAME_None)
+		FCDOWriter(FCDOPropertyData& InOutData, TSet<UObject*>& InVisitedObjects, FName InSubobjectName)
 			: FMemoryWriter(InOutData.Bytes, /* bIsPersistent = */ false, /* bSetOffset = */ true)
 			, VisitedObjects(InVisitedObjects)
 			, PropertyData(InOutData)
@@ -267,7 +267,6 @@ void FSharpHotReloadClassReinstancer::SerializeCDOProperties(UObject* InObject, 
 		{
 			// Disable delta serialization, we want to serialize everything
 			ArNoDelta = true;
-			DefaultObject->SerializeScriptProperties(*this);
 		}
 		virtual void Serialize(void* Data, int64 Num) override
 		{
@@ -305,8 +304,9 @@ void FSharpHotReloadClassReinstancer::SerializeCDOProperties(UObject* InObject, 
 					VisitedObjects.Add(InObj);
 					if (Ar.GetSerializedProperty() && Ar.GetSerializedProperty()->ContainsInstancedObjectProperty())
 					{
-						// Serialize all DSO properties too					
-						FCDOWriter DefaultSubobjectWriter(PropertyData, InObj, VisitedObjects, InObj->GetFName());
+						// Serialize all DSO properties too
+						FCDOWriter DefaultSubobjectWriter(PropertyData, VisitedObjects, InObj->GetFName());
+						InObj->SerializeScriptProperties(DefaultSubobjectWriter);
 						Seek(PropertyData.Bytes.Num());
 					}
 				}
@@ -363,15 +363,15 @@ void FSharpHotReloadClassReinstancer::SerializeCDOProperties(UObject* InObject, 
 		}
 		FArchive& operator<<(FWeakObjectPtr& WeakObjectPtr) override
 		{
-			WeakObjectPtr.Serialize(*this);
-			return *this;
+			return FArchiveUObject::SerializeWeakObjectPtr(*this, WeakObjectPtr);
 		}
 		/** Archive name, for debugging */
 		virtual FString GetArchiveName() const override { return TEXT("FCDOWriter"); }
 	};
 	TSet<UObject*> VisitedObjects;
 	VisitedObjects.Add(InObject);
-	FCDOWriter Ar(OutData, InObject, VisitedObjects);
+	FCDOWriter Ar(OutData, VisitedObjects, NAME_None);
+	InObject->SerializeScriptProperties(Ar);
 }
 
 void FSharpHotReloadClassReinstancer::ReconstructClassDefaultObject(UClass* InClass, UObject* InOuter, FName InName, EObjectFlags InFlags)
@@ -598,8 +598,7 @@ void FSharpHotReloadClassReinstancer::UpdateDefaultProperties()
 		}
 		FArchive& operator<<(FWeakObjectPtr& WeakObjectPtr) override
 		{
-			WeakObjectPtr.Serialize(*this);
-			return *this;
+			return FArchiveUObject::SerializeWeakObjectPtr(*this, WeakObjectPtr);
 		}
 	};
 
@@ -683,7 +682,7 @@ void FSharpHotReloadClassReinstancer::UpdateDefaultProperties()
 					// Serialize current value to a byte array as we don't have the previous CDO to compare against, we only have its serialized property data
 					CurrentValueSerializedData.Empty(CurrentValueSerializedData.Num() + CurrentValueSerializedData.GetSlack());
 					FPropertyValueMemoryWriter CurrentValueWriter(CurrentValueSerializedData);
-					PropertyToUpdate.Property->SerializeItem(CurrentValueWriter, InstanceValuePtr);
+					PropertyToUpdate.Property->SerializeItem(FStructuredArchiveFromArchive(CurrentValueWriter).GetSlot(), InstanceValuePtr);
 
 					// Update only when the current value on the instance is identical to the original CDO
 					if (CurrentValueSerializedData.Num() == PropertyToUpdate.OldSerializedSize &&

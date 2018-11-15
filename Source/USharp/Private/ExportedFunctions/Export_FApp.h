@@ -8,19 +8,9 @@ CSEXPORT int32/*EBuildConfigurations::Type*/ CSCONV Export_FApp_GetBuildConfigur
 	return FApp::GetBuildConfiguration();
 }
 
-CSEXPORT csbool CSCONV Export_FApp_IsRunningDebug()
-{
-	return FApp::IsRunningDebug();
-}
-
 CSEXPORT void CSCONV Export_FApp_GetBuildVersion(FString& result)
 {
 	result = FApp::GetBuildVersion();
-}
-
-CSEXPORT void CSCONV Export_FApp_GetDeploymentName(FString& result)
-{
-	result = FApp::GetDeploymentName();
 }
 
 CSEXPORT void CSCONV Export_FApp_GetBuildDate(FString& result)
@@ -287,9 +277,7 @@ CSEXPORT void CSCONV Export_FApp(RegisterFunc registerFunc)
 {
 	REGISTER_FUNC(Export_FApp_GetBranchName);
 	REGISTER_FUNC(Export_FApp_GetBuildConfiguration);
-	REGISTER_FUNC(Export_FApp_IsRunningDebug);
 	REGISTER_FUNC(Export_FApp_GetBuildVersion);
-	REGISTER_FUNC(Export_FApp_GetDeploymentName);
 	REGISTER_FUNC(Export_FApp_GetBuildDate);
 	REGISTER_FUNC(Export_FApp_GetEngineIsPromotedBuild);
 	REGISTER_FUNC(Export_FApp_GetEpicProductIdentifier);
