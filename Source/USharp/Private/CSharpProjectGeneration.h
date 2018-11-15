@@ -14,8 +14,6 @@
 
 #endif
 
-#include "USharpPCH.h"
-
 class CSharpProjectGeneration
 {
 	static bool CopySolutionTemplate();
