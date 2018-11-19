@@ -18,7 +18,7 @@ namespace UnrealEngine.Runtime
         {
             if (!args.Any())
             {
-                Console.Error.WriteLine($"Error: No input files. Add file path to dll as argument.");
+                Console.Error.WriteLine("Error: No input files. Add file path to dll as argument.");
                 Environment.Exit(2);
             }
         
@@ -34,12 +34,11 @@ namespace UnrealEngine.Runtime
                 //RunTests(rewriter);
             }
 
-
             AppDomain.CurrentDomain.AssemblyResolve += CurrentDomain_AssemblyResolve;
 
             foreach (string filePath in args)
             {
-                Console.WriteLine($"Processing file: {filePath}");
+                Console.WriteLine("Processing file: " + filePath);
                 var success = ProcessAssembly(rewriter, filePath);
                 if (!success)
                 {
@@ -50,7 +49,6 @@ namespace UnrealEngine.Runtime
 
             stopwatch.Stop();
             Console.WriteLine("AssemblyRewriter finished " + stopwatch.Elapsed);
-            Console.ReadLine();
         }
 
         private static Assembly CurrentDomain_AssemblyResolve(object sender, ResolveEventArgs args)
@@ -91,7 +89,7 @@ namespace UnrealEngine.Runtime
                 }
                 else
                 {
-                    assembly = System.Reflection.Assembly.Load(File.ReadAllBytes(filePath));                    
+                    assembly = System.Reflection.Assembly.Load(File.ReadAllBytes(filePath));
                 }
 
                 additionalAssemblySearchPath = Path.GetDirectoryName(filePath);
@@ -109,10 +107,11 @@ namespace UnrealEngine.Runtime
                 Stopwatch stopwatch = new Stopwatch();
                 stopwatch.Start();
                 ManagedUnrealModuleInfo moduleInfo = null;
-                try 
+                try
                 {
                     moduleInfo = ManagedUnrealModuleInfo.CreateModuleFromAssembly(assembly);
-                } catch (Exception e) 
+                }
+                catch (Exception e)
                 {
                     Console.WriteLine("Error while parsing module \"" + assembly.GetName().Name + "\"");
                     Console.WriteLine();
@@ -120,7 +119,7 @@ namespace UnrealEngine.Runtime
                     Console.WriteLine();
                     Console.WriteLine(e.ToString());
                 }
-                
+
                 stopwatch.Stop();
                 Console.WriteLine("Read \"" + assembly.GetName().Name + "\" " + stopwatch.Elapsed);
 
@@ -131,11 +130,12 @@ namespace UnrealEngine.Runtime
 
                     var noError = true;
 
-                    try 
+                    try
                     {
                         rewriter.RewriteModule(moduleInfo, filePath);
                         Console.WriteLine("Write \"" + assembly.GetName().Name + "\" " + stopwatch.Elapsed);
-                    } catch (Exception e) 
+                    }
+                    catch (Exception e)
                     {
                         Console.WriteLine("Error when rewriting module \"" + assembly.GetName().Name + "\" " + stopwatch.Elapsed);
                         Console.WriteLine();
@@ -143,11 +143,12 @@ namespace UnrealEngine.Runtime
                         Console.WriteLine();
                         Console.WriteLine(e.ToString());
                         noError = false;
-                    } finally 
+                    }
+                    finally
                     {
                         stopwatch.Stop();
                     }
-                    
+
                     return noError;
                 }
             }

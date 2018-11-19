@@ -22,6 +22,26 @@ namespace PluginInstaller
         private static Settings settings;
         private static string msbuildPath;
 
+        public static readonly bool IsLinux;
+        public static readonly bool IsMac;
+        public static readonly bool IsWindows;
+
+        static Program()
+        {
+            switch (Environment.OSVersion.Platform)
+            {
+                case PlatformID.Unix:
+                    IsLinux = true;
+                    break;
+                case PlatformID.MacOSX:
+                    IsMac = true;
+                    break;
+                default:
+                    IsWindows = true;
+                    break;
+            }
+        }
+
         static void Main(string[] args)
         {
             settings = Settings.Load();
@@ -114,48 +134,32 @@ namespace PluginInstaller
                         UpdateUSharpPluginContentFiles(true, false);
                         CompileCs(args);
                         CompileCpp(args);
+                        Console.WriteLine("done");
                         break;
 
                     case "build":
                         CompileCs(args);
                         CompileCpp(args);
+                        Console.WriteLine("done");
                         break;
 
                     case "buildcs":
                         CompileCs(args);
+                        Console.WriteLine("done");
                         break;
 
                     case "buildcustomsln":
-                        int _exitCode = 0;
                         if(args.Length >= 3 && 
-                            !string.IsNullOrEmpty(args[1]) && args[1].Length > 4 && File.Exists(args[1]) &&
-                            !string.IsNullOrEmpty(args[2]) && args[2].Length > 4 && File.Exists(args[2]))
+                            !string.IsNullOrEmpty(args[1]) && File.Exists(args[1]) &&
+                            !string.IsNullOrEmpty(args[2]) && File.Exists(args[2]))
                         {
-                            if(BuildCustomSolution(args[1], args[2]) == false)
-                            {
-                                _exitCode = 1;
-                            }
-                        }
-                        else
-                        {
-                            if (args.Length >= 3)
-                            {
-                                _exitCode = 2;
-                            }
-                            else
-                            {
-                                _exitCode = 3;
-                            }
-                        }
-
-                        if (!string.IsNullOrEmpty(args[3]) && args[3] == "command")
-                        {
-                            Environment.Exit(_exitCode);
+                            BuildCustomSolution(args[1], args[2]);
                         }
                         break;
 
                     case "buildcpp":
                         CompileCpp(args);
+                        Console.WriteLine("done");
                         break;
 
                     case "help":
@@ -519,6 +523,34 @@ namespace PluginInstaller
         {
             try
             {
+                if (IsLinux || IsMac)
+                {
+                    try
+                    {
+                        string monoPath = Process.GetCurrentProcess().MainModule.FileName;
+                        if (!string.IsNullOrEmpty(monoPath) && File.Exists(monoPath) &&
+                            Path.GetFileName(monoPath).ToLower().StartsWith("mono"))
+                        {
+                            string msbuildPath = Path.Combine(Path.GetDirectoryName(monoPath), "msbuild");
+                            if (File.Exists(msbuildPath))
+                            {
+                                return msbuildPath;
+                            }
+                        }
+                    }
+                    catch
+                    {
+                    }
+
+                    string manualMsBuildPath = "/usr/bin/msbuild";
+                    if (File.Exists(manualMsBuildPath))
+                    {
+                        return manualMsBuildPath;
+                    }
+
+                    return "msbuild";
+                }
+
                 string baseMicrosoftKeyPath = @"SOFTWARE\WOW6432Node\Microsoft";
                 string visualStudioRegistryKeyPath = baseMicrosoftKeyPath + @"\VisualStudio\SxS\VS7";
 
@@ -560,6 +592,17 @@ namespace PluginInstaller
 
         private static bool BuildCs(string solutionPath, string projectPath, bool debug, bool x86, string customDefines)
         {
+            const string buildLogFile = "build.log";
+
+            if (!string.IsNullOrEmpty(solutionPath) && File.Exists(solutionPath))
+            {
+                solutionPath = Path.GetFullPath(solutionPath);
+            }
+            if (!string.IsNullOrEmpty(projectPath) && File.Exists(projectPath))
+            {
+                projectPath = Path.GetFullPath(projectPath);
+            }            
+
             if (string.IsNullOrEmpty(msbuildPath))
             {
                 msbuildPath = FindMsBuildPath();
@@ -567,6 +610,7 @@ namespace PluginInstaller
 
             if (string.IsNullOrEmpty(msbuildPath))
             {
+                File.AppendAllText(buildLogFile, "Couldn't find MSBuild path" + Environment.NewLine);
                 return false;
             }
             
@@ -587,7 +631,7 @@ namespace PluginInstaller
                 fileArgs += " /p:DefineConstants=" + customDefines;
             }
 
-            const string buildLogFile = "build.log";
+            File.AppendAllText(buildLogFile, "Build: " + msbuildPath + " - " + fileArgs + Environment.NewLine);
 
             using (Process process = new Process())
             {
@@ -661,15 +705,16 @@ namespace PluginInstaller
             bool skipCleanup = keyValues.ContainsKey("noclean");
 
             string pluginName = "USharp";
-            //string targetPrefix = "UE4Editor";
+            string pluginExtension = ".uplugin";
+            string pluginExtensionTemp = ".uplugin_temp";
 
-            string batchFileName = "RunUAT.bat";
+            string batchFileName = "RunUAT" + (IsWindows ? ".bat" : ".sh");
             string batchFilesDir = Path.Combine(settings.EnginePath, "Engine/Build/BatchFiles/");
             string batchPath = Path.Combine(batchFilesDir, batchFileName);
 
             string localPluginDir = Path.Combine(GetCurrentDirectory(), "../../../");
             string enginePluginDir = Path.Combine(settings.EnginePath, "Engine/Plugins/", pluginName);
-            string pluginPath = Path.Combine(localPluginDir, pluginName + ".uplugin");
+            string pluginPath = Path.Combine(localPluginDir, pluginName + pluginExtension);
             //string outputDir = Path.Combine(projectBaseDir, "Build");
 
             string currentFolderEnginePath = GetEnginePathFromCurrentFolder();
@@ -680,7 +725,7 @@ namespace PluginInstaller
                 if (!File.Exists(pluginPath) && isInsideEngineFolder)
                 {
                     // We might have a temp plugin file extension due to a partial previous build
-                    string tempPluginPath = Path.ChangeExtension(pluginPath, ".plugin_temp");
+                    string tempPluginPath = Path.ChangeExtension(pluginPath, pluginExtensionTemp);
                     if (File.Exists(tempPluginPath))
                     {
                         File.Move(tempPluginPath, pluginPath);
@@ -709,11 +754,11 @@ namespace PluginInstaller
             // In 4.20 if it detects that the plugin already exists our compilation will fail (even if we are compiling in-place!)
             // Therefore we need to rename the existing .uplugin file to have a different extension so that UBT doesn't complain.
             // NOTE: For reference the build error is "Found 'USharp' plugin in two locations" ... "Plugin names must be unique."
-            string existingPluginFile = Path.Combine(enginePluginDir, pluginName + ".uplugin");
+            string existingPluginFile = Path.Combine(enginePluginDir, pluginName + pluginExtension);
             string tempExistingPluginFile = null;
             if (File.Exists(existingPluginFile))
             {
-                tempExistingPluginFile = Path.ChangeExtension(existingPluginFile, ".uplugin_temp");
+                tempExistingPluginFile = Path.ChangeExtension(existingPluginFile, pluginExtensionTemp);
                 if (File.Exists(tempExistingPluginFile))
                 {
                     File.Delete(tempExistingPluginFile);
@@ -762,13 +807,6 @@ namespace PluginInstaller
                             //}
                         }
                     }
-
-                    // Copy files to the engine plugins dir (may be different to plugin dir)
-                    //CopyPluginFile(pluginName, projectBaseDirEngine, outputDir, "dll", targetPrefix);
-                    //CopyPluginFile(pluginName, projectBaseDirEngine, outputDir, "pdb", targetPrefix);
-                    //CopyPluginFile("UE4-" + pluginName, projectBaseDirEngine, outputDir, "lib", targetPrefix, false);
-                    //CopyPluginFile("UE4-" + pluginName + "-Win64-Shipping", projectBaseDirEngine, outputDir, "lib", targetPrefix, false);
-                    //CopyPluginFile(targetPrefix, projectBaseDirEngine, outputDir, "modules", targetPrefix, false);
                 }
             }
             finally
@@ -804,62 +842,19 @@ namespace PluginInstaller
             }
         }
 
-        static void CopyPluginFile(string pluginName, string projectBaseDir, string outputDir, string extension, string targetPrefix, bool includePrefix = true)
-        {
-            string editorDllName = pluginName + "." + extension;
-            if (includePrefix)
-            {
-                editorDllName = targetPrefix + "-" + editorDllName;
-            }
-            string win64BinDir = Path.Combine(projectBaseDir, @"Binaries\Win64");
-            string outputDllPath = Path.Combine(outputDir, @"Binaries\Win64\" + editorDllName);
-            bool copiedFile = false;
-            string copyFileError = null;
-            if (!Directory.Exists(win64BinDir))
-            {
-                try
-                {
-                    Directory.CreateDirectory(win64BinDir);
-                }
-                catch
-                {
-                }
-            }
-            if (Directory.Exists(win64BinDir) && File.Exists(outputDllPath))
-            {
-                try
-                {
-                    File.Copy(outputDllPath, Path.Combine(win64BinDir, editorDllName), true);
-                    copiedFile = true;
-                }
-                catch (Exception e)
-                {
-                    copyFileError = e.ToString();
-                }
-            }
-            else
-            {
-                copyFileError = "Directory or " + extension + " not found. (" + editorDllName + ")";
-            }
-            if (!copiedFile)
-            {
-                Console.WriteLine("Failed to copy " + extension + ". Error: " + copyFileError);
-            }
-        }
-
         static bool BuildCustomSolution(string slnPath, string projPath)
         {
-            Console.WriteLine("Attempting To Build Solution: " + slnPath);
-            bool _buildcs = BuildCs(slnPath, projPath, true, false, null);
-            if(_buildcs)
+            Console.WriteLine("Attempting to build solution: " + slnPath);
+            bool buildcs = BuildCs(slnPath, projPath, true, false, null);
+            if(buildcs)
             {
-                Console.WriteLine("Solution Was Compiled Successfully");
+                Console.WriteLine("Solution was compiled successfully");
             }
             else
             {
                 Console.WriteLine("There was an issue with compiling the provided solution: " + slnPath);
             }
-            return _buildcs;
+            return buildcs;
         }
     }
 

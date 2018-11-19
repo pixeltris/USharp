@@ -32,10 +32,9 @@ namespace UnrealEngine.Runtime
             switch (FPlatformProperties.GetPlatform())
             {
                 case EPlatform.Windows:
+                default:
                     codeManager = new FileWriterCodeManager();
                     break;
-                default:
-                    throw new NotImplementedException();
             }
             if (codeManager != null)
             {

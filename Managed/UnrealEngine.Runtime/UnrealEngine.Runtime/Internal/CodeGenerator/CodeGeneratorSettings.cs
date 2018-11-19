@@ -458,13 +458,19 @@ namespace UnrealEngine.Runtime
                     "Managed", "UnrealEngine.Runtime", "UnrealEngine.Runtime", "InjectedClasses");
         }
 
+        /// <summary>
+        /// Returns /USharp/
+        /// </summary>
         public string GetUSharpBaseDir()
         {
-            string binariesDir = GetPluginsBaseDir();
+            string binariesDir = GetBinDir();
             return Path.GetFullPath(Path.Combine(binariesDir, "../"));
         }
 
-        public string GetPluginsBaseDir()
+        /// <summary>
+        /// Returns /USharp/Binaries/
+        /// </summary>
+        public string GetBinDir()
         {
             // This gives "/Binaries/XXXX/" where XXXX is the platform (Win32, Win64, Android, etc)
             string path = FPaths.GetPath(FModuleManager.Get().GetModuleFilename(new FName(ModuleName)));
@@ -473,15 +479,21 @@ namespace UnrealEngine.Runtime
             return Path.Combine(path, "../");
         }
 
-        public string GetPluginsDir()
+        /// <summary>
+        /// Returns /USharp/Binaries/Managed/
+        /// </summary>
+        public string GetManagedBinDir()
         {
             // Managed plugins should be under "/Binaries/Managed/"
-            return Path.Combine(GetPluginsBaseDir(), "Managed");
+            return Path.Combine(GetBinDir(), "Managed");
         }
 
+        /// <summary>
+        /// Returns /USharp/Binaries/Managed/Settings/
+        /// </summary>
         public string GetManagedPluginSettingsDir()
         {
-            return Path.Combine(GetPluginsDir(), "Settings");
+            return Path.Combine(GetManagedBinDir(), "Settings");
         }
 
         public string GetManagedProjectSettingsDir()
@@ -489,6 +501,9 @@ namespace UnrealEngine.Runtime
             return Path.Combine(GetManagedDir(), "Settings");
         }
 
+        /// <summary>
+        /// Returns PROJECT_DIR/Intermediat/Managed/
+        /// </summary>
         public string GetManagedIntermediateDir()
         {
             string directory = Path.Combine(FPaths.ProjectIntermediateDir, "Managed");
@@ -499,6 +514,9 @@ namespace UnrealEngine.Runtime
             return directory;
         }
 
+        /// <summary>
+        /// Returns PROJECT_DIR/Managed/
+        /// </summary>
         public string GetManagedDir()
         {
             string directory = Path.Combine(FPaths.ProjectDir, "Managed");
@@ -523,7 +541,7 @@ namespace UnrealEngine.Runtime
             }
             else
             {
-                return Path.Combine(GetPluginsDir(), "Modules");
+                return Path.Combine(GetManagedBinDir(), "Modules");
             }
         }
 

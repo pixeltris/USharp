@@ -165,6 +165,15 @@ namespace UnrealEngine
                     // Cancel the runtime swap
                     SharedRuntimeState.Instance->NextRuntime = EDotNetRuntime.None;
                     SharedRuntimeState.Instance->IsActiveRuntimeComplete = 0;
+                    SharedRuntimeState.Instance->Reload = false;
+                    return;
+                }
+
+                if (SharedRuntimeState.Instance->Reload)
+                {
+                    // This is a reload as opposed to a runtime swap, reload it now and return
+                    SharedRuntimeState.Instance->Reload = false;
+                    ReloadMainContext();
                     return;
                 }
 

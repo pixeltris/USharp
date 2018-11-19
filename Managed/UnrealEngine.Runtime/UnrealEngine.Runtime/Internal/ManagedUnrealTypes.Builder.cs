@@ -1658,13 +1658,15 @@ namespace UnrealEngine.Runtime
                 Native_UPackage.SetPackageFlags(package, EPackageFlags.CompiledIn);
 
                 // TODO: Find how to create a proper guid for a package (UHT CodeGenerator.cpp seems to use a crc of generated code)
-                using (SHA256 sha256 = SHA256.Create())
+                // NOTE: SHA256 seems to crash under CoreCLR (.NET Core) on Linux (access violation reading at address 0).
+                //using (SHA256 sha256 = SHA256.Create())
                 {
-                    byte[] hash = sha256.ComputeHash(Encoding.ASCII.GetBytes(packageName));
+                    //byte[] hash = sha256.ComputeHash(Encoding.ASCII.GetBytes(packageName));
+                    byte[] hash = BitConverter.GetBytes(packageName.GetHashCode());
 
                     // Truncate the hash
                     byte[] buffer = new byte[16];
-                    Buffer.BlockCopy(hash, 0, buffer, 0, buffer.Length);
+                    Buffer.BlockCopy(hash, 0, buffer, 0, Math.Min(buffer.Length, hash.Length));
 
                     Guid guid = new Guid(buffer);
                     Native_UPackage.SetGuid(package, ref guid);

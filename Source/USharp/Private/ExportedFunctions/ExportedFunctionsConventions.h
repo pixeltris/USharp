@@ -66,7 +66,12 @@
 #include "K2Node_CustomEvent.h"//BlueprintGraph
 #endif
 
+#if PLATFORM_WINDOWS
 #define CSCONV __stdcall
+#else
+#define CSCONV
+#endif
+
 #define CSEXPORT
 
 //#ifdef __cplusplus
@@ -86,7 +91,7 @@ template<typename T, typename U> constexpr int32 OffsetOf(U T::*member)
 	return (int32)((char*)&((T*)nullptr->*member) - (char*)nullptr);
 }
 
-#define REGISTER_FUNC(FunctionName) registerFunc(&FunctionName, #FunctionName);
+#define REGISTER_FUNC(FunctionName) registerFunc((void*)&FunctionName, #FunctionName);
 
 #define REGISTER_LAMBDA(Delegate, Lambda) \
 	if (enable) *handle = Delegate.AddLambda(Lambda); \

@@ -266,7 +266,11 @@ FString CSharpLoader::GetMonoDllPath()
 
 FString CSharpLoader::GetCoreCLRDllPath()
 {
+#if PLATFORM_WINDOWS
 	FString dllName = FString(TEXT("coreclr")) + DLL_EXTENSION;
+#else
+	FString dllName = FString(TEXT("libcoreclr")) + DLL_EXTENSION;
+#endif
 	return GetLibPath(dllName, coreCLRLibPaths);
 }
 

@@ -144,6 +144,10 @@ namespace UnrealEngine
                     lastRuntimeCounter = SharedRuntimeState.Instance->RuntimeCounter;
                 }
             }
+            else if (SharedRuntimeState.Instance->Reload && SharedRuntimeState.IsActiveRuntime)
+            {
+                OnRuntimeChanged();
+            }
 
             lock (callbacks)
             {
@@ -217,6 +221,10 @@ namespace UnrealEngine
         /// The number of times the runtime has been swapped
         /// </summary>
         public uint RuntimeCounter;
+        /// <summary>
+        /// If true the active runtime should reload when possible
+        /// </summary>
+        public bool Reload;
 
         /// <summary>
         /// Length of the current data

@@ -84,6 +84,27 @@ namespace UnrealEngine.Runtime
             return AppDomain.CurrentDomain.GetAssemblies();
         }
 
+        public static Type GetType(string typeName)
+        {
+            return GetType(typeName, false);
+        }
+
+        public static Type GetType(string typeName, bool ignoreCase)
+        {
+            StringComparison comparison = ignoreCase ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal;
+            foreach (Assembly assembly in GetAssemblies())
+            {
+                foreach (Type type in assembly.GetTypes())
+                {
+                    if (type.FullName.Equals(typeName, comparison))
+                    {
+                        return type;
+                    }
+                }
+            }
+            return null;
+        }
+
         public static Assembly LoadFrom(string assemblyPath)
         {
             if (!initialized)
@@ -98,11 +119,11 @@ namespace UnrealEngine.Runtime
                 //       if we implemented our own shadow copying.
                 if (File.Exists(assemblyPath))
                 {
-                    string originalAssemblyPath = Path.GetFullPath(assemblyPath);
-                    assemblyPath = Path.GetFullPath(assemblyPath).ToLower();
+                    assemblyPath = Path.GetFullPath(assemblyPath);
+                    string assemblyPathIgnoreCase = assemblyPath.ToLower();
 
                     Assembly existingAssembly;
-                    if (assemblyPathsReverse.TryGetValue(assemblyPath, out existingAssembly))
+                    if (assemblyPathsReverse.TryGetValue(assemblyPathIgnoreCase, out existingAssembly))
                     {
                         return existingAssembly;
                     }
@@ -119,8 +140,8 @@ namespace UnrealEngine.Runtime
                         }
                 
                         Assembly assembly = Reference.LoadFromStream(stream, pdbStream);
-                        assemblyPaths[assembly] = originalAssemblyPath;
-                        assemblyPathsReverse[assemblyPath] = assembly;
+                        assemblyPaths[assembly] = assemblyPath;
+                        assemblyPathsReverse[assemblyPathIgnoreCase] = assembly;
                         return assembly;
                     }
                     finally

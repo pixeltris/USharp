@@ -5,12 +5,17 @@ using System.Text;
 using UnrealEngine.Runtime.Native;
 using UnrealEngine.Engine;
 using System.IO;
+using System.Reflection;
 
 namespace UnrealEngine.Runtime
 {
     public partial class CodeGenerator
     {
-        private static CodeGenerator timeSlicedCodeGenerator = null;
+        private static CodeGenerator timeSlicedCodeGenerator;
+
+        // For invoking the MSBuild compiler
+        private static bool pluginInstallerLoaded = false;
+        private static MethodInfo pluginInstallerBuildSlnMethod;
 
         internal static void OnNativeFunctionsRegistered()
         {
@@ -31,30 +36,48 @@ namespace UnrealEngine.Runtime
 
             if (args != null && args.Length > 0)
             {
-                if (args[0].ToLower() == "diag")
+                bool handled = true;
+                switch (args[0].ToLower())
                 {
-                    // Diagnostics...
-                    FMessage.Log("============================================================================================");
-                    FMessage.Log("Loaded modules in " + SharedRuntimeState.CurrentRuntime + ":");
-                    foreach (System.Reflection.Assembly assembly in AppDomain.CurrentDomain.GetAssemblies())
-                    {
-                        FMessage.Log(assembly.FullName);
-                    }
-
-                    // Also print out the loaded AppDomain instances when under the .NET Framework (CLR)
-                    if (AssemblyContext.IsCLR)
-                    {
-                        FMessage.Log("================ Domains:");
-                        string[] appDomains = AppDomainDiagnostic.GetNames();
-                        if (appDomains != null)
+                    case "diag":
                         {
-                            foreach (string appDomain in appDomains)
+                            // Diagnostics...
+                            FMessage.Log("============================================================================================");
+                            FMessage.Log("Loaded modules in " + SharedRuntimeState.CurrentRuntime + ":");
+                            foreach (System.Reflection.Assembly assembly in AppDomain.CurrentDomain.GetAssemblies())
                             {
-                                FMessage.Log(appDomain);
+                                FMessage.Log(assembly.FullName);
+                            }
+
+                            // Also print out the loaded AppDomain instances when under the .NET Framework (CLR)
+                            if (AssemblyContext.IsCLR)
+                            {
+                                FMessage.Log("================ Domains:");
+                                string[] appDomains = AppDomainDiagnostic.GetNames();
+                                if (appDomains != null)
+                                {
+                                    foreach (string appDomain in appDomains)
+                                    {
+                                        FMessage.Log(appDomain);
+                                    }
+                                }
                             }
                         }
-                    }
+                        break;
 
+                    case "reload":
+                        {
+                            SharedRuntimeState.Instance->Reload = true;
+                        }
+                        break;
+
+                    default:
+                        handled = false;
+                        break;
+                }
+
+                if (handled)
+                {
                     return;
                 }
 
@@ -84,6 +107,10 @@ namespace UnrealEngine.Runtime
                     else if (SharedRuntimeState.Instance->NextRuntime != EDotNetRuntime.None)
                     {
                         FMessage.Log("Runtime change already queued (" + SharedRuntimeState.Instance->NextRuntime.ToString() + ")");
+                    }
+                    else if (SharedRuntimeState.Instance->Reload)
+                    {
+                        FMessage.Log("The active runtime is currently reloading (" + SharedRuntimeState.Instance->ActiveRuntime + ")");
                     }
                     else if (SharedRuntimeState.Instance->ActiveRuntime == runtime)
                     {
@@ -133,69 +160,77 @@ namespace UnrealEngine.Runtime
 
         private static void CompileGeneratedCode()
         {
-            CodeGeneratorSettings _settings = new CodeGeneratorSettings();
-            string _slnPath = Path.GetFullPath(Path.Combine(_settings.GetManagedModulesDir(), "UnrealEngine.sln"));
-            string _projPath = Path.GetFullPath(Path.Combine(_settings.GetManagedModulesDir(), "UnrealEngine.csproj"));
-            string _pluginInstallerPath = Path.GetFullPath(Path.Combine(_settings.GetManagedModulesDir(), "../", "../", "../", "Binaries", "Managed", "PluginInstaller", "PluginInstaller.exe"));
-            
-            if (!File.Exists(_slnPath))
+            CodeGeneratorSettings settings = new CodeGeneratorSettings();
+            string slnPath = Path.GetFullPath(Path.Combine(settings.GetManagedModulesDir(), "UnrealEngine.sln"));
+            string projPath = Path.GetFullPath(Path.Combine(settings.GetManagedModulesDir(), "UnrealEngine.csproj"));
+            string pluginInstallerPath = Path.GetFullPath(Path.Combine(settings.GetManagedBinDir(), "PluginInstaller", "PluginInstaller.exe"));
+
+            if (!File.Exists(slnPath))
             {
-                Log(ELogVerbosity.Error, "Can't Compile: The Solution " + _slnPath + " doesn't exist");
+                CommandLog(ELogVerbosity.Error, "The solution '" + slnPath + "' doesn't exist");
                 return;
             }
-            if (!File.Exists(_projPath))
+            if (!File.Exists(projPath))
             {
-                Log(ELogVerbosity.Error, "Can't Compile: The Project " + _projPath + " doesn't exist");
+                CommandLog(ELogVerbosity.Error, "The project '" + projPath + "' doesn't exist");
                 return;
             }
-            if (!File.Exists(_pluginInstallerPath))
+            if (!File.Exists(pluginInstallerPath))
             {
-                Log(ELogVerbosity.Error, "Can't Compile: Can't Find Plugin Installer At Path: " + _pluginInstallerPath);
+                CommandLog(ELogVerbosity.Error, "Plugin installer not found at '" + pluginInstallerPath + "'");
                 return;
             }
 
-            Log(ELogVerbosity.Log, "Attempting To Build Generated Solution at " + _slnPath);
+            const string typeName = "PluginInstaller.Program";
+            const string methodName = "BuildCustomSolution";
 
-            int timeout = 60000;
-            bool built = false;
-            int _exitCode = 0;
-            string _arguments = "buildcustomsln" + @" """ + _slnPath + @""" """ + _projPath + @""" """ + "command" + @"""";
-
-            using (System.Diagnostics.Process process = new System.Diagnostics.Process())
+            if (pluginInstallerBuildSlnMethod == null)
             {
-                process.StartInfo = new System.Diagnostics.ProcessStartInfo()
+                if (!pluginInstallerLoaded)
                 {
-                    WindowStyle = System.Diagnostics.ProcessWindowStyle.Normal,
-                    FileName = _pluginInstallerPath,
-                    Arguments = _arguments,
-                    UseShellExecute = false
-                };
-                process.Start();
+                    pluginInstallerLoaded = true;
 
-                built = process.WaitForExit(timeout) && process.ExitCode == 0;
-                _exitCode = process.ExitCode;
+                    Assembly assembly = CurrentAssemblyContext.LoadFrom(pluginInstallerPath);
+                    if (assembly == null)
+                    {
+                        CommandLog(ELogVerbosity.Error, "Failed to load the plugin installer at '" + pluginInstallerPath + "'.");
+                        return;
+                    }
+                    
+                    Type type = assembly.GetType(typeName);
+                    if (type == null)
+                    {
+                        CommandLog(ELogVerbosity.Error, "Failed to resolve the plugin installer type '" + typeName + "'.");
+                        return;
+                    }
+                    
+                    pluginInstallerBuildSlnMethod = type.GetMethod(methodName, BindingFlags.NonPublic | BindingFlags.Static);
+                }
+
+                if (pluginInstallerBuildSlnMethod == null)
+                {
+                    CommandLog(ELogVerbosity.Error, "Failed to resolve the '" + methodName + "' function in plugin installer.");
+                    return;
+                }
             }
 
-            if (built)
+            CommandLog(ELogVerbosity.Log, "Attempting to build generated solution at " + slnPath);
+            
+            try
             {
-                Log(ELogVerbosity.Log, "Solution Was Compiled Successfully.");
+                bool built = (bool)pluginInstallerBuildSlnMethod.Invoke(null, new object[] { slnPath, projPath });
+                if (built)
+                {
+                    CommandLog(ELogVerbosity.Log, "Solution was compiled successfully.");
+                }
+                else
+                {
+                    CommandLog(ELogVerbosity.Error, "There was an error building the solution. Try compiling manually at " + slnPath);
+                }
             }
-            else if(_exitCode == 1)
+            catch (Exception e)
             {
-                Log(ELogVerbosity.Error, "There was an error building the Solution, Please Try Compiling Manually At " + _slnPath);
-
-            }
-            else if(_exitCode == 2)
-            {
-                Log(ELogVerbosity.Error, "Couldn't Build Custom Solution Because Files Provided were Invalid. Arguments: " + _arguments);
-            }
-            else if(_exitCode == 3)
-            {
-                Log(ELogVerbosity.Error, "Didn't provide the correct number of arguments for buildcustomsln command. Arguments: " + _arguments);
-            }
-            else
-            {
-                Log(ELogVerbosity.Error, "Couldn't Compile Solution, Please Try Compiling Manually At " + _slnPath);
+                CommandLog(ELogVerbosity.Error, "'" + methodName + "' throw an exception whilst compiling: " + e);
             }
         }
 
@@ -348,14 +383,14 @@ namespace UnrealEngine.Runtime
             }
         }
 
-        private static void Log(string value, params object[] args)
+        private static void CommandLog(string value, params object[] args)
         {
-            Log(ELogVerbosity.Log, value, args);
+            CommandLog(ELogVerbosity.Log, value, args);
         }
 
-        private static void Log(ELogVerbosity verbosity, string value, params object[] args)
+        private static void CommandLog(ELogVerbosity verbosity, string value, params object[] args)
         {
-            FMessage.Log("CodeGenerator.Commands", verbosity, string.Format(value, args));
+            FMessage.Log("USharp-CodeGenerator.Commands", verbosity, string.Format(value, args));
         }
     }
 }
