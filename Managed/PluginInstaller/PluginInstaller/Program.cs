@@ -22,8 +22,7 @@ namespace PluginInstaller
         private static Settings settings;
         private static string msbuildPath;
 
-        public static readonly bool IsLinux;
-        public static readonly bool IsMac;
+        public static readonly bool IsUnix;
         public static readonly bool IsWindows;
 
         static Program()
@@ -31,10 +30,8 @@ namespace PluginInstaller
             switch (Environment.OSVersion.Platform)
             {
                 case PlatformID.Unix:
-                    IsLinux = true;
-                    break;
                 case PlatformID.MacOSX:
-                    IsMac = true;
+                    IsUnix = true;
                     break;
                 default:
                     IsWindows = true;
@@ -523,7 +520,7 @@ namespace PluginInstaller
         {
             try
             {
-                if (IsLinux || IsMac)
+                if (IsUnix)
                 {
                     try
                     {
@@ -542,10 +539,42 @@ namespace PluginInstaller
                     {
                     }
 
-                    string manualMsBuildPath = "/usr/bin/msbuild";
-                    if (File.Exists(manualMsBuildPath))
+                    // Default linux install location
+                    string linuxInstallPath = "/usr/bin/msbuild";
+                    if (File.Exists(linuxInstallPath))
                     {
-                        return manualMsBuildPath;
+                        return linuxInstallPath;
+                    }
+
+                    // Default mac install location
+                    string macVersionsPath = "/Library/Frameworks/Mono.framework/Versions/";
+                    if (Directory.Exists(macVersionsPath))
+                    {
+                        string latestVersionDir = null;
+                        Version latestVersion = null;
+
+                        Dictionary<string, Version> versions = new Dictionary<string, Version>();
+                        foreach (string dir in Directory.GetDirectories(macVersionsPath))
+                        {
+                            Version version;
+                            if (Version.TryParse(new DirectoryInfo(dir).Name, out version))
+                            {
+                                if (latestVersion == null || version > latestVersion)
+                                {
+                                    latestVersionDir = dir;
+                                    latestVersion = version;
+                                }
+                            }
+                        }
+
+                        if (!string.IsNullOrEmpty(latestVersionDir))
+                        {
+                            string macInstallPath = Path.Combine(latestVersionDir, "bin", "msbuild");
+                            if (File.Exists(macInstallPath))
+                            {
+                                return macInstallPath;
+                            }
+                        }
                     }
 
                     return "msbuild";

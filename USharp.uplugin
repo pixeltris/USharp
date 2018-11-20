@@ -20,7 +20,7 @@
 			"Name" : "USharp",
 			"Type" : "Runtime",
 			"LoadingPhase" : "PostDefault",
-			"WhitelistPlatforms": [ "Win64" ]
+			"WhitelistPlatforms": [ "Win64", "Mac", "Linux" ]
 		}
 	]
 }

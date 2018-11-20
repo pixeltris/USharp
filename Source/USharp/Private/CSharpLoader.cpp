@@ -4,15 +4,10 @@
 #include "CSharpProjectGeneration.h"
 
 //#define FORCE_MONO 1
-#define MONO_SGEN 1
 #define MONO_STATIC_LINK PLATFORM_IOS
 
 #ifndef FORCE_MONO
 #define FORCE_MONO 0
-#endif
-
-#ifndef MONO_SGEN
-#define MONO_SGEN 0
 #endif
 
 #if PLATFORM_LINUX
@@ -256,10 +251,15 @@ FString CSharpLoader::GetLibPath(const FString& dllName, const TArray<FString>& 
 
 FString CSharpLoader::GetMonoDllPath()
 {
-#if MONO_SGEN
+#if PLATFORM_WINDOWS
 	FString dllName = FString(TEXT("mono-2.0-sgen")) + DLL_EXTENSION;
+#elif PLATFORM_LINUX
+	FString dllName = FString(TEXT("mono-sgen"));
+#elif PLATFORM_MAC
+	FString dllName = FString(TEXT("mono-sgen64"));
 #else
-	FString dllName = FString(TEXT("mono-2.0-boehm")) + DLL_EXTENSION;
+	FString dllName = FString(TEXT("mono-sgen"));
+	check(0);
 #endif
 	return GetLibPath(dllName, monoLibPaths);
 }

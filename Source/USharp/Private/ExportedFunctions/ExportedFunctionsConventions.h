@@ -72,6 +72,12 @@
 #define CSCONV
 #endif
 
+#if PLATFORM_MAC
+// On MacOS CSEXPORT is already defined in /System/Library/Frameworks/ColorSync.framework/Headers/ColorSyncBase.h
+// Undef it and hope for the best?
+#undef CSEXPORT
+#endif
+
 #define CSEXPORT
 
 //#ifdef __cplusplus
