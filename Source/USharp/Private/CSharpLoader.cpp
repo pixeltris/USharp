@@ -3,12 +3,9 @@
 #include "ExportedFunctions/ExportedFunctions.h"
 #include "CSharpProjectGeneration.h"
 
-//#define FORCE_MONO 1
+//#define FORCE_MONO
+//#define MONO_VERBOSE_LOGGING // Enable this if mono fails to load or crashes without errors
 #define MONO_STATIC_LINK PLATFORM_IOS
-
-#ifndef FORCE_MONO
-#define FORCE_MONO 0
-#endif
 
 #if PLATFORM_LINUX
 #define DLL_EXTENSION TEXT(".so")
@@ -79,6 +76,9 @@ struct MonoException
 	gint32 caught_in_unmanaged;
 };
 
+typedef void(*MonoPrintCallback)(const char* str, mono_bool is_stdout);
+typedef void(*MonoLogCallback)(const char* log_domain, const char* log_level, const char* message, mono_bool fatal, void* user_data);
+
 typedef void(*import__mono_config_parse)(const char* filename);
 typedef void(*import__mono_domain_set_config)(MonoDomain *domain, const char* base_dir, const char* config_file_name);
 typedef void(*import__mono_set_dirs)(const char* assembly_dir, const char* config_dir);
@@ -95,6 +95,12 @@ typedef MonoObject*(*import__mono_runtime_invoke)(MonoMethod* method, void* obj,
 typedef void*(*import__mono_object_unbox)(MonoObject* obj);
 typedef MonoString*(*import__mono_string_new)(MonoDomain *domain, const char *text);
 typedef char*(*import__mono_string_to_utf8)(MonoString* string_obj);
+typedef void(*import__mono_trace_init)();
+typedef void(*import__mono_trace_set_level_string)(const char* value);
+typedef void(*import__mono_trace_set_mask_string)(const char* value);
+typedef void(*import__mono_trace_set_log_handler)(MonoLogCallback callback, void* user_data);
+typedef void(*import__mono_trace_set_print_handler)(MonoPrintCallback callback);
+typedef void(*import__mono_trace_set_printerr_handler)(MonoPrintCallback callback);
 
 import__mono_config_parse mono_config_parse;
 import__mono_domain_set_config mono_domain_set_config;
@@ -112,6 +118,12 @@ import__mono_runtime_invoke mono_runtime_invoke;
 import__mono_object_unbox mono_object_unbox;
 import__mono_string_new mono_string_new;
 import__mono_string_to_utf8 mono_string_to_utf8;
+import__mono_trace_init mono_trace_init;
+import__mono_trace_set_level_string mono_trace_set_level_string;
+import__mono_trace_set_mask_string mono_trace_set_mask_string;
+import__mono_trace_set_log_handler mono_trace_set_log_handler;
+import__mono_trace_set_print_handler mono_trace_set_print_handler;
+import__mono_trace_set_printerr_handler mono_trace_set_printerr_handler;
 #endif
 
 // CoreCLR functions
@@ -168,7 +180,7 @@ CSharpLoader::CSharpLoader()
 
 	SetupPaths();
 
-#if FORCE_MONO
+#ifdef FORCE_MONO
 	runtimeState.DesiredRuntimes = EDotNetRuntime::Mono
 #else
 	// Find the desired runtimes to use
@@ -354,6 +366,23 @@ TArray<FString> CSharpLoader::GetRuntimeVersions(EDotNetRuntime runtime)
 	return runtimeVersions;
 }
 
+#ifdef MONO_VERBOSE_LOGGING
+void OnMonoLog(const char* log_domain, const char* log_level, const char* message, mono_bool fatal, void* user_data)
+{
+	const FName MonoLogCategory(TEXT("USharp-Mono"));
+	ELogVerbosity::Type Verbosity = fatal ? ELogVerbosity::Error : ELogVerbosity::Log;
+	FMsg::Logf(__FILE__, __LINE__, MonoLogCategory, Verbosity, TEXT("(log)(%s)(%s) %s"),
+		ANSI_TO_TCHAR(log_domain), ANSI_TO_TCHAR(log_level), ANSI_TO_TCHAR(message));
+}
+
+void OnMonoPrint(const char* str, mono_bool is_stdout)
+{
+	const FName MonoLogCategory(TEXT("USharp-Mono"));
+	ELogVerbosity::Type Verbosity = is_stdout ? ELogVerbosity::Log : ELogVerbosity::Error;
+	FMsg::Logf(__FILE__, __LINE__, MonoLogCategory, Verbosity, TEXT("(print) %s"), ANSI_TO_TCHAR(str));
+}
+#endif
+
 bool CSharpLoader::LoadRuntimeMono()
 {
 	FString dllPath = GetMonoDllPath();
@@ -391,6 +420,12 @@ bool CSharpLoader::LoadRuntimeMono()
 	mono_object_unbox = (import__mono_object_unbox)FPlatformProcess::GetDllExport(dllHandle, TEXT("mono_object_unbox"));
 	mono_string_new = (import__mono_string_new)FPlatformProcess::GetDllExport(dllHandle, TEXT("mono_string_new"));
 	mono_string_to_utf8 = (import__mono_string_to_utf8)FPlatformProcess::GetDllExport(dllHandle, TEXT("mono_string_to_utf8"));
+	mono_trace_init = (import__mono_trace_init)FPlatformProcess::GetDllExport(dllHandle, TEXT("mono_trace_init"));
+	mono_trace_set_level_string = (import__mono_trace_set_level_string)FPlatformProcess::GetDllExport(dllHandle, TEXT("mono_trace_set_level_string"));
+	mono_trace_set_mask_string = (import__mono_trace_set_mask_string)FPlatformProcess::GetDllExport(dllHandle, TEXT("mono_trace_set_mask_string"));
+	mono_trace_set_log_handler = (import__mono_trace_set_log_handler)FPlatformProcess::GetDllExport(dllHandle, TEXT("mono_trace_set_log_handler"));
+	mono_trace_set_print_handler = (import__mono_trace_set_print_handler)FPlatformProcess::GetDllExport(dllHandle, TEXT("mono_trace_set_print_handler"));
+	mono_trace_set_printerr_handler = (import__mono_trace_set_printerr_handler)FPlatformProcess::GetDllExport(dllHandle, TEXT("mono_trace_set_printerr_handler"));
 
 	if (mono_config_parse == NULL ||
 		mono_domain_set_config == NULL ||
@@ -407,10 +442,27 @@ bool CSharpLoader::LoadRuntimeMono()
 		mono_runtime_invoke == NULL ||
 		mono_object_unbox == NULL ||
 		mono_string_new == NULL ||
-		mono_string_to_utf8 == NULL)
+		mono_string_to_utf8 == NULL ||
+		mono_trace_init == NULL ||
+		mono_trace_set_level_string == NULL ||
+		mono_trace_set_mask_string == NULL ||
+		mono_trace_set_log_handler == NULL ||
+		mono_trace_set_print_handler == NULL ||
+		mono_trace_set_printerr_handler == NULL)
 	{
 		return false;
 	}
+#endif
+
+#ifdef MONO_VERBOSE_LOGGING
+	// This doesn't seem to print anything on MacOS (regardless of environment variables)
+	//mono_trace_init();
+
+	mono_trace_set_level_string("debug");// error, critical, warning, message, info, debug
+	mono_trace_set_mask_string("all");// all, asm, type, dll, gc, cfg, aot, security
+	mono_trace_set_log_handler(OnMonoLog, NULL);
+	mono_trace_set_print_handler(OnMonoPrint);
+	mono_trace_set_printerr_handler(OnMonoPrint);
 #endif
 
 	FString assemblyDir = FPaths::Combine(*monoDirectory, TEXT("lib"));
@@ -420,6 +472,7 @@ bool CSharpLoader::LoadRuntimeMono()
 	mono_debug_init(MONO_DEBUG_FORMAT_MONO);
 #endif
 	mono_config_parse(NULL);
+	
 	monoDomain = (void*)mono_jit_init_version("DefaultDomain", TCHAR_TO_ANSI(*runtimeVersion));
 
 	// Workaround to avoid this exception:

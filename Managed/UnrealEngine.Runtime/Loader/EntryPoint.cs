@@ -43,6 +43,7 @@ namespace UnrealEngine
         // If this is true the loader assemblies will be shadow copied.
         public static bool ShadowCopyAssembly = true;
 
+        private static bool isAssemblyWatcherReloading;
         private static DateTime lastAssemblyUpdate;
         private static Dictionary<string, FileSystemWatcher> assemblyWatchers = new Dictionary<string, FileSystemWatcher>();
 
@@ -244,44 +245,49 @@ namespace UnrealEngine
 
         private static void AssemblyWatcher_Changed(object sender, FileSystemEventArgs e)
         {
-            // Require 500 milliseconds between updates to avoid multiple reloads
-            //
-            // Note: This may result in a genuine change to be missed which means
-            // that some user action will be needed
-            //
-            // PossibleFix: Make this delayed and only catch the latest one? (will slow
-            // reloads based on delay interval)
-            if (lastAssemblyUpdate < DateTime.Now - TimeSpan.FromMilliseconds(500))
+            lock (assemblyWatchers)
             {
-                bool hasChanged = false;
-                try
+                // Require 500 milliseconds between updates to avoid multiple reloads
+                //
+                // Note: This may result in a genuine change to be missed which means
+                // that some user action will be needed
+                //
+                // PossibleFix: Make this delayed and only catch the latest one? (will slow
+                // reloads based on delay interval)
+                if (lastAssemblyUpdate < DateTime.Now - TimeSpan.FromMilliseconds(500) && !isAssemblyWatcherReloading)
                 {
-                    if (File.Exists(e.FullPath))
+                    bool hasChanged = false;
+                    try
                     {
-                        using (FileStream reader = File.Open(e.FullPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+                        if (File.Exists(e.FullPath))
                         {
-                            if (reader.Length > 8)
+                            using (FileStream reader = File.Open(e.FullPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
                             {
-                                reader.Position = reader.Length - 8;
-                                byte[] buffer = new byte[8];
-                                reader.Read(buffer, 0, buffer.Length);
-                                long signature = BitConverter.ToInt64(buffer, 0);
-                                if (signature == 3110675979262317867)// "+UEsRW++"
+                                if (reader.Length > 8)
                                 {
-                                    hasChanged = true;
+                                    reader.Position = reader.Length - 8;
+                                    byte[] buffer = new byte[8];
+                                    reader.Read(buffer, 0, buffer.Length);
+                                    long signature = BitConverter.ToInt64(buffer, 0);
+                                    if (signature == 3110675979262317867)// "+UEsRW++"
+                                    {
+                                        hasChanged = true;
+                                    }
                                 }
                             }
                         }
                     }
-                }
-                catch
-                {
-                }
+                    catch
+                    {
+                    }
 
-                if (hasChanged)
-                {
-                    ReloadMainContext();
-                    lastAssemblyUpdate = DateTime.Now;
+                    if (hasChanged)
+                    {
+                        isAssemblyWatcherReloading = true;
+                        ReloadMainContext();
+                        lastAssemblyUpdate = DateTime.Now;
+                        isAssemblyWatcherReloading = false;
+                    }
                 }
             }
         }
