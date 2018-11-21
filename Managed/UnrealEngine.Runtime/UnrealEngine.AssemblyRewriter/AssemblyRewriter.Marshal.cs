@@ -327,7 +327,7 @@ namespace UnrealEngine.Runtime
                             method = methodDef;
                             if (requiresImport)
                             {
-                                method = assembly.MainModule.Import(method);
+                                method = assembly.MainModule.ImportReference(method);
                             }
                             break;
                         }
@@ -423,7 +423,7 @@ namespace UnrealEngine.Runtime
                             method = methodDef;
                             if (requiresImport)
                             {
-                                method = assembly.MainModule.Import(method);
+                                method = assembly.MainModule.ImportReference(method);
                             }
                             break;
                         }

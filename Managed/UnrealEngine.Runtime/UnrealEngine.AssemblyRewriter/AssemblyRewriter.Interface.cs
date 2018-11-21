@@ -57,7 +57,7 @@ namespace UnrealEngine.Runtime
             TypeDefinition type = new TypeDefinition(interfaceType.Namespace, interfaceType.Name + "Impl",
                 TypeAttributes.Sealed | TypeAttributes.Class | accessModifier);
             type.BaseType = iinterfaceImplTypeRef;
-            type.Interfaces.Add(interfaceType);
+            type.Interfaces.Add(new InterfaceImplementation(interfaceType));
             assembly.MainModule.Types.Add(type);
 
             // Add a default constructor

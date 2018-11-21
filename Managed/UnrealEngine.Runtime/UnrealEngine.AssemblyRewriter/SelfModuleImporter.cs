@@ -399,7 +399,7 @@ namespace Mono.Cecil
             if (IsGenericInstance(method.DeclaringType))
                 method = method.Module.ResolveMethod(method.MetadataToken);
 
-            var reference = new MethodReference(method.Name, module.Import(typeof(void)))
+            var reference = new MethodReference(method.Name, module.ImportReference(typeof(void)))
             {
                 Name = method.Name,
                 HasThis = HasCallingConvention(method, SR.CallingConventions.HasThis),
@@ -573,7 +573,7 @@ namespace Mono.Cecil
             }
             else
             {
-                return module.Import(field);
+                return module.ImportReference(field);
             }
         }
 
@@ -585,7 +585,7 @@ namespace Mono.Cecil
             }
             else
             {
-                return module.Import(method);
+                return module.ImportReference(method);
             }
         }
 
@@ -597,7 +597,7 @@ namespace Mono.Cecil
             }
             else
             {
-                return module.Import(type);
+                return module.ImportReference(type);
             }
         }
 
@@ -618,32 +618,32 @@ namespace Mono.Cecil
 
         public static TypeReference ImportEx(this ModuleDefinition module, TypeReference type)
         {
-            return module.Import(type);
+            return module.ImportReference(type);
         }
 
         public static MethodReference ImportEx(this ModuleDefinition module, MethodReference method)
         {
-            return module.Import(method);
+            return module.ImportReference(method);
         }
 
         public static FieldReference ImportEx(this ModuleDefinition module, FieldReference field)
         {
-            return module.Import(field);
+            return module.ImportReference(field);
         }
 
         public static FieldReference ImportEx(this ModuleDefinition module, FieldReference field, IGenericParameterProvider context)
         {
-            return module.Import(field, context);
+            return module.ImportReference(field, context);
         }
 
         public static TypeReference ImportEx(this ModuleDefinition module, TypeReference type, IGenericParameterProvider context)
         {
-            return module.Import(type, context);
+            return module.ImportReference(type, context);
         }
 
         public static MethodReference ImportEx(this ModuleDefinition module, MethodReference method, IGenericParameterProvider context)
         {
-            return module.Import(method, context);
+            return module.ImportReference(method, context);
         }
     }
 }

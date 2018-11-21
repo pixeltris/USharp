@@ -48,9 +48,9 @@ namespace UnrealEngine.Runtime
         public static bool DoesSpecificTypeImplementInterface(this TypeDefinition childTypeDef, TypeDefinition parentInterfaceDef)
         {
             Debug.Assert(parentInterfaceDef.IsInterface);
-            foreach (TypeReference interfaceType in childTypeDef.Interfaces)
+            foreach (InterfaceImplementation interfaceType in childTypeDef.Interfaces)
             {
-                if (DoesSpecificInterfaceImplementInterface(interfaceType.Resolve(), parentInterfaceDef))
+                if (DoesSpecificInterfaceImplementInterface(interfaceType.InterfaceType.Resolve(), parentInterfaceDef))
                 {
                     return true;
                 }

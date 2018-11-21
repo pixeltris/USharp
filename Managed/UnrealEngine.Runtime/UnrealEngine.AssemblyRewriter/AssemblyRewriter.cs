@@ -170,9 +170,11 @@ namespace UnrealEngine.Runtime
 
             if (File.Exists(pdbFile) && UpdatePdb)
             {
-                readerParams.SymbolReaderProvider = new PdbReaderProvider();
                 readerParams.ReadSymbols = true;
+                readerParams.SymbolReaderProvider = new PdbReaderProvider();
+
                 writerParams.WriteSymbols = true;
+                writerParams.SymbolWriterProvider = new PdbWriterProvider();
             }
 
             assembly = AssemblyDefinition.ReadAssembly(assemblyPath, readerParams);
@@ -444,15 +446,27 @@ namespace UnrealEngine.Runtime
             sw4.Stop();
             Console.WriteLine("serialize time: " + sw4.Elapsed);
 
+            // Newer versions of Cecil seem to hold onto the original dll until AssemblyDefinition is disposed
+            // - To fix this we save to a temp file. It has to use the exact same name as the original but with a 
+            //   different extension otherwise Visual Studio will look for the temp name when trying to find the pdb
+            string tempAssemblyPath = Path.ChangeExtension(assemblyPath, ".temp");
+
             try
             {
                 System.Diagnostics.Stopwatch sw = new System.Diagnostics.Stopwatch();
                 sw.Start();
 
-                // TODO: Find how to do this in a single stream rather than two streams.
-                // - Using assembly.Write(stream, writerParams) doesn't update the pdb.
+                assembly.Write(tempAssemblyPath, writerParams);
+                assembly.Dispose();
 
-                assembly.Write(assemblyPath, writerParams);
+                if (File.Exists(tempAssemblyPath))
+                {
+                    using (FileStream stream = File.OpenWrite(tempAssemblyPath))
+                    {
+                        stream.Position = stream.Length;
+                        stream.Write(Encoding.ASCII.GetBytes("+UEsRW++"), 0, 8);
+                    }
+                }
 
                 // Attempt a few times in case something is holding onto the file
                 Exception exception = null;
@@ -460,12 +474,11 @@ namespace UnrealEngine.Runtime
                 {
                     try
                     {
-                        using (FileStream stream = File.OpenWrite(assemblyPath))
+                        if (File.Exists(tempAssemblyPath))
                         {
-                            stream.Position = stream.Length;
-                            stream.Write(Encoding.ASCII.GetBytes("+UEsRW++"), 0, 8);
+                            File.Copy(tempAssemblyPath, assemblyPath, true);
                         }
-                        exception = null;
+                        break;
                     }
                     catch (Exception e)
                     {
@@ -494,6 +507,19 @@ namespace UnrealEngine.Runtime
                 else
                 {
                     throw;
+                }
+            }
+            finally
+            {
+                try
+                {
+                    if (File.Exists(tempAssemblyPath))
+                    {
+                        File.Delete(tempAssemblyPath);
+                    }
+                }
+                catch
+                {
                 }
             }
         }
@@ -575,7 +601,7 @@ namespace UnrealEngine.Runtime
 
             TypeDefinition serializedModuleInfoType = new TypeDefinition(null, typeName, TypeAttributes.Public | TypeAttributes.Class);
             serializedModuleInfoType.BaseType = assembly.MainModule.ImportEx(typeof(object));
-            serializedModuleInfoType.Interfaces.Add(assembly.MainModule.ImportEx(typeof(ISerializedManagedUnrealModuleInfo)));
+            serializedModuleInfoType.Interfaces.Add(new InterfaceImplementation(assembly.MainModule.ImportEx(typeof(ISerializedManagedUnrealModuleInfo))));
 
             MethodDefinition defaultCtor = new MethodDefinition(".ctor",
                 MethodAttributes.Public | MethodAttributes.SpecialName | MethodAttributes.RTSpecialName,

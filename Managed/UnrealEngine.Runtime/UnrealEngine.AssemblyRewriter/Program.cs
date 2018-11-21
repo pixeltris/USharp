@@ -28,7 +28,7 @@ namespace UnrealEngine.Runtime
             UnrealTypes.Load();
             AssemblyRewriter rewriter = new AssemblyRewriter();
 
-            if (System.Diagnostics.Debugger.IsAttached)
+            if (Debugger.IsAttached)
             {
                 ManagedUnrealReflectionBase.UpdateSerializerCode();
                 //RunTests(rewriter);
@@ -39,8 +39,7 @@ namespace UnrealEngine.Runtime
             foreach (string filePath in args)
             {
                 Console.WriteLine("Processing file: " + filePath);
-                var success = ProcessAssembly(rewriter, filePath);
-                if (!success)
+                if (!ProcessAssembly(rewriter, filePath))
                 {
                     Environment.ExitCode = 3;
                 }
@@ -63,7 +62,7 @@ namespace UnrealEngine.Runtime
 
         private static void RunTests(AssemblyRewriter rewriter)
         {
-            string dir = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
+            string dir = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
             string assemblyPath = Path.Combine(dir, "../", "UnrealEngine.Runtime.dll");
             if (File.Exists(assemblyPath))
             {
@@ -73,9 +72,20 @@ namespace UnrealEngine.Runtime
 
         private static bool ProcessAssembly(AssemblyRewriter rewriter, string filePath)
         {
-            if (File.Exists(filePath))
+            FileInfo fileInfo = new FileInfo(filePath);
+            if (!fileInfo.Exists)
             {
-                System.Reflection.Assembly assembly = null;
+                Console.WriteLine("Couldn't find file \"" + filePath + "\"");
+                return false;
+            }
+            else if (fileInfo.Length == 0)
+            {
+                Console.WriteLine("File is empty \"" + filePath + "\"");
+                return false;
+            }
+            else
+            {
+                Assembly assembly = null;
 
                 string pdbFilePath = Path.ChangeExtension(filePath, ".pdb");
                 if (Path.GetFileNameWithoutExtension(filePath) == "UnrealEngine.Runtime")
@@ -85,11 +95,11 @@ namespace UnrealEngine.Runtime
                 }
                 else if (File.Exists(pdbFilePath))
                 {
-                    assembly = System.Reflection.Assembly.Load(File.ReadAllBytes(filePath), File.ReadAllBytes(pdbFilePath));
+                    assembly = Assembly.Load(File.ReadAllBytes(filePath), File.ReadAllBytes(pdbFilePath));
                 }
                 else
                 {
-                    assembly = System.Reflection.Assembly.Load(File.ReadAllBytes(filePath));
+                    assembly = Assembly.Load(File.ReadAllBytes(filePath));
                 }
 
                 additionalAssemblySearchPath = Path.GetDirectoryName(filePath);
@@ -128,7 +138,7 @@ namespace UnrealEngine.Runtime
                     stopwatch.Reset();
                     stopwatch.Start();
 
-                    var noError = true;
+                    bool noError = true;
 
                     try
                     {
@@ -151,8 +161,12 @@ namespace UnrealEngine.Runtime
 
                     return noError;
                 }
+                else
+                {
+                    Console.WriteLine("Failed to create module info for \"" + assembly.GetName().Name + "\"");
+                    return false;
+                }
             }
-            return false;
         }
     }
 }
