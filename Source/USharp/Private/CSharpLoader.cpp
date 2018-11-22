@@ -3,6 +3,10 @@
 #include "ExportedFunctions/ExportedFunctions.h"
 #include "CSharpProjectGeneration.h"
 
+#if PLATFORM_LINUX
+#include <signal.h>
+#endif
+
 //#define FORCE_MONO
 //#define MONO_VERBOSE_LOGGING // Enable this if mono fails to load or crashes without errors
 #define MONO_STATIC_LINK PLATFORM_IOS
@@ -452,6 +456,25 @@ bool CSharpLoader::LoadRuntimeMono()
 	{
 		return false;
 	}
+#endif
+
+#if PLATFORM_LINUX
+	// Free up a signals for mono (FUnixPlatformMisc::SetCrashHandler ignores all signals it doesn't use)
+	int32 freedSignals = 0;
+	const int32 requiredSignals = 3;// abort, suspend, restart
+	const int32 targetFlags = SA_SIGINFO | SA_RESTART | SA_ONSTACK;// Set by SetCrashHandler()
+	for (int i = SIGRTMAX - 1; i >= 0 && freedSignals < requiredSignals; --i)
+	{
+		struct sigaction sig;
+		sigaction(i, NULL, &sig);
+		if (sig.sa_handler == SIG_IGN && (sig.sa_flags & targetFlags) == targetFlags)
+		{
+			sig.sa_handler = SIG_DFL;
+			sigaction(i, &sig, NULL);
+			freedSignals++;
+		}
+	}
+	check(freedSignals == requiredSignals);
 #endif
 
 #ifdef MONO_VERBOSE_LOGGING

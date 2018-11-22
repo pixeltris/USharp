@@ -174,7 +174,12 @@ namespace UnrealEngine
                 {
                     // This is a reload as opposed to a runtime swap, reload it now and return
                     SharedRuntimeState.Instance->Reload = false;
-                    ReloadMainContext();
+
+                    // Only reload if we are using assembly contexts (AppDomain / AssemblyLoadContext)
+                    if (!LoadAssemblyWithoutContexts)
+                    {
+                        ReloadMainContext();
+                    }
                     return;
                 }
 
