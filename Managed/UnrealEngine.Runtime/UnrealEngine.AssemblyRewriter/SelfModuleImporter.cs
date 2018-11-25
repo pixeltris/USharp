@@ -123,6 +123,13 @@ namespace Mono.Cecil
             this.module = module;
         }
 
+        static SelfModuleImporter()
+        {
+            etypeField = typeof(TypeReference).GetField("etype", SR.BindingFlags.NonPublic | SR.BindingFlags.Instance);
+        }
+
+        static readonly System.Reflection.FieldInfo etypeField;
+
         static readonly Dictionary<Type, ElementType> type_etype_mapping = new Dictionary<Type, ElementType>(18) {
             { typeof (void), ElementType.Void },
             { typeof (bool), ElementType.Boolean },
@@ -169,7 +176,8 @@ namespace Mono.Cecil
             ElementType elementType = ImportElementType(type);
             if (elementType != ElementType.None)
             {
-                typeof(TypeReference).GetField("etype", SR.BindingFlags.NonPublic | SR.BindingFlags.Instance).SetValue(reference, elementType);
+                // TODO: Use some IL generated setter instead of SetValue (which is slow)
+                etypeField.SetValue(reference, (byte)elementType);
             }
 
             if (IsNestedType(type))
