@@ -15,7 +15,7 @@
 #
 # PluginInstaller/Runtimes/ can be used as a substitute folder if you don't want to install Mono / .NET Core
 # NOTE: If both a substitute folder and an installed version exist then it will use the substitute folder
-# NOTE: Make sure you copy the folders correctly e.g. /[PLATFORM]/Mono/bin/ (and/or) /[PLATFORM]/CoreCLR/shared/
+# NOTE: Make sure you copy the folders correctly e.g. /Mono/[PLATFORM]/bin/ (and/or) /CoreCLR/[PLATFORM]/shared/
 # NOTE: [PLATFORM] denotes a different folder for each platform
 # - Binaries/Managed/PluginInstaller/Runtimes/Mono/[Win32][Win64][Linux][Mac]/
 # - Binaries/Managed/PluginInstaller/Runtimes/CoreCLR/[Win32][Win64][Linux][Mac]/
