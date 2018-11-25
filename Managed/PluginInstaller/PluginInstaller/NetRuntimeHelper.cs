@@ -460,11 +460,11 @@ namespace PluginInstaller
                 // We might already be running under mono, get the path from the module file path
                 try
                 {
-                    string monoPath = Process.GetCurrentProcess().MainModule.FileName;
-                    if (!string.IsNullOrEmpty(monoPath) && File.Exists(monoPath) &&
-                        Path.GetFileName(monoPath).ToLower().StartsWith("mono"))
+                    string processFilePath = Process.GetCurrentProcess().MainModule.FileName;
+                    if (!string.IsNullOrEmpty(processFilePath) && File.Exists(processFilePath) &&
+                        Path.GetFileName(processFilePath).ToLower().StartsWith("mono"))
                     {
-                        string msbuildPath = Path.Combine(Path.GetDirectoryName(monoPath), "msbuild");
+                        string msbuildPath = Path.Combine(Path.GetDirectoryName(processFilePath), "msbuild");
                         if (File.Exists(msbuildPath))
                         {
                             return msbuildPath;
@@ -492,34 +492,15 @@ namespace PluginInstaller
                         return macInstallPath;
                     }
                 }
-
-                // Removing local paths for now as the msbuild batch files include absolute paths to mono
-                /*// Try finding the mono msbuild tool locally
-                Profile profile;
-                if (File.Exists("/usr/lib/libc.dylib") && File.Exists("/System/Library/CoreServices/SystemVersion.plist"))
-                {
-                    // This isn't exactly fool proof but msbuild does similar in NativeMethodsShared.cs
-                    profile = Profile.Mono_Mac;
-                }
-                else
-                {
-                    profile = Profile.Mono_Linux;
-                }
-                string localMonoPath = FindLocalRuntimePath(profile, true);
-                if (!string.IsNullOrEmpty(localMonoPath))
-                {
-                    string localMsBuildPath = Path.Combine(localMonoPath, "bin", "msbuild");
-                    if (File.Exists(localMsBuildPath))
-                    {
-                        return localMsBuildPath;
-                    }
-                }*/
-
-                // This probably wont work
-                return "msbuild";
+                
+                return null;
             }
             else
             {
+                // We need to use the VS2017 MSBuild instead of the redistributable version as the redist version
+                // seems to target the wrong toolset and we get compile errors. The redist version can be found at:
+                // SOFTWARE\Microsoft\MSBUILD\ToolsVersions\4.0 (MSBuildToolsPath) then append msbuild.exe
+
                 try
                 {
                     string baseMicrosoftKeyPath = @"SOFTWARE\WOW6432Node\Microsoft";
@@ -544,41 +525,6 @@ namespace PluginInstaller
                 }
                 catch
                 {
-                }
-
-                // The distributable version of msbuild seems to target the wrong toolset and we get compile errors
-                /*try
-                {
-                    using (RegistryKey key = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Microsoft\MSBUILD\ToolsVersions\4.0"))
-                    {
-                        string path = key.GetValue("MSBuildToolsPath") as string;
-                        if (!string.IsNullOrEmpty(path))
-                        {
-                            path = Path.Combine(path, "msbuild.exe");
-                            if (File.Exists(path))
-                            {
-                                return path;
-                            }
-                        }
-                    }
-                }
-                catch
-                {
-                }*/
-
-                // Try finding the mono msbuild tool
-                string monoPath = FindMonoPathWindows(Profile.Mono_Win64);
-                if (string.IsNullOrEmpty(monoPath) || !Directory.Exists(monoPath))
-                {
-                    monoPath = FindLocalRuntimePath(Profile.Mono_Win64, true);
-                }
-                if (!string.IsNullOrEmpty(monoPath) && Directory.Exists(monoPath))
-                {
-                    string monoMsBuildPath = Path.Combine(monoPath, "bin", "msbuild.bat");
-                    if (File.Exists(monoMsBuildPath))
-                    {
-                        return monoMsBuildPath;
-                    }
                 }
 
                 return null;

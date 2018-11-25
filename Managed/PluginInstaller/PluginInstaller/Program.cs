@@ -36,11 +36,14 @@ namespace PluginInstaller
             {
                 case PlatformID.Unix:
                 case PlatformID.MacOSX:
-                    IsLinux = true;
                     if (File.Exists("/usr/lib/libc.dylib") && File.Exists("/System/Library/CoreServices/SystemVersion.plist"))
                     {
                         // This isn't exactly fool proof but msbuild does similar in NativeMethodsShared.cs
                         IsMacOS = true;
+                    }
+                    else
+                    {
+                        IsLinux = true;
                     }
                     break;
                 default:
