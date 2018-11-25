@@ -478,6 +478,7 @@ namespace UnrealEngine.Runtime
                         {
                             File.Copy(tempAssemblyPath, assemblyPath, true);
                         }
+                        exception = null;
                         break;
                     }
                     catch (Exception e)

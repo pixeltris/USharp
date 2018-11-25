@@ -246,10 +246,20 @@ namespace UnrealEngine
                     }
                 }
             }
+
+            if (assemblyWatchers.Count == 0)
+            {
+                SharedRuntimeState.LogWarning("No assembly watchers active for hotreload (\"USharpRuntime reload\" command can be used instead)");
+            }
         }
 
         private static void AssemblyWatcher_Changed(object sender, FileSystemEventArgs e)
         {
+            if (!SharedRuntimeState.IsActiveRuntime)
+            {
+                return;
+            }
+
             lock (assemblyWatchers)
             {
                 // Require 500 milliseconds between updates to avoid multiple reloads
@@ -261,29 +271,46 @@ namespace UnrealEngine
                 // reloads based on delay interval)
                 if (lastAssemblyUpdate < DateTime.Now - TimeSpan.FromMilliseconds(500) && !isAssemblyWatcherReloading)
                 {
+                    bool complete = false;
                     bool hasChanged = false;
-                    try
+
+                    const int tries = 20;
+                    const int sleep = 40;// 40*20 = 800 milliseconds of attempts (due to file locks whilst being written by AssemblyRewriter)
+                    for (int i = 0; i < tries; i++)
                     {
-                        if (File.Exists(e.FullPath))
+                        try
                         {
-                            using (FileStream reader = File.Open(e.FullPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+                            if (File.Exists(e.FullPath))
                             {
-                                if (reader.Length > 8)
+                                using (FileStream reader = File.Open(e.FullPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
                                 {
-                                    reader.Position = reader.Length - 8;
-                                    byte[] buffer = new byte[8];
-                                    reader.Read(buffer, 0, buffer.Length);
-                                    long signature = BitConverter.ToInt64(buffer, 0);
-                                    if (signature == 3110675979262317867)// "+UEsRW++"
+                                    if (reader.Length > 8)
                                     {
-                                        hasChanged = true;
+                                        reader.Position = reader.Length - 8;
+                                        byte[] buffer = new byte[8];
+                                        reader.Read(buffer, 0, buffer.Length);
+                                        long signature = BitConverter.ToInt64(buffer, 0);
+                                        if (signature == 3110675979262317867)// "+UEsRW++"
+                                        {
+                                            hasChanged = true;
+                                        }
                                     }
                                 }
                             }
+                            complete = true;
+                            break;
                         }
-                    }
-                    catch
-                    {
+                        catch (IOException)
+                        {
+                            Thread.Sleep(sleep);
+                        }
+                        catch (Exception exception)
+                        {
+                            // Some unknown exception
+                            SharedRuntimeState.LogWarning("Exception whilst hotreloading '" + e.FullPath + "'\n" + exception);
+                            complete = true;
+                            break;
+                        }
                     }
 
                     if (hasChanged)
@@ -292,6 +319,10 @@ namespace UnrealEngine
                         ReloadMainContext();
                         lastAssemblyUpdate = DateTime.Now;
                         isAssemblyWatcherReloading = false;
+                    }
+                    else if (!complete)
+                    {
+                        SharedRuntimeState.LogWarning("Hotreload timed out for '" + e.FullPath + "'");
                     }
                 }
             }

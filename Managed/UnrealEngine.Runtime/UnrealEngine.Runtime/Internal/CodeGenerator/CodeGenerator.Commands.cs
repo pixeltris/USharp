@@ -32,7 +32,7 @@ namespace UnrealEngine.Runtime
             // It's probably possible to dynamically load runtimes by adding a function to SharedRuntimeState (and slightly modifying
             // the current load checks inside of CSharpLoader::Load)
             const string enableMoreRuntimesStr = 
-                "Only one runtime has been loaded. Modify /USharp/Binaries/Managed/DotNetRuntime.txt to add more runtimes and then reopen the editor.";
+                "Only one runtime has been loaded. Modify /USharp/Binaries/Managed/Runtimes/DotNetRuntime.txt to add more runtimes and then reopen the editor.";
 
             if (args != null && args.Length > 0)
             {
