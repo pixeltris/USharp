@@ -258,13 +258,17 @@ namespace UnrealEngine
                     if (_mytimer != null)
                     {
                         _mytimer.Stop();
-                        _mytimer.Dispose();
+                        if (!isAssemblyWatcherReloading)
+                        {
+                            _mytimer.Dispose();
+                        }
                     }
 
                     _mytimer = new System.Timers.Timer();
                     _mytimer.Interval = 100;
                     _mytimer.Elapsed += (obj, elapsedArgs) =>
                     {
+                        _mytimer.Stop();
                         // Require 500 milliseconds between updates to avoid multiple reloads
                         //
                         // Note: This may result in a genuine change to be missed which means
@@ -313,7 +317,6 @@ namespace UnrealEngine
                                 SharedRuntimeState.Log("Loader Warning: Assembly Hasn't Changed");
                             }
                             //Loader Functionality End
-                            _mytimer.Stop();
                             _mytimer.Dispose();
                         }
                     };
