@@ -248,51 +248,80 @@ namespace UnrealEngine
             }
         }
 
+        static System.Timers.Timer _mytimer;
         private static void AssemblyWatcher_Changed(object sender, FileSystemEventArgs e)
         {
             lock (assemblyWatchers)
             {
-                // Require 500 milliseconds between updates to avoid multiple reloads
-                //
-                // Note: This may result in a genuine change to be missed which means
-                // that some user action will be needed
-                //
-                // PossibleFix: Make this delayed and only catch the latest one? (will slow
-                // reloads based on delay interval)
-                if (lastAssemblyUpdate < DateTime.Now - TimeSpan.FromMilliseconds(500) && !isAssemblyWatcherReloading)
+                try
                 {
-                    bool hasChanged = false;
-                    try
+                    if (_mytimer != null)
                     {
-                        if (File.Exists(e.FullPath))
+                        _mytimer.Stop();
+                        _mytimer.Dispose();
+                    }
+
+                    _mytimer = new System.Timers.Timer();
+                    _mytimer.Interval = 100;
+                    _mytimer.Elapsed += (obj, elapsedArgs) =>
+                    {
+                        // Require 500 milliseconds between updates to avoid multiple reloads
+                        //
+                        // Note: This may result in a genuine change to be missed which means
+                        // that some user action will be needed
+                        //
+                        // PossibleFix: Make this delayed and only catch the latest one? (will slow
+                        // reloads based on delay interval)
+                        if (lastAssemblyUpdate < DateTime.Now - TimeSpan.FromMilliseconds(500) && !isAssemblyWatcherReloading)
                         {
-                            using (FileStream reader = File.Open(e.FullPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+                            //Loader Functionality
+                            bool hasChanged = false;
+                            try
                             {
-                                if (reader.Length > 8)
+                                if (File.Exists(e.FullPath))
                                 {
-                                    reader.Position = reader.Length - 8;
-                                    byte[] buffer = new byte[8];
-                                    reader.Read(buffer, 0, buffer.Length);
-                                    long signature = BitConverter.ToInt64(buffer, 0);
-                                    if (signature == 3110675979262317867)// "+UEsRW++"
+                                    using (FileStream reader = File.Open(e.FullPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
                                     {
-                                        hasChanged = true;
+                                        if (reader.Length > 8)
+                                        {
+                                            reader.Position = reader.Length - 8;
+                                            byte[] buffer = new byte[8];
+                                            reader.Read(buffer, 0, buffer.Length);
+                                            long signature = BitConverter.ToInt64(buffer, 0);
+                                            if (signature == 3110675979262317867)// "+UEsRW++"
+                                            {
+                                                hasChanged = true;
+                                            }
+                                        }
                                     }
                                 }
                             }
-                        }
-                    }
-                    catch
-                    {
-                    }
+                            catch (Exception ex)
+                            {
+                                SharedRuntimeState.Log("Loader Exception: " + ex.Message);
+                            }
 
-                    if (hasChanged)
-                    {
-                        isAssemblyWatcherReloading = true;
-                        ReloadMainContext();
-                        lastAssemblyUpdate = DateTime.Now;
-                        isAssemblyWatcherReloading = false;
-                    }
+                            if (hasChanged)
+                            {
+                                isAssemblyWatcherReloading = true;
+                                ReloadMainContext();
+                                lastAssemblyUpdate = DateTime.Now;
+                                isAssemblyWatcherReloading = false;
+                            }
+                            else
+                            {
+                                SharedRuntimeState.Log("Loader Warning: Assembly Hasn't Changed");
+                            }
+                            //Loader Functionality End
+                            _mytimer.Stop();
+                            _mytimer.Dispose();
+                        }
+                    };
+                    _mytimer.Start();
+                }
+                catch(Exception timeEx)
+                {
+                    SharedRuntimeState.Log("Loader Timer Exception: " + timeEx.Message);
                 }
             }
         }
