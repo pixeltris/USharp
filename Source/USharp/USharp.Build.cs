@@ -127,11 +127,11 @@ namespace UnrealBuildTool.Rules
                     //       plugins folder as RuntimeDependencies depends on paths being within the game project folder.
                     string sourceCoreCLRDir = Path.Combine(binDir, "CoreCLR");
                     string sourceMonoDir = Path.Combine(binDir, "Mono");
-                    string sourceRuntimesFile = Path.Combine(managedBinDir, "DotNetRuntime.txt");
+                    string sourceRuntimesFile = Path.Combine(managedBinDir, "Runtimes", "DotNetRuntime.txt");
 
                     string destCoreCLRDir = Path.Combine(projectDir, "Binaries", "CoreCLR");
                     string destMonoDir = Path.Combine(projectDir, "Binaries", "Mono");
-                    string destRuntimesFile = Path.Combine(projectDir, "Binaries", "Managed", "DotNetRuntime.txt");
+                    string destRuntimesFile = Path.Combine(projectDir, "Binaries", "Managed", "Runtimes", "DotNetRuntime.txt");
 
                     bool copyCoreCLR = false;
                     bool copyMono = false;

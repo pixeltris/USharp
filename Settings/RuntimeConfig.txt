@@ -1,0 +1,74 @@
+# TODO: Find out if Mono folders can be shared between platforms. If so then use one unified folder.
+# TODO: Find out if .NET Core folders can be shared between platforms. If so then use one unified folder.
+# TODO: Find a way to stop RunUAT from copying /Binaries/ when running buildcpp as this will copy the runtimes
+#       when it compiles the C++ code it will copy the entire folder. Also due to some long file names in Mono and
+#       .NET Core this may result in the compile failing
+#
+# - This is used to copy Mono / .NET Core runtime files locally to the USharp folder. USharp will load this
+#   version of Mono / .NET Core instead of any installed version on your system.
+# - The folders will also be copied to the game folder when packaging (if configured in DotNetRuntime.txt)
+# - PluginInstaller.exe is used to copy the files. Run it and then use the command "copyruntime all"
+# - To use RuntimeConfigMinimal.txt use "copyruntime all min"
+# - The minimal version should be used for packaging to cut down the final package size
+#   NOTE: Full Mono is around 400MB (around 1GB on MacOS)
+#   NOTE: .NET Core (Microsoft.NETCore.App) is around 70MB
+#
+# PluginInstaller/Runtimes/ can be used as a substitute folder if you don't want to install Mono / .NET Core
+# NOTE: If both a substitute folder and an installed version exist then it will use the substitute folder
+# NOTE: Make sure you copy the folders correctly e.g. /[PLATFORM]/Mono/bin/ (and/or) /[PLATFORM]/CoreCLR/shared/
+# NOTE: [PLATFORM] denotes a different folder for each platform
+# - Binaries/Managed/PluginInstaller/Runtimes/Mono/[Win32][Win64][Linux][Mac]/
+# - Binaries/Managed/PluginInstaller/Runtimes/CoreCLR/[Win32][Win64][Linux][Mac]/
+#
+# The files are copied into the following locations depending on the target platform
+# - Binaries/Managed/Runtimes/Mono/[Win32][Win64][Linux][Mac]/
+# - Binaries/Managed/Runtimes/CoreCLR/[Win32][Win64][Linux][Mac]/
+#
+# A path ending in a slash (/) means that it should copy all files in that folder
+# A path ending in a slash star (/*) means that it should copy all files and folders recursively
+# Any other path is treated as an individual file
+#
+# Mono:
+# - Mono paths should start with one of the following: bin, etc, lib
+#
+# .NET Core:
+# - CoreCLR paths should start with one of the following: dotnet, sdk, AspNetCore, NETCore, WindowsDesktop
+#   - "dotnet" refers to the root /dotnet/ folder
+#   - "sdk" refers to /dotnet/sdk/LATEST_VERSION/
+#   - "AspNetCore" refers to /dotnet/shared/Microsoft.AspNetCore.App/LATEST_VERSION/
+#   - "NETCore" refers to /dotnet/shared/Microsoft.NETCore.App/LATEST_VERSION/
+#   - "WindowsDesktop" refers to /dotnet/shared/Microsoft.WindowsDesktop.App/LATEST_VERSION/
+# - All CoreCLR files will be copied into a single folder to simplify resolving assemblies (so no recursive copying)
+
+[Mono_Win32]
+/bin/mono-2.0-sgen.dll
+/etc/mono/*
+/lib/mono/*
+
+[Mono_Win64]
+/bin/mono-2.0-sgen.dll
+/etc/mono/*
+/lib/mono/*
+
+[Mono_Mac]
+/bin/mono-sgen64
+/etc/mono/*
+/lib/mono/*
+/lib/
+
+[Mono_Linux]
+/bin/mono-sgen
+/etc/mono/*
+/lib/mono/*
+
+[CoreCLR_Win32]
+/NETCore/
+
+[CoreCLR_Win64]
+/NETCore/
+
+[CoreCLR_Mac]
+/NETCore/
+
+[CoreCLR_Linux]
+/NETCore/

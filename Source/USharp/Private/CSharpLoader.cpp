@@ -188,7 +188,7 @@ CSharpLoader::CSharpLoader()
 	runtimeState.DesiredRuntimes = EDotNetRuntime::Mono
 #else
 	// Find the desired runtimes to use
-	FString runtimeInfoFile = FPaths::Combine(GetPluginBinariesDir(), TEXT("Managed"), TEXT("DotNetRuntime.txt"));
+	FString runtimeInfoFile = FPaths::Combine(GetPluginBinariesDir(), TEXT("Managed"), TEXT("Runtimes"), TEXT("DotNetRuntime.txt"));
 	if (FPaths::FileExists(runtimeInfoFile))
 	{
 		runtimeInfoFile = FPaths::ConvertRelativePathToFull(runtimeInfoFile);
@@ -242,13 +242,29 @@ void CSharpLoader::SetupPaths()
 	// Managed plugins should be under "/Binaries/Managed/"
 	csharpPaths.Add(FPaths::Combine(*PluginsBaseDir, TEXT("Managed")));
 	
-	// Mono should be under "/Binaries/Mono/" or "/Binaries/ThirdParty/Mono/"
-	monoLibPaths.Add(FPaths::Combine(*PluginsBaseDir, TEXT("Mono/")));
-	monoLibPaths.Add(FPaths::Combine(*PluginsBaseDir, TEXT("ThirdParty/Mono/")));
+	// Mono should be under "/Binaries/Managed/Runtimes/Mono/[PLATFORM]/bin/"
+	monoLibPaths.Add(FPaths::Combine(*PluginsBaseDir, TEXT("Managed"), TEXT("Runtimes"), TEXT("Mono"), *GetPlatformString(), TEXT("bin")));
 
-	// CoreCLR should be under "/Binaries/CoreCLR/" or "/Binaries/ThirdParty/CoreCLR/"
-	coreCLRLibPaths.Add(FPaths::Combine(*PluginsBaseDir, TEXT("CoreCLR/")));
-	coreCLRLibPaths.Add(FPaths::Combine(*PluginsBaseDir, TEXT("ThirdParty/CoreCLR/")));
+	// CoreCLR should be under "/Binaries/Managed/Runtimes/CoreCLR/[PLATFORM]/"
+	coreCLRLibPaths.Add(FPaths::Combine(*PluginsBaseDir, TEXT("Managed"), TEXT("Runtimes"), TEXT("CoreCLR"), *GetPlatformString()));
+}
+
+FString CSharpLoader::GetPlatformString()
+{
+#if PLATFORM_WINDOWS
+	#if PLATFORM_64BITS
+		return FString(TEXT("Win64"));
+	#else
+		return FString(TEXT("Win32"));
+	#endif
+#elif PLATFORM_LINUX
+	return FString(TEXT("Linux"));
+#elif PLATFORM_MAC
+	return FString(TEXT("Mac"));
+#else
+	check(0);
+	return FString(TEXT("Unknown"));
+#endif
 }
 
 FString CSharpLoader::GetLibPath(const FString& dllName, const TArray<FString>& libPaths)
@@ -488,8 +504,8 @@ bool CSharpLoader::LoadRuntimeMono()
 	mono_trace_set_printerr_handler(OnMonoPrint);
 #endif
 
-	FString assemblyDir = FPaths::Combine(*monoDirectory, TEXT("lib"));
-	FString configDir = FPaths::Combine(*monoDirectory, TEXT("etc"));
+	FString assemblyDir = FPaths::Combine(*monoDirectory, TEXT(".."), TEXT("lib"));
+	FString configDir = FPaths::Combine(*monoDirectory, TEXT(".."), TEXT("etc"));
 	mono_set_dirs(TCHAR_TO_ANSI(*assemblyDir), TCHAR_TO_ANSI(*configDir));
 #if UE_BUILD_DEBUG || UE_BUILD_DEVELOPMENT
 	mono_debug_init(MONO_DEBUG_FORMAT_MONO);

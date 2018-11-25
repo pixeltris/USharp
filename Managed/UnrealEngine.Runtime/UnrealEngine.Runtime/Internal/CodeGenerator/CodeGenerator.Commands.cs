@@ -203,6 +203,10 @@ namespace UnrealEngine.Runtime
                         CommandLog(ELogVerbosity.Error, "Failed to resolve the plugin installer type '" + typeName + "'.");
                         return;
                     }
+
+                    // Set the AppDirectory path so that it can resolve the local msbuild path (if a local msbuild exists)
+                    type.GetField("AppDirectory", BindingFlags.Public | BindingFlags.Static).SetValue(
+                        null, Path.GetDirectoryName(pluginInstallerPath));
                     
                     pluginInstallerBuildSlnMethod = type.GetMethod(methodName, BindingFlags.NonPublic | BindingFlags.Static);
                 }

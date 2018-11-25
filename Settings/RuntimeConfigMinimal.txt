@@ -1,0 +1,36 @@
+# TODO: Find the minimal requirements for running Mono / .NET Core
+#
+# See RuntimeConfig.txt for full notes on this file
+
+[Mono_Win32]
+/bin/mono-2.0-sgen.dll
+/etc/mono/*
+/lib/mono/*
+
+[Mono_Win64]
+/bin/mono-2.0-sgen.dll
+/etc/mono/*
+/lib/mono/*
+
+[Mono_Mac]
+/bin/mono-sgen64
+/etc/mono/*
+/lib/mono/*
+/lib/
+
+[Mono_Linux]
+/bin/mono-sgen
+/etc/mono/*
+/lib/mono/*
+
+[CoreCLR_Win32]
+/NETCore/
+
+[CoreCLR_Win64]
+/NETCore/
+
+[CoreCLR_Mac]
+/NETCore/
+
+[CoreCLR_Linux]
+/NETCore/

@@ -85,6 +85,7 @@ private:
 	bool LoadRuntimeCLR();
 	bool LoadRuntimes(bool loaderEnabled);
 	void SetupPaths();
+	FString GetPlatformString();
 	FString GetLibPath(const FString& dllName, const TArray<FString>& libPaths);
 	FString GetMonoDllPath();
 	FString GetCoreCLRDllPath();

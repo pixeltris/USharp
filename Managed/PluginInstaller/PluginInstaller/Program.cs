@@ -19,11 +19,16 @@ namespace PluginInstaller
     class Program
     {
         private const string ExampleEnginePath = "C:/Epic Games/UE_4.20/";
-        private static Settings settings;
         private static string msbuildPath;
 
-        public static readonly bool IsUnix;
+        public static readonly bool IsLinux;
+        public static readonly bool IsMacOS;
         public static readonly bool IsWindows;
+
+        /// <summary>
+        /// The directory path of PluginInstaller.exe
+        /// </summary>
+        public static string AppDirectory;
 
         static Program()
         {
@@ -31,7 +36,12 @@ namespace PluginInstaller
             {
                 case PlatformID.Unix:
                 case PlatformID.MacOSX:
-                    IsUnix = true;
+                    IsLinux = true;
+                    if (File.Exists("/usr/lib/libc.dylib") && File.Exists("/System/Library/CoreServices/SystemVersion.plist"))
+                    {
+                        // This isn't exactly fool proof but msbuild does similar in NativeMethodsShared.cs
+                        IsMacOS = true;
+                    }
                     break;
                 default:
                     IsWindows = true;
@@ -41,38 +51,21 @@ namespace PluginInstaller
 
         static void Main(string[] args)
         {
-            settings = Settings.Load();
+            AppDirectory = Path.GetDirectoryName(new Uri(Assembly.GetExecutingAssembly().CodeBase).LocalPath);
 
-            // We might be within the engines folder already, use whatever engine path we are in if that is the case
-            string currentFolderEnginePath = GetEnginePathFromCurrentFolder();
-            if (!string.IsNullOrEmpty(currentFolderEnginePath))
-            {
-                settings.EnginePath = currentFolderEnginePath;
-                settings.Save();
-            }
-
-            if (string.IsNullOrEmpty(settings.EnginePath) || !Directory.Exists(settings.EnginePath))
-            {
-                UpdateEnginePath();
-                Console.WriteLine();
-            }
-            
-            PrintHelp();
-            Console.WriteLine();
-
-            if (!string.IsNullOrEmpty(settings.EnginePath) && Directory.Exists(settings.EnginePath))
-            {
-                Console.WriteLine("Targeting engine version '" + new DirectoryInfo(settings.EnginePath).Name + "'");
-                Console.WriteLine();
-            }
-            else
+            string enginePath = GetEnginePathFromCurrentFolder();
+            if (string.IsNullOrEmpty(enginePath) || !Directory.Exists(enginePath))
             {
                 Console.WriteLine("Failed to find the engine folder! Make sure PluginInstaller.exe is under /Engine/Plugins/USharp/Binaries/Managed/PluginInstaller/PluginInstaller.exe");
                 Console.ReadLine();
                 return;
             }
+            
+            PrintHelp();
+            Console.WriteLine();
 
-            UpdateUSharpPluginContentFiles(false, false);
+            Console.WriteLine("Targeting engine version '" + new DirectoryInfo(enginePath).Name + "'");
+            Console.WriteLine();
 
             ProcessArgs(null, args);
 
@@ -102,36 +95,6 @@ namespace PluginInstaller
                     case "clear":
                     case "cls":
                         Console.Clear();
-                        break;                    
-
-                    case "engine":
-                        string enginePath = args.Length > 1 ? args[1] : null;
-                        if (!string.IsNullOrEmpty(commandLine))
-                        {
-                            enginePath = commandLine.Trim();
-                            int spaceIndex = enginePath.IndexOf(' ');
-                            if (spaceIndex > 0)
-                            {
-                                enginePath = enginePath.Substring(spaceIndex + 1);
-                            }
-                            else
-                            {
-                                enginePath = null;
-                            }
-                        }
-                        UpdateEnginePath(enginePath);
-                        break;
-
-                    case "update":
-                        UpdateUSharpPluginContentFiles(true, true);
-                        Console.WriteLine("Content updated");
-                        break;
-
-                    case "fullbuild":
-                        UpdateUSharpPluginContentFiles(true, false);
-                        CompileCs(args);
-                        CompileCpp(args);
-                        Console.WriteLine("done");
                         break;
 
                     case "build":
@@ -159,6 +122,41 @@ namespace PluginInstaller
                         Console.WriteLine("done");
                         break;
 
+                    case "copyruntime":
+                        if (args.Length >= 2)
+                        {
+                            bool minimal = args.Length >= 3 && args[2].ToLower() == "min";
+                            string configFile = NetRuntimeHelper.GetConfigFile(minimal);
+
+                            if (File.Exists(configFile))
+                            {
+                                switch (args[1].ToLower())
+                                {
+                                    case "all":
+                                        NetRuntimeHelper.CopyAll(minimal);
+                                        Console.WriteLine("done");
+                                        break;
+                                    case "mono":
+                                        NetRuntimeHelper.CopyMono(minimal);
+                                        Console.WriteLine("done");
+                                        break;
+                                    case "coreclr":
+                                        NetRuntimeHelper.CopyCoreCLR(minimal);
+                                        Console.WriteLine("done");
+                                        break;
+                                }
+                            }
+                            else
+                            {
+                                Console.WriteLine("Couldn't find '" +  configFile + "'");
+                            }
+                        }
+                        else
+                        {
+                            Console.WriteLine("Invalid input. Expected one of the following: all, mono, coreclr");
+                        }
+                        break;
+
                     case "help":
                     case "?":
                         PrintHelp();
@@ -172,22 +170,10 @@ namespace PluginInstaller
         private static void PrintHelp()
         {
             Console.WriteLine("Available commands:");
-            {
-                Console.WriteLine("- build       builds C# and C++ projects");
-            }
-            if (!IsInEngineFolder())
-            {
-                Console.WriteLine("- fullbuild   builds C# and C++ projects and updates content files");
-            }
-            {
-                Console.WriteLine("- buildcs     builds C# projects (Loader, AssemblyRewriter, Runtime)");
-                Console.WriteLine("- buildcpp    builds C++ projects");
-            }
-            if (!IsInEngineFolder())
-            {
-                Console.WriteLine("- update      copies content files to the USharp engine plugin folder");
-                Console.WriteLine("- engine      set the target engine path for current engine version (e.g. '{0}')", ExampleEnginePath);
-            }
+            Console.WriteLine("- build       builds C# and C++ projects");
+            Console.WriteLine("- buildcs     builds C# projects (Loader, AssemblyRewriter, Runtime)");
+            Console.WriteLine("- buildcpp    builds C++ projects");
+            Console.WriteLine("- copyruntime [all] [mono] [coreclr] copies the given runtime(s) locally");
         }
 
         private static string[] ParseArgs(string commandLine)
@@ -238,26 +224,29 @@ namespace PluginInstaller
             return result;
         }
 
-        private static bool ReadYesNo()
-        {
-            return Console.ReadLine().ToLower().StartsWith("y");
-        }
-
         private static string GetCurrentDirectory()
         {
-            return Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+            return AppDirectory;
         }
 
-        private static void CopyFilesRecursive(DirectoryInfo source, DirectoryInfo target, bool overwrite)
+        internal static void CopyFiles(DirectoryInfo source, DirectoryInfo target, bool overwrite)
+        {
+            CopyFiles(source, target, overwrite, false);
+        }
+
+        internal static void CopyFiles(DirectoryInfo source, DirectoryInfo target, bool overwrite, bool recursive)
         {
             if (!target.Exists)
             {
                 target.Create();
             }
 
-            foreach (DirectoryInfo dir in source.GetDirectories())
+            if (recursive)
             {
-                CopyFilesRecursive(dir, target.CreateSubdirectory(dir.Name), overwrite);
+                foreach (DirectoryInfo dir in source.GetDirectories())
+                {
+                    CopyFilesRecursive(dir, target.CreateSubdirectory(dir.Name), overwrite);
+                }
             }
             foreach (FileInfo file in source.GetFiles())
             {
@@ -265,7 +254,12 @@ namespace PluginInstaller
             }
         }
 
-        private static void CopyFile(string sourceFileName, string destFileName, bool overwrite)
+        internal static void CopyFilesRecursive(DirectoryInfo source, DirectoryInfo target, bool overwrite)
+        {
+            CopyFiles(source, target, overwrite, true);
+        }
+
+        internal static void CopyFile(string sourceFileName, string destFileName, bool overwrite)
         {
             if ((overwrite || !File.Exists(destFileName)) && File.Exists(sourceFileName))
             {
@@ -278,11 +272,6 @@ namespace PluginInstaller
                     Console.WriteLine("Failed to copy to '{0}'", destFileName);
                 }
             }
-        }
-
-        static bool IsInEngineFolder()
-        {
-            return !string.IsNullOrEmpty(GetEnginePathFromCurrentFolder());
         }
 
         static string GetEnginePathFromCurrentFolder()
@@ -310,135 +299,12 @@ namespace PluginInstaller
             return null;
         }
 
-        private static void UpdateEnginePath(string enginePath = null)
-        {
-            if (string.IsNullOrEmpty(enginePath))
-            {
-                Console.WriteLine("Enter the path for the target engine version (e.g. '{0}'): ", ExampleEnginePath);
-            }
-
-            while (true)
-            {
-                if (string.IsNullOrEmpty(enginePath))
-                {
-                    enginePath = Console.ReadLine();
-                }
-                if (!Directory.Exists(enginePath))
-                {
-                    Console.WriteLine("Couldn't find the engine path '{0}'", enginePath);
-                }
-                else
-                {
-                    if (!Directory.Exists(Path.Combine(enginePath, "../Launcher")))
-                    {
-                        Console.WriteLine("Couldn't find 'Launcher' in the parent folder. Are you sure this path is correct? '{0}'", enginePath);
-                        if (ReadYesNo())
-                        {
-                            break;
-                        }
-                    }
-                    else
-                    {
-                        break;
-                    }
-                }
-                Console.Write("Enter the engine path: ");
-                enginePath = null;
-            }
-
-            if (!string.IsNullOrEmpty(enginePath))
-            {
-                settings.EnginePath = enginePath;
-                settings.Save();
-                Console.WriteLine("New path: '{0}'", enginePath);
-            }
-        }
-
         /// <summary>
         /// Returns the main USharp plugin directory from the engine path
         /// </summary>
         private static string GetUSharpPluginDirectory(string enginePath)
         {
             return Path.Combine(enginePath, "Engine", "Plugins", "USharp");
-        }
-
-        /// <summary>
-        /// Copy over content files which wont be copied during a build (Resources, Sources, USharp.plugin)
-        /// </summary>
-        /// <param name="forceUpdate">If true force update the content files, otherwise they will only be copied if they don't already exist</param>
-        private static void UpdateUSharpPluginContentFiles(bool forceUpdate, bool logState)
-        {
-            if (IsInEngineFolder())
-            {
-                // If we are in the engine folder we shouldn't have to do anything as the content should be where it needs to be.
-                if (logState)
-                {
-                    Console.WriteLine("Updating content is not required as the files are already in the engine plugins folder");
-                }
-                return;
-            }
-
-            if (!Directory.Exists(settings.EnginePath))
-            {
-                // If we are outside of the engine folder we need a valid path to copy the files over.
-                if (logState)
-                {
-                    Console.WriteLine("Failed to update content as the engine path isn't valid. Use the \"engine\" command to set the path.");
-                }
-                return;
-            }
-
-            string usharpPluginsDir = GetUSharpPluginDirectory(settings.EnginePath);
-            if (!Directory.Exists(usharpPluginsDir))
-            {
-                Directory.CreateDirectory(usharpPluginsDir);
-            }
-
-            string relativeUSharpDir = Path.Combine(GetCurrentDirectory(), "../../../");
-
-            // Copy the Resources folder
-            const string resourcesFolder = "Resources";
-            CopyFilesRecursive(new DirectoryInfo(Path.Combine(relativeUSharpDir, resourcesFolder)),
-                new DirectoryInfo(Path.Combine(usharpPluginsDir, resourcesFolder)), forceUpdate);
-
-            // Copy the USharp.plugin file
-            const string pluginFile = "USharp.uplugin";
-            CopyFile(Path.Combine(relativeUSharpDir, pluginFile), Path.Combine(usharpPluginsDir, pluginFile), forceUpdate);
-
-            // Copy the XXXX.Build.cs files
-            const string sourceDir = "Source";
-            string[] sources = { "USharp", "USharpEditor" };
-            const string buildFileExtension = ".Build.cs";
-            foreach (string source in sources)
-            {
-                string relativeSourceDir = Path.Combine(relativeUSharpDir, sourceDir, source);
-                if (Directory.Exists(relativeSourceDir))
-                {
-                    string relativeBuildFile = Path.Combine(relativeSourceDir, source + buildFileExtension);
-                    if (File.Exists(relativeBuildFile))
-                    {
-                        string targetSourceDir = Path.Combine(usharpPluginsDir, sourceDir, source);
-                        if (!Directory.Exists(targetSourceDir))
-                        {
-                            Directory.CreateDirectory(targetSourceDir);
-                        }
-
-                        string targetBuildFile = Path.Combine(targetSourceDir, source + buildFileExtension);
-
-                        // Copy the USharp.Build.cs file
-                        CopyFile(relativeBuildFile, targetBuildFile, forceUpdate);
-                    }
-                }
-            }
-
-            // Copy the "/Managed/UnrealEngine.Runtime/UnrealEngine.Runtime/InjectedClasses" folder
-            const string injectedClassesDir = "Managed/UnrealEngine.Runtime/UnrealEngine.Runtime/InjectedClasses";
-            DirectoryInfo injectedClassesRelativeDir = new DirectoryInfo(Path.Combine(relativeUSharpDir, injectedClassesDir));
-            if (injectedClassesRelativeDir.Exists)
-            {
-                CopyFilesRecursive(injectedClassesRelativeDir,
-                    new DirectoryInfo(Path.Combine(usharpPluginsDir, injectedClassesDir)), forceUpdate);
-            }
         }
 
         private static void CompileCs(string[] args)
@@ -493,135 +359,11 @@ namespace PluginInstaller
                     }
                 }
             }
-
-            // If we are in the engine folder we shouldn't have to do anything as the binaries should be in the correct location.
-            // If we are outside of the engine folder we need to copy the binaries over to the engine plugins folder.
-            string currentFolderEnginePath = GetEnginePathFromCurrentFolder();
-            if (string.IsNullOrEmpty(currentFolderEnginePath) && Directory.Exists(settings.EnginePath))
-            {
-                // Copy the entire "Binaries/Managed" folder to the engine plugins folder
-                string relativeBinariesDir = Path.Combine(GetCurrentDirectory(), "../");
-                if (Directory.Exists(relativeBinariesDir))
-                {                    
-                    string engineBinariesDir = Path.Combine(GetUSharpPluginDirectory(settings.EnginePath), "Binaries/Managed");
-                    if (!Directory.Exists(engineBinariesDir))
-                    {
-                        // Make sure the target binaries folder exists
-                        Directory.CreateDirectory(engineBinariesDir);
-                    }
-
-                    // Copy the files recursively (hopefully this doesn't cause any issues - maybe limit to 1 level deep for AssemblyRewriter)
-                    CopyFilesRecursive(new DirectoryInfo(relativeBinariesDir), new DirectoryInfo(engineBinariesDir), true);
-                }
-            }
-        }
-
-        private static string FindMsBuildPath()
-        {
-            try
-            {
-                if (IsUnix)
-                {
-                    try
-                    {
-                        string monoPath = Process.GetCurrentProcess().MainModule.FileName;
-                        if (!string.IsNullOrEmpty(monoPath) && File.Exists(monoPath) &&
-                            Path.GetFileName(monoPath).ToLower().StartsWith("mono"))
-                        {
-                            string msbuildPath = Path.Combine(Path.GetDirectoryName(monoPath), "msbuild");
-                            if (File.Exists(msbuildPath))
-                            {
-                                return msbuildPath;
-                            }
-                        }
-                    }
-                    catch
-                    {
-                    }
-
-                    // Default linux install location
-                    string linuxInstallPath = "/usr/bin/msbuild";
-                    if (File.Exists(linuxInstallPath))
-                    {
-                        return linuxInstallPath;
-                    }
-
-                    // Default mac install location
-                    string macVersionsPath = "/Library/Frameworks/Mono.framework/Versions/";
-                    if (Directory.Exists(macVersionsPath))
-                    {
-                        string latestVersionDir = null;
-                        Version latestVersion = null;
-
-                        Dictionary<string, Version> versions = new Dictionary<string, Version>();
-                        foreach (string dir in Directory.GetDirectories(macVersionsPath))
-                        {
-                            Version version;
-                            if (Version.TryParse(new DirectoryInfo(dir).Name, out version))
-                            {
-                                if (latestVersion == null || version > latestVersion)
-                                {
-                                    latestVersionDir = dir;
-                                    latestVersion = version;
-                                }
-                            }
-                        }
-
-                        if (!string.IsNullOrEmpty(latestVersionDir))
-                        {
-                            string macInstallPath = Path.Combine(latestVersionDir, "bin", "msbuild");
-                            if (File.Exists(macInstallPath))
-                            {
-                                return macInstallPath;
-                            }
-                        }
-                    }
-
-                    return "msbuild";
-                }
-
-                string baseMicrosoftKeyPath = @"SOFTWARE\WOW6432Node\Microsoft";
-                string visualStudioRegistryKeyPath = baseMicrosoftKeyPath + @"\VisualStudio\SxS\VS7";
-
-                //Try Obtaining the VS version of MSBuild First
-                using (RegistryKey key = Registry.LocalMachine.OpenSubKey(visualStudioRegistryKeyPath))
-                {
-                    if (key != null)
-                    {
-                        string path = key.GetValue("15.0") as string;
-                        if (!string.IsNullOrEmpty(path))
-                        {
-                            path = Path.Combine(path, "MSBuild", "15.0", "Bin", "msbuild.exe");
-                            if (File.Exists(path))
-                            {
-                                return path;
-                            }
-                        }
-                    }
-                }
-
-                using (RegistryKey key = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Microsoft\MSBUILD\ToolsVersions\4.0"))
-                {
-                    string path = key.GetValue("MSBuildToolsPath") as string;
-                    if (!string.IsNullOrEmpty(path))
-                    {
-                        path = Path.Combine(path, "msbuild.exe");
-                        if (File.Exists(path))
-                        {
-                            return path;
-                        }
-                    }
-                }
-            }
-            catch
-            {                
-            }
-            return null;
         }
 
         private static bool BuildCs(string solutionPath, string projectPath, bool debug, bool x86, string customDefines)
         {
-            const string buildLogFile = "build.log";
+            string buildLogFile = Path.Combine(GetCurrentDirectory(), "build.log");
 
             if (!string.IsNullOrEmpty(solutionPath) && File.Exists(solutionPath))
             {
@@ -634,7 +376,7 @@ namespace PluginInstaller
 
             if (string.IsNullOrEmpty(msbuildPath))
             {
-                msbuildPath = FindMsBuildPath();
+                msbuildPath = NetRuntimeHelper.FindMsBuildPath();
             }
 
             if (string.IsNullOrEmpty(msbuildPath))
@@ -670,7 +412,8 @@ namespace PluginInstaller
                     Arguments = fileArgs,
                     RedirectStandardOutput = true,
                     RedirectStandardError = true,
-                    UseShellExecute = false
+                    UseShellExecute = false,
+                    CreateNoWindow = true
                 };
 
                 StringBuilder output = new StringBuilder();
@@ -737,21 +480,24 @@ namespace PluginInstaller
             string pluginExtension = ".uplugin";
             string pluginExtensionTemp = ".uplugin_temp";
 
+            string enginePath = GetEnginePathFromCurrentFolder();
             string batchFileName = "RunUAT" + (IsWindows ? ".bat" : ".sh");
-            string batchFilesDir = Path.Combine(settings.EnginePath, "Engine/Build/BatchFiles/");
+            string batchFilesDir = Path.Combine(enginePath, "Engine/Build/BatchFiles/");
             string batchPath = Path.Combine(batchFilesDir, batchFileName);
-
-            string localPluginDir = Path.Combine(GetCurrentDirectory(), "../../../");
-            string enginePluginDir = Path.Combine(settings.EnginePath, "Engine/Plugins/", pluginName);
-            string pluginPath = Path.Combine(localPluginDir, pluginName + pluginExtension);
+            
+            string pluginDir = Path.Combine(enginePath, "Engine/Plugins/", pluginName);
+            string pluginPath = Path.Combine(pluginDir, pluginName + pluginExtension);
             //string outputDir = Path.Combine(projectBaseDir, "Build");
 
-            string currentFolderEnginePath = GetEnginePathFromCurrentFolder();
-            bool isInsideEngineFolder = !string.IsNullOrEmpty(currentFolderEnginePath);
+            if (!File.Exists(batchPath))
+            {
+                Console.WriteLine("Failed to compile C++ project. Couldn't find RunUAT at '" + batchPath + "'");
+                return;
+            }
 
             try
             {
-                if (!File.Exists(pluginPath) && isInsideEngineFolder)
+                if (!File.Exists(pluginPath))
                 {
                     // We might have a temp plugin file extension due to a partial previous build
                     string tempPluginPath = Path.ChangeExtension(pluginPath, pluginExtensionTemp);
@@ -783,7 +529,7 @@ namespace PluginInstaller
             // In 4.20 if it detects that the plugin already exists our compilation will fail (even if we are compiling in-place!)
             // Therefore we need to rename the existing .uplugin file to have a different extension so that UBT doesn't complain.
             // NOTE: For reference the build error is "Found 'USharp' plugin in two locations" ... "Plugin names must be unique."
-            string existingPluginFile = Path.Combine(enginePluginDir, pluginName + pluginExtension);
+            string existingPluginFile = Path.Combine(pluginDir, pluginName + pluginExtension);
             string tempExistingPluginFile = null;
             if (File.Exists(existingPluginFile))
             {
@@ -795,11 +541,8 @@ namespace PluginInstaller
                 File.Move(existingPluginFile, tempExistingPluginFile);
             }
 
-            if (isInsideEngineFolder)
-            {
-                // Since we are compiling from within the engine plugin folder make sure to use temp changed .plugin_temp file
-                pluginPath = tempExistingPluginFile;
-            }
+            // Since we are compiling from within the engine plugin folder make sure to use temp changed .plugin_temp file
+            pluginPath = tempExistingPluginFile;
 
             try
             {
@@ -826,14 +569,7 @@ namespace PluginInstaller
                         if (Directory.Exists(Path.Combine(outputDir, dir)))
                         {
                             CopyFilesRecursive(new DirectoryInfo(Path.Combine(outputDir, dir)),
-                                new DirectoryInfo(Path.Combine(enginePluginDir, dir)), true);
-
-                            // Also copy to the local path if outside of the engine?
-                            //if (!isInsideEngineFolder)
-                            //{
-                            //    CopyFilesRecursive(new DirectoryInfo(Path.Combine(outputDir, dir)),
-                            //        new DirectoryInfo(Path.Combine(localPluginDir, dir)), true);
-                            //}
+                                new DirectoryInfo(Path.Combine(pluginDir, dir)), true);
                         }
                     }
                 }
@@ -884,56 +620,6 @@ namespace PluginInstaller
                 Console.WriteLine("There was an issue with compiling the provided solution: " + slnPath);
             }
             return buildcs;
-        }
-    }
-
-    // Save the engine path so we don't have to prompt for it each time
-    public class Settings
-    {
-        const string settingsFile = "Settings.xml";
-
-        public string EnginePath { get; set; }        
-
-        public static Settings Load()
-        {
-            try
-            {
-                if (File.Exists(settingsFile))
-                {
-                    using (XmlReader reader = XmlReader.Create(settingsFile))
-                    {
-                        XmlSerializer serializer = new XmlSerializer(typeof(Settings));
-                        return (Settings)serializer.Deserialize(reader);
-                    }
-                }
-            }
-            catch
-            {                
-            }
-            return new Settings();
-        }
-
-        public void Save()
-        {
-            try
-            {
-                XmlWriterSettings xmlSettings = new XmlWriterSettings()
-                {
-                    Indent = true,
-                    IndentChars = "  ",
-                    NewLineOnAttributes = true,
-                    OmitXmlDeclaration = true
-                };
-
-                using (XmlWriter writer = XmlWriter.Create(settingsFile, xmlSettings))
-                {
-                    XmlSerializer serializer = new XmlSerializer(typeof(Settings));
-                    serializer.Serialize(writer, this);
-                }
-            }
-            catch
-            {
-            }
         }
     }
 }
