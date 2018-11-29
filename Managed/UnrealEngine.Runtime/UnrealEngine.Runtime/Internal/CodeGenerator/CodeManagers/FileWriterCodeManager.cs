@@ -80,6 +80,16 @@ namespace UnrealEngine.Runtime
                 if (!File.Exists(slnPath)){
                     CreateSolutionFileFromProjectFile(slnPath, projPath, _projectName, _projectGUID);
                 }
+                else
+                {
+                    //Update the Solution File if Project Is Different From One That Already Exists
+                    //And There Isn't A Project Reference In the Solution File
+                    string[] _solutionContent;
+                    if(CheckForExistingProjectRef(slnPath, projPath, _projectName, _projectGUID, out _solutionContent) == false)
+                    {
+                        UpdateSolutionWithNewProjectFile(slnPath, projPath, _projectName, _projectGUID, _solutionContent);
+                    }
+                }
             }
             catch
             {
@@ -203,6 +213,77 @@ namespace UnrealEngine.Runtime
             finally
             {
                 Log("Done Generating Modules, Solution is at " + modulesSlnPath);
+            }
+        }
+
+        private bool CheckForExistingProjectRef(string slnPath, string projPath, string projectName, Guid projectGUID, out string[] solutionContent)
+        {
+            if(!File.Exists(slnPath) || !File.Exists(projPath))
+            {
+                solutionContent = new string[] { };
+                //Don't Update Solution, False Will Trigger An Update
+                return true;
+            }
+
+            solutionContent = File.ReadAllLines(slnPath);
+            string _guidString = projectGUID.ToString();
+            foreach (string _line in solutionContent)
+            {
+                if(_line.Contains(projectName) || _line.Contains(_guidString))
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        private void UpdateSolutionWithNewProjectFile(string slnPath, string projPath, string projectName, Guid projectGUID, string[] solutionContent)
+        {
+            if (solutionContent.Length <= 0) return;
+            List<string> _newSlnContent = solutionContent.ToList();
+            Guid projectTypeGuid = new Guid(@"FAE04EC0-301F-11D3-BF4B-00C04F79EFBC");// C# project type guid
+            string relativeProjPath = NormalizePath(FPaths.MakePathRelativeTo(projPath, slnPath));
+
+            int _endProjectIndex = -1;
+            int _beforeEndGlobalSectionIndex = -1;
+            for (int i = 0; i < solutionContent.Length; i++)
+            {
+                if (solutionContent[i].Contains("EndProject"))
+                {
+                    _endProjectIndex = i;
+                }
+                else if(solutionContent[i].Contains("Release|Any CPU.Build.0 = Release|Any CPU"))
+                {
+                    //Use Release Index If It Exists
+                    //Will Always Be After Debug Index So
+                    //Order Doesn't Really Matter
+                    _beforeEndGlobalSectionIndex = i;
+                }
+                else if(solutionContent[i].Contains("Debug|Any CPU.Build.0 = Debug|Any CPU"))
+                {
+                    _beforeEndGlobalSectionIndex = i;
+                }
+            }
+            if(_endProjectIndex != -1 && _beforeEndGlobalSectionIndex != -1)
+            {
+                string[] _endProjectContent = new string[]
+                {
+                    @"Project(""{" + projectTypeGuid + @"}"") = """ + projectName + @""", """ + relativeProjPath + @""", ""{" + projectGUID + @"}""",
+                    @"EndProject"
+                };
+                _newSlnContent.InsertRange(_endProjectIndex + 1, _endProjectContent);
+                //Because The Array Has Been Altered, 
+                //I'll Need To Update The Index With The Content's Length
+                _newSlnContent.InsertRange(_beforeEndGlobalSectionIndex + 1 + _endProjectContent.Length, new string[]
+                {
+                    @"		{" + projectGUID + @"}.Debug|Any CPU.ActiveCfg = Debug|Any CPU",
+                    @"		{" + projectGUID + @"}.Debug|Any CPU.Build.0 = Debug|Any CPU",
+                    @"		{" + projectGUID + @"}.Release|Any CPU.ActiveCfg = Release|Any CPU",
+                    @"		{" + projectGUID + @"}.Release|Any CPU.Build.0 = Release|Any CPU",
+                });
+
+                //Update Solution File
+                File.WriteAllLines(slnPath, _newSlnContent.ToArray());
             }
         }
     }
