@@ -1,11 +1,15 @@
 #include "ModulePaths.h"
 #include "USharpPCH.h"
 #include "Interfaces/IPluginManager.h"
+#include "Modules/ModuleManifest.h"
 
-TOptional<TMap<FName, FString>> FModulePaths::ModulePathsCache;
+DEFINE_LOG_CATEGORY_STATIC(LogModuleManager, Log, All);
+
 bool FModulePaths::BuiltDirectories = false;
 TArray<FString> FModulePaths::GameBinariesDirectories;
 TArray<FString> FModulePaths::EngineBinariesDirectories;
+TOptional<TMap<FName, FString>> FModulePaths::ModulePathsCache;
+TOptional<FString> FModulePaths::BuildId;
 
 void FModulePaths::FindModulePaths(const TCHAR* NamePattern, TMap<FName, FString> &OutModulePaths, bool bCanUseCache /*= true*/)
 {
@@ -29,6 +33,33 @@ void FModulePaths::FindModulePaths(const TCHAR* NamePattern, TMap<FName, FString
 			OutModulePaths.Add(FName(NamePattern), *ModulePathPtr);
 			return;
 		}
+		
+		// Wildcard for all items
+		if (FCString::Strcmp(NamePattern, TEXT("*")) == 0)
+		{
+			OutModulePaths = ModulePathsCache.GetValue();
+			return;
+		}
+		
+		// Wildcard search
+		if (FCString::Strchr(NamePattern, TEXT('*')) || FCString::Strchr(NamePattern, TEXT('?')))
+		{
+			bool bFoundItems = false;
+			FString NamePatternString(NamePattern);
+			for (const TPair<FName, FString>& CacheIt : ModulePathsCache.GetValue())			
+			{
+				if (CacheIt.Key.ToString().MatchesWildcard(NamePatternString))
+				{
+					OutModulePaths.Add(CacheIt.Key, *CacheIt.Value);
+					bFoundItems = true;
+				}
+			}
+			
+			if (bFoundItems)
+			{
+				return;
+			}
+		}
 	}
 	
 	// Search through the engine directory
@@ -49,86 +80,40 @@ void FModulePaths::FindModulePaths(const TCHAR* NamePattern, TMap<FName, FString
 
 void FModulePaths::FindModulePathsInDirectory(const FString& InDirectoryName, bool bIsGameDirectory, const TCHAR* NamePattern, TMap<FName, FString> &OutModulePaths)
 {
-	// Get the prefix and suffix for module filenames
-	FString ModulePrefix, ModuleSuffix;
-	GetModuleFilenameFormat(bIsGameDirectory, ModulePrefix, ModuleSuffix);
-
-	// Find all the files
-	TArray<FString> FullFileNames;
-	IFileManager::Get().FindFilesRecursive(FullFileNames, *InDirectoryName, *(ModulePrefix + NamePattern + ModuleSuffix), true, false);
-
-	// Parse all the matching module names
-	for (int32 Idx = 0; Idx < FullFileNames.Num(); Idx++)
+	// Figure out the BuildId if it's not already set.
+	if (!BuildId.IsSet())
 	{
-		const FString &FullFileName = FullFileNames[Idx];
-
-		// On Mac OS X the separate debug symbol format is the dSYM bundle, which is a bundle folder hierarchy containing a .dylib full of Mach-O formatted DWARF debug symbols, these are not loadable modules, so we mustn't ever try and use them. If we don't eliminate this here then it will appear in the module paths & cause errors later on which cannot be recovered from.
-#if PLATFORM_MAC
-		if (FullFileName.Contains(".dSYM"))
+		FString FileName = FModuleManifest::GetFileName(FPlatformProcess::GetModulesDirectory(), false);
+		
+		FModuleManifest Manifest;
+		if (!FModuleManifest::TryRead(FileName, Manifest))
 		{
-			continue;
+			UE_LOG(LogModuleManager, Fatal, TEXT("Unable to read module manifest from '%s'. Module manifests are generated at build time, and must be present to locate modules at runtime."), *FileName)
 		}
-#endif
+		
+		BuildId = Manifest.BuildId;
+	}
 
-		FString FileName = FPaths::GetCleanFilename(FullFileName);
-		if (FileName.StartsWith(ModulePrefix) && FileName.EndsWith(ModuleSuffix))
+	// Find all the directories to search through, including the base directory
+	TArray<FString> SearchDirectoryNames;
+	IFileManager::Get().FindFilesRecursive(SearchDirectoryNames, *InDirectoryName, TEXT("*"), false, true);
+	SearchDirectoryNames.Insert(InDirectoryName, 0);
+	
+	// Enumerate the modules in each directory
+	for(const FString& SearchDirectoryName: SearchDirectoryNames)
+	{
+		FModuleManifest Manifest;
+		if (FModuleManifest::TryRead(FModuleManifest::GetFileName(SearchDirectoryName, bIsGameDirectory), Manifest) && Manifest.BuildId == BuildId.GetValue())
 		{
-			FString ModuleName = FileName.Mid(ModulePrefix.Len(), FileName.Len() - ModulePrefix.Len() - ModuleSuffix.Len());
-			if (!ModuleName.EndsWith("-Debug") && !ModuleName.EndsWith("-Shipping") && !ModuleName.EndsWith("-Test") && !ModuleName.EndsWith("-DebugGame"))
+			for (const TPair<FString, FString>& Pair : Manifest.ModuleNameToFileName)
 			{
-				OutModulePaths.Add(FName(*ModuleName), FullFileName);
+				if (Pair.Key.MatchesWildcard(NamePattern))
+				{
+					OutModulePaths.Add(FName(*Pair.Key), *FPaths::Combine(*SearchDirectoryName, *Pair.Value));
+				}
 			}
 		}
 	}
-}
-
-void FModulePaths::GetModuleFilenameFormat(bool bGameModule, FString& OutPrefix, FString& OutSuffix)
-{
-	// Get the module configuration for this directory type
-	const TCHAR* ConfigSuffix = NULL;
-	switch (FApp::GetBuildConfiguration())
-	{
-	case EBuildConfigurations::Debug:
-		ConfigSuffix = TEXT("-Debug");
-		break;
-	case EBuildConfigurations::DebugGame:
-		ConfigSuffix = bGameModule ? TEXT("-DebugGame") : NULL;
-		break;
-	case EBuildConfigurations::Development:
-		ConfigSuffix = NULL;
-		break;
-	case EBuildConfigurations::Test:
-		ConfigSuffix = TEXT("-Test");
-		break;
-	case EBuildConfigurations::Shipping:
-		ConfigSuffix = TEXT("-Shipping");
-		break;
-	default:
-		check(false);
-		break;
-	}
-
-	// Get the base name for modules of this application
-	OutPrefix = FPlatformProcess::GetModulePrefix() + FPaths::GetBaseFilename(FPlatformProcess::ExecutableName());
-	if (OutPrefix.Contains(TEXT("-"), ESearchCase::CaseSensitive))
-	{
-		OutPrefix = OutPrefix.Left(OutPrefix.Find(TEXT("-"), ESearchCase::CaseSensitive) + 1);
-	}
-	else
-	{
-		OutPrefix += TEXT("-");
-	}
-
-	// Get the suffix for each module
-	OutSuffix.Empty();
-	if (ConfigSuffix != NULL)
-	{
-		OutSuffix += TEXT("-");
-		OutSuffix += FPlatformProcess::GetBinariesSubdirectory();
-		OutSuffix += ConfigSuffix;
-	}
-	OutSuffix += TEXT(".");
-	OutSuffix += FPlatformProcess::GetModuleExtension();
 }
 
 void FModulePaths::BuildDirectories()

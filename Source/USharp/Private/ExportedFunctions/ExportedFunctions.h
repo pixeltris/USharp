@@ -82,6 +82,8 @@
 #include "Export_FPaths.h"
 #include "Export_FMessageDialog.h"
 #include "Export_FModuleManager.h"
+#include "Export_IPluginManager.h"
+#include "Export_IPlugin.h"
 #include "Export_FPackageName.h"
 #include "Export_FLinkerLoad.h"
 #include "Export_FCoreRedirectObjectName.h"
@@ -216,6 +218,8 @@ CSEXPORT void CSCONV RegisterFunctions(RegisterFunc registerFunc)
 	Export_FPaths(registerFunc);
 	Export_FMessageDialog(registerFunc);
 	Export_FModuleManager(registerFunc);
+	Export_IPluginManager(registerFunc);
+	Export_IPlugin(registerFunc);
 	Export_FPackageName(registerFunc);
 	Export_FLinkerLoad(registerFunc);
 	Export_FCoreRedirectObjectName(registerFunc);

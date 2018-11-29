@@ -257,7 +257,11 @@ namespace UnrealEngine.Runtime.Native
                         // and would produce erros when opening blueprints).
 
                         // true will show the C++ "Hot Reload Complete!" notification (are there any other differences?)
-                        Native_SharpHotReloadUtils.BroadcastOnHotReload(true);
+                        //Native_SharpHotReloadUtils.BroadcastOnHotReload(true);
+
+                        // The notification rendering gets messed up the longer hotreload takes. Wait 1 frame to ensure
+                        // that the notification gets fully rendered (though the audio still seems to mess up)
+                        Coroutine.StartCoroutine(null, DeferBroadcastHotReload());
                     }
                 }
             }
@@ -267,6 +271,12 @@ namespace UnrealEngine.Runtime.Native
                 // We likely created a bunch of garbage, best to clean it up now.
                 GC.Collect();
             }
+        }
+
+        private static System.Collections.IEnumerator DeferBroadcastHotReload()
+        {
+            yield return Coroutine.WaitForFrames(1);
+            Native_SharpHotReloadUtils.BroadcastOnHotReload(true);
         }
 
         private static Assembly CurrentAssemblyContext_Resolving(AssemblyName arg)

@@ -19,7 +19,7 @@ namespace UnrealEngine.Runtime
             }
         }
 
-        public void GenerateCodeForGame(AssetLoadMode loadMode, bool clearAssetCache, bool skipLevels)
+        public void GenerateCodeForBlueprints(AssetLoadMode loadMode, bool clearAssetCache, bool skipLevels)
         {
             BeginGenerateModules();
 

@@ -45,6 +45,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="CoreUObject\Enums\Script.cs" />
+    <Compile Include="Core\IPluginManager.cs" />
     <Compile Include="InputCore\EKeys.cs" />
     <Compile Include="InputCore\FKey.cs" />
     <None Include="InjectedClasses\Engine\ActorComponent_Injected.cs" />
@@ -182,7 +183,7 @@
     <Compile Include="Internal\CodeGenerator\CodeGenerator.cs" />
     <Compile Include="Internal\CodeGenerator\CodeGenerator.Documentation.cs" />
     <Compile Include="Internal\CodeGenerator\CodeGenerator.Enums.cs" />
-    <Compile Include="Internal\CodeGenerator\CodeGenerator.Game.cs" />
+    <Compile Include="Internal\CodeGenerator\CodeGenerator.Blueprints.cs" />
     <Compile Include="Internal\CodeGenerator\CodeGenerator.Modules.cs" />
     <Compile Include="Internal\CodeGenerator\CodeGenerator.StructInfo.cs" />
     <Compile Include="Internal\CodeGenerator\CodeGeneratorSettings.cs" />
@@ -414,6 +415,8 @@
     <Compile Include="Native\Native_FWorldContext.cs" />
     <Compile Include="Native\Native_FWorldDelegates.cs" />
     <Compile Include="Native\Native_ICppStructOps.cs" />
+    <Compile Include="Native\Native_IPlugin.cs" />
+    <Compile Include="Native\Native_IPluginManager.cs" />
     <Compile Include="Native\Native_TStatId.cs" />
     <Compile Include="Native\Native_UEditorEngine.cs" />
     <Compile Include="Native\Native_UEngine.cs" />

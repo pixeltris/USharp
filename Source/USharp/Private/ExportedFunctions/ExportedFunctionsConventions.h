@@ -39,6 +39,9 @@
 #include "Components/InputComponent.h"
 #include "Framework/Commands/InputChord.h"
 
+// For IPluginManager
+#include "Interfaces/IPluginManager.h"
+
 #if WITH_EDITOR
 // For FEditorDelegates
 #include "Editor.h"

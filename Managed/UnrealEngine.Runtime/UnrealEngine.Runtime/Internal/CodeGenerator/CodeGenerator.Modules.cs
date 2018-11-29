@@ -19,22 +19,44 @@ namespace UnrealEngine.Runtime
         {
             modulesByName.Clear();
 
+            IPlugin[] plugins = IPluginManager.Instance.GetDiscoveredPlugins();
+
             Dictionary<FName, string> modulePaths = FModulesPaths.FindModulePaths("*");
             foreach (KeyValuePair<FName, string> modulePath in modulePaths)
             {
-                modulesByName[modulePath.Key] = UnrealModuleInfo.GetModuleType(modulePath.Value);
+                modulesByName[modulePath.Key] = UnrealModuleInfo.GetModuleType(modulePath.Key.ToString(), modulePath.Value, plugins);
             }
+
+            IPlugin.Dispose(plugins);
+        }
+
+        public void GenerateCodeForGameModules()
+        {
+            GenerateCodeForModules(new UnrealModuleType[]
+                {
+                    UnrealModuleType.Game,
+                    UnrealModuleType.GamePlugin
+                });
+        }
+
+        public void GenerateCodeForEngineModules()
+        {
+            GenerateCodeForModules(new UnrealModuleType[]
+                {
+                    UnrealModuleType.Engine,
+                    UnrealModuleType.EnginePlugin
+                });
         }
 
         public void GenerateCodeForAllModules()
         {            
             GenerateCodeForModules(new UnrealModuleType[]
                 {
-                    //UnrealModuleType.Game,// Do C++ classes appear here? Or under asset registry? TODO: Look into
+                    UnrealModuleType.Game,
                     UnrealModuleType.GamePlugin,
                     UnrealModuleType.Engine,
                     UnrealModuleType.EnginePlugin
-                });            
+                });
         }
 
         public void GenerateCodeForModules(UnrealModuleType[] moduleTypes)
@@ -114,17 +136,44 @@ namespace UnrealEngine.Runtime
             FName[] moduleNames = FModuleManager.Get().FindModules("*");
             if (moduleNames.Length != modulePaths.Count)
             {
-                FMessage.Log(ELogVerbosity.Warning, string.Format("Module count invalid. FindModules:{0} FindModulePaths:{1}",
+                FMessage.Log(ELogVerbosity.Warning, string.Format("Module count invalid (update FModulePaths). FindModules:{0} FindModulePaths:{1}",
                     moduleNames.Length, modulePaths.Count));
+
+                List<FName> additionalNames = new List<FName>();
+                foreach (KeyValuePair<FName, string> module in modulePaths)
+                {
+                    if (moduleNames.Contains(module.Key))
+                    {
+                        FMessage.Log(ELogVerbosity.Warning, "Module: " + module.Key + " - " + module.Value);
+                    }
+                    else
+                    {
+                        FMessage.Log(ELogVerbosity.Warning, "Additional module: " + module.Key + " - " + module.Value);
+                    }
+                }
+
+                List<FName> missingNames = new List<FName>();
+                foreach (FName moduleName in moduleNames)
+                {
+                    if (!modulePaths.ContainsKey(moduleName))
+                    {
+                        FMessage.Log(ELogVerbosity.Warning, "Missing module: " + moduleName);
+                    }
+                }
             }
+            
+
+            IPlugin[] plugins = IPluginManager.Instance.GetDiscoveredPlugins();
 
             foreach (KeyValuePair<FName, string> modulePath in modulePaths)
             {
-                string longPackageName = FPackageName.ConvertToLongScriptPackageName(modulePath.Key.PlainName);
+                string moduleName = modulePath.Key.PlainName;
+                string longPackageName = FPackageName.ConvertToLongScriptPackageName(moduleName);
                 UPackage package = UObject.FindObjectFast<UPackage>(null, new FName(longPackageName), false, false);
                 if (package != null)
                 {
-                    UnrealModuleInfo moduleInfo = new UnrealModuleInfo(package, modulePath.Key.PlainName, modulePath.Value);
+                    UnrealModuleInfo moduleInfo = new UnrealModuleInfo(package, moduleName, modulePath.Value,
+                        UnrealModuleInfo.GetModuleType(moduleName, modulePath.Value, plugins));
 
                     if (moduleInfo.Type == UnrealModuleType.Unknown)
                     {
@@ -157,6 +206,8 @@ namespace UnrealEngine.Runtime
                     GenerateCodeForModule(moduleInfo, structs.ToArray(), enums.ToArray(), globalFunctions.ToArray());
                 }
             }
+
+            IPlugin.Dispose(plugins);
 
             EndGenerateModules();
         }
@@ -599,19 +650,26 @@ namespace UnrealEngine.Runtime
             public UnrealModuleType Type { get; set; }
 
             public UnrealModuleInfo(UPackage package, string name, string path)
+                : this(package, name, path, UnrealModuleType.Unknown)
+            {
+                IPlugin[] plugins = IPluginManager.Instance.GetDiscoveredPlugins();
+                Type = GetModuleType(name, path, plugins);
+                IPlugin.Dispose(plugins);
+            }
+
+            public UnrealModuleInfo(UPackage package, string name, string path, UnrealModuleType type)
             {
                 Package = package;
                 Name = name;
                 Path = path;
-                Type = GetModuleType(path);
+                Type = type;
             }
 
-            public static UnrealModuleType GetModuleType(string modulePath)
+            public static UnrealModuleType GetModuleType(string moduleName, string modulePath, IPlugin[] plugins)
             {
                 if (File.Exists(modulePath))
                 {
                     string moduleDir = FPaths.GetPath(modulePath);
-                    string subDir;
 
                     if (FPaths.DirectoryExists(moduleDir))
                     {
@@ -627,10 +685,30 @@ namespace UnrealEngine.Runtime
                         {
                             return UnrealModuleType.GamePlugin;
                         }
-                        else if (FPaths.IsSameOrSubDirectory(FPaths.ProjectDir, moduleDir, out subDir) && string.IsNullOrEmpty(subDir))
+                        else
                         {
-                            // Game module path is being treated as the .uproject path
-                            return UnrealModuleType.Game;
+                            foreach (IPlugin plugin in plugins)
+                            {
+                                if (plugin.Name == moduleName)
+                                {
+                                    switch (plugin.PluginType)
+                                    {
+                                        case EPluginType.Engine:
+                                        case EPluginType.Enterprise:
+                                        case EPluginType.External:
+                                            return UnrealModuleType.EnginePlugin;
+                                        case EPluginType.Mod:
+                                        case EPluginType.Project:
+                                            return UnrealModuleType.GamePlugin;
+                                    }
+                                }
+                            }
+
+                            if (FPaths.IsSameOrSubDirectory(FPaths.ProjectDir, moduleDir) &&
+                                moduleName.Equals(FApp.GetProjectName(), StringComparison.OrdinalIgnoreCase))
+                            {
+                                return UnrealModuleType.Game;
+                            }
                         }
                     }
                 }

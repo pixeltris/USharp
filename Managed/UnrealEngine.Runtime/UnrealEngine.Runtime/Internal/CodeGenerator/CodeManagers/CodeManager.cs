@@ -257,7 +257,7 @@ namespace UnrealEngine.Runtime
                         case UnrealModuleType.EnginePlugin: return Path.Combine("EnginePluginAssets", root);
                         case UnrealModuleType.GamePlugin: return Path.Combine("GamePluginAssets", root);
                     }
-                    return null;
+                    return "Game";
 
                 case UnrealModuleType.Engine:
                     return "Engine";

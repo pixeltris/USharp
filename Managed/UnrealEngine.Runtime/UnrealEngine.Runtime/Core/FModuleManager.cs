@@ -17,6 +17,11 @@ namespace UnrealEngine.Runtime
         public IntPtr Address { get; internal set; }
 
         private static FModuleManager instance;
+        public static FModuleManager Instance
+        {
+            get { return Get(); }
+        }
+
         public static FModuleManager Get()
         {
             if (instance == null)
@@ -25,11 +30,6 @@ namespace UnrealEngine.Runtime
                 instance.Address = Native_FModuleManager.Get();
             }
             return instance;
-        }
-
-        public static FModuleManager Instance
-        {
-            get { return Get(); }
         }
 
         /// <summary>

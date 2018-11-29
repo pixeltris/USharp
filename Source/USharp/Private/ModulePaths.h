@@ -11,9 +11,6 @@ private:
 	/** Finds modules matching a given name wildcard within a given directory. */
 	static void FindModulePathsInDirectory(const FString &DirectoryName, bool bIsGameDirectory, const TCHAR *NamePattern, TMap<FName, FString> &OutModulePaths);
 
-	/** Gets the prefix and suffix for a module file */
-	static void GetModuleFilenameFormat(bool bGameModule, FString& OutPrefix, FString& OutSuffix);
-
 	static void BuildDirectories();
 
 	static bool BuiltDirectories;
@@ -26,6 +23,9 @@ private:
 
 	/** Cache of known module paths. Used for performance. Can increase editor startup times by up to 30% */
 	static TOptional<TMap<FName, FString>> ModulePathsCache;
+	
+	/** ID used to validate module manifests. Read from the module manifest in the engine directory on first query to load a new module; unset until then. */
+	static TOptional<FString> BuildId;
 
 public:
 	/** Finds modules matching a given name wildcard. */

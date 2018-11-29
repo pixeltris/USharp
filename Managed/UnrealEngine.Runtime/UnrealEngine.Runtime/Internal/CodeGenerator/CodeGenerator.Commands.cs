@@ -271,7 +271,7 @@ namespace UnrealEngine.Runtime
 
                     switch (args[0])
                     {
-                        case "game":
+                        case "blueprints":
                             AssetLoadMode loadMode = AssetLoadMode.Game;
                             bool clearAssetCache = false;
                             bool skipLevels = false;
@@ -299,7 +299,12 @@ namespace UnrealEngine.Runtime
                                 bool.TryParse(args[3], out skipLevels);
                             }
                             codeGenerator = new CodeGenerator(timeSliced);
-                            codeGenerator.GenerateCodeForGame(loadMode, clearAssetCache, skipLevels);
+                            codeGenerator.GenerateCodeForBlueprints(loadMode, clearAssetCache, skipLevels);
+                            break;
+
+                        case "game":
+                            codeGenerator = new CodeGenerator(timeSliced);
+                            codeGenerator.GenerateCodeForModules(new UnrealModuleType[] { UnrealModuleType.Game });
                             break;
 
                         case "gameplugins":
@@ -312,7 +317,7 @@ namespace UnrealEngine.Runtime
                             //codeGenerator.Settings.ExportMode = CodeGeneratorSettings.CodeExportMode.All;
                             //codeGenerator.Settings.ExportAllFunctions = true;
                             //codeGenerator.Settings.ExportAllProperties = true;
-                            codeGenerator.GenerateCodeForAllModules();
+                            codeGenerator.GenerateCodeForEngineModules();
                             break;
 
                         case "module":
