@@ -51,7 +51,7 @@ namespace UnrealEngine.Runtime
             string projectName = Settings.GetProjectName();
             GameSlnPath = Path.Combine(Settings.GetManagedDir(), "ManagedGameCode" + ".sln");
             GameProjPath = Path.Combine(Settings.GetManagedDir(), "GameCode", "GameCode" + ".csproj");
-            GameNativeGenerationSlnPath = Path.Combine(Settings.GetManagedDir(), "NativeCodeWrappers" + ".sln");
+            GameNativeGenerationSlnPath = GameSlnPath;
             GameNativeGenerationProjPath = Path.Combine(Settings.GetManagedDir(), "Generated", "NativeCodeWrappers" + ".csproj");
 
             OnBegin();
