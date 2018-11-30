@@ -47,6 +47,7 @@ namespace UnrealEngine.Runtime
             ValidateStructSize<FActorSpawnParametersInterop>(Native_SizeOfStruct.SizeOf_FActorSpawnParameters);
             ValidateStructSize<FTickPrerequisite>(Native_SizeOfStruct.SizeOf_FTickPrerequisite);
             ValidateStructSize<FKey>(Native_SizeOfStruct.SizeOf_FKey);
+            ValidateStructSize<FLifetimeProperty>(Native_SizeOfStruct.SizeOf_FLifetimeProperty);
 
             ValidateFTickFunctionStructSize();
         }

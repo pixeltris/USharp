@@ -113,6 +113,23 @@ CSEXPORT void CSCONV Export_FMemory_EnablePurgatoryTests()
 	FMemory::EnablePurgatoryTests();
 }
 
+// There are also a few useful functions in FPlatformMemory
+
+CSEXPORT csbool CSCONV Export_FMemory_PageProtect(void* const Ptr, const SIZE_T Size, const csbool bCanRead, const csbool bCanWrite)
+{
+	return FPlatformMemory::PageProtect(Ptr, Size, bCanRead, bCanWrite);
+}
+
+CSEXPORT FGenericPlatformMemory::FSharedMemoryRegion* CSCONV Export_FMemory_MapNamedSharedMemoryRegion(const FString& Name, csbool bCreate, uint32 AccessMode, SIZE_T Size)
+{
+	return FPlatformMemory::MapNamedSharedMemoryRegion(Name, bCreate, AccessMode, Size);
+}
+
+CSEXPORT csbool CSCONV Export_FMemory_UnmapNamedSharedMemoryRegion(FGenericPlatformMemory::FSharedMemoryRegion* MemoryRegion)
+{
+	return FPlatformMemory::UnmapNamedSharedMemoryRegion(MemoryRegion);
+}
+
 CSEXPORT void CSCONV Export_FMemory(RegisterFunc registerFunc)
 {
 	REGISTER_FUNC(Export_FMemory_Memmove);
@@ -138,4 +155,7 @@ CSEXPORT void CSCONV Export_FMemory(RegisterFunc registerFunc)
 	REGISTER_FUNC(Export_FMemory_GPUFree);
 	REGISTER_FUNC(Export_FMemory_TestMemory);
 	REGISTER_FUNC(Export_FMemory_EnablePurgatoryTests);
+	REGISTER_FUNC(Export_FMemory_PageProtect);
+	REGISTER_FUNC(Export_FMemory_MapNamedSharedMemoryRegion);
+	REGISTER_FUNC(Export_FMemory_UnmapNamedSharedMemoryRegion);
 }

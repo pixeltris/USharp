@@ -32,6 +32,9 @@ namespace UnrealEngine.Runtime.Native
         public delegate IntPtr Del_GPUFree(IntPtr original);
         public delegate void Del_TestMemory();
         public delegate void Del_EnablePurgatoryTests();
+        public delegate csbool Del_PageProtect(IntPtr ptr, IntPtr size, csbool canRead, csbool canWrite);
+        public delegate IntPtr Del_MapNamedSharedMemoryRegion(ref FScriptArray name, csbool create, uint accessMode, IntPtr size);
+        public delegate csbool Del_UnmapNamedSharedMemoryRegion(IntPtr memoryRegion);
 
         public static Del_Memmove Memmove;
         public static Del_Memcmp Memcmp;
@@ -56,5 +59,8 @@ namespace UnrealEngine.Runtime.Native
         public static Del_GPUFree GPUFree;
         public static Del_TestMemory TestMemory;
         public static Del_EnablePurgatoryTests EnablePurgatoryTests;
+        public static Del_PageProtect PageProtect;
+        public static Del_MapNamedSharedMemoryRegion MapNamedSharedMemoryRegion;
+        public static Del_UnmapNamedSharedMemoryRegion UnmapNamedSharedMemoryRegion;
     }
 }

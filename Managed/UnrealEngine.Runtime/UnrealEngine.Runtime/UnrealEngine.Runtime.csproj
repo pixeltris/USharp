@@ -45,6 +45,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="CoreUObject\Enums\Script.cs" />
+    <Compile Include="CoreUObject\FLifetimeProperty.cs" />
     <Compile Include="Core\IPluginManager.cs" />
     <Compile Include="InputCore\EKeys.cs" />
     <Compile Include="InputCore\FKey.cs" />
@@ -375,6 +376,7 @@
     <Compile Include="Native\Native_FReferenceControllerOps.cs" />
     <Compile Include="Native\Native_FReferenceFinder.cs" />
     <Compile Include="Native\Native_FScriptDelegate.cs" />
+    <Compile Include="Native\Native_FSharedMemoryRegion.cs" />
     <Compile Include="Native\Native_FSoftObjectPtr.cs" />
     <Compile Include="Native\Native_FAssetRegistryModule.cs" />
     <Compile Include="Native\Native_FCoreDelegates.cs" />
@@ -474,6 +476,7 @@
     <Compile Include="Tests\StructTests.cs" />
     <Compile Include="Tests\Tests.cs" />
     <Compile Include="UnrealEd\FEditorDelegates.cs" />
+    <Compile Include="Internal\ManagedUnrealTypes.VTableHacks.cs" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Internal\CodeGenerator\CodeGenerator.AvailableTypes.cs" />

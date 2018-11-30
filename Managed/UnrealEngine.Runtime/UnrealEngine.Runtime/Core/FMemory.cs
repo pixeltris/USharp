@@ -314,5 +314,111 @@ namespace UnrealEngine.Runtime
         {
             Native_FMemory.EnablePurgatoryTests();
         }
+
+        /// <summary>
+        /// Changes the protection on a region of committed pages in the virtual address space.
+        /// </summary>
+        /// <param name="ptr">Address to the starting page of the region of pages whose access protection attributes are to be changed.</param>
+        /// <param name="size">The size of the region whose access protection attributes are to be changed, in bytes.</param>
+        /// <param name="canRead">Can the memory be read.</param>
+        /// <param name="canWrite">Can the memory be written to.</param>
+        /// <returns>True if the specified pages' protection mode was changed.</returns>
+        public static bool PageProtect(IntPtr ptr, IntPtr size, bool canRead, bool canWrite)
+        {
+            return Native_FMemory.PageProtect(ptr, size, canRead, canWrite);
+        }
+
+        /// <summary>
+        /// Maps a named shared memory region into process address space (creates or opens it)
+        /// </summary>
+        /// <param name="name">unique name of the shared memory region (should not contain [back]slashes to remain cross-platform).</param>
+        /// <param name="create">whether we're creating it or just opening existing (created by some other process).</param>
+        /// <param name="accessMode">mode which we will be accessing it (use values from ESharedMemoryAccess)</param>
+        /// <param name="size">size of the buffer (should be >0. Also, the real size is subject to platform limitations and may be increased to match page size)</param>
+        /// <returns>pointer to FSharedMemoryRegion (or its descendants) if successful, NULL if not.</returns>
+        public static FSharedMemoryRegion MapNamedSharedMemoryRegion(string name, bool create, ESharedMemoryAccess accessMode, IntPtr size)
+        {
+            using (FStringUnsafe nameUnsafe = new FStringUnsafe(name))
+            {
+                return new FSharedMemoryRegion(Native_FMemory.MapNamedSharedMemoryRegion(ref nameUnsafe.Array, create, (uint)accessMode, size));
+            }
+        }
+
+        /// <summary>
+        /// Unmaps a name shared memory region
+        /// </summary>
+        /// <param name="memoryRegion">an object that encapsulates a shared memory region (will be destroyed even if function fails!)</param>
+        /// <returns>true if successful</returns>
+        public static bool UnmapNamedSharedMemoryRegion(FSharedMemoryRegion memoryRegion)
+        {
+            return Native_FMemory.UnmapNamedSharedMemoryRegion(memoryRegion.Address);
+        }
+    }
+
+    /// <summary>
+    /// Generic representation of a shared memory region
+    /// </summary>
+    public struct FSharedMemoryRegion
+    {
+        /// <summary>
+        /// The struct pointer (FSharedMemoryRegion*)
+        /// </summary>
+        public IntPtr StructAddress { get; private set; }
+
+        /// <summary>
+        /// The name of the region
+        /// </summary>
+        public string Name
+        {
+            get
+            {
+                using (FStringUnsafe resultUnsafe = new FStringUnsafe())
+                {
+                    Native_FSharedMemoryRegion.GetName(StructAddress, ref resultUnsafe.Array);
+                    return resultUnsafe.Value;
+                }
+            }
+        }
+
+        /// <summary>
+        /// The beginning of the region in process address space
+        /// </summary>
+        public IntPtr Address
+        {
+            get
+            {
+                return Native_FSharedMemoryRegion.GetAddress(StructAddress);
+            }
+        }
+
+        /// <summary>
+        /// Size of the region in bytes
+        /// </summary>
+        public IntPtr Size
+        {
+            get
+            {
+                return Native_FSharedMemoryRegion.GetSize(StructAddress);
+            }
+        }
+
+        /// <summary>
+        /// Constructor
+        /// </summary>
+        /// <param name="structAddress">The struct pointer (FSharedMemoryRegion*)</param>
+        public FSharedMemoryRegion(IntPtr structAddress)
+        {
+            StructAddress = structAddress;
+        }
+    }
+
+    /// <summary>
+    /// Flags used for shared memory creation/open
+    /// </summary>
+    [Flags]
+    public enum ESharedMemoryAccess
+    {
+        Read = (1 << 1),
+        Write = (1 << 2)
     }
 }

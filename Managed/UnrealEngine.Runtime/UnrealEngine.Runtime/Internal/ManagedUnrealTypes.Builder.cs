@@ -56,6 +56,8 @@ namespace UnrealEngine.Runtime
             SkipReinstance = false;
             SkipBroadcastHotReload = false;
 
+            LoadVTableHacks();
+
             foreach (KeyValuePair<Type, USharpPathAttribute> type in UnrealTypes.Managed)
             {
                 InitType(type.Key, type.Value);
@@ -65,6 +67,8 @@ namespace UnrealEngine.Runtime
 
         public static void OnUnload()
         {
+            UnloadVTableHacks();
+
             // Redirect function pointers which will be destroyed when unloading the AppDomain
             foreach (ManagedClass managedClass in Classes.Values)
             {
@@ -333,12 +337,12 @@ namespace UnrealEngine.Runtime
                 FObjectInitializer objectInitializer = new FObjectInitializer(objectInitializerPtr);
 
                 // Call the initializer if this isn't an interface and the initializer is overridden somewhere in the class hierarchy
-                UObject obj = null;
+                UObject obj = objectInitializer.GetObj();//null;//changed for VTable hacks
                 bool callInitializer = !managedClass.IsInterface && managedClass.TypeInfo.OverridesObjectInitializerHierarchical;
                 if (callInitializer)
                 {
                     GCHelper.ManagedObjectBeingInitialized = objectInitializer.ObjectAddress;
-                    obj = objectInitializer.GetObj();
+                    //obj = objectInitializer.GetObj();
                     GCHelper.ManagedObjectBeingInitialized = IntPtr.Zero;
                 }
 
@@ -371,6 +375,8 @@ namespace UnrealEngine.Runtime
                 Native_UClass.Call_ClassConstructorDirectly(managedClass.NativeParentClassConstructor, objectInitializerPtr);
 
                 //Native_UClass.Set_ClassFlags(managedClass.Address, oldClassFlags);
+
+                HackVTable(obj);
 
                 if (callInitializer)
                 {

@@ -509,6 +509,11 @@ namespace UnrealEngine.Runtime
         /// </summary>
         BlueprintType,
 
+        /// <summary>
+        /// The name to display for this enum instead of auto-generating it from the name.
+        /// </summary>
+        DisplayName,
+
         //////////////////////////////////////////////////////////////////////////////////////////
         // Defined in Engine\Source\Editor\BlueprintGraph\Classes\EdGraphSchema_K2.h
         //////////////////////////////////////////////////////////////////////////////////////////

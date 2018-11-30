@@ -101,6 +101,7 @@
 #include "Export_FAsync.h"
 #include "Export_ICppStructOps.h"
 #include "Export_FMemory.h"
+#include "Export_FSharedMemoryRegion.h"
 #include "Export_FCoreNet.h"
 #include "Export_FFrame.h"
 #include "Export_FFrameRef.h"
@@ -237,6 +238,7 @@ CSEXPORT void CSCONV RegisterFunctions(RegisterFunc registerFunc)
 	Export_FAsync(registerFunc);
 	Export_ICppStructOps(registerFunc);
 	Export_FMemory(registerFunc);
+	Export_FSharedMemoryRegion(registerFunc);
 	Export_FCoreNet(registerFunc);
 	Export_FFrame(registerFunc);
 	Export_FFrameRef(registerFunc);

@@ -15,6 +15,11 @@ namespace UnrealEngine.Runtime
     [UMetaPath("/Script/CoreUObject.Class", "CoreUObject", UnrealModuleType.Engine)]
     public class UClass : UStruct
     {
+        /// <summary>
+        /// VTable hack. Remove when GetLifetimeReplicatedProps can be handled by UClass.
+        /// </summary>
+        internal IntPtr OriginalGetLifetimeReplicatedProps;
+
         // Wrapper for holding onto a UClass and its address seperately in case a UClass gets destroyed by GC
         struct UClassRef
         {
