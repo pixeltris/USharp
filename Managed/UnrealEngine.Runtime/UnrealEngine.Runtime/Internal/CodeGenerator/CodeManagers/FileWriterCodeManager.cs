@@ -85,9 +85,12 @@ namespace UnrealEngine.Runtime
                     //Update the Solution File if Project Is Different From One That Already Exists
                     //And There Isn't A Project Reference In the Solution File
                     string[] solutionContent;
-                    if(!CheckForExistingProjectRef(slnPath, projPath, projectName, projectGUID, out solutionContent))
+                    //Only Update If Solution Contains Game Project Solution
+                    bool bContainsGameProject;
+                    if(!CheckForExistingProjectRef(slnPath, projPath, projectName, projectGUID, out solutionContent, out bContainsGameProject) && bContainsGameProject)
                     {
                         UpdateSolutionWithNewProjectFile(slnPath, projPath, projectName, projectGUID, solutionContent);
+                        UpdateGameProjectWithGenReference(projPath, projectName);
                     }
                 }
             }
@@ -216,9 +219,11 @@ namespace UnrealEngine.Runtime
             }
         }
 
-        private bool CheckForExistingProjectRef(string slnPath, string projPath, string projectName, Guid projectGUID, out string[] solutionContent)
+        private bool CheckForExistingProjectRef(string slnPath, string projPath, string projectName, Guid projectGUID, out string[] solutionContent, out bool bContainsGameProject)
         {
-            if(!File.Exists(slnPath) || !File.Exists(projPath))
+            bool bProjectRefExists = false;
+            bContainsGameProject = false;
+            if (!File.Exists(slnPath) || !File.Exists(projPath))
             {
                 solutionContent = new string[] { };
                 //Don't Update Solution, False Will Trigger An Update
@@ -227,14 +232,51 @@ namespace UnrealEngine.Runtime
 
             solutionContent = File.ReadAllLines(slnPath);
             string guidString = projectGUID.ToString();
+            string gameProjectName = Path.GetFileNameWithoutExtension(GameProjPath);
+
             foreach (string line in solutionContent)
             {
                 if(line.Contains(projectName) || line.Contains(guidString))
                 {
-                    return true;
+                    bProjectRefExists = true;
+                }
+                if (line.Contains(gameProjectName))
+                {
+                    bContainsGameProject = true;
                 }
             }
-            return false;
+            return bProjectRefExists;
+        }
+
+        private void UpdateGameProjectWithGenReference(string projPath, string projectName)
+        {
+            if (!File.Exists(GameProjPath)) return;
+            List<string> projContent = File.ReadAllLines(GameProjPath).ToList();
+            string _projectEndTag = "</Project>";
+            int _projectEndIndex = -1;
+            string relativeProjPath = NormalizePath(FPaths.MakePathRelativeTo(projPath, GameProjPath));
+
+            for (int i = 0; i < projContent.Count; i++)
+            {
+                if (projContent[i].Contains(_projectEndTag) && i > 1)
+                {
+                    _projectEndIndex = i;
+                    break;
+                }
+            }
+
+            if(_projectEndIndex != -1)
+            {
+                projContent.InsertRange(_projectEndIndex,
+                    new string[]
+                    {
+                            "  <ItemGroup>",
+                            @"    <ProjectReference Include=" + @"""" + relativeProjPath + @"""" + " />",
+                            "  </ItemGroup>"
+                    }
+                );
+            }
+            File.WriteAllLines(GameProjPath, projContent.ToArray());
         }
 
         private void UpdateSolutionWithNewProjectFile(string slnPath, string projPath, string projectName, Guid projectGUID, string[] solutionContent)
