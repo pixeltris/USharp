@@ -1,5 +1,5 @@
 #include "SharpClass.h"
-#include "ActorTick.h"
+#include "VTableHacks.h"
 
 // typedef void (FNativeFuncPtr)(UObject* Context, FFrame* TheStack, RESULT_DECL);
 void FallbackFunctionInvoker(UObject* Context, FFrame& Stack, RESULT_DECL)
@@ -204,6 +204,24 @@ CSEXPORT void CSCONV Export_USharpClass_Set_ManagedConstructor(USharpClass* inst
 	instance->ManagedConstructor = value;
 }
 
+CSEXPORT void CSCONV Export_USharpClass_GetDummyObjects(UObject*& OutDummyObject1, UObject*& OutDummyObject2, UObject*& OutDummyObject3)
+{
+	OutDummyObject1 = UDummyObject1::StaticClass()->GetDefaultObject();
+	OutDummyObject2 = UDummyObject2::StaticClass()->GetDefaultObject();
+	OutDummyObject3 = UDummyObject3::StaticClass()->GetDefaultObject();
+}
+
+CSEXPORT void CSCONV Export_USharpClass_Set_GetLifetimeReplicatedPropsCallback(GetLifetimeReplicatedPropsCallbackSig Callback)
+{
+	GetLifetimeReplicatedPropsCallback = Callback;
+}
+
+typedef void (UObject::*GetLifetimeReplicatedPropsFunc)(TArray<FLifetimeProperty>& OutLifetimeProps);
+CSEXPORT void CSCONV Export_USharpClass_CallOriginalGetLifetimeReplicatedProps(GetLifetimeReplicatedPropsFunc Func, UObject* Obj, TArray<FLifetimeProperty>& OutLifetimeProps)
+{
+	(Obj->*Func)(OutLifetimeProps);
+}
+
 CSEXPORT void CSCONV Export_USharpClass(RegisterFunc registerFunc)
 {
 	REGISTER_FUNC(Export_USharpClass_ClearFuncMapEx);
@@ -213,4 +231,7 @@ CSEXPORT void CSCONV Export_USharpClass(RegisterFunc registerFunc)
 	REGISTER_FUNC(Export_USharpClass_Get_ManagedConstructor);
 	REGISTER_FUNC(Export_USharpClass_Set_ManagedConstructor);
 	REGISTER_FUNC(Export_USharpClass_UpdateNativeParentConstructor);
+	REGISTER_FUNC(Export_USharpClass_GetDummyObjects);
+	REGISTER_FUNC(Export_USharpClass_Set_GetLifetimeReplicatedPropsCallback);
+	REGISTER_FUNC(Export_USharpClass_CallOriginalGetLifetimeReplicatedProps);
 }

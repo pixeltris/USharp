@@ -154,6 +154,11 @@ CSEXPORT int32 CSCONV Export_SizeOfStruct_SizeOf_FKey()
 	return sizeof(FKey);
 }
 
+CSEXPORT int32 CSCONV Export_SizeOfStruct_SizeOf_FLifetimeProperty()
+{
+	return sizeof(FLifetimeProperty);
+}
+
 // FTickFunction structs
 
 CSEXPORT int32 CSCONV Export_SizeOfStruct_SizeOf_FActorComponentTickFunction()

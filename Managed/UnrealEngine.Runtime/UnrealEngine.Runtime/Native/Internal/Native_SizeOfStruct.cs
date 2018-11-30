@@ -45,6 +45,7 @@ namespace UnrealEngine.Runtime.Native
         public static Del_SizeOf SizeOf_FActorSpawnParameters;
         public static Del_SizeOf SizeOf_FTickPrerequisite;
         public static Del_SizeOf SizeOf_FKey;
+        public static Del_SizeOf SizeOf_FLifetimeProperty;
 
         // FTickFunction structs (we (dangerously) expect these to all be the same size to get the Target pointer)
         public static Del_SizeOf SizeOf_FActorComponentTickFunction;
