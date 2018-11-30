@@ -309,15 +309,15 @@ namespace UnrealEngine.Runtime
                 newSlnContent.InsertRange(endProjectIndex + 1, endProjectContent);
                 //Because The Array Has Been Altered, 
                 //I'll Need To Update The Index With The Content's Length
-                newSlnContent.InsertRange(endGlobalSectionIndex + 1 + endProjectContent.Length, new string[]
-                {
-                    @"	GlobalSection(ProjectConfigurationPlatforms) = postSolution",
-                    @"		{" + projectGUID + @"}.Debug|Any CPU.ActiveCfg = Debug|Any CPU",
-                    @"		{" + projectGUID + @"}.Debug|Any CPU.Build.0 = Debug|Any CPU",
-                    @"		{" + projectGUID + @"}.Release|Any CPU.ActiveCfg = Release|Any CPU",
-                    @"		{" + projectGUID + @"}.Release|Any CPU.Build.0 = Release|Any CPU",
-                    @"	EndGlobalSection"
-                });
+                //newSlnContent.InsertRange(endGlobalSectionIndex + 1 + endProjectContent.Length, new string[]
+                //{
+                //    @"	GlobalSection(ProjectConfigurationPlatforms) = postSolution",
+                //    @"		{" + projectGUID + @"}.Debug|Any CPU.ActiveCfg = Debug|Any CPU",
+                //    @"		{" + projectGUID + @"}.Debug|Any CPU.Build.0 = Debug|Any CPU",
+                //    @"		{" + projectGUID + @"}.Release|Any CPU.ActiveCfg = Release|Any CPU",
+                //    @"		{" + projectGUID + @"}.Release|Any CPU.Build.0 = Release|Any CPU",
+                //    @"	EndGlobalSection"
+                //});
 
                 //Update Solution File
                 File.WriteAllLines(slnPath, newSlnContent.ToArray());

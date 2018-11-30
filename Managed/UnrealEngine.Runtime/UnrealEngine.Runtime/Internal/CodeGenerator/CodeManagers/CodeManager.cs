@@ -18,7 +18,6 @@ namespace UnrealEngine.Runtime
         public string GameProjPath { get; private set; }
 
         //Used For Generating Wrappers From Native Game Code
-        public string GameNativeGenerationSlnPath { get; private set; }
         public string GameNativeGenerationProjPath { get; private set; }
 
         protected virtual string LogCategory
@@ -51,7 +50,6 @@ namespace UnrealEngine.Runtime
             string projectName = Settings.GetProjectName();
             GameSlnPath = Path.Combine(Settings.GetManagedDir(), "ManagedGameCode" + ".sln");
             GameProjPath = Path.Combine(Settings.GetManagedDir(), "GameCode", "GameCode" + ".csproj");
-            GameNativeGenerationSlnPath = GameSlnPath;
             GameNativeGenerationProjPath = Path.Combine(Settings.GetManagedDir(), "Generated", "NativeCodeWrappers" + ".csproj");
 
             OnBegin();
@@ -105,7 +103,7 @@ namespace UnrealEngine.Runtime
                             relativeSourceFilePath = name + ".cs";
                         }
                         sourceFilePath = Path.Combine(Settings.GetGeneratedCodeDir(), rootFolderName, relativeSourceFilePath);
-                        slnPath = GameNativeGenerationSlnPath;
+                        slnPath = GameSlnPath;
                         projPath = GameNativeGenerationProjPath;
                     }
                     break;
@@ -365,11 +363,18 @@ namespace UnrealEngine.Runtime
 
         protected virtual string[] GetProjectFileContents(string version, string projectName, out Guid projectGuid)
         {
-            string _ue4RuntimePath = Settings.EngineProjMerge ==
+            string ue4RuntimePath = Settings.EngineProjMerge ==
                 CodeGeneratorSettings.ManagedEngineProjMerge.EngineAndPluginsCombined ?
                 @"..\UnrealEngine.Runtime.dll" : @"..\..\..\UnrealEngine.Runtime.dll";
+            bool bAddUE4RuntimePath = true;
+
+            if(projectName == Path.GetFileNameWithoutExtension(GameProjPath) ||
+                projectName == Path.GetFileNameWithoutExtension(GameNativeGenerationProjPath))
+            {
+                bAddUE4RuntimePath = false;
+            }
             projectGuid = Guid.NewGuid();
-            return new string[]
+            List<string> projFileContent = new List<string>
             {
                 @"<?xml version=""1.0"" encoding=""utf-8""?>",
                 @"<Project ToolsVersion=""" + version + @""" DefaultTargets=""Build"" xmlns=""http://schemas.microsoft.com/developer/msbuild/2003"">",
@@ -386,14 +391,26 @@ namespace UnrealEngine.Runtime
                 @"    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>",
                 @"  </PropertyGroup>",
                 @"  <ItemGroup>",
-                @"  <Reference Include=""System"" />",
-                @"    <Reference Include=""" + "UnrealEngine.Runtime" + @""">",
-                @"      <HintPath>" + _ue4RuntimePath + @"</HintPath>",
-                @"    </Reference>",
+                @"    <Reference Include=""System"" />"
+            };
+
+            if (bAddUE4RuntimePath)
+            {
+                projFileContent.AddRange(new string[]
+                {
+                    @"    <Reference Include=""" + "UnrealEngine.Runtime" + @""">",
+                    @"      <HintPath>" + ue4RuntimePath + @"</HintPath>",
+                    @"    </Reference>"
+                });
+            }
+
+            projFileContent.AddRange(new string[]{
                 @"  </ItemGroup>",
                 @"  <Import Project=""$(MSBuildToolsPath)\Microsoft.CSharp.targets"" />",
                 @"</Project>"
-            };
+            });
+
+            return projFileContent.ToArray();
         }
 
         protected string[] GetSolutionContents(string slnPath, string projName, string projPath, Guid projectGuid)
