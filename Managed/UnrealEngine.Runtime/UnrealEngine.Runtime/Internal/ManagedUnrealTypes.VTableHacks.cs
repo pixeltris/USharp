@@ -16,9 +16,6 @@ namespace UnrealEngine.Runtime
         private static int lifetimeReplicatedPropsVTableIndex;
         private static IntPtr redirectedGetLifetimeReplicatedProps;
 
-        [DllImport("kernel32.dll", SetLastError = true)]
-        static extern bool VirtualProtect(IntPtr address, uint size, uint newProtect, out uint oldProtect);
-
         private static unsafe void LoadVTableHacks()
         {
             // We have three classes UDummyObject3 : UDummyObject2 : UDummyObject1 : UObject
@@ -78,9 +75,7 @@ namespace UnrealEngine.Runtime
 
                     if (unrealClass.OriginalGetLifetimeReplicatedProps != IntPtr.Zero)
                     {
-                        uint oldProtect;
-                        VirtualProtect((IntPtr)(&vtable[lifetimeReplicatedPropsVTableIndex]), (uint)IntPtr.Size, 0x40, out oldProtect);
-
+                        FMemory.PageProtect((IntPtr)(&vtable[lifetimeReplicatedPropsVTableIndex]), (IntPtr)IntPtr.Size, true, true);
                         *(&vtable[lifetimeReplicatedPropsVTableIndex]) = unrealClass.OriginalGetLifetimeReplicatedProps;
                     }
                 }
@@ -169,8 +164,8 @@ namespace UnrealEngine.Runtime
             List<FLifetimeProperty> props = new List<FLifetimeProperty>();
             obj.GetLifetimeReplicatedProps(props);
             
-            TArrayUnsafeRef<FLifetimeProperty> array = new TArrayUnsafeRef<FLifetimeProperty>(arrayPtr);
-            array.AddRange(props);
+            TArrayUnsafeRef<FLifetimeProperty> arrayUnsafe = new TArrayUnsafeRef<FLifetimeProperty>(arrayPtr);
+            arrayUnsafe.AddRange(props);
         }
     }
 }
