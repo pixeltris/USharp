@@ -87,7 +87,7 @@ namespace UnrealEngine.Runtime
                     //Only Update If Solution Contains Game Project Solution
                     if (ReadyToAddNewProjectRef(slnPath, projPath, projectName, projectGUID, out solutionContent, out bProjectRefExists))
                     {
-                        UpdateSolutionWithNewProjectFile(slnPath, projPath, projectName, projectGUID, solutionContent);
+                        UpdateSolutionWithNewProjectFile(slnPath, projPath, projectName, projectGUID, solutionContent, bProjectRefExists);
                         UpdateGameProjectWithGenReference(projPath, projectName);
                     }
                 }
@@ -288,9 +288,11 @@ namespace UnrealEngine.Runtime
             }
         }
 
-        private void UpdateSolutionWithNewProjectFile(string slnPath, string projPath, string projectName, Guid projectGUID, string[] solutionContent)
+        private void UpdateSolutionWithNewProjectFile(string slnPath, string projPath, string projectName, Guid projectGUID, string[] solutionContent, bool bProjectRefExists)
         {
-            if (solutionContent.Length <= 0) return;
+            //Don't Update If Solution Doesn't Have Content
+            //Or Project Ref Already Exists In Solution
+            if (solutionContent.Length <= 0 || bProjectRefExists) return;
             List<string> newSlnContent = solutionContent.ToList();
             Guid projectTypeGuid = new Guid(@"FAE04EC0-301F-11D3-BF4B-00C04F79EFBC");// C# project type guid
             string relativeProjPath = NormalizePath(FPaths.MakePathRelativeTo(projPath, slnPath));
