@@ -31,11 +31,6 @@
     <UE4GenModulesPath>$(USharpPluginPath)/Binaries/Managed/Modules/bin/Debug/UnrealEngine.dll</UE4GenModulesPath>
   </PropertyGroup>
 
-  <!--Will Only Exist If Generating Game Modules Succeeded-->
-  <PropertyGroup>
-    <NativeCodeWrappersPath>../Binaries/NativeCodeWrappers.dll</NativeCodeWrappersPath>
-  </PropertyGroup>
-
   <ItemGroup>
     <Reference Include="UnrealEngine.Runtime">
       <HintPath>$(USharpRunntimeDllPath)</HintPath>
@@ -47,16 +42,6 @@
       <ItemGroup>
         <Reference Include="UnrealEngine">
           <HintPath>$(UE4GenModulesPath)</HintPath>
-        </Reference>
-      </ItemGroup>
-    </When>
-  </Choose>
-
-  <Choose>
-    <When Condition="Exists('$(NativeCodeWrappersPath)')">
-      <ItemGroup>
-        <Reference Include="NativeCodeWrappers">
-          <HintPath>$(NativeCodeWrappersPath)</HintPath>
         </Reference>
       </ItemGroup>
     </When>
