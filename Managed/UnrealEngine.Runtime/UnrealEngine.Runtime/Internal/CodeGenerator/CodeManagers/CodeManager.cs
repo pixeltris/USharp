@@ -19,6 +19,8 @@ namespace UnrealEngine.Runtime
 
         //Used For Generating Wrappers From Native Game Code
         public string GameNativeGenerationProjPath { get; private set; }
+        //Used For Generating Wrappers From Native Game Plugins
+        public string GamePluginGenerationProjPath { get; private set; }
 
         protected virtual string LogCategory
         {
@@ -51,6 +53,7 @@ namespace UnrealEngine.Runtime
             GameSlnPath = Path.Combine(Settings.GetManagedDir(), "ManagedGameCode" + ".sln");
             GameProjPath = Path.Combine(Settings.GetManagedDir(), "GameCode", "GameCode" + ".csproj");
             GameNativeGenerationProjPath = Path.Combine(Settings.GetManagedDir(), "Generated", "NativeCodeWrappers" + ".csproj");
+            GamePluginGenerationProjPath = Path.Combine(Settings.GetManagedDir(), "Generated", "GamePlugins" + ".csproj");
 
             OnBegin();
         }
@@ -183,11 +186,11 @@ namespace UnrealEngine.Runtime
 
                         if (Settings.GameProjMerge == CodeGeneratorSettings.ManagedGameProjMerge.GameAndPlugins)
                         {
-                            projPath = GameProjPath;
+                            projPath = GameNativeGenerationProjPath;
                         }
                         else if (Settings.GameProjMerge == CodeGeneratorSettings.ManagedGameProjMerge.Plugins)
                         {
-                            projPath = Path.Combine(Settings.GetManagedDir(), rootFolderName, "GamePlugins.csproj");
+                            projPath = GamePluginGenerationProjPath;
                         }
                         else
                         {
@@ -369,7 +372,8 @@ namespace UnrealEngine.Runtime
             bool bAddUE4RuntimePath = true;
 
             if(projectName == Path.GetFileNameWithoutExtension(GameProjPath) ||
-                projectName == Path.GetFileNameWithoutExtension(GameNativeGenerationProjPath))
+                projectName == Path.GetFileNameWithoutExtension(GameNativeGenerationProjPath) ||
+                projectName == Path.GetFileNameWithoutExtension(GamePluginGenerationProjPath))
             {
                 bAddUE4RuntimePath = false;
             }
