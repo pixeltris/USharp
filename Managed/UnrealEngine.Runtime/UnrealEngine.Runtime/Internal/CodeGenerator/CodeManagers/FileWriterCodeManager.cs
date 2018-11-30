@@ -282,8 +282,9 @@ namespace UnrealEngine.Runtime
                         "  </ItemGroup>"
                     }
                 );
+
+                File.WriteAllLines(GameProjPath, projContent.ToArray());
             }
-            File.WriteAllLines(GameProjPath, projContent.ToArray());
         }
 
         private void UpdateSolutionWithNewProjectFile(string slnPath, string projPath, string projectName, Guid projectGUID, string[] solutionContent)
@@ -292,9 +293,12 @@ namespace UnrealEngine.Runtime
             List<string> newSlnContent = solutionContent.ToList();
             Guid projectTypeGuid = new Guid(@"FAE04EC0-301F-11D3-BF4B-00C04F79EFBC");// C# project type guid
             string relativeProjPath = NormalizePath(FPaths.MakePathRelativeTo(projPath, slnPath));
+            string projRefInclude = @"Project(""{" + projectTypeGuid + @"}"") = """ + projectName + @""", """ + relativeProjPath + @""", ""{" + projectGUID + @"}""";
 
             int endProjectIndex = -1;
             int endGlobalSectionIndex = -1;
+            int projRefIncludeIndex = -1;
+
             for (int i = 0; i < solutionContent.Length; i++)
             {
                 if (solutionContent[i].Contains("EndProject"))
@@ -305,12 +309,19 @@ namespace UnrealEngine.Runtime
                 {
                     endGlobalSectionIndex = i;
                 }
+                else if (solutionContent[i].Contains(projRefInclude))
+                {
+                    projRefIncludeIndex = i;
+                }
             }
-            if(endProjectIndex != -1 && endGlobalSectionIndex != -1)
+            //If EndProject and EndGlobalSection Sections Exist In Solution
+            //But Project Ref To Include Hasn't Been Added Yet
+            if (endProjectIndex != -1 && endGlobalSectionIndex != -1 &&
+                projRefIncludeIndex == -1)
             {
                 string[] endProjectContent = new string[]
                 {
-                    @"Project(""{" + projectTypeGuid + @"}"") = """ + projectName + @""", """ + relativeProjPath + @""", ""{" + projectGUID + @"}""",
+                    projRefInclude,
                     @"EndProject"
                 };
                 newSlnContent.InsertRange(endProjectIndex + 1, endProjectContent);
