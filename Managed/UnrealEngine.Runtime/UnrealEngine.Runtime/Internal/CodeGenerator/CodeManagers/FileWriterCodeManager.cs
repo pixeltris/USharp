@@ -245,26 +245,19 @@ namespace UnrealEngine.Runtime
             string relativeProjPath = NormalizePath(FPaths.MakePathRelativeTo(projPath, slnPath));
 
             int endProjectIndex = -1;
-            int beforeEndGlobalSectionIndex = -1;
+            int endGlobalSectionIndex = -1;
             for (int i = 0; i < solutionContent.Length; i++)
             {
                 if (solutionContent[i].Contains("EndProject"))
                 {
                     endProjectIndex = i;
                 }
-                else if(solutionContent[i].Contains("Release|Any CPU.Build.0 = Release|Any CPU"))
+                else if (solutionContent[i].Contains("EndGlobalSection"))
                 {
-                    //Use Release Index If It Exists
-                    //Will Always Be After Debug Index So
-                    //Order Doesn't Really Matter
-                    beforeEndGlobalSectionIndex = i;
-                }
-                else if(solutionContent[i].Contains("Debug|Any CPU.Build.0 = Debug|Any CPU"))
-                {
-                    beforeEndGlobalSectionIndex = i;
+                    endGlobalSectionIndex = i;
                 }
             }
-            if(endProjectIndex != -1 && beforeEndGlobalSectionIndex != -1)
+            if(endProjectIndex != -1 && endGlobalSectionIndex != -1)
             {
                 string[] endProjectContent = new string[]
                 {
@@ -274,12 +267,14 @@ namespace UnrealEngine.Runtime
                 newSlnContent.InsertRange(endProjectIndex + 1, endProjectContent);
                 //Because The Array Has Been Altered, 
                 //I'll Need To Update The Index With The Content's Length
-                newSlnContent.InsertRange(beforeEndGlobalSectionIndex + 1 + endProjectContent.Length, new string[]
+                newSlnContent.InsertRange(endGlobalSectionIndex + 1 + endProjectContent.Length, new string[]
                 {
+                    @"	GlobalSection(ProjectConfigurationPlatforms) = postSolution",
                     @"		{" + projectGUID + @"}.Debug|Any CPU.ActiveCfg = Debug|Any CPU",
                     @"		{" + projectGUID + @"}.Debug|Any CPU.Build.0 = Debug|Any CPU",
                     @"		{" + projectGUID + @"}.Release|Any CPU.ActiveCfg = Release|Any CPU",
                     @"		{" + projectGUID + @"}.Release|Any CPU.Build.0 = Release|Any CPU",
+                    @"	EndGlobalSection"
                 });
 
                 //Update Solution File
