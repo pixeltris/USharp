@@ -82,12 +82,10 @@ namespace UnrealEngine.Runtime
                 }
                 else
                 {
-                    //Update the Solution File if Project Is Different From One That Already Exists
-                    //And There Isn't A Project Reference In the Solution File
                     string[] solutionContent;
+                    bool bProjectRefExists;
                     //Only Update If Solution Contains Game Project Solution
-                    bool bContainsGameProject;
-                    if(!CheckForExistingProjectRef(slnPath, projPath, projectName, projectGUID, out solutionContent, out bContainsGameProject) && bContainsGameProject)
+                    if (ReadyToAddNewProjectRef(slnPath, projPath, projectName, projectGUID, out solutionContent, out bProjectRefExists))
                     {
                         UpdateSolutionWithNewProjectFile(slnPath, projPath, projectName, projectGUID, solutionContent);
                         UpdateGameProjectWithGenReference(projPath, projectName);
@@ -219,17 +217,17 @@ namespace UnrealEngine.Runtime
             }
         }
 
-        private bool CheckForExistingProjectRef(string slnPath, string projPath, string projectName, Guid projectGUID, out string[] solutionContent, out bool bContainsGameProject)
+        private bool ReadyToAddNewProjectRef(string slnPath, string projPath, string projectName, Guid projectGUID, out string[] solutionContent, out bool bProjectRefExists)
         {
-            bool bProjectRefExists = false;
-            bContainsGameProject = false;
+            bProjectRefExists = false;
+            bool bContainsGameProject = false;
             if (!File.Exists(slnPath) || !File.Exists(projPath))
             {
                 solutionContent = new string[] { };
                 //Don't Update Solution, False Will Trigger An Update
-                return true;
+                return false;
             }
-
+            
             solutionContent = File.ReadAllLines(slnPath);
             string guidString = projectGUID.ToString();
             string gameProjectName = Path.GetFileNameWithoutExtension(GameProjPath);
@@ -245,7 +243,9 @@ namespace UnrealEngine.Runtime
                     bContainsGameProject = true;
                 }
             }
-            return bProjectRefExists;
+
+            return bContainsGameProject && 
+                projectName == Path.GetFileNameWithoutExtension(GameNativeGenerationProjPath);
         }
 
         private void UpdateGameProjectWithGenReference(string projPath, string projectName)
