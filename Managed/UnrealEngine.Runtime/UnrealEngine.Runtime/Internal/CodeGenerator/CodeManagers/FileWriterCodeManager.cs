@@ -252,27 +252,34 @@ namespace UnrealEngine.Runtime
         {
             if (!File.Exists(GameProjPath)) return;
             List<string> projContent = File.ReadAllLines(GameProjPath).ToList();
-            string _projectEndTag = "</Project>";
-            int _projectEndIndex = -1;
+            string projectEndTag = "</Project>";
+            int projectEndIndex = -1;
+            int projectRefIncludeIndex = -1;
             string relativeProjPath = NormalizePath(FPaths.MakePathRelativeTo(projPath, GameProjPath));
+            string projectRefInclude = @"    <ProjectReference Include=" + @"""" + relativeProjPath + @"""" + " />";
 
             for (int i = 0; i < projContent.Count; i++)
             {
-                if (projContent[i].Contains(_projectEndTag) && i > 1)
+                if (projContent[i].Contains(projectEndTag) && i > 1)
                 {
-                    _projectEndIndex = i;
-                    break;
+                    projectEndIndex = i;
+                }
+                if (projContent[i].Contains(projectRefInclude))
+                {
+                    projectRefIncludeIndex = i;
                 }
             }
 
-            if(_projectEndIndex != -1)
+            //If Project End Tag Was Found And
+            //Project Ref Doesn't Already Exist
+            if(projectEndIndex != -1 && projectRefIncludeIndex == -1)
             {
-                projContent.InsertRange(_projectEndIndex,
+                projContent.InsertRange(projectEndIndex,
                     new string[]
                     {
-                            "  <ItemGroup>",
-                            @"    <ProjectReference Include=" + @"""" + relativeProjPath + @"""" + " />",
-                            "  </ItemGroup>"
+                        "  <ItemGroup>",
+                        projectRefInclude,
+                        "  </ItemGroup>"
                     }
                 );
             }
