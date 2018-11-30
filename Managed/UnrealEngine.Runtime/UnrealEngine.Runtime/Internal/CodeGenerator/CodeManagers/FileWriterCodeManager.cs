@@ -73,21 +73,21 @@ namespace UnrealEngine.Runtime
             try
             {
                 CreateFileDirectoryIfNotExists(projPath);
-                string _projectName = Path.GetFileNameWithoutExtension(projPath);
-                Guid _projectGUID;
-                File.WriteAllLines(projPath, GetProjectFileContents("15.0", _projectName, out _projectGUID));
+                string projectName = Path.GetFileNameWithoutExtension(projPath);
+                Guid projectGUID;
+                File.WriteAllLines(projPath, GetProjectFileContents("15.0", projectName, out projectGUID));
                 //Create Sln File if It doesn't exist
                 if (!File.Exists(slnPath)){
-                    CreateSolutionFileFromProjectFile(slnPath, projPath, _projectName, _projectGUID);
+                    CreateSolutionFileFromProjectFile(slnPath, projPath, projectName, projectGUID);
                 }
                 else
                 {
                     //Update the Solution File if Project Is Different From One That Already Exists
                     //And There Isn't A Project Reference In the Solution File
-                    string[] _solutionContent;
-                    if(CheckForExistingProjectRef(slnPath, projPath, _projectName, _projectGUID, out _solutionContent) == false)
+                    string[] solutionContent;
+                    if(!CheckForExistingProjectRef(slnPath, projPath, projectName, projectGUID, out solutionContent))
                     {
-                        UpdateSolutionWithNewProjectFile(slnPath, projPath, _projectName, _projectGUID, _solutionContent);
+                        UpdateSolutionWithNewProjectFile(slnPath, projPath, projectName, projectGUID, solutionContent);
                     }
                 }
             }
@@ -226,10 +226,10 @@ namespace UnrealEngine.Runtime
             }
 
             solutionContent = File.ReadAllLines(slnPath);
-            string _guidString = projectGUID.ToString();
-            foreach (string _line in solutionContent)
+            string guidString = projectGUID.ToString();
+            foreach (string line in solutionContent)
             {
-                if(_line.Contains(projectName) || _line.Contains(_guidString))
+                if(line.Contains(projectName) || line.Contains(guidString))
                 {
                     return true;
                 }
@@ -240,41 +240,41 @@ namespace UnrealEngine.Runtime
         private void UpdateSolutionWithNewProjectFile(string slnPath, string projPath, string projectName, Guid projectGUID, string[] solutionContent)
         {
             if (solutionContent.Length <= 0) return;
-            List<string> _newSlnContent = solutionContent.ToList();
+            List<string> newSlnContent = solutionContent.ToList();
             Guid projectTypeGuid = new Guid(@"FAE04EC0-301F-11D3-BF4B-00C04F79EFBC");// C# project type guid
             string relativeProjPath = NormalizePath(FPaths.MakePathRelativeTo(projPath, slnPath));
 
-            int _endProjectIndex = -1;
-            int _beforeEndGlobalSectionIndex = -1;
+            int endProjectIndex = -1;
+            int beforeEndGlobalSectionIndex = -1;
             for (int i = 0; i < solutionContent.Length; i++)
             {
                 if (solutionContent[i].Contains("EndProject"))
                 {
-                    _endProjectIndex = i;
+                    endProjectIndex = i;
                 }
                 else if(solutionContent[i].Contains("Release|Any CPU.Build.0 = Release|Any CPU"))
                 {
                     //Use Release Index If It Exists
                     //Will Always Be After Debug Index So
                     //Order Doesn't Really Matter
-                    _beforeEndGlobalSectionIndex = i;
+                    beforeEndGlobalSectionIndex = i;
                 }
                 else if(solutionContent[i].Contains("Debug|Any CPU.Build.0 = Debug|Any CPU"))
                 {
-                    _beforeEndGlobalSectionIndex = i;
+                    beforeEndGlobalSectionIndex = i;
                 }
             }
-            if(_endProjectIndex != -1 && _beforeEndGlobalSectionIndex != -1)
+            if(endProjectIndex != -1 && beforeEndGlobalSectionIndex != -1)
             {
-                string[] _endProjectContent = new string[]
+                string[] endProjectContent = new string[]
                 {
                     @"Project(""{" + projectTypeGuid + @"}"") = """ + projectName + @""", """ + relativeProjPath + @""", ""{" + projectGUID + @"}""",
                     @"EndProject"
                 };
-                _newSlnContent.InsertRange(_endProjectIndex + 1, _endProjectContent);
+                newSlnContent.InsertRange(endProjectIndex + 1, endProjectContent);
                 //Because The Array Has Been Altered, 
                 //I'll Need To Update The Index With The Content's Length
-                _newSlnContent.InsertRange(_beforeEndGlobalSectionIndex + 1 + _endProjectContent.Length, new string[]
+                newSlnContent.InsertRange(beforeEndGlobalSectionIndex + 1 + endProjectContent.Length, new string[]
                 {
                     @"		{" + projectGUID + @"}.Debug|Any CPU.ActiveCfg = Debug|Any CPU",
                     @"		{" + projectGUID + @"}.Debug|Any CPU.Build.0 = Debug|Any CPU",
@@ -283,7 +283,7 @@ namespace UnrealEngine.Runtime
                 });
 
                 //Update Solution File
-                File.WriteAllLines(slnPath, _newSlnContent.ToArray());
+                File.WriteAllLines(slnPath, newSlnContent.ToArray());
             }
         }
     }
