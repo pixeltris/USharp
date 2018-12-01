@@ -10,84 +10,149 @@ namespace UnrealEngine.Runtime
 {
     // Temporary VTable hacks until GetLifetimeReplicatedProps can be handled by UClass
     public static partial class ManagedUnrealTypes
-    {
-        delegate void OnGetLifetimeReplicatedPropsDel(IntPtr objPtr, IntPtr arrayPtr);
-        private static OnGetLifetimeReplicatedPropsDel onGetLifetimeReplicatedProps = OnGetLifetimeReplicatedProps;
-        private static int lifetimeReplicatedPropsVTableIndex;
-        private static IntPtr redirectedGetLifetimeReplicatedProps;
+    {   
+        private static void AddVTableRedirects()
+        {
+            // NOTE: Order is important! Keep in sync with the switch in Export_USharpClass_Set_VTableCallback
+
+            IntPtr objectClass = Runtime.Classes.UObject;
+            IntPtr pawnClass = Runtime.Classes.APawn;
+            
+            AddVTableRedirect(objectClass, "DummyRepProps", new GetLifetimeReplicatedPropsDel(OnGetLifetimeReplicatedProps));
+            AddVTableRedirect(pawnClass, "DummySetupPlayerInput", new SetupPlayerInputComponentDel(OnSetupPlayerInputComponent));
+        }
+
+        delegate void GetLifetimeReplicatedPropsDel(IntPtr address, IntPtr arrayAddress);
+        private static void OnGetLifetimeReplicatedProps(IntPtr address, IntPtr arrayAddress)
+        {
+            FMessage.Log("TODO: Custom GetLifetimeReplicatedProps");
+            //UObject obj = GCHelper.Find(address);
+            //
+            //List<FLifetimeProperty> props = new List<FLifetimeProperty>();
+            //obj.GetLifetimeReplicatedProps(props);
+            //
+            //TArrayUnsafeRef<FLifetimeProperty> arrayUnsafe = new TArrayUnsafeRef<FLifetimeProperty>(arrayAddress);
+            //arrayUnsafe.AddRange(props);
+        }
+
+        delegate void SetupPlayerInputComponentDel(IntPtr address, IntPtr inputComponentAddress);
+        private static void OnSetupPlayerInputComponent(IntPtr address, IntPtr inputComponentAddress)
+        {
+            FMessage.Log("TODO: Custom SetupPlayerInputComponent");
+        }
+
+        ////////////////////////////////////////////////////////////////////////////////////////
+        // Add vtable redirects above this line
+        ////////////////////////////////////////////////////////////////////////////////////////
+
+        class FunctionRedirect
+        {
+            public IntPtr Class;
+            public int VTableIndex;
+            public IntPtr NativeCallback;
+            public string DummyName;
+            public Delegate Callback;
+
+            public FunctionRedirect(IntPtr unrealClass, string dummyName, Delegate callback)
+            {
+                Debug.Assert(!Native_UStruct.IsChildOf(unrealClass, Runtime.Classes.UClass));
+                Class = unrealClass;
+                DummyName = dummyName;
+                Callback = callback;
+            }
+        }
+
+        private static List<FunctionRedirect> vtableRedirects;
+
+        private static void AddVTableRedirect(IntPtr unrealClass, string dummyName, Delegate callback)
+        {
+            Native_USharpClass.Set_VTableCallback(vtableRedirects.Count, Marshal.GetFunctionPointerForDelegate(callback));
+            vtableRedirects.Add(new FunctionRedirect(unrealClass, dummyName, callback));
+        }
 
         private static unsafe void LoadVTableHacks()
         {
+            vtableRedirects = new List<FunctionRedirect>();
+            AddVTableRedirects();
+
             // We have three classes UDummyObject3 : UDummyObject2 : UDummyObject1 : UObject
             //
-            // UDummyObject1 overrides GetLifetimeReplicatedProps
-            // UDummyObject2 doesn't override GetLifetimeReplicatedProps
-            // UDummyObject3 overrides GetLifetimeReplicatedProps
+            // UDummyObject1 overrides function "X"
+            // UDummyObject2 doesn't function "X"
+            // UDummyObject3 overrides function "X"
             //
             // Scan the vtable for each dummy object, search for an entry where vtable entry 1==2 && 1!=3
             // - We can assume this entry is our desired vtable index
             // - This may break down in situations where there is multiple inheritance
-			// - If this fails to complete properly this will result in a crash (or worse)
+            // - If this fails to complete properly this will result in a crash (or worse)
 
-            IntPtr dummyObject1, dummyObject2, dummyObject3;
-            Native_USharpClass.GetDummyObjects(out dummyObject1, out dummyObject2, out dummyObject3);
-
-            IntPtr* dummyVTable1 = *(IntPtr**)dummyObject1;
-            IntPtr* dummyVTable2 = *(IntPtr**)dummyObject2;
-            IntPtr* dummyVTable3 = *(IntPtr**)dummyObject3;
-
-            int index = 0;
-            while (true)
+            foreach (FunctionRedirect redirect in vtableRedirects)
             {
-                IntPtr dummyFunc1 = dummyVTable1[index];
-                IntPtr dummyFunc2 = dummyVTable2[index];
-                IntPtr dummyFunc3 = dummyVTable3[index];
+                IntPtr dummyClass1 = NativeReflection.GetClass("/Script/USharp." + redirect.DummyName + "1");
+                IntPtr dummyClass2 = NativeReflection.GetClass("/Script/USharp." + redirect.DummyName + "2");
+                IntPtr dummyClass3 = NativeReflection.GetClass("/Script/USharp." + redirect.DummyName + "3");
 
-                if (dummyFunc1 == dummyFunc2 && dummyFunc1 != dummyFunc3)
+                IntPtr dummyObject1 = Native_UClass.GetDefaultObject(dummyClass1, true);
+                IntPtr dummyObject2 = Native_UClass.GetDefaultObject(dummyClass2, true);
+                IntPtr dummyObject3 = Native_UClass.GetDefaultObject(dummyClass3, true);
+
+                IntPtr* dummyVTable1 = *(IntPtr**)dummyObject1;
+                IntPtr* dummyVTable2 = *(IntPtr**)dummyObject2;
+                IntPtr* dummyVTable3 = *(IntPtr**)dummyObject3;
+
+                for (int i = 0; i < int.MaxValue; i++)
                 {
-                    // The first dummy object has a function implementation which will redirect the call to our callback
-                    redirectedGetLifetimeReplicatedProps = dummyFunc1;
+                    IntPtr dummyFunc1 = dummyVTable1[i];
+                    IntPtr dummyFunc2 = dummyVTable2[i];
+                    IntPtr dummyFunc3 = dummyVTable3[i];
 
-                    lifetimeReplicatedPropsVTableIndex = index;
-                    Native_USharpClass.Set_GetLifetimeReplicatedPropsCallback(Marshal.GetFunctionPointerForDelegate(onGetLifetimeReplicatedProps));
-                    break;
+                    if (dummyFunc1 == dummyFunc2 && dummyFunc1 != dummyFunc3)
+                    {
+                        redirect.NativeCallback = dummyFunc1;
+                        redirect.VTableIndex = i;
+                        break;
+                    }
                 }
-                index++;
             }
         }
 
         private static unsafe void UnloadVTableHacks()
         {
-            Native_USharpClass.Set_GetLifetimeReplicatedPropsCallback(IntPtr.Zero);
+            for (int i = 0; i < vtableRedirects.Count; i++)
+            {
+                Native_USharpClass.Set_VTableCallback(i, IntPtr.Zero);
+            }
             
             // Restore the old vtable entry on hotreload. This is important as otherwise we would lose the original function address
             // which is stored in the managed UClass (which gets destroyed on hotreload)
             foreach (IntPtr objAddress in new NativeReflection.NativeObjectIterator(Runtime.Classes.UObject, EObjectFlags.NoFlags))
             {
-                IntPtr* vtable = *(IntPtr**)objAddress;
-                if (vtable[lifetimeReplicatedPropsVTableIndex] == redirectedGetLifetimeReplicatedProps)
+                foreach (FunctionRedirect redirect in vtableRedirects)
                 {
-                    UObject obj = GCHelper.Find(objAddress);
-                    Debug.Assert(obj != null);
-
-                    UClass unrealClass = obj.GetClass();
-                    Debug.Assert(unrealClass != null);
-
-                    if (unrealClass.OriginalGetLifetimeReplicatedProps != IntPtr.Zero)
+                    if (!Native_UObjectBaseUtility.IsA(objAddress, redirect.Class))
                     {
-                        FMemory.PageProtect((IntPtr)(&vtable[lifetimeReplicatedPropsVTableIndex]), (IntPtr)IntPtr.Size, true, true);
-                        *(&vtable[lifetimeReplicatedPropsVTableIndex]) = unrealClass.OriginalGetLifetimeReplicatedProps;
+                        continue;
+                    }
+
+                    IntPtr* vtable = *(IntPtr**)objAddress;
+                    if (vtable[redirect.VTableIndex] == redirect.NativeCallback)
+                    {
+                        UObject obj = GCHelper.Find(objAddress);
+                        Debug.Assert(obj != null);
+
+                        UClass unrealClass = obj.GetClass();
+                        Debug.Assert(unrealClass != null);
+
+                        IntPtr originalFunc;
+                        if (unrealClass.VTableOriginalFunctions != null &&
+                            unrealClass.VTableOriginalFunctions.TryGetValue(redirect.VTableIndex, out originalFunc))
+                        {
+                            FMemory.PageProtect((IntPtr)(&vtable[redirect.VTableIndex]), (IntPtr)IntPtr.Size, true, true);
+                            *(&vtable[redirect.VTableIndex]) = originalFunc;
+                        }
                     }
                 }
             }
-
-            // TODO: We need to exclude UFakeObject1/2/3 here as thats what redirectedGetLifetimeReplicatedProps points to
-            // There shouldn't be any more objects with the redirected vtable
-            //foreach (IntPtr objAddress in new NativeReflection.NativeObjectIterator(Runtime.Classes.UObject, EObjectFlags.NoFlags))
-            //{
-            //    IntPtr* vtable = *(IntPtr**)objAddress;
-            //    Debug.Assert(vtable[lifetimeReplicatedPropsVTableIndex] != redirectedGetLifetimeReplicatedProps);
-            //}
         }
 
         private static unsafe void HackVTable(UObject obj)
@@ -97,75 +162,82 @@ namespace UnrealEngine.Runtime
             if (!Native_UObjectBaseUtility.IsA(obj.Address, Runtime.Classes.UClass))
             {
                 UClass unrealClass = obj.GetClass();
-                if (unrealClass.OriginalGetLifetimeReplicatedProps == IntPtr.Zero)
+                if (unrealClass.VTableOriginalFunctions == null)
                 {
                     IntPtr* vtable = *(IntPtr**)obj.Address;
-                    IntPtr originalFunctionAddress = vtable[lifetimeReplicatedPropsVTableIndex];
-                    
-                    if (originalFunctionAddress != redirectedGetLifetimeReplicatedProps)
+
+                    unrealClass.VTableOriginalFunctions = new Dictionary<int, IntPtr>();
+                    foreach (FunctionRedirect redirect in vtableRedirects)
                     {
-                        IntPtr originalOwnerClassAddress = FindOriginalVTableOwner(unrealClass.Address, originalFunctionAddress);
-                        if (originalOwnerClassAddress != unrealClass.Address)
+                        if (!Native_UObjectBaseUtility.IsA(obj.Address, redirect.Class))
                         {
-                            UClass originalOwnerClass = GCHelper.Find<UClass>(originalOwnerClassAddress);
+                            continue;
+                        }
 
-                            if (originalOwnerClass.OriginalGetLifetimeReplicatedProps == IntPtr.Zero)
+                        IntPtr originalFunctionAddress = vtable[redirect.VTableIndex];
+
+                        if (originalFunctionAddress != redirect.NativeCallback)
+                        {
+                            IntPtr originalOwnerClassAddress = FindOriginalVTableOwner(
+                                redirect.Class, unrealClass.Address, originalFunctionAddress, redirect.VTableIndex);
+
+                            if (originalOwnerClassAddress != unrealClass.Address)
                             {
-                                originalOwnerClass.OriginalGetLifetimeReplicatedProps = originalFunctionAddress;
-
-                                // Might be a different vtable pointing to the same address. Also update the original if so.
-                                IntPtr* originalVTable = *(IntPtr**)Native_UClass.GetDefaultObject(originalOwnerClassAddress, true);
-                                if (originalVTable != vtable)
+                                UClass originalOwnerClass = GCHelper.Find<UClass>(originalOwnerClassAddress);
+                                if (originalOwnerClass.VTableOriginalFunctions == null)
                                 {
-                                    FMemory.PageProtect((IntPtr)(&originalVTable[lifetimeReplicatedPropsVTableIndex]), (IntPtr)IntPtr.Size, true, true);
-                                    *(&originalVTable[lifetimeReplicatedPropsVTableIndex]) = redirectedGetLifetimeReplicatedProps;
+                                    HackVTable(originalOwnerClass.GetDefaultObject());
                                 }
                             }
-                        }
-                        
-                        FMemory.PageProtect((IntPtr)(&vtable[lifetimeReplicatedPropsVTableIndex]), (IntPtr)IntPtr.Size, true, true);
-                        *(&vtable[lifetimeReplicatedPropsVTableIndex]) = redirectedGetLifetimeReplicatedProps;
-                    }
-                    else
-                    {
-                        // The VTable has already been swapped out. Find the original function address.
-                        UClass superClass = unrealClass;
-                        while ((superClass = superClass.GetSuperClass()) != null && superClass.OriginalGetLifetimeReplicatedProps == IntPtr.Zero)
-                        {
-                        }
-                        Debug.Assert(superClass != null && superClass.OriginalGetLifetimeReplicatedProps != IntPtr.Zero);
-                        originalFunctionAddress = superClass.OriginalGetLifetimeReplicatedProps;
-                    }
 
-                    unrealClass.OriginalGetLifetimeReplicatedProps = originalFunctionAddress;
+                            FMemory.PageProtect((IntPtr)(&vtable[redirect.VTableIndex]), (IntPtr)IntPtr.Size, true, true);
+                            *(&vtable[redirect.VTableIndex]) = redirect.NativeCallback;
+                        }
+                        else
+                        {
+                            // The VTable has already been swapped out. Find the original function address.
+                            UClass superClass = unrealClass;
+                            while ((superClass = superClass.GetSuperClass()) != null && superClass.VTableOriginalFunctions == null)
+                            {
+                            }
+
+                            Debug.Assert(superClass != null && superClass.VTableOriginalFunctions != null &&
+                                superClass.VTableOriginalFunctions.ContainsKey(redirect.VTableIndex));
+
+                            originalFunctionAddress = superClass.VTableOriginalFunctions[redirect.VTableIndex];
+                        }
+
+                        unrealClass.VTableOriginalFunctions.Add(redirect.VTableIndex, originalFunctionAddress);
+                    }
                 }
             }
         }
 
-        private static unsafe IntPtr FindOriginalVTableOwner(IntPtr ownerClass, IntPtr functionAddress)
+        private static unsafe IntPtr FindOriginalVTableOwner(IntPtr baseMostClass, IntPtr ownerClass, IntPtr functionAddress, int vtableIndex)
         {
+            // Don't search lower than the target base
+            if (ownerClass == baseMostClass)
+            {
+                return ownerClass;
+            }
+
             IntPtr originalOwner = ownerClass;
             while ((ownerClass = Native_UClass.GetSuperClass(ownerClass)) != IntPtr.Zero)
             {
                 IntPtr obj = Native_UClass.GetDefaultObject(ownerClass, true);
                 IntPtr* vtable = *(IntPtr**)obj;
-                if (vtable[lifetimeReplicatedPropsVTableIndex] == functionAddress)
+                if (vtable[vtableIndex] == functionAddress)
                 {
                     originalOwner = ownerClass;
                 }
+
+                // Don't search lower than the target base
+                if (ownerClass == baseMostClass)
+                {
+                    return ownerClass;
+                }
             }
             return originalOwner;
-        }
-
-        private static void OnGetLifetimeReplicatedProps(IntPtr objPtr, IntPtr arrayPtr)
-        {
-            UObject obj = GCHelper.Find(objPtr);
-
-            List<FLifetimeProperty> props = new List<FLifetimeProperty>();
-            obj.GetLifetimeReplicatedProps(props);
-            
-            TArrayUnsafeRef<FLifetimeProperty> arrayUnsafe = new TArrayUnsafeRef<FLifetimeProperty>(arrayPtr);
-            arrayUnsafe.AddRange(props);
         }
     }
 }

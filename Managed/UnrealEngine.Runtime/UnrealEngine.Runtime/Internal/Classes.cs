@@ -73,6 +73,7 @@ namespace UnrealEngine.Runtime
         public static IntPtr UGameEngine;
         public static IntPtr UWorld;
         public static IntPtr AActor;
+        public static IntPtr APawn;
 
         // USharp
         public static IntPtr USharpClass;
@@ -154,6 +155,7 @@ namespace UnrealEngine.Runtime
             UGameEngine = Native_Classes.UGameEngine();
             UWorld = Native_Classes.UWorld();
             AActor = Native_Classes.AActor();
+            APawn = Native_Classes.APawn();
 
             // USharp
             USharpClass = Native_Classes.USharpClass();
@@ -218,6 +220,7 @@ namespace UnrealEngine.Runtime
             UGameEngine = GetClass("/Script/Engine.GameEngine");
             UWorld = GetClass("/Script/Engine.World");
             AActor = GetClass("/Script/Engine.Actor");
+            APawn = GetClass("/Script/Engine.Pawn");
 
             // USharp
             USharpClass = GetClass("/Script/USharp.SharpClass");

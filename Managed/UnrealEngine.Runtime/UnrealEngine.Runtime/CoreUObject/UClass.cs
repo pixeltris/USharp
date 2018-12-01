@@ -16,9 +16,9 @@ namespace UnrealEngine.Runtime
     public class UClass : UStruct
     {
         /// <summary>
-        /// VTable hack. Remove when GetLifetimeReplicatedProps can be handled by UClass.
+        /// VTable hack. Remove when we can override functions we need using UClass.
         /// </summary>
-        internal IntPtr OriginalGetLifetimeReplicatedProps;
+        internal Dictionary<int, IntPtr> VTableOriginalFunctions;// <index, original function address>
 
         // Wrapper for holding onto a UClass and its address seperately in case a UClass gets destroyed by GC
         struct UClassRef
