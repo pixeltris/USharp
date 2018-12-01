@@ -1,5 +1,6 @@
 #include "Engine/EngineBaseTypes.h"
 #include "GameFramework/Actor.h"
+#include "GameFramework/Pawn.h"
 #include "Components/ActorComponent.h"
 #include "VTableHacks.generated.h"
 
@@ -62,44 +63,85 @@ struct TStructOpsTypeTraits<FSharpActorComponentTickFunction> : public TStructOp
 	};
 };
 
+// NOTE: We MUST define a new class for each function get ONE vtable difference in each class
+// Redefinition errors if callbacks are assigned in this file
+
+/////////////////////////////////////////////////////////////////////////////
+// UObject::GetLifetimeReplicatedProps
+/////////////////////////////////////////////////////////////////////////////
+
 typedef void (*GetLifetimeReplicatedPropsCallbackSig)(const UObject* Obj, TArray<FLifetimeProperty>& OutLifetimeProps);
-extern GetLifetimeReplicatedPropsCallbackSig GetLifetimeReplicatedPropsCallback;// Redefinition errors if assigned here
+extern GetLifetimeReplicatedPropsCallbackSig GetLifetimeReplicatedPropsCallback;
 
 UCLASS()
-class USHARP_API UDummyObject1 : public UObject
+class USHARP_API UDummyRepProps1 : public UObject
 {
 	GENERATED_BODY()
 
 public:
-	void OnGetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override
 	{
 		if (GetLifetimeReplicatedPropsCallback != nullptr)
 		{
 			GetLifetimeReplicatedPropsCallback(this, OutLifetimeProps);
 		}
 	}
-
-	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override
-	{
-		//FMsg::Logf("", 0, FName(TEXT("USharp")), ELogVerbosity::Log, TEXT("UDummyObject1-GetLifetimeReplicatedProps"));
-		OnGetLifetimeReplicatedProps(OutLifetimeProps);
-	}
 };
 
 UCLASS()
-class USHARP_API UDummyObject2 : public UDummyObject1
+class USHARP_API UDummyRepProps2 : public UDummyRepProps1
 {
 	GENERATED_BODY()
 };
 
 UCLASS()
-class USHARP_API UDummyObject3 : public UDummyObject2
+class USHARP_API UDummyRepProps3 : public UDummyRepProps2
 {
 	GENERATED_BODY()
 
 public:
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override
 	{
-		FMsg::Logf("", 0, FName(TEXT("USharp")), ELogVerbosity::Log, TEXT("UDummyObject3-GetLifetimeReplicatedProps"));
+		FMsg::Logf("", 0, FName(TEXT("USharp")), ELogVerbosity::Log, TEXT("UDummyRepProps3-GetLifetimeReplicatedProps"));
+	}
+};
+
+/////////////////////////////////////////////////////////////////////////////
+// APawn::SetupPlayerInputComponent
+/////////////////////////////////////////////////////////////////////////////
+
+typedef void (*SetupPlayerInputComponentCallbackSig)(APawn* Obj, UInputComponent* PlayerInputComponent);
+extern SetupPlayerInputComponentCallbackSig SetupPlayerInputComponentCallback;
+
+UCLASS()
+class USHARP_API ADummySetupPlayerInput1 : public APawn
+{
+	GENERATED_BODY()
+
+protected:
+	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override
+	{
+		if (SetupPlayerInputComponentCallback != nullptr)
+		{
+			SetupPlayerInputComponentCallback(this, PlayerInputComponent);
+		}
+	}
+};
+
+UCLASS()
+class USHARP_API ADummySetupPlayerInput2 : public ADummySetupPlayerInput1
+{
+	GENERATED_BODY()
+};
+
+UCLASS()
+class USHARP_API ADummySetupPlayerInput3 : public ADummySetupPlayerInput2
+{
+	GENERATED_BODY()
+
+protected:
+	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override
+	{
+		FMsg::Logf("", 0, FName(TEXT("USharp")), ELogVerbosity::Log, TEXT("ADummySetupPlayerInput3-SetupPlayerInputComponent"));
 	}
 };

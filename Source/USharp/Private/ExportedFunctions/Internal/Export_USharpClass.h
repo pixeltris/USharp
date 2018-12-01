@@ -204,22 +204,27 @@ CSEXPORT void CSCONV Export_USharpClass_Set_ManagedConstructor(USharpClass* inst
 	instance->ManagedConstructor = value;
 }
 
-CSEXPORT void CSCONV Export_USharpClass_GetDummyObjects(UObject*& OutDummyObject1, UObject*& OutDummyObject2, UObject*& OutDummyObject3)
-{
-	OutDummyObject1 = UDummyObject1::StaticClass()->GetDefaultObject();
-	OutDummyObject2 = UDummyObject2::StaticClass()->GetDefaultObject();
-	OutDummyObject3 = UDummyObject3::StaticClass()->GetDefaultObject();
-}
+// TODO: Move the vtable hacks somewhere else (means we also need to move the tick vtable function hacks)
 
-CSEXPORT void CSCONV Export_USharpClass_Set_GetLifetimeReplicatedPropsCallback(GetLifetimeReplicatedPropsCallbackSig Callback)
+CSEXPORT void CSCONV Export_USharpClass_Set_VTableCallback(int32 Index, void* Callback)
 {
-	GetLifetimeReplicatedPropsCallback = Callback;
+	switch (Index)
+	{
+		case 0: GetLifetimeReplicatedPropsCallback = (GetLifetimeReplicatedPropsCallbackSig)Callback; break;
+		case 1: SetupPlayerInputComponentCallback = (SetupPlayerInputComponentCallbackSig)Callback; break;
+	}
 }
 
 typedef void (UObject::*GetLifetimeReplicatedPropsFunc)(TArray<FLifetimeProperty>& OutLifetimeProps);
 CSEXPORT void CSCONV Export_USharpClass_CallOriginalGetLifetimeReplicatedProps(GetLifetimeReplicatedPropsFunc Func, UObject* Obj, TArray<FLifetimeProperty>& OutLifetimeProps)
 {
 	(Obj->*Func)(OutLifetimeProps);
+}
+
+typedef void (APawn::*SetupPlayerInputComponentFunc)(UInputComponent* PlayerInputComponent);
+CSEXPORT void CSCONV Export_USharpClass_CallOriginalSetupPlayerInputComponent(SetupPlayerInputComponentFunc Func, APawn* Obj, UInputComponent* PlayerInputComponent)
+{
+	(Obj->*Func)(PlayerInputComponent);
 }
 
 CSEXPORT void CSCONV Export_USharpClass(RegisterFunc registerFunc)
@@ -231,7 +236,7 @@ CSEXPORT void CSCONV Export_USharpClass(RegisterFunc registerFunc)
 	REGISTER_FUNC(Export_USharpClass_Get_ManagedConstructor);
 	REGISTER_FUNC(Export_USharpClass_Set_ManagedConstructor);
 	REGISTER_FUNC(Export_USharpClass_UpdateNativeParentConstructor);
-	REGISTER_FUNC(Export_USharpClass_GetDummyObjects);
-	REGISTER_FUNC(Export_USharpClass_Set_GetLifetimeReplicatedPropsCallback);
+	REGISTER_FUNC(Export_USharpClass_Set_VTableCallback);
 	REGISTER_FUNC(Export_USharpClass_CallOriginalGetLifetimeReplicatedProps);
+	REGISTER_FUNC(Export_USharpClass_CallOriginalSetupPlayerInputComponent);
 }

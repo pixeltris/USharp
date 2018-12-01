@@ -647,26 +647,12 @@ namespace UnrealEngine.Runtime
         /// <summary>
         /// Returns properties that are replicated for the lifetime of the actor channel
         /// </summary>
-        public virtual void GetLifetimeReplicatedProps(List<FLifetimeProperty> lifetimeProps)
+        public void GetLifetimeReplicatedProps(List<FLifetimeProperty> lifetimeProps)
         {
-            // VTable hacks
-            UClass unrealClass = GetClass();
-            if (unrealClass.OriginalGetLifetimeReplicatedProps != IntPtr.Zero)
+            using (TArrayUnsafe<FLifetimeProperty> resultUnsafe = new TArrayUnsafe<FLifetimeProperty>())
             {
-                using (TArrayUnsafe<FLifetimeProperty> resultUnsafe = new TArrayUnsafe<FLifetimeProperty>())
-                {
-                    Native_USharpClass.CallOriginalGetLifetimeReplicatedProps(unrealClass.OriginalGetLifetimeReplicatedProps,
-                        Address, resultUnsafe.Address);
-                    lifetimeProps.AddRange(resultUnsafe);
-                }
-            }
-            else
-            {
-                using (TArrayUnsafe<FLifetimeProperty> resultUnsafe = new TArrayUnsafe<FLifetimeProperty>())
-                {
-                    Native_UObject.GetLifetimeReplicatedProps(Address, resultUnsafe.Address);
-                    lifetimeProps.AddRange(resultUnsafe);
-                }
+                Native_UObject.GetLifetimeReplicatedProps(Address, resultUnsafe.Address);
+                lifetimeProps.AddRange(resultUnsafe);
             }
         }
 
