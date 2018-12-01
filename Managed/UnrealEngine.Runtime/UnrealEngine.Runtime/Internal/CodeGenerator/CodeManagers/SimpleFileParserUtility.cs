@@ -6,7 +6,6 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using UnrealEngine.Runtime;
 
 namespace UnrealEngine.Runtime.Utilities
 {
@@ -15,55 +14,55 @@ namespace UnrealEngine.Runtime.Utilities
         /// <summary>
         /// 
         /// </summary>
-        /// <param name="_filePath"></param>
-        /// <param name="_lineContentLookFor"></param>
-        /// <param name="_columnContentLookFrom"></param>
-        /// <param name="_openAndCloseParseRef">Example Would Be " Or { Or [</param>
-        /// <param name="_closeParseRef">Example Would Be " Or } Or ]</param>
+        /// <param name="filePath"></param>
+        /// <param name="lineContentLookFor"></param>
+        /// <param name="columnContentLookFrom"></param>
+        /// <param name="openParseRef">Example Would Be " Or { Or [</param>
+        /// <param name="closeParseRef">Example Would Be " Or } Or ]</param>
         /// <returns></returns>
-        public static string ObtainStringFromSharedFileContent(string _filePath, string _lineContentLookFor, string _columnContentLookFrom, char _openParseRef, char _closeParseRef)
+        public static string ObtainStringFromSharedFileContent(string filePath, string lineContentLookFor, string columnContentLookFrom, char openParseRef, char closeParseRef)
         {
-            return ObtainStringFromContentArray(ObtainContentFromSharedFile(_filePath), _lineContentLookFor, _columnContentLookFrom, _openParseRef, _closeParseRef);
+            return ObtainStringFromContentArray(ObtainContentFromSharedFile(filePath), lineContentLookFor, columnContentLookFrom, openParseRef, closeParseRef);
         }
 
         /// <summary>
         /// 
         /// </summary>
-        /// <param name="_content"></param>
-        /// <param name="_lineContentLookFor"></param>
-        /// <param name="_columnContentLookFrom"></param>
-        /// <param name="_openAndCloseParseRef">Example Would Be " Or { Or [</param>
-        /// <param name="_closeParseRef">Example Would Be " Or } Or ]</param>
+        /// <param name="content"></param>
+        /// <param name="lineContentLookFor"></param>
+        /// <param name="columnContentLookFrom"></param>
+        /// <param name="openParseRef">Example Would Be " Or { Or [</param>
+        /// <param name="closeParseRef">Example Would Be " Or } Or ]</param>
         /// <returns></returns>
-        public static string ObtainStringFromContentArray(string[] _content, string _lineContentLookFor, string _columnContentLookFrom, char _openParseRef, char _closeParseRef)
+        public static string ObtainStringFromContentArray(string[] content, string lineContentLookFor, string columnContentLookFrom, char openParseRef, char closeParseRef)
         {
-            string _foundPath = "";
-            if (_content == null || _content.Length <= 0 || string.IsNullOrEmpty(_lineContentLookFor) ||
-                string.IsNullOrEmpty(_columnContentLookFrom))
+            string foundPath = "";
+            if (content == null || content.Length <= 0 || string.IsNullOrEmpty(lineContentLookFor) ||
+                string.IsNullOrEmpty(columnContentLookFrom))
             {
                 LogFromSimpleFileParser("Couldn't Obtain String From Content Array Due To Parameters Being Invalid For Checking");
-                return _foundPath;
+                return foundPath;
             }
 
-            int _lineContentLookForIndex = ObtainLastIndexInAllLineContains(_content, _lineContentLookFor);
-            if(_lineContentLookForIndex != -1)
+            int lineContentLookForIndex = ObtainLastIndexInAllLineContains(content, lineContentLookFor);
+            if(lineContentLookForIndex != -1)
             {
-                string _fulllineFound = _content[_lineContentLookForIndex];
-                int _columnContentLookFromIndex = _fulllineFound.IndexOf(_columnContentLookFrom);
-                if(_columnContentLookFromIndex != -1)
+                string fulllineFound = content[lineContentLookForIndex];
+                int columnContentLookFromIndex = fulllineFound.IndexOf(columnContentLookFrom);
+                if(columnContentLookFromIndex != -1)
                 {
-                    string _foundPathInCharacters = ObtainStringFromLine(_openParseRef, _closeParseRef, _fulllineFound, _columnContentLookFromIndex);
+                    foundPath = ObtainStringFromLine(openParseRef, closeParseRef, fulllineFound, columnContentLookFromIndex);
                 }
                 else
                 {
-                    LogFromSimpleFileParser("Didn't find ColumnContentLookFrom: " + _columnContentLookFrom + " in Line: " + _fulllineFound);
+                    LogFromSimpleFileParser("Didn't find ColumnContentLookFrom: " + columnContentLookFrom + " in Line: " + fulllineFound);
                 }
             }
             else
             {
-                LogFromSimpleFileParser("Couldn't Find Instance of LineContentLookFor: " + _lineContentLookFor);
+                LogFromSimpleFileParser("Couldn't Find Instance of LineContentLookFor: " + lineContentLookFor);
             }
-            return _foundPath;
+            return foundPath;
         }
 
         public static string ObtainStringFromLine(char openParseRef, char closeParseRef, string lineToObtainCharsFrom, int columnToStartFromIndex)
@@ -80,11 +79,11 @@ namespace UnrealEngine.Runtime.Utilities
         {
             //Check For First Instance of OpenParseRef
             //(Such as Quotation Mark) After Archived Directory Arg
-            int _firstLineCheckIndex = FindFirstIndexOfGivenCharacter(lineToObtainCharsFrom, columnToStartFromIndex, openParseRef);
-            List<char> _foundPathInCharacters = new List<char>();
-            if (_firstLineCheckIndex != -1)
+            int firstLineCheckIndex = FindFirstIndexOfGivenCharacter(lineToObtainCharsFrom, columnToStartFromIndex, openParseRef);
+            List<char> foundPathInCharacters = new List<char>();
+            if (firstLineCheckIndex != -1)
             {
-                for (int i = _firstLineCheckIndex; i < lineToObtainCharsFrom.Length; i++)
+                for (int i = firstLineCheckIndex; i < lineToObtainCharsFrom.Length; i++)
                 {
                     //Checks Char After Current One For CloseParseRef(Such as Quotation Mark)
                     if (lineToObtainCharsFrom[i + 1] == closeParseRef)
@@ -93,7 +92,7 @@ namespace UnrealEngine.Runtime.Utilities
                     }
                     else
                     {
-                        _foundPathInCharacters.Add(lineToObtainCharsFrom[i + 1]);
+                        foundPathInCharacters.Add(lineToObtainCharsFrom[i + 1]);
                     }
                 }
             }
@@ -102,35 +101,35 @@ namespace UnrealEngine.Runtime.Utilities
                 LogFromSimpleFileParser("Couldn't Find Instance of OpenParseRef: " + openParseRef + " Inside found Line: " + lineToObtainCharsFrom);
             }
 
-            return _foundPathInCharacters;
+            return foundPathInCharacters;
         }
 
-        public static string[] ObtainContentFromSharedFile(string _filePath)
+        public static string[] ObtainContentFromSharedFile(string filePath)
         {
-            if (!string.IsNullOrEmpty(_filePath) && _filePath.Length > 2 && File.Exists(_filePath))
+            if (!string.IsNullOrEmpty(filePath) && filePath.Length > 2 && File.Exists(filePath))
             {
-                string _fileStreamLine;
-                List<string> _logContentList = new List<string>();
-                using (var _stream = File.Open(_filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
-                using (StreamReader _reader = new StreamReader(_stream))
+                string fileStreamLine;
+                List<string> logContentList = new List<string>();
+                using (var stream = File.Open(filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+                using (StreamReader reader = new StreamReader(stream))
                 {
-                    while ((_fileStreamLine = _reader.ReadLine()) != null)
+                    while ((fileStreamLine = reader.ReadLine()) != null)
                     {
-                        _logContentList.Add(_fileStreamLine);
+                        logContentList.Add(fileStreamLine);
                     }
                 }
 
-                string[] _logContent = _logContentList.ToArray();
+                string[] _logContent = logContentList.ToArray();
                 return _logContent;
             }
             return new string[] { };
         }
 
-        public static int ObtainFirstIndexIfContains(string[] _content, string _contains)
+        public static int ObtainFirstIndexIfContains(string[] content, string contains)
         {
-            for (int i = 0; i < _content.Length; i++)
+            for (int i = 0; i < content.Length; i++)
             {
-                if (_content[i].Contains(_contains))
+                if (content[i].Contains(contains))
                 {
                     return i;
                 }
@@ -138,40 +137,40 @@ namespace UnrealEngine.Runtime.Utilities
             return -1;
         }
 
-        public static List<int> ObtainAllLineIndexsIfContains(string[] _content, string _contains)
+        public static List<int> ObtainAllLineIndexsIfContains(string[] content, string contains)
         {
-            List<int> _allIndexes = new List<int>();
-            for (int i = 0; i < _content.Length; i++)
+            List<int> allIndexes = new List<int>();
+            for (int i = 0; i < content.Length; i++)
             {
-                if (_content[i].Contains(_contains))
+                if (content[i].Contains(contains))
                 {
-                    _allIndexes.Add(i);
+                    allIndexes.Add(i);
                 }
             }
-            return _allIndexes;
+            return allIndexes;
         }
 
-        public static int ObtainLastIndexInAllLineContains(string[] _content, string _contains)
+        public static int ObtainLastIndexInAllLineContains(string[] content, string contains)
         {
-            var _indexes = ObtainAllLineIndexsIfContains(_content, _contains);
-            int _last = -1;
-            foreach (var _index in _indexes)
+            var indexes = ObtainAllLineIndexsIfContains(content, contains);
+            int last = -1;
+            foreach (var index in indexes)
             {
-                if (_index > _last)
+                if (index > last)
                 {
-                    _last = _index;
+                    last = index;
                 }
             }
-            return _last;
+            return last;
         }
 
-        public static int FindFirstIndexOfGivenCharacter(string _line, int _startIndex, char _contains)
+        public static int FindFirstIndexOfGivenCharacter(string line, int startIndex, char contains)
         {
-            if (_startIndex < _line.Length)
+            if (startIndex < line.Length)
             {
-                for (int i = _startIndex; i < _line.Length; i++)
+                for (int i = startIndex; i < line.Length; i++)
                 {
-                    if (_line[i] == _contains) return i;
+                    if (line[i] == contains) return i;
                 }
             }
             return -1;
