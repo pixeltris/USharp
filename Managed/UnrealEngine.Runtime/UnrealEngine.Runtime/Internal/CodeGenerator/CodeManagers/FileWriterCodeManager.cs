@@ -6,6 +6,7 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.ComTypes;
 using System.Text;
+using simpleFileParser = UnrealEngine.Runtime.Utilities.SimpleFileParserUtility;
 
 namespace UnrealEngine.Runtime
 {
@@ -308,6 +309,9 @@ namespace UnrealEngine.Runtime
             {
                 //Remove Old Project Refs From Solution
                 bool bStillOldProjRefsExists;
+                List<string> oldProjGUIDRefList = new List<string>();
+                //Add Current Project GUIDString
+                oldProjGUIDRefList.Add(guidString);
                 do
                 {
                     bStillOldProjRefsExists = false;
@@ -316,14 +320,20 @@ namespace UnrealEngine.Runtime
                     bool bIsOldProjRefFromGUID = false;
                     for (int i = 0; i < newSlnContent.Count; i++)
                     {
-                        //TODO: Find GUIDs from All Old Project Refs
+                        //Find GUIDs from All Old Project Refs
                         //Using A List and Remove Them
                         //Otherwise Project References From GlobalSection
                         //Won't Be Found, Current GUID isn't Old Project GUID
-                        bool bLineContainsGUID = 
-                            newSlnContent[i].Contains(guidString) ||
-                            newSlnContent[i].ToLower().Contains(guidString.ToLower()) ||
-                            newSlnContent[i].ToUpper().Contains(guidString.ToUpper());
+                        bool bLineContainsGUID = false;
+                        foreach (string anotherProjGuid in oldProjGUIDRefList)
+                        {
+                            if(newSlnContent[i].Contains(anotherProjGuid) ||
+                            newSlnContent[i].ToLower().Contains(anotherProjGuid.ToLower()) ||
+                            newSlnContent[i].ToUpper().Contains(anotherProjGuid.ToUpper()))
+                            {
+                                bLineContainsGUID = true;
+                            }
+                        }
 
                         if (newSlnContent[i].Contains(projectName) || bLineContainsGUID)
                         {
@@ -333,6 +343,16 @@ namespace UnrealEngine.Runtime
                             if (newSlnContent[i].Contains(projectName))
                             {
                                 bIsOldProjRefFromGUID = false;
+                                //Try To Obtain GUID From Old Project
+                                int csProjStrIndex = newSlnContent[i].IndexOf("csproj");
+                                if(csProjStrIndex != -1)
+                                {
+                                    string tryObtainOldProjGUID = simpleFileParser.ObtainStringFromLine('{', '}', newSlnContent[i], csProjStrIndex);
+                                    if (!string.IsNullOrEmpty(tryObtainOldProjGUID))
+                                    {
+                                        oldProjGUIDRefList.Add(tryObtainOldProjGUID);
+                                    }
+                                }
                             }
                             else if (bLineContainsGUID)
                             {
