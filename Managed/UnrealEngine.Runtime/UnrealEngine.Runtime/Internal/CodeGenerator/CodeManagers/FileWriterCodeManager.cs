@@ -298,86 +298,14 @@ namespace UnrealEngine.Runtime
             Guid projectTypeGuid = new Guid(@"FAE04EC0-301F-11D3-BF4B-00C04F79EFBC");// C# project type guid
             string relativeProjPath = NormalizePath(FPaths.MakePathRelativeTo(projPath, slnPath));
             string projRefInclude = @"Project(""{" + projectTypeGuid + @"}"") = """ + projectName + @""", """ + relativeProjPath + @""", ""{" + projectGUID + @"}""";
-            //Need To Use Capital Letters For GUID Check
-            //Only Used For Existing Project Ref Checking
-            string guidString = projectGUID.ToString();
             int endProjectIndex = -1;
             int endGlobalSectionIndex = -1;
             int projRefIncludeIndex = -1;
 
             if (bProjectRefExists)
             {
-                //Remove Old Project Refs From Solution
-                bool bStillOldProjRefsExists;
-                List<string> oldProjGUIDRefList = new List<string>();
-                //Add Current Project GUIDString
-                oldProjGUIDRefList.Add(guidString);
-                do
-                {
-                    bStillOldProjRefsExists = false;
-                    string oldProjContent = null;
-                    int oldProjContentIndex = -1;
-                    bool bIsOldProjRefFromGUID = false;
-                    for (int i = 0; i < newSlnContent.Count; i++)
-                    {
-                        //Find GUIDs from All Old Project Refs
-                        //Using A List and Remove Them
-                        //Otherwise Project References From GlobalSection
-                        //Won't Be Found, Current GUID isn't Old Project GUID
-                        bool bLineContainsGUID = false;
-                        foreach (string anotherProjGuid in oldProjGUIDRefList)
-                        {
-                            if(newSlnContent[i].Contains(anotherProjGuid) ||
-                            newSlnContent[i].ToLower().Contains(anotherProjGuid.ToLower()) ||
-                            newSlnContent[i].ToUpper().Contains(anotherProjGuid.ToUpper()))
-                            {
-                                bLineContainsGUID = true;
-                            }
-                        }
-
-                        if (newSlnContent[i].Contains(projectName) || bLineContainsGUID)
-                        {
-                            oldProjContent = newSlnContent[i];
-                            bStillOldProjRefsExists = true;
-                            oldProjContentIndex = i;
-                            if (newSlnContent[i].Contains(projectName))
-                            {
-                                bIsOldProjRefFromGUID = false;
-                                //Try To Obtain GUID From Old Project
-                                int csProjStrIndex = newSlnContent[i].IndexOf("csproj");
-                                if(csProjStrIndex != -1)
-                                {
-                                    string tryObtainOldProjGUID = simpleFileParser.ObtainStringFromLine('{', '}', newSlnContent[i], csProjStrIndex);
-                                    if (!string.IsNullOrEmpty(tryObtainOldProjGUID))
-                                    {
-                                        oldProjGUIDRefList.Add(tryObtainOldProjGUID);
-                                    }
-                                }
-                            }
-                            else if (bLineContainsGUID)
-                            {
-                                bIsOldProjRefFromGUID = true;
-                            }
-                            break;
-                        }
-                    }
-
-                    if (bStillOldProjRefsExists && 
-                        !string.IsNullOrEmpty(oldProjContent) &&
-                        oldProjContentIndex != -1)
-                    {
-                        if (bIsOldProjRefFromGUID)
-                        {
-                            //Remove Global Section Project Ref, Only Delete One Line
-                            newSlnContent.RemoveRange(oldProjContentIndex, 1);
-                        }
-                        else
-                        {
-                            //Remove Project Reference, Including End Project Line
-                            newSlnContent.RemoveRange(oldProjContentIndex, 2);
-                        }
-                    }
-                } while (bStillOldProjRefsExists);
+                //Update SlnContent With New Content With All Proj Refs Removed
+                newSlnContent = ObtainSolutionWithAllOldProjRefsRemoved(newSlnContent, projectName, projectGUID);
             }
 
             for (int i = 0; i < newSlnContent.Count; i++)
@@ -412,6 +340,84 @@ namespace UnrealEngine.Runtime
                 //Update Solution File
                 File.WriteAllLines(slnPath, newSlnContent.ToArray());
             }
+        }
+
+        List<string> ObtainSolutionWithAllOldProjRefsRemoved(List<string> slnContent, string projectName, Guid projectGUID)
+        {
+            //Remove Old Project Refs From Solution
+            bool bStillOldProjRefsExists;
+            string guidString = projectGUID.ToString();
+            List<string> oldProjGUIDRefList = new List<string>();
+            //Add Current Project GUIDString
+            oldProjGUIDRefList.Add(guidString);
+            do
+            {
+                bStillOldProjRefsExists = false;
+                string oldProjContent = null;
+                int oldProjContentIndex = -1;
+                bool bIsOldProjRefFromGUID = false;
+                for (int i = 0; i < slnContent.Count; i++)
+                {
+                    //Find GUIDs from All Old Project Refs
+                    //Using A List and Remove Them
+                    //Otherwise Project References From GlobalSection
+                    //Won't Be Found, Current GUID isn't Old Project GUID
+                    bool bLineContainsGUID = false;
+                    foreach (string anotherProjGuid in oldProjGUIDRefList)
+                    {
+                        if (slnContent[i].Contains(anotherProjGuid) ||
+                        slnContent[i].ToLower().Contains(anotherProjGuid.ToLower()) ||
+                        slnContent[i].ToUpper().Contains(anotherProjGuid.ToUpper()))
+                        {
+                            bLineContainsGUID = true;
+                        }
+                    }
+
+                    if (slnContent[i].Contains(projectName) || bLineContainsGUID)
+                    {
+                        oldProjContent = slnContent[i];
+                        bStillOldProjRefsExists = true;
+                        oldProjContentIndex = i;
+                        if (slnContent[i].Contains(projectName))
+                        {
+                            bIsOldProjRefFromGUID = false;
+                            //Try To Obtain GUID From Old Project
+                            int csProjStrIndex = slnContent[i].IndexOf("csproj");
+                            if (csProjStrIndex != -1)
+                            {
+                                string tryObtainOldProjGUID = simpleFileParser.ObtainStringFromLine('{', '}', slnContent[i], csProjStrIndex);
+                                if (!string.IsNullOrEmpty(tryObtainOldProjGUID))
+                                {
+                                    oldProjGUIDRefList.Add(tryObtainOldProjGUID);
+                                }
+                            }
+                        }
+                        else if (bLineContainsGUID)
+                        {
+                            bIsOldProjRefFromGUID = true;
+                        }
+                        break;
+                    }
+                }
+
+                if (bStillOldProjRefsExists &&
+                    !string.IsNullOrEmpty(oldProjContent) &&
+                    oldProjContentIndex != -1)
+                {
+                    if (bIsOldProjRefFromGUID)
+                    {
+                        //Remove Global Section Project Ref, Only Delete One Line
+                        slnContent.RemoveRange(oldProjContentIndex, 1);
+                    }
+                    else
+                    {
+                        //Remove Project Reference, Including End Project Line
+                        slnContent.RemoveRange(oldProjContentIndex, 2);
+                    }
+                }
+            } while (bStillOldProjRefsExists);
+
+            return slnContent;
         }
     }
 }
