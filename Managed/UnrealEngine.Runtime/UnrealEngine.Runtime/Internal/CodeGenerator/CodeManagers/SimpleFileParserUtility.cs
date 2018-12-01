@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using UnrealEngine.Runtime;
 
 namespace UnrealEngine.Runtime.Utilities
 {
@@ -40,7 +41,7 @@ namespace UnrealEngine.Runtime.Utilities
             if (_content == null || _content.Length <= 0 || string.IsNullOrEmpty(_lineContentLookFor) ||
                 string.IsNullOrEmpty(_columnContentLookFrom))
             {
-                Console.WriteLine("Couldn't Obtain String From Content Array Due To Parameters Being Invalid For Checking");
+                LogFromSimpleFileParser("Couldn't Obtain String From Content Array Due To Parameters Being Invalid For Checking");
                 return _foundPath;
             }
 
@@ -55,12 +56,12 @@ namespace UnrealEngine.Runtime.Utilities
                 }
                 else
                 {
-                    Console.WriteLine("Didn't find ColumnContentLookFrom: " + _columnContentLookFrom + " in Line: " + _fulllineFound);
+                    LogFromSimpleFileParser("Didn't find ColumnContentLookFrom: " + _columnContentLookFrom + " in Line: " + _fulllineFound);
                 }
             }
             else
             {
-                Console.WriteLine("Couldn't Find Instance of LineContentLookFor: " + _lineContentLookFor);
+                LogFromSimpleFileParser("Couldn't Find Instance of LineContentLookFor: " + _lineContentLookFor);
             }
             return _foundPath;
         }
@@ -98,7 +99,7 @@ namespace UnrealEngine.Runtime.Utilities
             }
             else
             {
-                Console.WriteLine("Couldn't Find Instance of OpenParseRef: " + openParseRef + " Inside found Line: " + lineToObtainCharsFrom);
+                LogFromSimpleFileParser("Couldn't Find Instance of OpenParseRef: " + openParseRef + " Inside found Line: " + lineToObtainCharsFrom);
             }
 
             return _foundPathInCharacters;
@@ -174,6 +175,11 @@ namespace UnrealEngine.Runtime.Utilities
                 }
             }
             return -1;
+        }
+
+        private static void LogFromSimpleFileParser(string msg)
+        {
+            FMessage.Log(ELogVerbosity.Log, "SimpleFileParser: " + msg);
         }
     }
 }
