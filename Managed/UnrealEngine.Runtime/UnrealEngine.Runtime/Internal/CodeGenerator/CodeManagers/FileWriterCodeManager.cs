@@ -291,32 +291,92 @@ namespace UnrealEngine.Runtime
         private void UpdateSolutionWithNewProjectFile(string slnPath, string projPath, string projectName, Guid projectGUID, string[] solutionContent, bool bProjectRefExists)
         {
             //Don't Update If Solution Doesn't Have Content
-            //Or Project Ref Already Exists In Solution
-            if (solutionContent.Length <= 0 || bProjectRefExists) return;
+            if (solutionContent.Length <= 0) return;
+
             List<string> newSlnContent = solutionContent.ToList();
             Guid projectTypeGuid = new Guid(@"FAE04EC0-301F-11D3-BF4B-00C04F79EFBC");// C# project type guid
             string relativeProjPath = NormalizePath(FPaths.MakePathRelativeTo(projPath, slnPath));
             string projRefInclude = @"Project(""{" + projectTypeGuid + @"}"") = """ + projectName + @""", """ + relativeProjPath + @""", ""{" + projectGUID + @"}""";
-
+            //Need To Use Capital Letters For GUID Check
+            //Only Used For Existing Project Ref Checking
+            string guidString = projectGUID.ToString();
             int endProjectIndex = -1;
             int endGlobalSectionIndex = -1;
             int projRefIncludeIndex = -1;
 
-            for (int i = 0; i < solutionContent.Length; i++)
+            if (bProjectRefExists)
             {
-                if (solutionContent[i].Contains("EndProject"))
+                //Remove Old Project Refs From Solution
+                bool bStillOldProjRefsExists;
+                do
+                {
+                    bStillOldProjRefsExists = false;
+                    string oldProjContent = null;
+                    int oldProjContentIndex = -1;
+                    bool bIsOldProjRefFromGUID = false;
+                    for (int i = 0; i < newSlnContent.Count; i++)
+                    {
+                        //TODO: Find GUIDs from All Old Project Refs
+                        //Using A List and Remove Them
+                        //Otherwise Project References From GlobalSection
+                        //Won't Be Found, Current GUID isn't Old Project GUID
+                        bool bLineContainsGUID = 
+                            newSlnContent[i].Contains(guidString) ||
+                            newSlnContent[i].ToLower().Contains(guidString.ToLower()) ||
+                            newSlnContent[i].ToUpper().Contains(guidString.ToUpper());
+
+                        if (newSlnContent[i].Contains(projectName) || bLineContainsGUID)
+                        {
+                            oldProjContent = newSlnContent[i];
+                            bStillOldProjRefsExists = true;
+                            oldProjContentIndex = i;
+                            if (newSlnContent[i].Contains(projectName))
+                            {
+                                bIsOldProjRefFromGUID = false;
+                            }
+                            else if (bLineContainsGUID)
+                            {
+                                bIsOldProjRefFromGUID = true;
+                            }
+                            break;
+                        }
+                    }
+
+                    if (bStillOldProjRefsExists && 
+                        !string.IsNullOrEmpty(oldProjContent) &&
+                        oldProjContentIndex != -1)
+                    {
+                        if (bIsOldProjRefFromGUID)
+                        {
+                            //Remove Global Section Project Ref, Only Delete One Line
+                            newSlnContent.RemoveRange(oldProjContentIndex, 1);
+                        }
+                        else
+                        {
+                            //Remove Project Reference, Including End Project Line
+                            newSlnContent.RemoveRange(oldProjContentIndex, 2);
+                        }
+                    }
+                } while (bStillOldProjRefsExists);
+            }
+
+            for (int i = 0; i < newSlnContent.Count; i++)
+            {
+                //Update Indexes For Solution Content
+                if (newSlnContent[i].Contains("EndProject"))
                 {
                     endProjectIndex = i;
                 }
-                else if (solutionContent[i].Contains("EndGlobalSection"))
+                else if (newSlnContent[i].Contains("EndGlobalSection"))
                 {
                     endGlobalSectionIndex = i;
                 }
-                else if (solutionContent[i].Contains(projRefInclude))
+                else if (newSlnContent[i].Contains(projRefInclude))
                 {
                     projRefIncludeIndex = i;
                 }
             }
+
             //If EndProject and EndGlobalSection Sections Exist In Solution
             //But Project Ref To Include Hasn't Been Added Yet
             if (endProjectIndex != -1 && endGlobalSectionIndex != -1 &&
