@@ -8,26 +8,28 @@ using System.Diagnostics;
 
 namespace UnrealEngine.Runtime
 {
-    // Temporary VTable hacks until GetLifetimeReplicatedProps can be handled by UClass
-    public static partial class ManagedUnrealTypes
-    {   
+    // Temporary VTable hacks until various functions can be handled by UClass
+    static class VTableHacks
+    {
         private static void AddVTableRedirects()
         {
-            // NOTE: Order is important! Keep in sync with the switch in Export_USharpClass_Set_VTableCallback
-
             IntPtr objectClass = Runtime.Classes.UObject;
             IntPtr pawnClass = Runtime.Classes.APawn;
-            
-            AddVTableRedirect(objectClass, "DummyRepProps", new GetLifetimeReplicatedPropsDel(OnGetLifetimeReplicatedProps));
-            AddVTableRedirect(pawnClass, "DummySetupPlayerInput", new SetupPlayerInputComponentDel(OnSetupPlayerInputComponent));
+
+            repProps = AddVTableRedirect(objectClass, "DummyRepProps", new GetLifetimeReplicatedPropsDel(OnGetLifetimeReplicatedProps));
+            setupPlayerInput = AddVTableRedirect(pawnClass, "DummySetupPlayerInput", new SetupPlayerInputComponentDel(OnSetupPlayerInputComponent));
         }
 
+        private static FunctionRedirect repProps;
         delegate void GetLifetimeReplicatedPropsDel(IntPtr address, IntPtr arrayAddress);
         private static void OnGetLifetimeReplicatedProps(IntPtr address, IntPtr arrayAddress)
         {
             FMessage.Log("TODO: Custom GetLifetimeReplicatedProps");
-            //UObject obj = GCHelper.Find(address);
-            //
+            UObject obj = GCHelper.Find(address);
+                        
+            IntPtr original = repProps.GetOriginal(obj);
+            Native_VTableHacks.CallOriginal_GetLifetimeReplicatedProps(ref original, address, arrayAddress);
+
             //List<FLifetimeProperty> props = new List<FLifetimeProperty>();
             //obj.GetLifetimeReplicatedProps(props);
             //
@@ -35,10 +37,15 @@ namespace UnrealEngine.Runtime
             //arrayUnsafe.AddRange(props);
         }
 
+        private static FunctionRedirect setupPlayerInput;
         delegate void SetupPlayerInputComponentDel(IntPtr address, IntPtr inputComponentAddress);
         private static void OnSetupPlayerInputComponent(IntPtr address, IntPtr inputComponentAddress)
         {
             FMessage.Log("TODO: Custom SetupPlayerInputComponent");
+            UObject obj = GCHelper.Find(address);
+
+            IntPtr original = setupPlayerInput.GetOriginal(obj);
+            Native_VTableHacks.CallOriginal_SetupPlayerInputComponent(ref original, address, inputComponentAddress);
         }
 
         ////////////////////////////////////////////////////////////////////////////////////////
@@ -60,17 +67,40 @@ namespace UnrealEngine.Runtime
                 DummyName = dummyName;
                 Callback = callback;
             }
+
+            /// <summary>
+            /// Returns the original function address
+            /// </summary>
+            /// <param name="obj">An object which has the target function its vtable</param>
+            /// <returns>The original function address</returns>
+            public IntPtr GetOriginal(UObject obj)
+            {
+                UClass unrealClass = obj.GetClass();
+                Debug.Assert(unrealClass != null);
+                Debug.Assert(unrealClass.VTableOriginalFunctions != null);
+
+                IntPtr original;
+                unrealClass.VTableOriginalFunctions.TryGetValue(VTableIndex, out original);
+                Debug.Assert(original != IntPtr.Zero);
+                                
+                return original;
+            }
         }
 
         private static List<FunctionRedirect> vtableRedirects;
 
-        private static void AddVTableRedirect(IntPtr unrealClass, string dummyName, Delegate callback)
+        private static FunctionRedirect AddVTableRedirect(IntPtr unrealClass, string dummyName, Delegate callback)
         {
-            Native_USharpClass.Set_VTableCallback(vtableRedirects.Count, Marshal.GetFunctionPointerForDelegate(callback));
-            vtableRedirects.Add(new FunctionRedirect(unrealClass, dummyName, callback));
+            using (FStringUnsafe dummyNameUnsafe = new FStringUnsafe(dummyName))
+            {
+                Native_VTableHacks.Set_VTableCallback(ref dummyNameUnsafe.Array, Marshal.GetFunctionPointerForDelegate(callback));
+            }
+            FunctionRedirect redirect = new FunctionRedirect(unrealClass, dummyName, callback);
+            vtableRedirects.Add(redirect);
+            return redirect;
         }
 
-        private static unsafe void LoadVTableHacks()
+        public static unsafe void Load()
         {
             vtableRedirects = new List<FunctionRedirect>();
             AddVTableRedirects();
@@ -116,11 +146,14 @@ namespace UnrealEngine.Runtime
             }
         }
 
-        private static unsafe void UnloadVTableHacks()
+        public static unsafe void Unload()
         {
-            for (int i = 0; i < vtableRedirects.Count; i++)
+            foreach(FunctionRedirect redirect in vtableRedirects)
             {
-                Native_USharpClass.Set_VTableCallback(i, IntPtr.Zero);
+                using (FStringUnsafe dummyNameUnsafe = new FStringUnsafe(redirect.DummyName))
+                {
+                    Native_VTableHacks.Set_VTableCallback(ref dummyNameUnsafe.Array, IntPtr.Zero);
+                }
             }
             
             // Restore the old vtable entry on hotreload. This is important as otherwise we would lose the original function address
@@ -155,7 +188,7 @@ namespace UnrealEngine.Runtime
             }
         }
 
-        private static unsafe void HackVTable(UObject obj)
+        public static unsafe void HackVTable(UObject obj)
         {
             // This will swap out the vtable entry and store the old one in our managed UClass
 

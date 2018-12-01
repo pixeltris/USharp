@@ -1,3 +1,5 @@
+#pragma once
+
 #include "Engine/EngineBaseTypes.h"
 #include "GameFramework/Actor.h"
 #include "GameFramework/Pawn.h"
@@ -64,7 +66,7 @@ struct TStructOpsTypeTraits<FSharpActorComponentTickFunction> : public TStructOp
 };
 
 // NOTE: We MUST define a new class for each function get ONE vtable difference in each class
-// Redefinition errors if callbacks are assigned in this file
+// NOTE: Redefinition errors if callbacks are assigned in this file (due to VTableHacks.generated.h includes)
 
 /////////////////////////////////////////////////////////////////////////////
 // UObject::GetLifetimeReplicatedProps
