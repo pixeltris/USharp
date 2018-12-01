@@ -429,6 +429,7 @@
     <Compile Include="Native\Native_UGameplayStatics.cs" />
     <Compile Include="Native\Native_UInputComponent.cs" />
     <Compile Include="Native\Native_UObjectRedirector.cs" />
+    <Compile Include="Native\Native_VTableHacks.cs" />
     <Compile Include="Native\Properties\Native_UArrayProperty.cs" />
     <Compile Include="Native\Properties\Native_USoftClassProperty.cs" />
     <Compile Include="Native\Native_UBlueprint.cs" />
@@ -476,7 +477,7 @@
     <Compile Include="Tests\StructTests.cs" />
     <Compile Include="Tests\Tests.cs" />
     <Compile Include="UnrealEd\FEditorDelegates.cs" />
-    <Compile Include="Internal\ManagedUnrealTypes.VTableHacks.cs" />
+    <Compile Include="Internal\VTableHacks.cs" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Internal\CodeGenerator\CodeGenerator.AvailableTypes.cs" />

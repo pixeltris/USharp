@@ -1,2 +1,0 @@
-GetLifetimeReplicatedPropsCallbackSig GetLifetimeReplicatedPropsCallback = nullptr;
-SetupPlayerInputComponentCallbackSig SetupPlayerInputComponentCallback = nullptr;

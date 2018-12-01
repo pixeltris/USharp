@@ -56,7 +56,7 @@ namespace UnrealEngine.Runtime
             SkipReinstance = false;
             SkipBroadcastHotReload = false;
 
-            LoadVTableHacks();
+            VTableHacks.Load();
 
             foreach (KeyValuePair<Type, USharpPathAttribute> type in UnrealTypes.Managed)
             {
@@ -67,7 +67,7 @@ namespace UnrealEngine.Runtime
 
         public static void OnUnload()
         {
-            UnloadVTableHacks();
+            VTableHacks.Unload();
 
             // Redirect function pointers which will be destroyed when unloading the AppDomain
             foreach (ManagedClass managedClass in Classes.Values)
@@ -376,7 +376,7 @@ namespace UnrealEngine.Runtime
 
                 //Native_UClass.Set_ClassFlags(managedClass.Address, oldClassFlags);
 
-                HackVTable(obj);
+                VTableHacks.HackVTable(obj);
 
                 if (callInitializer)
                 {
