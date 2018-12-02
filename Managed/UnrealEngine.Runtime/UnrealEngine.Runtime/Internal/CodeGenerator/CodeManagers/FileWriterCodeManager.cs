@@ -85,7 +85,8 @@ namespace UnrealEngine.Runtime
                 {
                     string[] solutionContent;
                     bool bProjectRefExists;
-                    //Only Update If Solution Contains Game Project Solution
+                    //Only Update If Solution Contains Game Project And
+                    //Project Is For Native Game Code Or Game Plugin Wrappers
                     if (ReadyToAddNewProjectRef(slnPath, projPath, projectName, projectGUID, out solutionContent, out bProjectRefExists))
                     {
                         UpdateSolutionWithNewProjectFile(slnPath, projPath, projectName, projectGUID, solutionContent, bProjectRefExists);
@@ -225,7 +226,6 @@ namespace UnrealEngine.Runtime
             if (!File.Exists(slnPath) || !File.Exists(projPath))
             {
                 solutionContent = new string[] { };
-                //Don't Update Solution, False Will Trigger An Update
                 return false;
             }
             
@@ -358,16 +358,13 @@ namespace UnrealEngine.Runtime
                 bool bIsOldProjRefFromGUID = false;
                 for (int i = 0; i < slnContent.Count; i++)
                 {
-                    //Find GUIDs from All Old Project Refs
-                    //Using A List and Remove Them
+                    //Find GUIDs from All Old Project Refs Using A List and Remove Them
                     //Otherwise Project References From GlobalSection
                     //Won't Be Found, Current GUID isn't Old Project GUID
                     bool bLineContainsGUID = false;
                     foreach (string anotherProjGuid in oldProjGUIDRefList)
                     {
-                        if (slnContent[i].Contains(anotherProjGuid) ||
-                        slnContent[i].ToLower().Contains(anotherProjGuid.ToLower()) ||
-                        slnContent[i].ToUpper().Contains(anotherProjGuid.ToUpper()))
+                        if (slnContent[i].ToLower().Contains(anotherProjGuid.ToLower()))
                         {
                             bLineContainsGUID = true;
                         }
@@ -400,9 +397,7 @@ namespace UnrealEngine.Runtime
                     }
                 }
 
-                if (bStillOldProjRefsExists &&
-                    !string.IsNullOrEmpty(oldProjContent) &&
-                    oldProjContentIndex != -1)
+                if (bStillOldProjRefsExists && !string.IsNullOrEmpty(oldProjContent) && oldProjContentIndex != -1)
                 {
                     if (bIsOldProjRefFromGUID)
                     {
