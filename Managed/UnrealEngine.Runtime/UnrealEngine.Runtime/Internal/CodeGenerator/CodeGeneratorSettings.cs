@@ -544,7 +544,7 @@ namespace UnrealEngine.Runtime
             if (managedModulesInGameDir)
             {
                 // Used when managed modules are put into the game folder
-                return GetGeneratedCodeDir();
+                return Path.Combine(GetManagedDir(), "EngineModules");
             }
             else
             {
@@ -552,9 +552,9 @@ namespace UnrealEngine.Runtime
             }
         }
 
-        public string GetGeneratedCodeDir()
+        public string GetGeneratedCodeDir(bool isPlugin)
         {
-            return Path.Combine(GetManagedDir(), "Generated");
+            return Path.Combine(GetManagedDir(), GetProjectName() + (isPlugin ? ".NativePlugins" : ".Native"));
         }
 
         public string GetProjectName()

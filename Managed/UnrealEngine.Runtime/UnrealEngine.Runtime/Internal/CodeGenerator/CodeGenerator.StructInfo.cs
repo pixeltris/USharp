@@ -531,7 +531,6 @@ namespace UnrealEngine.Runtime
                         {
                             collapsedMembersByProperty.Add(backingProperty, collapsedMember);
                         }
-                        FMessage.Log("Collapse: " + Struct.GetPathName() + "." + finalName);
                     }
                 }
 

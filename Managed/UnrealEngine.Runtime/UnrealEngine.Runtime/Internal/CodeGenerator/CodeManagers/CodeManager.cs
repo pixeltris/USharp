@@ -50,10 +50,10 @@ namespace UnrealEngine.Runtime
 
             // Cache some strings we will be needing
             string projectName = Settings.GetProjectName();
-            GameSlnPath = Path.Combine(Settings.GetManagedDir(), "ManagedGameCode" + ".sln");
-            GameProjPath = Path.Combine(Settings.GetManagedDir(), "GameCode", "GameCode" + ".csproj");
-            GameNativeGenerationProjPath = Path.Combine(Settings.GetManagedDir(), "Generated", "NativeCodeWrappers" + ".csproj");
-            GamePluginGenerationProjPath = Path.Combine(Settings.GetManagedDir(), "Generated", "GamePlugins" + ".csproj");
+            GameSlnPath = Path.Combine(Settings.GetManagedDir(), projectName + ".Managed.sln");
+            GameProjPath = Path.Combine(Settings.GetManagedDir(), projectName + ".Managed", projectName + ".Managed.csproj");
+            GameNativeGenerationProjPath = Path.Combine(Settings.GetManagedDir(), projectName + ".Native", projectName + ".Native.csproj");
+            GamePluginGenerationProjPath = Path.Combine(Settings.GetManagedDir(), projectName + ".NativePlugins", projectName + ".NativePlugins.csproj");
 
             OnBegin();
         }
@@ -105,7 +105,15 @@ namespace UnrealEngine.Runtime
                         {
                             relativeSourceFilePath = name + ".cs";
                         }
-                        sourceFilePath = Path.Combine(Settings.GetGeneratedCodeDir(), rootFolderName, relativeSourceFilePath);
+                        if (moduleAssetType == UnrealModuleType.Unknown)
+                        {
+                            // Don't use root folders for native game code wrappers as root folders don't make much sense for them
+                            sourceFilePath = Path.Combine(Settings.GetGeneratedCodeDir(false), relativeSourceFilePath);
+                        }
+                        else
+                        {
+                            sourceFilePath = Path.Combine(Settings.GetGeneratedCodeDir(false), rootFolderName, relativeSourceFilePath);
+                        }
                         slnPath = GameSlnPath;
                         projPath = GameNativeGenerationProjPath;
                     }
@@ -181,7 +189,15 @@ namespace UnrealEngine.Runtime
 
                 case UnrealModuleType.GamePlugin:
                     {
-                        sourceFilePath = Path.Combine(Settings.GetGeneratedCodeDir(), rootFolderName, module.Name, name + ".cs");
+                        if (moduleAssetType == UnrealModuleType.Unknown)
+                        {
+                            // Don't use root folders for native game code wrappers as root folders don't make much sense for them
+                            sourceFilePath = Path.Combine(Settings.GetGeneratedCodeDir(true), module.Name, name + ".cs");
+                        }
+                        else
+                        {
+                            sourceFilePath = Path.Combine(Settings.GetGeneratedCodeDir(true), rootFolderName, module.Name, name + ".cs");
+                        }
                         slnPath = GameSlnPath;
 
                         if (Settings.GameProjMerge == CodeGeneratorSettings.ManagedGameProjMerge.GameAndPlugins)
@@ -371,9 +387,12 @@ namespace UnrealEngine.Runtime
                 @"..\UnrealEngine.Runtime.dll" : @"..\..\..\UnrealEngine.Runtime.dll";
             bool bAddUE4RuntimePath = true;
 
-            if(projectName == Path.GetFileNameWithoutExtension(GameProjPath) ||
+            bool isGameProject =
+                projectName == Path.GetFileNameWithoutExtension(GameProjPath) ||
                 projectName == Path.GetFileNameWithoutExtension(GameNativeGenerationProjPath) ||
-                projectName == Path.GetFileNameWithoutExtension(GamePluginGenerationProjPath))
+                projectName == Path.GetFileNameWithoutExtension(GamePluginGenerationProjPath);
+
+            if (isGameProject)
             {
                 bAddUE4RuntimePath = false;
             }
@@ -383,10 +402,11 @@ namespace UnrealEngine.Runtime
                 @"<?xml version=""1.0"" encoding=""utf-8""?>",
                 @"<Project ToolsVersion=""" + version + @""" DefaultTargets=""Build"" xmlns=""http://schemas.microsoft.com/developer/msbuild/2003"">",
                 @"  <Import Project=""$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props"" Condition=""Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')"" />",
+                @"  <Import Project=""$(SolutionDir)\USharpProject.props""/>",
                 @"  <PropertyGroup>",
                 @"    <Configuration Condition="" '$(Configuration)' == '' "">Debug</Configuration>",
                 @"    <Platform Condition="" '$(Platform)' == '' "">AnyCPU</Platform>",
-                @"    <ProjectGuid>{" + projectGuid + @"}</ProjectGuid>",
+                @"    <ProjectGuid>{" + GuidToString(projectGuid) + @"}</ProjectGuid>",
                 @"    <OutputType>Library</OutputType>",
                 @"    <OutputPath>bin\$(Configuration)\</OutputPath>",
                 @"    <RootNamespace>" + projectName + @"</RootNamespace>",
@@ -398,8 +418,9 @@ namespace UnrealEngine.Runtime
                 @"    <Reference Include=""System"" />"
             };
 
-            if (bAddUE4RuntimePath)
+            if (!isGameProject)
             {
+                // Engine modules wont have UnrealEngine.Runtime auto referenced via USharp.props, reference it manually
                 projFileContent.AddRange(new string[]
                 {
                     @"    <Reference Include=""" + "UnrealEngine.Runtime" + @""">",
@@ -429,21 +450,21 @@ namespace UnrealEngine.Runtime
                 @"# Visual Studio 15",
                 @"VisualStudioVersion = 15.0.28010.2041",
                 @"MinimumVisualStudioVersion = 10.0.40219.1",
-                @"Project(""{" + projectTypeGuid + @"}"") = """ + projName + @""", """ + relativeProjPath + @""", ""{" + projectGuid + @"}""",
+                @"Project(""{" + GuidToString(projectTypeGuid) + @"}"") = """ + projName + @""", """ + relativeProjPath + @""", ""{" + GuidToString(projectGuid) + @"}""",
                 @"EndProject",
                 @"Global",
                 @"	GlobalSection(SolutionConfigurationPlatforms) = preSolution",
                 @"		Debug|Any CPU = Debug|Any CPU",
                 @"	EndGlobalSection",
                 @"	GlobalSection(ProjectConfigurationPlatforms) = postSolution",
-                @"		{" + projectGuid + @"}.Debug|Any CPU.ActiveCfg = Debug|Any CPU",
-                @"		{" + projectGuid + @"}.Debug|Any CPU.Build.0 = Debug|Any CPU",
+                @"		{" + GuidToString(projectGuid) + @"}.Debug|Any CPU.ActiveCfg = Debug|Any CPU",
+                @"		{" + GuidToString(projectGuid) + @"}.Debug|Any CPU.Build.0 = Debug|Any CPU",
                 @"	EndGlobalSection",
                 @"	GlobalSection(SolutionProperties) = preSolution",
                 @"		HideSolutionNode = FALSE",
                 @"	EndGlobalSection",
                 @"	GlobalSection(ExtensibilityGlobals) = postSolution",
-                @"		SolutionGuid = {" + solutionGuid + @"}",
+                @"		SolutionGuid = {" + GuidToString(solutionGuid) + @"}",
                 @"	EndGlobalSection",
                 @"EndGlobal"
             };
@@ -455,6 +476,11 @@ namespace UnrealEngine.Runtime
         protected string NormalizePath(string path)
         {
             return path.Replace('/', '\\');
+        }
+
+        protected static string GuidToString(Guid guid)
+        {
+            return guid.ToString().ToUpper();
         }
 
         protected void Log(string value, params object[] args)

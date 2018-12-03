@@ -65,7 +65,7 @@ namespace UnrealEngine.Runtime
             //solution and project files for game.
             //Module Directory is Empty By Default,
             //So We Need to skip that in our check
-            var _slnInfo = new DirectoryInfo(slnPath);
+            var slnInfo = new DirectoryInfo(slnPath);
             if (projPath == GameProjPath)
             {
                 return true;
@@ -78,7 +78,8 @@ namespace UnrealEngine.Runtime
                 Guid projectGUID;
                 File.WriteAllLines(projPath, GetProjectFileContents("15.0", projectName, out projectGUID));
                 //Create Sln File if It doesn't exist
-                if (!File.Exists(slnPath)){
+                if (!File.Exists(slnPath))
+                {
                     CreateSolutionFileFromProjectFile(slnPath, projPath, projectName, projectGUID);
                 }
                 else
@@ -110,79 +111,77 @@ namespace UnrealEngine.Runtime
 
             CreateFileDirectoryIfNotExists(sourceFilePath);
             File.WriteAllText(sourceFilePath, code);
-            lock (this)
+            try
             {
-                try
+                if (sourceFileContentList.Count <= 0)
                 {
-                    if (sourceFileContentList.Count <= 0)
+                    sourceFileContentList = File.ReadAllLines(projPath).ToList();
+                }
+
+                string itemGroupTag = "<ItemGroup>";
+                string projectEndTag = "</Project>";
+                int itemGroupIndex = -1;
+                int insertCodeIndex = -1;
+                int projectEndIndex = -1;
+                string _insertCode = "    <Compile Include=\"" +
+                    NormalizePath(FPaths.MakePathRelativeTo(sourceFilePath, projPath)) + "\" />";
+
+                for (int i = 0; i < sourceFileContentList.Count; i++)
+                {
+                    if (sourceFileContentList[i].Contains(itemGroupTag))
                     {
-                        sourceFileContentList = File.ReadAllLines(projPath).ToList();
+                        itemGroupIndex = i;
                     }
-
-                    string _itemGroupTag = "<ItemGroup>";
-                    string _projectEndTag = "</Project>";
-                    int _itemGroupIndex = -1;
-                    int _insertCodeIndex = -1;
-                    int _projectEndIndex = -1;
-                    string _insertCode = "    <Compile Include=\"" +
-                        NormalizePath(FPaths.MakePathRelativeTo(sourceFilePath, projPath)) + "\" />";
-
-                    for (int i = 0; i < sourceFileContentList.Count; i++)
+                    if (sourceFileContentList[i].Contains(_insertCode))
                     {
-                        if (sourceFileContentList[i].Contains(_itemGroupTag))
-                        {
-                            _itemGroupIndex = i;
-                        }
-                        if (sourceFileContentList[i].Contains(_insertCode))
-                        {
-                            _insertCodeIndex = i;
-                        }
-                        if (sourceFileContentList[i].Contains(_projectEndTag) && i > 1)
-                        {
-                            _projectEndIndex = i;
-                        }
-                        if (_itemGroupIndex != -1 && _insertCodeIndex != -1)
-                        {
-                            break;
-                        }
+                        insertCodeIndex = i;
                     }
-
-                    //If Item Group Tag Wasn't Found, The Inserted Code Wasn't Already Created
-                    //And The Project End Tag Exist and Isn't the Beginning Tag
-                    //Insert the Item Group Tags Before The Project End Tag
-                    if(_itemGroupIndex == -1 && _insertCodeIndex == -1 && 
-                        _projectEndIndex != -1 && _projectEndTag.Contains("/") && _projectEndIndex > 1)
+                    if (sourceFileContentList[i].Contains(projectEndTag) && i > 1)
                     {
-                        sourceFileContentList.InsertRange(_projectEndIndex,
-                            new string[]
-                            {
+                        projectEndIndex = i;
+                    }
+                    if (itemGroupIndex != -1 && insertCodeIndex != -1)
+                    {
+                        break;
+                    }
+                }
+
+                //If Item Group Tag Wasn't Found, The Inserted Code Wasn't Already Created
+                //And The Project End Tag Exist and Isn't the Beginning Tag
+                //Insert the Item Group Tags Before The Project End Tag
+                if (itemGroupIndex == -1 && insertCodeIndex == -1 &&
+                    projectEndIndex != -1 && projectEndTag.Contains("/") && projectEndIndex > 1)
+                {
+                    sourceFileContentList.InsertRange(projectEndIndex,
+                        new string[]
+                        {
                                 "  <ItemGroup>",
                                 "",
                                 "  </ItemGroup>"
-                            }
-                        );
-                        //Check Again For Item Group Tag
-                        for (int i = 0; i < sourceFileContentList.Count; i++)
+                        }
+                    );
+                    //Check Again For Item Group Tag
+                    for (int i = 0; i < sourceFileContentList.Count; i++)
+                    {
+                        if (sourceFileContentList[i].Contains(itemGroupTag))
                         {
-                            if (sourceFileContentList[i].Contains(_itemGroupTag))
-                            {
-                                _itemGroupIndex = i;
-                                break;
-                            }
+                            itemGroupIndex = i;
+                            break;
                         }
                     }
-
-                    //Only Insert if Group Tag Exists and 
-                    //File Path Include Doesn't Exists
-                        if (_itemGroupIndex != -1 && _insertCodeIndex == -1)
-                    {
-                        sourceFileContentList.Insert(_itemGroupIndex + 1, _insertCode);
-                    }
-                }catch(Exception e)
-                {
-                    Log(ELogVerbosity.Error, e.Message, e);
-                    return false;
                 }
+
+                //Only Insert if Group Tag Exists and 
+                //File Path Include Doesn't Exists
+                if (itemGroupIndex != -1 && insertCodeIndex == -1)
+                {
+                    sourceFileContentList.Insert(itemGroupIndex + 1, _insertCode);
+                }
+            }
+            catch (Exception e)
+            {
+                Log(ELogVerbosity.Error, e.Message, e);
+                return false;
             }
             return true;
         }
@@ -230,9 +229,10 @@ namespace UnrealEngine.Runtime
             }
             
             solutionContent = File.ReadAllLines(slnPath);
-            string guidString = projectGUID.ToString();
+            string guidString = GuidToString(projectGUID);
             string gameProjectName = Path.GetFileNameWithoutExtension(GameProjPath);
 
+            // NOTE: This will break if there are casing changes
             foreach (string line in solutionContent)
             {
                 if(line.Contains(projectName) || line.Contains(guidString))
@@ -297,7 +297,8 @@ namespace UnrealEngine.Runtime
             List<string> newSlnContent = solutionContent.ToList();
             Guid projectTypeGuid = new Guid(@"FAE04EC0-301F-11D3-BF4B-00C04F79EFBC");// C# project type guid
             string relativeProjPath = NormalizePath(FPaths.MakePathRelativeTo(projPath, slnPath));
-            string projRefInclude = @"Project(""{" + projectTypeGuid + @"}"") = """ + projectName + @""", """ + relativeProjPath + @""", ""{" + projectGUID + @"}""";
+            string projRefInclude = @"Project(""{" + GuidToString(projectTypeGuid) + @"}"") = """ + projectName + @""", """ + 
+                relativeProjPath + @""", ""{" + GuidToString(projectGUID) + @"}""";
             int endProjectIndex = -1;
             int endGlobalSectionIndex = -1;
             int projRefIncludeIndex = -1;
@@ -327,8 +328,7 @@ namespace UnrealEngine.Runtime
 
             //If EndProject and EndGlobalSection Sections Exist In Solution
             //But Project Ref To Include Hasn't Been Added Yet
-            if (endProjectIndex != -1 && endGlobalSectionIndex != -1 &&
-                projRefIncludeIndex == -1)
+            if (endProjectIndex != -1 && endGlobalSectionIndex != -1 && projRefIncludeIndex == -1)
             {
                 string[] endProjectContent = new string[]
                 {
@@ -346,7 +346,7 @@ namespace UnrealEngine.Runtime
         {
             //Remove Old Project Refs From Solution
             bool bStillOldProjRefsExists;
-            string guidString = projectGUID.ToString();
+            string guidString = GuidToString(projectGUID);
             List<string> oldProjGUIDRefList = new List<string>();
             //Add Current Project GUIDString
             oldProjGUIDRefList.Add(guidString);
@@ -364,7 +364,7 @@ namespace UnrealEngine.Runtime
                     bool bLineContainsGUID = false;
                     foreach (string anotherProjGuid in oldProjGUIDRefList)
                     {
-                        if (slnContent[i].ToLower().Contains(anotherProjGuid.ToLower()))
+                        if (slnContent[i].Equals(anotherProjGuid, StringComparison.OrdinalIgnoreCase))
                         {
                             bLineContainsGUID = true;
                         }
