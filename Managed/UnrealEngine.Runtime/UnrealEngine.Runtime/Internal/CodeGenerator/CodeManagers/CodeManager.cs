@@ -380,29 +380,31 @@ namespace UnrealEngine.Runtime
             return false;
         }
 
-        protected virtual string[] GetProjectFileContents(string version, string projectName, out Guid projectGuid)
+        protected virtual string[] GetProjectFileContents(string projectName, out Guid projectGuid)
         {
             string ue4RuntimePath = Settings.EngineProjMerge ==
                 CodeGeneratorSettings.ManagedEngineProjMerge.EngineAndPluginsCombined ?
                 @"..\UnrealEngine.Runtime.dll" : @"..\..\..\UnrealEngine.Runtime.dll";
-            bool bAddUE4RuntimePath = true;
 
             bool isGameProject =
                 projectName == Path.GetFileNameWithoutExtension(GameProjPath) ||
                 projectName == Path.GetFileNameWithoutExtension(GameNativeGenerationProjPath) ||
                 projectName == Path.GetFileNameWithoutExtension(GamePluginGenerationProjPath);
-
-            if (isGameProject)
-            {
-                bAddUE4RuntimePath = false;
-            }
+            
             projectGuid = Guid.NewGuid();
             List<string> projFileContent = new List<string>
             {
                 @"<?xml version=""1.0"" encoding=""utf-8""?>",
-                @"<Project ToolsVersion=""" + version + @""" DefaultTargets=""Build"" xmlns=""http://schemas.microsoft.com/developer/msbuild/2003"">",
-                @"  <Import Project=""$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props"" Condition=""Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')"" />",
-                @"  <Import Project=""$(SolutionDir)\USharpProject.props""/>",
+                @"<Project ToolsVersion=15.0 DefaultTargets=""Build"" xmlns=""http://schemas.microsoft.com/developer/msbuild/2003"">",
+                @"  <Import Project=""$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props"" Condition=""Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')"" />"
+            };
+
+            if (isGameProject)
+            {
+                projFileContent.Add(@"  <Import Project=""$(SolutionDir)\USharpProject.props""/>");
+            }
+
+            projFileContent.AddRange(new string[] {           
                 @"  <PropertyGroup>",
                 @"    <Configuration Condition="" '$(Configuration)' == '' "">Debug</Configuration>",
                 @"    <Platform Condition="" '$(Platform)' == '' "">AnyCPU</Platform>",
@@ -416,7 +418,7 @@ namespace UnrealEngine.Runtime
                 @"  </PropertyGroup>",
                 @"  <ItemGroup>",
                 @"    <Reference Include=""System"" />"
-            };
+            });
 
             if (!isGameProject)
             {

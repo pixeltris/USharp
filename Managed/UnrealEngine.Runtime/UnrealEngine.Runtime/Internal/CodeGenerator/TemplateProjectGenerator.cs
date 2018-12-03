@@ -366,7 +366,7 @@ namespace UnrealEngine.Runtime
             else
             {
                 stringBuilder.AppendLine("<?xml version=\"1.0\" encoding=\"utf-8\"?>");
-                stringBuilder.AppendLine("<Project ToolsVersion=\"14.0\" DefaultTargets=\"Build\" xmlns=\"http://schemas.microsoft.com/developer/msbuild/2003\">");
+                stringBuilder.AppendLine("<Project ToolsVersion=\"15.0\" DefaultTargets=\"Build\" xmlns=\"http://schemas.microsoft.com/developer/msbuild/2003\">");
                 stringBuilder.AppendLine("  <Import Project=\"$(MSBuildExtensionsPath)\\$(MSBuildToolsVersion)\\Microsoft.Common.props\" Condition=\"Exists('$(MSBuildExtensionsPath)\\$(MSBuildToolsVersion)\\Microsoft.Common.props')\" />");
                 stringBuilder.AppendLine("  <Import Project=\"$(SolutionDir)\\USharpProject.props\"/>");
                 stringBuilder.AppendLine("  <PropertyGroup>");
