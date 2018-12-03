@@ -186,6 +186,11 @@ namespace UnrealEngine.Runtime
         public List<CollapsedMemberSettings> CollapsedMembers { get; private set; }
 
         /// <summary>
+        /// If true functions / properties will be merged into a single property where it makes sense e.g. GetValue() / SetValue()
+        /// </summary>
+        public bool UseCollapsedMembers { get; set; }
+
+        /// <summary>
         /// Use IList / ISet / IDictionary instead of TArrayReadWrite / TSetReadWrite / TMapReadWrite
         /// Note: If this is enabled every foreach will create garbage
         /// </summary>
@@ -359,6 +364,8 @@ namespace UnrealEngine.Runtime
             CatchCrashOnAssetLoading = true;
 
             IndentType = CSharpTextBuilder.IndentType.Spaces;
+
+            UseCollapsedMembers = false;
 
             UseCollectionInterfaces = false;
 

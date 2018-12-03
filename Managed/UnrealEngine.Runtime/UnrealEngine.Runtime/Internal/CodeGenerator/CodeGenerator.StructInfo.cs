@@ -243,7 +243,7 @@ namespace UnrealEngine.Runtime
 
             public void ResolveCollapsedMembers()
             {
-                if (IsInterface)
+                if (IsInterface || !codeGenerator.Settings.UseCollapsedMembers)
                 {
                     // Interface shouldn't have any C# properties, leave everything as functions
                     ResolveNameConflicts();
@@ -531,6 +531,7 @@ namespace UnrealEngine.Runtime
                         {
                             collapsedMembersByProperty.Add(backingProperty, collapsedMember);
                         }
+                        FMessage.Log("Collapse: " + Struct.GetPathName() + "." + finalName);
                     }
                 }
 
