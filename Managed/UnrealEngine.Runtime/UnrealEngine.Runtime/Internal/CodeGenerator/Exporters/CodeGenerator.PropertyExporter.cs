@@ -133,11 +133,12 @@ namespace UnrealEngine.Runtime
             {
                 UProperty property = collapsedMember.BackingProperty;
 
-                if (property.HasAnyPropertyFlags(EPropertyFlags.DisableEditOnInstance) && !property.GetBoolMetaData(MDProp.AllowPrivateAccess))
-                {
-                    modifiers.Append("private");
-                }
-                else if (property.HasAnyPropertyFlags(EPropertyFlags.NativeAccessSpecifierProtected | EPropertyFlags.Protected))
+                if ((// private (there is little point in allowing private code gen so make this protected instead?)
+               (property.HasAnyPropertyFlags(EPropertyFlags.DisableEditOnInstance) && !property.GetBoolMetaData(MDProp.AllowPrivateAccess)) ||
+               // protected
+               (property.HasAnyPropertyFlags(EPropertyFlags.NativeAccessSpecifierProtected | EPropertyFlags.Protected)))
+               // If this is being force exported make it public instead of protected
+               && !forceExportProperties.Contains(property.GetPathName()))
                 {
                     modifiers.Append("protected");
                 }
