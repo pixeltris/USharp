@@ -16,7 +16,6 @@
 
   <Target Name="AssemblyProcessing" 
           AfterTargets="PostBuildEvent"
-          Condition="Exists('$(MSBuildProjectDirectory)/GameCode.csproj')"
     >
     <PropertyGroup>
         <USharpAssemblyRewriterPath>$(USharpPluginPath)/Binaries/Managed/AssemblyRewriter/UnrealEngine.AssemblyRewriter.exe</USharpAssemblyRewriterPath>
