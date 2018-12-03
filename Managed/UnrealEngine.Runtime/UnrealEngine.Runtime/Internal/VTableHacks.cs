@@ -41,11 +41,12 @@ namespace UnrealEngine.Runtime
         delegate void SetupPlayerInputComponentDel(IntPtr address, IntPtr inputComponentAddress);
         private static void OnSetupPlayerInputComponent(IntPtr address, IntPtr inputComponentAddress)
         {
-            FMessage.Log("TODO: Custom SetupPlayerInputComponent");
             UObject obj = GCHelper.Find(address);
 
             IntPtr original = setupPlayerInput.GetOriginal(obj);
             Native_VTableHacks.CallOriginal_SetupPlayerInputComponent(original, address, inputComponentAddress);
+
+            obj.SetupPlayerInputComponent(inputComponentAddress);
         }
 
         ////////////////////////////////////////////////////////////////////////////////////////
