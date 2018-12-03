@@ -114,9 +114,7 @@ namespace UnrealEngine.Runtime
                 builder.AppendLine(modifiers + propertyTypeName + " " + propertyName);
                 builder.OpenBrace();
                 AppendGetter(builder, propertyName, property, namespaces);
-                if ((!property.HasAnyPropertyFlags(EPropertyFlags.BlueprintReadOnly) || forceExportProperties.Contains(property.GetPathName())) &&
-                    !IsCollectionProperty(property) && !IsDelegateProperty(property) &&
-                    !property.IsFixedSizeArray)
+                if (!IsCollectionProperty(property) && !IsDelegateProperty(property) && !property.IsFixedSizeArray)
                 {
                     AppendSetter(builder, propertyName, property, namespaces);
                 }
