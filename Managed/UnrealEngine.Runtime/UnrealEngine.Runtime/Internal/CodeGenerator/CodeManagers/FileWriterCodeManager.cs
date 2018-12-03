@@ -258,7 +258,7 @@ namespace UnrealEngine.Runtime
             int projectEndIndex = -1;
             int projectRefIncludeIndex = -1;
             string relativeProjPath = NormalizePath(FPaths.MakePathRelativeTo(projPath, GameProjPath));
-            string projectRefInclude = @"    <ProjectReference Include=" + @"""" + relativeProjPath + @"""" + " />";
+            string projectRefInclude = @"    <ProjectReference Include=" + @"""" + relativeProjPath + @"""" + ">";
 
             for (int i = 0; i < projContent.Count; i++)
             {
@@ -281,6 +281,8 @@ namespace UnrealEngine.Runtime
                     {
                         "  <ItemGroup>",
                         projectRefInclude,
+                        "      <Name>" + Path.GetFileNameWithoutExtension(relativeProjPath) + "</Name>",
+                        "    </ProjectReference>",
                         "  </ItemGroup>"
                     }
                 );

@@ -15,7 +15,7 @@ namespace UnrealEngine.Runtime
     static class TemplateProjectGenerator
     {
         const string targetStandardFramework = "netstandard2.0";
-        const string targetNetFramework = "4.5.2";
+        const string targetNetFramework = "v4.5.2";
 
         /// <summary>
         /// The engine version e.g. 4.21
@@ -192,6 +192,26 @@ namespace UnrealEngine.Runtime
                     Directory.CreateDirectory(projectManagedCsProjDir);
                 }
 
+                // Remove obj/bin directories if they exist
+                string[] deleteDirs =
+                {
+                    Path.Combine(projectManagedCsProjDir, "obj"),
+                    Path.Combine(projectManagedCsProjDir, "bin"),
+                };
+                foreach (string dir in deleteDirs)
+                {
+                    try
+                    {
+                        if (Directory.Exists(dir))
+                        {
+                            Directory.Delete(dir, true);
+                        }
+                    }
+                    catch
+                    {
+                    }
+                }
+
                 // Copy the template / shared folder over to the project folder
                 string[] rootDirs =
                 {
@@ -234,7 +254,7 @@ namespace UnrealEngine.Runtime
                 }
 
                 // TODO: Determine if sdk or old style projects should be used
-                bool sdkStyle = true;
+                bool sdkStyle = false;
 
                 Guid solutionGuid = Guid.NewGuid();
                 Guid projectGuid = Guid.NewGuid();
@@ -351,7 +371,6 @@ namespace UnrealEngine.Runtime
                 stringBuilder.AppendLine("  <Import Project=\"$(SolutionDir)\\USharpProject.props\"/>");
                 stringBuilder.AppendLine("  <PropertyGroup>");
                 stringBuilder.AppendLine("    <Configuration Condition=\" '$(Configuration)' == '' \">Debug</Configuration>");
-                stringBuilder.AppendLine("");
                 stringBuilder.AppendLine("    <Platform Condition=\" '$(Platform)' == '' \">AnyCPU</Platform>");
                 stringBuilder.AppendLine("    <ProjectGuid>{" + GuidToString(projectGuid) + "}</ProjectGuid>");
                 stringBuilder.AppendLine("    <OutputType>Library</OutputType>");
