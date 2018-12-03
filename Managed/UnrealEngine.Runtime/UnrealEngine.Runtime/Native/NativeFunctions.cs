@@ -266,6 +266,9 @@ namespace UnrealEngine.Runtime.Native
                 }
             }
 
+            // Generate / update the C# game project
+            TemplateProjectGenerator.Generate();
+
             using (var timing = HotReload.Timing.Create(HotReload.Timing.GC_Collect))
             {
                 // We likely created a bunch of garbage, best to clean it up now.
@@ -348,7 +351,7 @@ namespace UnrealEngine.Runtime.Native
         private static void LoadAssemblies()
         {
             string gameAssemblyFileName = null;
-            const string gameAssemblySuffix = "-Managed.dll";
+            const string gameAssemblySuffix = ".Managed.dll";
 
             // Add to assemblyPaths for each possible location the main managed assembly can be.
             // If a managed assembly is found just use the found assembly path (and its references).
@@ -358,7 +361,7 @@ namespace UnrealEngine.Runtime.Native
             if (!string.IsNullOrEmpty(projectFileName))
             {
                 projectFileName = Path.GetFileNameWithoutExtension(projectFileName);
-                string projectManagedBinDir = Path.Combine(FPaths.ProjectDir, "Managed", "Binaries");
+                string projectManagedBinDir = Path.Combine(FPaths.ProjectDir, "Binaries", "Managed");
                 if (FBuild.WithEditor && !Directory.Exists(projectManagedBinDir))
                 {
                     Directory.CreateDirectory(projectManagedBinDir);

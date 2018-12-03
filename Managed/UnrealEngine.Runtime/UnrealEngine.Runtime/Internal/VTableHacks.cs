@@ -28,7 +28,7 @@ namespace UnrealEngine.Runtime
             UObject obj = GCHelper.Find(address);
                         
             IntPtr original = repProps.GetOriginal(obj);
-            Native_VTableHacks.CallOriginal_GetLifetimeReplicatedProps(ref original, address, arrayAddress);
+            Native_VTableHacks.CallOriginal_GetLifetimeReplicatedProps(original, address, arrayAddress);
 
             //List<FLifetimeProperty> props = new List<FLifetimeProperty>();
             //obj.GetLifetimeReplicatedProps(props);
@@ -45,7 +45,7 @@ namespace UnrealEngine.Runtime
             UObject obj = GCHelper.Find(address);
 
             IntPtr original = setupPlayerInput.GetOriginal(obj);
-            Native_VTableHacks.CallOriginal_SetupPlayerInputComponent(ref original, address, inputComponentAddress);
+            Native_VTableHacks.CallOriginal_SetupPlayerInputComponent(original, address, inputComponentAddress);
         }
 
         ////////////////////////////////////////////////////////////////////////////////////////

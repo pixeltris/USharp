@@ -265,6 +265,14 @@ namespace UnrealEngine.Runtime
         /// </summary>
         public static bool WithPerfAutomationTests { get; private set; }
 
+        //////////////////////////////////////////////////////////////////////////////////////////
+        // Engine\Source\Runtime\Launch\Resources\Version.h
+        //////////////////////////////////////////////////////////////////////////////////////////
+
+        public static int EngineMajorVersion { get; private set; }
+        public static int EngineMinorVersion { get; private set; }
+        public static int EnginePatchVersion { get; private set; }
+
         internal static void OnNativeFunctionsRegistered()
         {
             BuildDebug = Native_FBuildGlobals.UE_BUILD_DEBUG();
@@ -314,6 +322,9 @@ namespace UnrealEngine.Runtime
             WithXGEController = Native_FBuildGlobals.WITH_XGE_CONTROLLER();
             WithDevAutomationTests = Native_FBuildGlobals.WITH_DEV_AUTOMATION_TESTS();
             WithPerfAutomationTests = Native_FBuildGlobals.WITH_PERF_AUTOMATION_TESTS();
+            EngineMajorVersion = Native_FBuildGlobals.ENGINE_MAJOR_VERSION();
+            EngineMinorVersion = Native_FBuildGlobals.ENGINE_MINOR_VERSION();
+            EnginePatchVersion = Native_FBuildGlobals.ENGINE_PATCH_VERSION();
         }
     }
 }

@@ -157,7 +157,7 @@ namespace PluginInstaller
                         // If this is a minimal build try deleting target the folder first
                         try
                         {
-                            Directory.Delete(targetBasePath);
+                            Directory.Delete(targetBasePath, true);
                         }
                         catch
                         {
