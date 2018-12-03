@@ -47,6 +47,7 @@
     <Compile Include="CoreUObject\Enums\Script.cs" />
     <Compile Include="CoreUObject\FLifetimeProperty.cs" />
     <Compile Include="Core\IPluginManager.cs" />
+    <None Include="InjectedClasses\Engine\Pawn_Injected.cs" />
     <Compile Include="InputCore\EKeys.cs" />
     <Compile Include="InputCore\FKey.cs" />
     <None Include="InjectedClasses\Engine\ActorComponent_Injected.cs" />

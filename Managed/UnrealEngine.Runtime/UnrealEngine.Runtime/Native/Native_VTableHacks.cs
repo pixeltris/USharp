@@ -10,6 +10,7 @@ namespace UnrealEngine.Runtime.Native
     static class Native_VTableHacks
     {
         public delegate void Del_Set_VTableCallback(ref FScriptArray dummyName, IntPtr callback);
+
         public delegate void Del_CallOriginal_GetLifetimeReplicatedProps(IntPtr originalFunc, IntPtr obj, IntPtr outLifetimeProps);
         public delegate void Del_CallOriginal_SetupPlayerInputComponent(IntPtr originalFunc, IntPtr obj, IntPtr inputComponent);
 
