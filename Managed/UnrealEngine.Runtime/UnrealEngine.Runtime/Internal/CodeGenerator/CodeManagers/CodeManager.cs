@@ -395,7 +395,7 @@ namespace UnrealEngine.Runtime
             List<string> projFileContent = new List<string>
             {
                 @"<?xml version=""1.0"" encoding=""utf-8""?>",
-                @"<Project ToolsVersion=15.0 DefaultTargets=""Build"" xmlns=""http://schemas.microsoft.com/developer/msbuild/2003"">",
+                @"<Project ToolsVersion=""15.0"" DefaultTargets=""Build"" xmlns=""http://schemas.microsoft.com/developer/msbuild/2003"">",
                 @"  <Import Project=""$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props"" Condition=""Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')"" />"
             };
 
