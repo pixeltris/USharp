@@ -42,7 +42,7 @@ namespace UnrealEngine.Runtime
                 {
                     FMessage.Log(FMessage.LogNet, ELogVerbosity.Fatal, $"Attempt to replicate property '{propertyName}' which does not exist.");
                 }
-                else if (!Native_UProperty.HasAnyPropertyFlags(nativeClass, EPropertyFlags.Net))
+                else if (!Native_UProperty.HasAnyPropertyFlags(property, EPropertyFlags.Net))
                 {
                     FMessage.Log(FMessage.LogNet, ELogVerbosity.Fatal, $"Attempt to replicate property '{propertyName}' that was not tagged to replicate! Please use 'Replicated' or 'ReplicatedUsing' keyword in the UProperty() declaration.");
                 }
