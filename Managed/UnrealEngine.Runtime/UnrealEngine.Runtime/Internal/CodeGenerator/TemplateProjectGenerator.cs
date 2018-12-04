@@ -87,6 +87,11 @@ namespace UnrealEngine.Runtime
         /// </summary>
         public static void Generate()
         {
+            if (!FBuild.WithEditor)
+            {
+                return;
+            }
+
             if (!Generate("BasicProject"))
             {
                 UpdatePropsFile(false);
@@ -95,6 +100,11 @@ namespace UnrealEngine.Runtime
 
         private static void UpdatePropsFile(bool firstRun)
         {
+            if (!FBuild.WithEditor)
+            {
+                return;
+            }
+
             GetPaths();
 
             if (File.Exists(projectManagedPropsFile))
