@@ -2,17 +2,11 @@ typedef void* GCHandle;
 TMap<TWeakObjectPtr<UObject>, GCHandle> ManagedObjectMap;
 
 GCHandle(*OnAdd)(UObject*) = nullptr;
-void(*OnAddExisting)(UObject*, GCHandle) = nullptr;
 void(*OnRemove)(GCHandle) = nullptr;
 
 CSEXPORT void CSCONV Export_GCHelper_Set_OnAdd(GCHandle(*handler)(UObject*))
 {
 	OnAdd = handler;
-}
-
-CSEXPORT void CSCONV Export_GCHelper_Set_OnAddExisting(void(*handler)(UObject*, GCHandle))
-{
-	OnAddExisting = handler;
 }
 
 CSEXPORT void CSCONV Export_GCHelper_Set_OnRemove(void(*handler)(GCHandle))
@@ -32,15 +26,6 @@ CSEXPORT GCHandle CSCONV Export_GCHelper_Add(UObject* obj)
 		}
 	}
 	return gcHandle;
-}
-
-CSEXPORT void CSCONV Export_GCHelper_AddExisting(UObject* obj, GCHandle gcHandle)
-{
-	if (gcHandle != nullptr && ManagedObjectMap.Find(obj) == nullptr)
-	{
-		ManagedObjectMap.Add(obj, gcHandle);
-		OnAddExisting(obj, gcHandle);
-	}
 }
 
 CSEXPORT void CSCONV Export_GCHelper_Remove(UObject* obj)
@@ -69,19 +54,39 @@ CSEXPORT void CSCONV Export_GCHelper_CollectGarbage()
 CSEXPORT void CSCONV Export_GCHelper_Clear()
 {
 	OnAdd = nullptr;
-	OnAddExisting = nullptr;
 	OnRemove = nullptr;
 	ManagedObjectMap.Empty();
+}
+
+// Maps to the UObjectBase internals
+class UObjectInternal
+{
+public:
+	virtual void PureVirt() = 0;// Make sure we have a vtable so that we map 1:1 with UObject
+	EObjectFlags ObjectFlags;
+	int32 InternalIndex;
+	UClass* ClassPrivate;
+	FName NamePrivate;
+	UObject* OuterPrivate;
+	// mutable TStatId - based on STATS || ENABLE_STATNAMEDEVENTS_UOBJECT
+	// mutable PROFILE_CHAR* - based on ENABLE_STATNAMEDEVENTS_UOBJECT
+};
+
+CSEXPORT int32 CSCONV Export_GCHelper_GetInternalIndexOffset()
+{
+	UObject* Obj = UClass::StaticClass()->GetDefaultObject();
+	check(Obj->GetUniqueID() == ((UObjectInternal*)Obj)->InternalIndex && Obj->GetUniqueID() != 0);
+	UObjectInternal* NullObj = (UObjectInternal*)nullptr;
+	return (int32)(int64)(&NullObj->InternalIndex);
 }
 
 CSEXPORT void CSCONV Export_GCHelper(RegisterFunc registerFunc)
 {
 	REGISTER_FUNC(Export_GCHelper_Set_OnAdd);
-	REGISTER_FUNC(Export_GCHelper_Set_OnAddExisting);
 	REGISTER_FUNC(Export_GCHelper_Set_OnRemove);
 	REGISTER_FUNC(Export_GCHelper_Add);
-	REGISTER_FUNC(Export_GCHelper_AddExisting);
 	REGISTER_FUNC(Export_GCHelper_Remove);
 	REGISTER_FUNC(Export_GCHelper_CollectGarbage);
 	REGISTER_FUNC(Export_GCHelper_Clear);
+	REGISTER_FUNC(Export_GCHelper_GetInternalIndexOffset);
 }
