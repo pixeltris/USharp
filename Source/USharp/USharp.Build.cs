@@ -5,8 +5,6 @@ namespace UnrealBuildTool.Rules
 {
     public class USharp : ModuleRules
     {
-        // The shipping build version of the UnrealEngine.Runtime.dll
-        private string shippingRuntimeDllPath;
         // If true copy the pdbs when packaging
         private bool copyPdbs = true;
         // The full output path which will be used to build paths relative to $(ProjectDir)
@@ -110,15 +108,11 @@ namespace UnrealBuildTool.Rules
 
                 outputRelativeDir = new Uri(Path.GetFullPath(Path.Combine(projectDir, "Binaries")), UriKind.Absolute);
 
-                if (!Directory.Exists(managedBinDir))
+                // Copy the shipping build version of UnrealEngine.Runtime.dll to /ProjectName/Binaries/Managed
+                string shippingRuntimeDllPath = Path.Combine(pluginShippingManagedBinDir, "UnrealEngine.Runtime.dll");
+                if (File.Exists(shippingRuntimeDllPath))
                 {
-                    Directory.CreateDirectory(managedBinDir);
-                }
-
-                shippingRuntimeDllPath = Path.Combine(pluginShippingManagedBinDir, "UnrealEngine.Runtime.dll");
-                if (!File.Exists(shippingRuntimeDllPath))
-                {
-                    shippingRuntimeDllPath = null;
+                    File.Copy(shippingRuntimeDllPath, Path.Combine(managedBinDir, "UnrealEngine.Runtime.dll"), true);
                 }
 
                 // Add "ProjectName/Binaries/Managed/" to the RuntimeDependencies
@@ -261,19 +255,6 @@ namespace UnrealBuildTool.Rules
         
             if ((overwrite || !File.Exists(destFileName)) && File.Exists(sourceFileName))
             {
-                if (Path.GetFileName(sourceFileName) == "UnrealEngine.Runtime.dll")
-                {
-                    if (string.IsNullOrEmpty(shippingRuntimeDllPath))
-                    {
-                        return;
-                    }
-                    else
-                    {
-                        // Use the shipping build version of the runtime dll
-                        sourceFileName = shippingRuntimeDllPath;
-                    }
-                }
-
                 FileInfo srcFileInfo = new FileInfo(sourceFileName);
                 FileInfo destFileInfo = new FileInfo(destFileName);
                 if (!destFileInfo.Exists ||
@@ -324,7 +305,12 @@ namespace UnrealBuildTool.Rules
         /// <param name="destFileName">The file to include in the runtime dependencies (the file must be under the project directory)</param>
         private void AddFileToRuntimeDependencies(string destFileName)
         {
-            if(!File.Exists(destFileName))
+            if (!copyPdbs && Path.GetExtension(destFileName) == ".pdb")
+            {
+                return;
+            }
+
+            if (!File.Exists(destFileName))
             {
                 Console.WriteLine("USharp-AddFileToRuntimeDependencies: Failed Adding '{0}' To Runtime.", destFileName);
                 return;
