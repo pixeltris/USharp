@@ -24,17 +24,16 @@ namespace UnrealEngine.Runtime
         delegate void GetLifetimeReplicatedPropsDel(IntPtr address, IntPtr arrayAddress);
         private static void OnGetLifetimeReplicatedProps(IntPtr address, IntPtr arrayAddress)
         {
-            FMessage.Log("TODO: Custom GetLifetimeReplicatedProps");
             UObject obj = GCHelper.Find(address);
-                        
+
             IntPtr original = repProps.GetOriginal(obj);
             Native_VTableHacks.CallOriginal_GetLifetimeReplicatedProps(original, address, arrayAddress);
 
-            //List<FLifetimeProperty> props = new List<FLifetimeProperty>();
-            //obj.GetLifetimeReplicatedProps(props);
-            //
-            //TArrayUnsafeRef<FLifetimeProperty> arrayUnsafe = new TArrayUnsafeRef<FLifetimeProperty>(arrayAddress);
-            //arrayUnsafe.AddRange(props);
+            using (TArrayUnsafeRef<FLifetimeProperty> lifetimePropsUnsafe = new TArrayUnsafeRef<FLifetimeProperty>(arrayAddress))
+            {
+                FLifetimePropertyCollection lifetimeProps = new FLifetimePropertyCollection(address, lifetimePropsUnsafe);
+                obj.GetLifetimeReplicatedProps(lifetimeProps);
+            }
         }
 
         private static FunctionRedirect setupPlayerInput;

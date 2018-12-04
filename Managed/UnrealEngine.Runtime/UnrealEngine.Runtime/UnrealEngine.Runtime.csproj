@@ -173,6 +173,7 @@
     <Compile Include="Internal\Coroutines\WaitForRealtime.cs" />
     <Compile Include="Internal\EventNotRewrittenException.cs" />
     <Compile Include="Internal\IInterface.cs" />
+    <Compile Include="Internal\FLifetimePropertyCollection.cs" />
     <Compile Include="Internal\ManagedUnrealTypeInfo.Exception.cs" />
     <Compile Include="Internal\ManagedUnrealTypeInfo.Validation.cs" />
     <Compile Include="Internal\ManagedUnrealTypes.Builder.cs" />
