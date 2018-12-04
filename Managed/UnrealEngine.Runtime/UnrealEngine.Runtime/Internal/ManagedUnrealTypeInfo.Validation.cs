@@ -547,6 +547,11 @@ namespace UnrealEngine.Runtime
                     {
                         if (methodInfo.Name == propertyInfo.RepNotifyName)
                         {
+                            if (!methodInfo.HasCustomAttribute<UFunctionAttribute>(true))
+                            {
+                                throw new ValidateUnrealPropertyFailedException(member, "Must be marked as UFunction");
+                            }
+
                             repNotifyMethod = methodInfo;
                             break;
                         }

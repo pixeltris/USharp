@@ -9,6 +9,8 @@ namespace UnrealEngine.Runtime
 {
     public static class FMessage
     {
+        public const string LogNet = "LogNet";
+
         public static EAppReturnType OpenDialog(string message)
         {
             return OpenDialog(message, null);
