@@ -32,6 +32,14 @@ namespace UnrealEngine.Runtime
             }
         }
 
+        private void ValidateStruct(ManagedUnrealTypeInfo typeInfo, Type type)
+        {
+            if (SkipValidation)
+            {
+                return;
+            }
+        }
+
         private void ValidateDelegate(ManagedUnrealTypeInfo typeInfo, Type type, ManagedUnrealFunctionInfo functionInfo,
             MethodInfo method)
         {
@@ -1037,6 +1045,8 @@ namespace UnrealEngine.Runtime
         private void LogWarning(string warning)
         {
             // TODO: Some sort of logging for warnings
+            ManagedUnrealModuleInfo.NumWarnings++;
+            warning = "[WARNING] " + warning;
             Console.WriteLine(warning);
             System.Diagnostics.Debug.WriteLine(warning);
         }

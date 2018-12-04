@@ -48,6 +48,10 @@ namespace UnrealEngine.Runtime
 
             stopwatch.Stop();
             Console.WriteLine("AssemblyRewriter finished " + stopwatch.Elapsed);
+            if (ManagedUnrealModuleInfo.NumWarnings > 0)
+            {
+                Console.WriteLine("!!!!!! " + ManagedUnrealModuleInfo.NumWarnings + " warning(s) whilst running AssemblyRewriter");
+            }
         }
 
         private static Assembly CurrentDomain_AssemblyResolve(object sender, ResolveEventArgs args)

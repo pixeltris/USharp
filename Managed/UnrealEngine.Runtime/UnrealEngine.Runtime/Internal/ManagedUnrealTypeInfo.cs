@@ -14,6 +14,8 @@ namespace UnrealEngine.Runtime
 {
     public partial class ManagedUnrealModuleInfo : ManagedUnrealReflectionBase
     {
+        public static int NumWarnings = 0;
+
         /// <summary>
         /// If true skip various forms of validation of type flags / attributes
         /// </summary>
@@ -345,18 +347,25 @@ namespace UnrealEngine.Runtime
 
             foreach (Type type in assembly.GetTypes())
             {
-                if (!module.TypeInfosByType.ContainsKey(type) && ManagedUnrealTypeInfo.IsExportableType(type))
+                if (!module.TypeInfosByType.ContainsKey(type))
                 {
-                    string typeName = ManagedUnrealTypeInfo.GetTypeNameWithoutPrefix(type, ManagedUnrealTypeInfo.GetTypeCode(type));
-
-                    List<Type> types;
-                    if (!module.typesByName.TryGetValue(typeName, out types))
+                    if (ManagedUnrealTypeInfo.IsExportableType(type))
                     {
-                        module.typesByName.Add(typeName, types = new List<Type>());
-                    }
-                    types.Add(type);
+                        string typeName = ManagedUnrealTypeInfo.GetTypeNameWithoutPrefix(type, ManagedUnrealTypeInfo.GetTypeCode(type));
 
-                    module.ProcessType(type);
+                        List<Type> types;
+                        if (!module.typesByName.TryGetValue(typeName, out types))
+                        {
+                            module.typesByName.Add(typeName, types = new List<Type>());
+                        }
+                        types.Add(type);
+
+                        module.ProcessType(type);
+                    }
+                    else
+                    {
+                        unexportableTypes.Add(type);
+                    }
                 }
             }
 
@@ -1334,6 +1343,13 @@ namespace UnrealEngine.Runtime
             ManagedUnrealPropertyInfo propertyInfo = CreateProperty(type);
             if (propertyInfo == null)
             {
+                if (member.GetCustomAttribute<UPropertyAttribute>(false) != null)
+                {
+                    Console.WriteLine("[WARNING] Property '" + member.DeclaringType.FullName + ":" + member.Name +
+                        "' flagged as a [UProperty] is invalid and cannot be exported. Make sure the target "
+                        + "type is valid and is exportable.");
+                    NumWarnings++;
+                }
                 return null;
             }
 

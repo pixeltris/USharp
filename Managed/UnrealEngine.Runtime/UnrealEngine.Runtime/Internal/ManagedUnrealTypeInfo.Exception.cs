@@ -156,6 +156,14 @@ namespace UnrealEngine.Runtime.ManagedUnrealTypeInfoExceptions
         }
     }
 
+    public class UnrealTypeGenericsNotSupportedException : ManagedUnrealTypeInfoException
+    {
+        public UnrealTypeGenericsNotSupportedException(Type type)
+            : base("The type '" + type + "' uses generics and cannot be exported to unreal")
+        {
+        }
+    }
+
     //////////////////////////////////////////////////////////////////
     // Validation errors for classes, functions, properties, etc
     //////////////////////////////////////////////////////////////////

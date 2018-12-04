@@ -95,26 +95,25 @@ namespace UnrealEngine.Runtime
         }
 
         public static bool IsExportableType(Type type)
-        {            
-            if (type.IsGenericType)
-            {
-                return false;
-            }
-
+        {
             // NOTE: We aren't doing any with handling types which are exposed to unreal which reference
             // types which aren't exposed to unreal. We would need some error logging for that scenario.
 
+            bool isExportable = false;
             EPropertyType typeCode = GetTypeCode(type);
             switch (typeCode)
             {
                 case EPropertyType.Object:
-                    return IsExportableType(type, ManagedUnrealVisibility.ClassRequirement, typeof(UClassAttribute));
+                    isExportable = IsExportableType(type, ManagedUnrealVisibility.ClassRequirement, typeof(UClassAttribute));
+                    break;
 
                 case EPropertyType.Enum:
-                    return IsExportableType(type, ManagedUnrealVisibility.EnumRequirement, typeof(UEnumAttribute));
+                    isExportable = IsExportableType(type, ManagedUnrealVisibility.EnumRequirement, typeof(UEnumAttribute));
+                    break;
 
                 case EPropertyType.Interface:
-                    return IsExportableType(type, ManagedUnrealVisibility.InterfaceRequirement, typeof(UInterfaceAttribute));
+                    isExportable = IsExportableType(type, ManagedUnrealVisibility.InterfaceRequirement, typeof(UInterfaceAttribute));
+                    break;
 
                 case EPropertyType.Struct:
                     {
@@ -122,19 +121,31 @@ namespace UnrealEngine.Runtime
                         {
                             throw new NotImplementedException("StructAsClass support is currently disabled due to being incomplete. " +
                                 "'" + type.FullName + "'");
-                            //return IsExportableType(type, ManagedUnrealVisibility.StructRequirement, typeof(UStructAttribute));
+                            //isExportable = IsExportableType(type, ManagedUnrealVisibility.StructRequirement, typeof(UStructAttribute));
                         }
                         else
                         {
-                            return IsExportableType(type, ManagedUnrealVisibility.StructRequirement, typeof(UStructAttribute));
+                            isExportable = IsExportableType(type, ManagedUnrealVisibility.StructRequirement, typeof(UStructAttribute));
                         }
+                        break;
                     }
                 case EPropertyType.Delegate:
                 case EPropertyType.MulticastDelegate:
-                    return IsExportableType(type, ManagedUnrealVisibility.DelegateRequirement, typeof(UDelegateAttribute));
+                    isExportable = IsExportableType(type, ManagedUnrealVisibility.DelegateRequirement, typeof(UDelegateAttribute));
+                    break;
 
             }
-            return false;
+
+            if (type.IsGenericType)
+            {
+                if (!ManagedUnrealModuleInfo.SkipValidation && isExportable)
+                {
+                    throw new UnrealTypeGenericsNotSupportedException(type);
+                }
+                return false;
+            }
+
+            return isExportable;
         }
 
         private static bool IsExportableType(Type type, ManagedUnrealVisibility.Requirement requirement, Type attribute)
