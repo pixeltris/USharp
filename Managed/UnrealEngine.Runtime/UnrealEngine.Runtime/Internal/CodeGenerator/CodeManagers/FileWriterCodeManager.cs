@@ -91,7 +91,7 @@ namespace UnrealEngine.Runtime
                     if (ReadyToAddNewProjectRef(slnPath, projPath, projectName, projectGUID, out solutionContent, out bProjectRefExists))
                     {
                         UpdateSolutionWithNewProjectFile(slnPath, projPath, projectName, projectGUID, solutionContent, bProjectRefExists);
-                        UpdateGameProjectWithGenReference(projPath, projectName);
+                        UpdateGameProjectWithGenReference(projPath, projectName, projectGUID);
                     }
                 }
             }
@@ -250,7 +250,7 @@ namespace UnrealEngine.Runtime
                 projectName == Path.GetFileNameWithoutExtension(GamePluginGenerationProjPath));
         }
 
-        private void UpdateGameProjectWithGenReference(string projPath, string projectName)
+        private void UpdateGameProjectWithGenReference(string projPath, string projectName, Guid projectGuid)
         {
             if (!File.Exists(GameProjPath)) return;
             List<string> projContent = File.ReadAllLines(GameProjPath).ToList();
@@ -281,6 +281,7 @@ namespace UnrealEngine.Runtime
                     {
                         "  <ItemGroup>",
                         projectRefInclude,
+                        "      <Project>{" + GuidToString(projectGuid) + "}</Project>",
                         "      <Name>" + Path.GetFileNameWithoutExtension(relativeProjPath) + "</Name>",
                         "    </ProjectReference>",
                         "  </ItemGroup>"

@@ -101,7 +101,7 @@ namespace UnrealBuildTool.Rules
 
                 // Game project paths
                 string projectDir = Path.GetDirectoryName(projectFile);
-                string managedBinDir = Path.Combine(projectDir, "Managed", "Binaries");
+                string managedBinDir = Path.Combine(projectDir, "Binaries", "Managed");
 
                 if (!Directory.Exists(managedBinDir))
                 {
