@@ -1268,6 +1268,12 @@ namespace UnrealEngine.Runtime
                 EPropertyFlags propertyFlags = Native_UProperty.Get_PropertyFlags(property);
                 propertyFlags |= propertyInfo.Flags;
 
+                if ((propertyFlags & EPropertyFlags.RepNotify) == EPropertyFlags.RepNotify && !string.IsNullOrEmpty(propertyInfo.RepNotifyName))
+                {
+                    FName repNotifyName = new FName(propertyInfo.RepNotifyName);
+                    Native_UProperty.Set_RepNotifyFunc(property, ref repNotifyName);
+                }
+
                 // TODO: Propagate flags to inner properties which need it (collections)
 
                 // Somewhat emulate a check in Engine/Source/Programs/UnrealHeaderTool/Private/HeaderParser.cpp
