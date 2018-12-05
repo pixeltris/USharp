@@ -142,7 +142,7 @@ namespace UnrealEngine.Runtime
 
         public void Dispose()
         {
-            Destroy();// We do we need to do this? Shouldn't this be done in the delete call?
+            Destroy();// Why do we need to call this? Shouldn't this be called by the dtor? (at least for FScopedSlowTask)
             Native_FSlowTask.Delete(Address);
         }
 

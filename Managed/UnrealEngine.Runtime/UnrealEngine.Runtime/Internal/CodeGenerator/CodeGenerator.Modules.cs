@@ -310,19 +310,33 @@ namespace UnrealEngine.Runtime
                 return;
             }
 
+            if (slowTaskModuleCount > 1)
+            {
+                System.Diagnostics.Debug.Assert(subSlowTask == null);
+                subSlowTask = new FScopedSlowTask(currentSlowTaskTarget, "SubTask");
+                subSlowTask.Visibility = ESlowTaskVisibility.ForceVisible;// Required otherwise the UI is very delayed
+                subSlowTask.MakeDialog();
+            }
+
             BeginGenerateModule(module);
 
             GenerateCodeForGlobalFunctions(module, globalFunctions);
 
             foreach (UStruct unrealStruct in structs)
             {
-                SlowTaskStep();
+                SlowTaskStep(unrealStruct);
                 GenerateCodeForStruct(module, unrealStruct);
             }
 
             GenerateCodeForEnums(module, enums, Settings.MergeEnumFiles);
 
             EndGenerateModule(module);
+
+            if (subSlowTask != null)
+            {
+                subSlowTask.Dispose();
+                subSlowTask = null;
+            }
         }
 
         private string GetModuleNamespace(UField field)

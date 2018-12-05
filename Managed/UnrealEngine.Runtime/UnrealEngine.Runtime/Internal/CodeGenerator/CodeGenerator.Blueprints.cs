@@ -67,7 +67,7 @@ namespace UnrealEngine.Runtime
 
                 foreach (FAssetData asset in assets)
                 {
-                    SlowTaskStep();
+                    SlowTaskStep(null);
 
                     string assetFileName, assetFileNameError;
                     if (!asset.TryGetFilename(out assetFileName, out assetFileNameError))

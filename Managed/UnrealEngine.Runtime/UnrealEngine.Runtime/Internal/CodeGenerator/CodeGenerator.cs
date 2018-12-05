@@ -12,10 +12,12 @@ namespace UnrealEngine.Runtime
         private CodeManager codeManager;
         public CodeGeneratorSettings Settings { get; private set; }
 
+        private int slowTaskModuleCount;
         private int currentSlowTaskTarget;
         private int currentSlowTaskStep;
         private string currentSlowTaskName;
         private FScopedSlowTask slowTask;
+        private FScopedSlowTask subSlowTask;
         public bool Complete { get; private set; }
 
         /// <summary>
@@ -38,6 +40,7 @@ namespace UnrealEngine.Runtime
                 slowTask = new FScopedSlowTask(moduleCount * 100, GetSlowTaskTitle());
                 slowTask.MakeDialog();
             }
+            slowTaskModuleCount = moduleCount;
         }
         
         private void SlowTaskUpdateTarget(int target)
@@ -64,10 +67,14 @@ namespace UnrealEngine.Runtime
             currentSlowTaskName = moduleName;
         }
 
-        private void SlowTaskStep()
+        private void SlowTaskStep(UObject target)
         {
             currentSlowTaskStep++;
             slowTask.EnterProgressFrame((float)(100.0 / currentSlowTaskTarget), GetSlowTaskTitle());
+            if (subSlowTask != null && target != null)
+            {
+                subSlowTask.EnterProgressFrame(1, target.GetName());
+            }
         }
 
         private string GetSlowTaskTitle()
@@ -128,6 +135,12 @@ namespace UnrealEngine.Runtime
                 slowTask.Dispose();
                 slowTask = null;
             }
+            if (subSlowTask != null)
+            {
+                subSlowTask.Dispose();
+                subSlowTask = null;
+            }
+            slowTaskModuleCount = 0;
             currentSlowTaskStep = 0;
             currentSlowTaskTarget = 0;
             currentSlowTaskName = null;
