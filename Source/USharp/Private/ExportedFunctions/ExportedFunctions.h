@@ -110,6 +110,7 @@
 #include "Export_FApp.h"
 #include "Export_FMath.h"
 #include "Export_FParse.h"
+#include "Export_FSlowTask.h"
 
 #include "Export_FKey.h"
 #include "Export_FInputBinding.h"
@@ -248,6 +249,7 @@ CSEXPORT void CSCONV RegisterFunctions(RegisterFunc registerFunc)
 	Export_FApp(registerFunc);
 	Export_FMath(registerFunc);
 	Export_FParse(registerFunc);
+	Export_FSlowTask(registerFunc);
 	
 	Export_FKey(registerFunc);
 	Export_FInputBinding(registerFunc);

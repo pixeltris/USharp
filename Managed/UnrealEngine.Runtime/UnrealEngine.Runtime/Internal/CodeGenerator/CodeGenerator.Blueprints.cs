@@ -61,8 +61,14 @@ namespace UnrealEngine.Runtime
                 }
 
                 List<FAssetData> assets = FAssetData.Load(filter);
+
+                SlowTaskSetModuleCount(1);
+                SlowTaskBeginModule("Blueprints", assets.Count);
+
                 foreach (FAssetData asset in assets)
                 {
+                    SlowTaskStep();
+
                     string assetFileName, assetFileNameError;
                     if (!asset.TryGetFilename(out assetFileName, out assetFileNameError))
                     {

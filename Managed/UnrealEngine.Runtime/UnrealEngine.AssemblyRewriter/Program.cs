@@ -42,6 +42,7 @@ namespace UnrealEngine.Runtime
                 if (!ProcessAssembly(rewriter, filePath))
                 {
                     Environment.ExitCode = 3;
+                    break;
                 }
                 additionalAssemblySearchPath = null;
             }
@@ -51,6 +52,7 @@ namespace UnrealEngine.Runtime
             if (ManagedUnrealModuleInfo.NumWarnings > 0)
             {
                 Console.WriteLine("!!!!!! " + ManagedUnrealModuleInfo.NumWarnings + " warning(s) whilst running AssemblyRewriter");
+                ManagedUnrealModuleInfo.NumWarnings = 0;
             }
         }
 

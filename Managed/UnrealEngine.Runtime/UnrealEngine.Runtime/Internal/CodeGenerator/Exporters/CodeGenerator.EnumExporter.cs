@@ -51,6 +51,7 @@ namespace UnrealEngine.Runtime
 
                 foreach (UEnum unrealEnum in enums)
                 {
+                    SlowTaskStep();
                     GenerateCodeForEnum(module, builder, unrealEnum);
 
                     if (unrealEnum != lastEnum)
@@ -72,6 +73,7 @@ namespace UnrealEngine.Runtime
             {
                 foreach (UEnum unrealEnum in enums)
                 {
+                    SlowTaskStep();
                     GenerateCodeForEnum(module, unrealEnum);
                 }
             }

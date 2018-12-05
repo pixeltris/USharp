@@ -172,6 +172,7 @@
     <Compile Include="Internal\CodeGenerator\CodeManagers\FileWriterCodeManager.cs" />
     <Compile Include="Internal\Coroutines\WaitForRealtime.cs" />
     <Compile Include="Internal\EventNotRewrittenException.cs" />
+    <Compile Include="Core\FSlowTask.cs" />
     <Compile Include="Internal\IInterface.cs" />
     <Compile Include="Internal\FLifetimePropertyCollection.cs" />
     <Compile Include="Internal\ManagedUnrealTypeInfo.Exception.cs" />
@@ -381,6 +382,7 @@
     <Compile Include="Native\Native_FReferenceFinder.cs" />
     <Compile Include="Native\Native_FScriptDelegate.cs" />
     <Compile Include="Native\Native_FSharedMemoryRegion.cs" />
+    <Compile Include="Native\Native_FSlowTask.cs" />
     <Compile Include="Native\Native_FSoftObjectPtr.cs" />
     <Compile Include="Native\Native_FAssetRegistryModule.cs" />
     <Compile Include="Native\Native_FCoreDelegates.cs" />

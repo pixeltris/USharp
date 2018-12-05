@@ -75,7 +75,7 @@ struct TStructOpsTypeTraits<FSharpActorComponentTickFunction> : public TStructOp
 typedef void (*GetLifetimeReplicatedPropsCallbackSig)(const UObject* Obj, TArray<FLifetimeProperty>& OutLifetimeProps);
 extern GetLifetimeReplicatedPropsCallbackSig GetLifetimeReplicatedPropsCallback;
 
-UCLASS()
+UCLASS(NotBlueprintable, NotBlueprintType)
 class USHARP_API UDummyRepProps1 : public UObject
 {
 	GENERATED_BODY()
@@ -90,13 +90,13 @@ public:
 	}
 };
 
-UCLASS()
+UCLASS(NotBlueprintable, NotBlueprintType)
 class USHARP_API UDummyRepProps2 : public UDummyRepProps1
 {
 	GENERATED_BODY()
 };
 
-UCLASS()
+UCLASS(NotBlueprintable, NotBlueprintType)
 class USHARP_API UDummyRepProps3 : public UDummyRepProps2
 {
 	GENERATED_BODY()
@@ -115,7 +115,7 @@ public:
 typedef void (*SetupPlayerInputComponentCallbackSig)(APawn* Obj, UInputComponent* PlayerInputComponent);
 extern SetupPlayerInputComponentCallbackSig SetupPlayerInputComponentCallback;
 
-UCLASS()
+UCLASS(NotBlueprintable, NotBlueprintType)
 class USHARP_API ADummySetupPlayerInput1 : public APawn
 {
 	GENERATED_BODY()
@@ -130,13 +130,13 @@ protected:
 	}
 };
 
-UCLASS()
+UCLASS(NotBlueprintable, NotBlueprintType)
 class USHARP_API ADummySetupPlayerInput2 : public ADummySetupPlayerInput1
 {
 	GENERATED_BODY()
 };
 
-UCLASS()
+UCLASS(NotBlueprintable, NotBlueprintType)
 class USHARP_API ADummySetupPlayerInput3 : public ADummySetupPlayerInput2
 {
 	GENERATED_BODY()

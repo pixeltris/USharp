@@ -165,15 +165,19 @@ namespace UnrealEngine.Runtime
 
             IPlugin[] plugins = IPluginManager.Instance.GetDiscoveredPlugins();
 
+            SlowTaskSetModuleCount(modulePaths.Count);
+
             foreach (KeyValuePair<FName, string> modulePath in modulePaths)
             {
+                SlowTaskBeginModule(modulePath.Key.PlainName);
+
                 string moduleName = modulePath.Key.PlainName;
                 string longPackageName = FPackageName.ConvertToLongScriptPackageName(moduleName);
                 UPackage package = UObject.FindObjectFast<UPackage>(null, new FName(longPackageName), false, false);
                 if (package != null)
                 {
                     UnrealModuleInfo moduleInfo = new UnrealModuleInfo(package, moduleName, modulePath.Value,
-                        UnrealModuleInfo.GetModuleType(moduleName, modulePath.Value, plugins));
+                            UnrealModuleInfo.GetModuleType(moduleName, modulePath.Value, plugins));
 
                     if (moduleInfo.Type == UnrealModuleType.Unknown)
                     {
@@ -202,6 +206,8 @@ namespace UnrealEngine.Runtime
                     {
                         globalFunctions = new List<UFunction>();
                     }
+
+                    SlowTaskUpdateTarget(structs.Count + enums.Count + globalFunctions.Count);
 
                     GenerateCodeForModule(moduleInfo, structs.ToArray(), enums.ToArray(), globalFunctions.ToArray());
                 }
@@ -291,6 +297,9 @@ namespace UnrealEngine.Runtime
                 }
             }
 
+            SlowTaskSetModuleCount(1);
+            SlowTaskBeginModule(FPackageName.GetShortName(module.Package), structs.Count + enums.Count + globalFunctions.Count);
+
             GenerateCodeForModule(module, structs.ToArray(), enums.ToArray(), globalFunctions.ToArray());
         }
 
@@ -307,6 +316,7 @@ namespace UnrealEngine.Runtime
 
             foreach (UStruct unrealStruct in structs)
             {
+                SlowTaskStep();
                 GenerateCodeForStruct(module, unrealStruct);
             }
 

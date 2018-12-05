@@ -274,6 +274,7 @@ namespace UnrealEngine.Runtime
 
             foreach (UFunction function in globalFunctions)
             {
+                SlowTaskStep();
                 if (function.HasAnyFunctionFlags(EFunctionFlags.Delegate | EFunctionFlags.MulticastDelegate))
                 {
                     AppendDelegateSignature(module, builder, function, null, !function.HasAnyFunctionFlags(EFunctionFlags.Native), namespaces);

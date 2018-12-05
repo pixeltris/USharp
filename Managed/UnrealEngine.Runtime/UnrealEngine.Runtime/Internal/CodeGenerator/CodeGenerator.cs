@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -11,7 +12,10 @@ namespace UnrealEngine.Runtime
         private CodeManager codeManager;
         public CodeGeneratorSettings Settings { get; private set; }
 
-        public bool TimeSliced { get; private set; }
+        private int currentSlowTaskTarget;
+        private int currentSlowTaskStep;
+        private string currentSlowTaskName;
+        private FScopedSlowTask slowTask;
         public bool Complete { get; private set; }
 
         /// <summary>
@@ -19,23 +23,56 @@ namespace UnrealEngine.Runtime
         /// </summary>
         private HashSet<string> loadNativeTypeInjected = new HashSet<string>();
 
-        public CodeGenerator(bool timeSliced)
+        public CodeGenerator()
         {
-            TimeSliced = TimeSliced;
             codeManager = CodeManager.Create(this);
             Settings = new CodeGeneratorSettings();
             Settings.IsGeneratingCode = true;
             Settings.Load();
         }
 
-        public void Process()
+        private void SlowTaskSetModuleCount(int moduleCount)
         {
-            if (!TimeSliced)
+            if (slowTask == null)
             {
-                return;
+                slowTask = new FScopedSlowTask(moduleCount * 100, GetSlowTaskTitle());
+                slowTask.MakeDialog();
+            }
+        }
+        
+        private void SlowTaskUpdateTarget(int target)
+        {
+            Debug.Assert(currentSlowTaskStep == 0, "Only update the task target before starting the work");
+            currentSlowTaskTarget = Math.Max(target, 1);
+        }
+
+        private void SlowTaskBeginModule(string moduleName)
+        {
+            SlowTaskBeginModule(moduleName, 0);
+        }
+
+        private void SlowTaskBeginModule(string moduleName, int target)
+        {
+            if (currentSlowTaskStep < currentSlowTaskTarget)
+            {
+                double stepFraction = currentSlowTaskStep == 0 ? 1 : ((double)currentSlowTaskTarget / (double)currentSlowTaskStep);
+                slowTask.EnterProgressFrame((float)(100.0 / stepFraction), GetSlowTaskTitle());
             }
 
-            // TODO: Process a certain amount
+            currentSlowTaskStep = 0;
+            currentSlowTaskTarget = Math.Max(target, 1);
+            currentSlowTaskName = moduleName;
+        }
+
+        private void SlowTaskStep()
+        {
+            currentSlowTaskStep++;
+            slowTask.EnterProgressFrame((float)(100.0 / currentSlowTaskTarget), GetSlowTaskTitle());
+        }
+
+        private string GetSlowTaskTitle()
+        {
+            return "Generating: " + currentSlowTaskName;
         }
 
         /// <summary>
@@ -85,6 +122,15 @@ namespace UnrealEngine.Runtime
             {
                 codeManager.OnEndGenerateModules();
             }
+
+            if (slowTask != null)
+            {
+                slowTask.Dispose();
+                slowTask = null;
+            }
+            currentSlowTaskStep = 0;
+            currentSlowTaskTarget = 0;
+            currentSlowTaskName = null;
         }
 
         private void OnBeginGenerateModule(UnrealModuleInfo module)
