@@ -30,6 +30,16 @@ namespace UnrealEngine.Runtime
                 // don't allow actor classes to be declared editinlinenew
                 throw new ValidateUnrealClassFailedException(type, "Invalid class attribute: Creating actor instances via the property window is not allowed");
             }
+
+            if (type.HasCustomAttribute<BlueprintableAttribute>(false) && type.HasCustomAttribute<NotBlueprintableAttribute>(false))
+            {
+                throw new ValidateUnrealClassFailedException(type, "Invalid class attribute: Cannot be both [Blueprintable] and [NotBlueprintable]");
+            }
+
+            if (type.HasCustomAttribute<BlueprintTypeAttribute>(false) && type.HasCustomAttribute<NotBlueprintTypeAttribute>(false))
+            {
+                throw new ValidateUnrealClassFailedException(type, "Invalid class attribute: Cannot be both [BlueprintType] and [NotBlueprintType]");
+            }
         }
 
         private void ValidateStruct(ManagedUnrealTypeInfo typeInfo, Type type)
