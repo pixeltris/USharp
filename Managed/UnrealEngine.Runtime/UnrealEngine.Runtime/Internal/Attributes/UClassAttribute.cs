@@ -213,6 +213,10 @@ namespace UnrealEngine.Runtime
     {
         public bool Enabled { get; set; }
 
+        public EditInlineNewAttribute() : this(true)
+        {
+        }
+
         public EditInlineNewAttribute(bool enabled)
         {
             Enabled = enabled;

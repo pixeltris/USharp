@@ -10,7 +10,7 @@ namespace UnrealEngine.Runtime
     public partial class CodeGenerator
     {
         private CodeManager codeManager;
-        internal CodeGeneratorSettings Settings { get; private set; }
+        public CodeGeneratorSettings Settings { get; private set; }
 
         private int slowTaskModuleCount;
         private int currentSlowTaskTarget;

@@ -150,6 +150,17 @@ namespace UnrealEngine.Runtime
         }
     }
 
+    /// <summary>
+    /// Used to set the actor group that the class is show in, in the editor.
+    /// </summary>
+    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Interface)]
+    public class ClassGroupAttribute : UMetaAttribute
+    {
+        public ClassGroupAttribute(string group) : base(MDClass.ClassGroupNames, group)
+        {
+        }
+    }
+
     // We need the enum prefix here?
     ///// <summary>
     ///// Metadata that associates a bitmask property with a bitflag enum.
