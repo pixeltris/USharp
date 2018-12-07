@@ -47,6 +47,9 @@ namespace UnrealEngine.Runtime
         public static bool SkipReinstance { get; private set; }
         public static bool SkipBroadcastHotReload { get; private set; }
 
+        private static DateTime lastInitializerException;
+        private static TimeSpan initializerExceptionPopupDelay = TimeSpan.FromSeconds(10);
+
         public static void Load()
         {
             // Clear NativeReflectionCached just in case it is holding onto old values.
@@ -387,18 +390,28 @@ namespace UnrealEngine.Runtime
                     }
                     catch (Exception e)
                     {
+                        string callstack = null;
+                        try
+                        {
+                            callstack = Environment.StackTrace;
+                        }
+                        catch
+                        {
+                        }
                         string error = "An exception occured in " + obj.GetType() + ".Initialize() There cannot be any " +
                             "unhandled exceptions in the initializer. " + Environment.NewLine + Environment.NewLine +
-                            "Exception:" + Environment.NewLine + e;
+                            "Exception:" + Environment.NewLine + Environment.NewLine + e + Environment.NewLine + Environment.NewLine +
+                            "Callstack:" + Environment.NewLine + Environment.NewLine + callstack;
 
-                        // We don't HAVE to crash it. The exception could be a trivial C# exception which has no impact on the C++ side.
-                        // - That being said the object state still wouldn't be fully initialized due to the exception breaking the code flow so the 
-                        //   likelyhood there will be fatal errors anyway is very high.
-                        // - NOTE: The fatal log call will result in a native exception which gets handled by the loader try/catch so the popup will
-                        //         appear twice before crashing.
-                        // - TODO: Fill the clipboard with the error message (the exception will appear as message box which cannot be copied if the
-                        //         engine is currently loading)
-                        FMessage.Log(ELogVerbosity.Fatal, error);
+                        // Create a message dialog instead of a fatal log. It may be annoying if the engine is closed when
+                        // it doesn't need to be (C# only exception). It's recommended to close the engine after the error
+                        // has been shown as object state is likely broken which may break blueprints and other things.
+                        if (lastInitializerException < DateTime.Now - initializerExceptionPopupDelay)
+                        {
+                            FMessage.OpenDialog(error);
+                            lastInitializerException = DateTime.Now;
+                        }
+                        FMessage.Log(ELogVerbosity.Error, error);
                     }
                 }
             }
