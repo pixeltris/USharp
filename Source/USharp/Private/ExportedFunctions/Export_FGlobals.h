@@ -143,6 +143,11 @@ CSEXPORT csbool CSCONV Export_FGlobals_Get_GIsCriticalError()
 	return GIsCriticalError;
 }
 
+CSEXPORT void CSCONV Export_FGlobals_Set_GIsCriticalError(csbool value)
+{
+	GIsCriticalError = value;
+}
+
 CSEXPORT csbool CSCONV Export_FGlobals_Get_GIsRunning()
 {
 	return GIsRunning;
@@ -613,6 +618,7 @@ CSEXPORT void CSCONV Export_FGlobals(RegisterFunc registerFunc)
 	REGISTER_FUNC(Export_FGlobals_Get_GIsClient);
 	REGISTER_FUNC(Export_FGlobals_Get_GIsServer);
 	REGISTER_FUNC(Export_FGlobals_Get_GIsCriticalError);
+	REGISTER_FUNC(Export_FGlobals_Set_GIsCriticalError);
 	REGISTER_FUNC(Export_FGlobals_Get_GIsRunning);
 	REGISTER_FUNC(Export_FGlobals_Get_GIsDuplicatingClassForReinstancing);
 	REGISTER_FUNC(Export_FGlobals_Get_GIsBuildMachine);

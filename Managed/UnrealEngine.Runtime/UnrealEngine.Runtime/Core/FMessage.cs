@@ -77,6 +77,21 @@ namespace UnrealEngine.Runtime
 
         public static void Log(string category, ELogVerbosity verbosity, string message)
         {
+            if (verbosity == ELogVerbosity.Fatal)
+            {
+                string callstack = null;
+                try
+                {
+                    callstack = Environment.StackTrace;
+                }
+                catch
+                {
+                }
+                FMessage.OpenDialog("Fatal error from C# (USharp):" + Environment.NewLine + Environment.NewLine +
+                    message + Environment.NewLine + Environment.NewLine + 
+                    "Callstack:" + Environment.NewLine + Environment.NewLine + callstack);
+            }
+
             if (string.IsNullOrEmpty(category))
             {
                 category = "USharp";
@@ -85,6 +100,18 @@ namespace UnrealEngine.Runtime
             using (FStringUnsafe categoryUnsafe = new FStringUnsafe(category))
             {
                 Native_FMessageDialog.Log(ref messageUnsafe.Array, ref categoryUnsafe.Array, verbosity);
+            }
+        }
+
+        /// <summary>
+        /// Creates a fatal log (this will crash the engine). This is the same Log("error", ELogVerbosity.Fatal); but doesn't show a message dialog
+        /// </summary>
+        public static void Crash(string message)
+        {
+            using (FStringUnsafe messageUnsafe = new FStringUnsafe(message))
+            using (FStringUnsafe categoryUnsafe = new FStringUnsafe("USharp"))
+            {
+                Native_FMessageDialog.Log(ref messageUnsafe.Array, ref categoryUnsafe.Array, ELogVerbosity.Fatal);
             }
         }
     }

@@ -242,6 +242,7 @@ namespace UnrealEngine.Runtime
         public static bool IsCriticalError
         {
             get { return Native_FGlobals.Get_GIsCriticalError(); }
+            set { Native_FGlobals.Set_GIsCriticalError(value); }
         }
 
         /// <summary>

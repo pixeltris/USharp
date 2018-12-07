@@ -18,7 +18,6 @@ namespace UnrealEngine.Runtime
         internal static void OnNativeFunctionsRegistered()
         {
             IConsoleManager.Get().RegisterConsoleCommand("USharpGen", "USharp generate C# code", GenerateCode);
-            //IConsoleManager.Get().RegisterConsoleCommand("USharpGenSliced", "USharp generate C# code", GenerateCodeTimeSliced);
 
             // Move these commands somewhere else?
             IConsoleManager.Get().RegisterConsoleCommand("USharpRuntime", "Sets the .NET runtime that USharp will use (Mono/CLR)", SetDotNetRuntime);
@@ -317,22 +316,31 @@ namespace UnrealEngine.Runtime
             }
 
             CommandLog(ELogVerbosity.Log, "Attempting to build generated solution at " + slnPath);
-            
-            try
+
+            using (FScopedSlowTask slowTask = new FScopedSlowTask(100, "Compiling..."))
             {
-                bool built = (bool)pluginInstallerBuildSlnMethod.Invoke(null, new object[] { slnPath, projPath });
-                if (built)
+                slowTask.MakeDialog();
+
+                try
                 {
-                    CommandLog(ELogVerbosity.Log, "Solution was compiled successfully.");
+                    bool built = (bool)pluginInstallerBuildSlnMethod.Invoke(null, new object[] { slnPath, projPath });
+                    if (built)
+                    {
+                        CommandLog(ELogVerbosity.Log, "Solution was compiled successfully.");
+                    }
+                    else
+                    {
+                        CommandLog(ELogVerbosity.Error, "There was an error building the solution. Try compiling manually at " + slnPath);
+                    }
                 }
-                else
+                catch (Exception e)
                 {
-                    CommandLog(ELogVerbosity.Error, "There was an error building the solution. Try compiling manually at " + slnPath);
+                    CommandLog(ELogVerbosity.Error, "'" + methodName + "' throw an exception whilst compiling: " + e);
                 }
-            }
-            catch (Exception e)
-            {
-                CommandLog(ELogVerbosity.Error, "'" + methodName + "' throw an exception whilst compiling: " + e);
+
+                // This will give us one frame of 100% rather than always showing 0% (is there an alternative dialog for unknown task lengths?)
+                slowTask.EnterProgressFrame(99.9f);
+                slowTask.EnterProgressFrame(0.1f);
             }
         }
 

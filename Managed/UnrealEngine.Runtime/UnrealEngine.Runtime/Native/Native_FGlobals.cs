@@ -42,6 +42,7 @@ namespace UnrealEngine.Runtime.Native
         public delegate csbool Del_Get_GIsClient();
         public delegate csbool Del_Get_GIsServer();        
         public delegate csbool Del_Get_GIsCriticalError();
+        public delegate void Del_Set_GIsCriticalError(csbool value);
         public delegate csbool Del_Get_GIsRunning();
         public delegate csbool Del_Get_GIsDuplicatingClassForReinstancing();
         public delegate csbool Del_Get_GIsBuildMachine();
@@ -175,6 +176,7 @@ namespace UnrealEngine.Runtime.Native
         public static Del_Get_GIsClient Get_GIsClient;
         public static Del_Get_GIsServer Get_GIsServer;
         public static Del_Get_GIsCriticalError Get_GIsCriticalError;
+        public static Del_Set_GIsCriticalError Set_GIsCriticalError;
         public static Del_Get_GIsRunning Get_GIsRunning;
         public static Del_Get_GIsDuplicatingClassForReinstancing Get_GIsDuplicatingClassForReinstancing;
         public static Del_Get_GIsBuildMachine Get_GIsBuildMachine;
