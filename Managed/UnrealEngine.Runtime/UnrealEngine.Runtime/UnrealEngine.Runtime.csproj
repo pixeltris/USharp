@@ -174,13 +174,14 @@
     <Compile Include="Internal\EventNotRewrittenException.cs" />
     <Compile Include="Core\FSlowTask.cs" />
     <Compile Include="Internal\IInterface.cs" />
-    <Compile Include="Internal\FLifetimePropertyCollection.cs" />
+    <Compile Include="CoreUObject\FLifetimePropertyCollection.cs" />
     <Compile Include="Internal\ManagedUnrealTypeInfo.Exception.cs" />
     <Compile Include="Internal\ManagedUnrealTypeInfo.Validation.cs" />
     <Compile Include="Internal\ManagedUnrealTypes.Builder.cs" />
     <Compile Include="Internal\ManagedUnrealTypes.MetaData.cs" />
     <Compile Include="Internal\ManagedUnrealVisibility.cs" />
     <Compile Include="Internal\NativeReflectionCached.cs" />
+    <Compile Include="Internal\Native_FPlatformMisc.cs" />
     <Compile Include="Internal\ScriptDisassembler.cs" />
     <Compile Include="Internal\StaticVar.cs" />
     <Compile Include="Internal\StructAsClass.cs" />

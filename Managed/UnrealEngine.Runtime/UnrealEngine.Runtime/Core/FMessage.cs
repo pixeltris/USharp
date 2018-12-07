@@ -108,6 +108,11 @@ namespace UnrealEngine.Runtime
         /// </summary>
         public static void Crash(string message)
         {
+            if (FGlobals.IsCriticalError)
+            {
+                // This will ensure that the engine actually crashes on this call
+                FGlobals.IsCriticalError = false;
+            }
             using (FStringUnsafe messageUnsafe = new FStringUnsafe(message))
             using (FStringUnsafe categoryUnsafe = new FStringUnsafe("USharp"))
             {

@@ -380,8 +380,26 @@ namespace UnrealEngine.Runtime
 
                 if (callInitializer)
                 {
-                    // Call the managed object initializer
-                    obj.Initialize(objectInitializer);
+                    try
+                    {
+                        // Call the managed object initializer
+                        obj.Initialize(objectInitializer);
+                    }
+                    catch (Exception e)
+                    {
+                        string error = "An exception occured in " + obj.GetType() + ".Initialize() There cannot be any " +
+                            "unhandled exceptions in the initializer. " + Environment.NewLine + Environment.NewLine +
+                            "Exception:" + Environment.NewLine + e;
+
+                        // We don't HAVE to crash it. The exception could be a trivial C# exception which has no impact on the C++ side.
+                        // - That being said the object state still wouldn't be fully initialized due to the exception breaking the code flow so the 
+                        //   likelyhood there will be fatal errors anyway is very high.
+                        // - NOTE: The fatal log call will result in a native exception which gets handled by the loader try/catch so the popup will
+                        //         appear twice before crashing.
+                        // - TODO: Fill the clipboard with the error message (the exception will appear as message box which cannot be copied if the
+                        //         engine is currently loading)
+                        FMessage.Log(ELogVerbosity.Fatal, error);
+                    }
                 }
             }
         }

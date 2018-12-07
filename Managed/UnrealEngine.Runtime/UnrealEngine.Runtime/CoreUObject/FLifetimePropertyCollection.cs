@@ -3,6 +3,9 @@ using UnrealEngine.Runtime.Native;
 
 namespace UnrealEngine.Runtime
 {
+    // Doesn't map to a native C++ class but allows us to work with a collection of FLifetimeProperty in a similar
+    // way to the equivilar macros in Engine\Source\Runtime\Engine\Public\Net\UnrealNetwork.h
+
     public sealed class FLifetimePropertyCollection
     {
         private IntPtr nativeClass;

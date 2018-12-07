@@ -96,6 +96,7 @@
 #include "Export_FTickFunction.h"
 #include "Export_FDelegateHandle.h"
 #include "Export_FPlatformProperties.h"
+#include "Export_FPlatformMisc.h"
 #include "Export_FGlobals.h"
 #include "Export_FBuildGlobals.h"
 #include "Export_FAsync.h"
@@ -235,6 +236,7 @@ CSEXPORT void CSCONV RegisterFunctions(RegisterFunc registerFunc)
 	Export_FTickFunction(registerFunc);
 	Export_FDelegateHandle(registerFunc);
 	Export_FPlatformProperties(registerFunc);
+	Export_FPlatformMisc(registerFunc);
 	Export_FGlobals(registerFunc);
 	Export_FBuildGlobals(registerFunc);
 	Export_FAsync(registerFunc);
