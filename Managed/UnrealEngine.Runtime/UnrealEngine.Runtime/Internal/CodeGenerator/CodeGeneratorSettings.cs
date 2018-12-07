@@ -462,7 +462,7 @@ namespace UnrealEngine.Runtime
         public string GetInjectedClassesDir()
         {
             return Path.Combine(GetUSharpBaseDir(),
-                    "Managed", "UnrealEngine.Runtime", "UnrealEngine.Runtime", "InjectedClasses");
+                    "Managed", "UnrealEngine.Runtime", "UnrealEngine.Runtime", "Internal", "InjectedClasses");
         }
 
         /// <summary>

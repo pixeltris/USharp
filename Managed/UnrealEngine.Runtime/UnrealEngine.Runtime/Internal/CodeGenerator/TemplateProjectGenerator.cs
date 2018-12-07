@@ -12,7 +12,7 @@ namespace UnrealEngine.Runtime
     /// <summary>
     /// Helper for generating the managed project for the current unreal project
     /// </summary>
-    static class TemplateProjectGenerator
+    internal static class TemplateProjectGenerator
     {
         const string targetStandardFramework = "netstandard2.0";
         const string targetNetFramework = "v4.5.2";
