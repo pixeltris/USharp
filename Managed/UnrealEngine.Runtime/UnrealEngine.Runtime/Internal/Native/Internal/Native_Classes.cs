@@ -67,5 +67,6 @@ namespace UnrealEngine.Runtime.Native
         public static Del_StaticClass APawn;
         public static Del_StaticClass USharpClass;
         public static Del_StaticClass USharpStruct;
+        public static Del_StaticClass UActorComponent;
     }
 }

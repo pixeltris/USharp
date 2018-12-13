@@ -74,6 +74,7 @@ namespace UnrealEngine.Runtime
         public static IntPtr UWorld;
         public static IntPtr AActor;
         public static IntPtr APawn;
+        public static IntPtr UActorComponent;
 
         // USharp
         public static IntPtr USharpClass;
@@ -156,6 +157,7 @@ namespace UnrealEngine.Runtime
             UWorld = Native_Classes.UWorld();
             AActor = Native_Classes.AActor();
             APawn = Native_Classes.APawn();
+            UActorComponent = Native_Classes.UActorComponent();
 
             // USharp
             USharpClass = Native_Classes.USharpClass();

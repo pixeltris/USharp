@@ -147,3 +147,83 @@ protected:
 		FMsg::Logf("", 0, FName(TEXT("USharp")), ELogVerbosity::Log, TEXT("ADummySetupPlayerInput3-SetupPlayerInputComponent"));
 	}
 };
+
+/////////////////////////////////////////////////////////////////////////////
+// UActorComponent::BeginPlay
+/////////////////////////////////////////////////////////////////////////////
+
+typedef void(*ActorComponentBeginPlayCallbackSig)(UActorComponent* Obj);
+extern ActorComponentBeginPlayCallbackSig ActorComponentBeginPlayCallback;
+
+UCLASS(NotBlueprintable, NotBlueprintType)
+class USHARP_API UDummyActorComponentBeginPlay1 : public UActorComponent
+{
+	GENERATED_BODY()
+
+public:
+	virtual void BeginPlay() override
+	{
+		if (ActorComponentBeginPlayCallback != nullptr)
+		{
+			ActorComponentBeginPlayCallback(this);
+		}
+	}
+};
+
+UCLASS(NotBlueprintable, NotBlueprintType)
+class USHARP_API UDummyActorComponentBeginPlay2 : public UDummyActorComponentBeginPlay1
+{
+	GENERATED_BODY()
+};
+
+UCLASS(NotBlueprintable, NotBlueprintType)
+class USHARP_API UDummyActorComponentBeginPlay3 : public UDummyActorComponentBeginPlay2
+{
+	GENERATED_BODY()
+
+public:
+	virtual void BeginPlay() override
+	{
+		FMsg::Logf("", 0, FName(TEXT("USharp")), ELogVerbosity::Log, TEXT("ADummyActorComponentBeginPlay3-BeginPlay"));
+	}
+};
+
+/////////////////////////////////////////////////////////////////////////////
+// UActorComponent::EndPlay
+/////////////////////////////////////////////////////////////////////////////
+
+typedef void(*ActorComponentEndPlayCallbackSig)(UActorComponent* Obj, const EEndPlayReason::Type EndPlayReason);
+extern ActorComponentEndPlayCallbackSig ActorComponentEndPlayCallback;
+
+UCLASS(NotBlueprintable, NotBlueprintType)
+class USHARP_API UDummyActorComponentEndPlay1 : public UActorComponent
+{
+	GENERATED_BODY()
+
+public:
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override
+	{
+		if (ActorComponentEndPlayCallback != nullptr)
+		{
+			ActorComponentEndPlayCallback(this, EndPlayReason);
+		}
+	}
+};
+
+UCLASS(NotBlueprintable, NotBlueprintType)
+class USHARP_API UDummyActorComponentEndPlay2 : public UDummyActorComponentEndPlay1
+{
+	GENERATED_BODY()
+};
+
+UCLASS(NotBlueprintable, NotBlueprintType)
+class USHARP_API UDummyActorComponentEndPlay3 : public UDummyActorComponentEndPlay2
+{
+	GENERATED_BODY()
+
+public:
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override
+	{
+		FMsg::Logf("", 0, FName(TEXT("USharp")), ELogVerbosity::Log, TEXT("ADummyActorComponentEndPlay3-EndPlay"));
+	}
+};
