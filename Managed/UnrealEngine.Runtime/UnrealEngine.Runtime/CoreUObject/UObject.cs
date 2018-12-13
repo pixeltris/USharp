@@ -656,6 +656,16 @@ namespace UnrealEngine.Runtime
             // This is eventually implemented in APawn
         }
 
+        internal virtual void BeginPlayInternal()
+        {
+            // This is eventually implemented in injected classes
+        }
+
+        internal virtual void EndPlayInternal(byte endPlayReason)
+        {
+            // This is eventually implemented in injected classes
+        }
+
         /// <summary>
         /// Looks for a given function name
         /// </summary>

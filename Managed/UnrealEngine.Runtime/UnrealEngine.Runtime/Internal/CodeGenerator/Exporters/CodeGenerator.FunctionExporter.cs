@@ -9,8 +9,21 @@ namespace UnrealEngine.Runtime
 {
     public partial class CodeGenerator
     {
+        private static HashSet<string> suppressFunctions = new HashSet<string>()
+        {
+             "/Script/Engine.Actor:ReceiveBeginPlay",
+             "/Script/Engine.Actor:ReceiveEndPlay",
+             "/Script/Engine.ActorComponent:ReceiveBeginPlay",
+             "/Script/Engine.ActorComponent:ReceiveEndPlay"
+        };
+
         private bool CanExportFunction(UFunction function, bool isBlueprintType)
         {
+            if (suppressFunctions.Contains(function.PathName))
+            {
+                return false;
+            }
+
             UClass ownerClass = function.GetOuter() as UClass;
             if (ownerClass != null && function.HasAnyFunctionFlags(EFunctionFlags.BlueprintEvent) &&
                 function.GetSuperFunction() == null)

@@ -268,6 +268,11 @@ CSEXPORT UClass* CSCONV Export_Classes_APawn()
 	return APawn::StaticClass();
 }
 
+CSEXPORT UClass* CSCONV Export_Classes_UActorComponent()
+{
+    return UActorComponent::StaticClass();
+}
+
 CSEXPORT UClass* CSCONV Export_Classes_USharpClass()
 {
 	return USharpClass::StaticClass();
@@ -337,6 +342,8 @@ CSEXPORT void CSCONV Export_Classes(RegisterFunc registerFunc)
 	REGISTER_FUNC(Export_Classes_UWorld);
 	REGISTER_FUNC(Export_Classes_AActor);
 	REGISTER_FUNC(Export_Classes_APawn);
+	REGISTER_FUNC(Export_Classes_UActorComponent);
+
 
 	// USharp
 	REGISTER_FUNC(Export_Classes_USharpClass);
