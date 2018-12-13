@@ -77,12 +77,18 @@ namespace UnrealEngine.Runtime
             {
                 UClass unrealClass = obj.GetClass();
                 Debug.Assert(unrealClass != null);
+
+                if (unrealClass.VTableOriginalFunctions == null)
+                {
+                    HackVTable(obj);
+                }
+
                 Debug.Assert(unrealClass.VTableOriginalFunctions != null);
 
                 IntPtr original;
                 unrealClass.VTableOriginalFunctions.TryGetValue(VTableIndex, out original);
                 Debug.Assert(original != IntPtr.Zero);
-                                
+
                 return original;
             }
         }
