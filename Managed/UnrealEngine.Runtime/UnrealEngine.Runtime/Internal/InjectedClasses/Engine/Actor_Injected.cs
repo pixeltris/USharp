@@ -41,5 +41,30 @@ namespace UnrealEngine.Engine
         {
             PrimaryActorTick_Offset = NativeReflectionCached.GetPropertyOffset(classAddress, "PrimaryActorTick");
         }
+
+        internal override void BeginPlayInternal()
+        {
+            BeginPlay();
+        }
+
+        internal override void EndPlayInternal(byte endPlayReason)
+        {
+            EndPlay((EEndPlayReason)endPlayReason);
+        }
+
+        /// <summary>
+        /// Overridable native event for when play begins for this actor.
+        /// </summary>
+        protected virtual void BeginPlay()
+        {
+        }
+
+        /// <summary>
+        /// Overridable function called whenever this actor is being removed from a level.
+        /// </summary>
+        /// <param name="endPlayReason"></param>
+        public virtual void EndPlay(EEndPlayReason endPlayReason)
+        {
+        }
     }
 }

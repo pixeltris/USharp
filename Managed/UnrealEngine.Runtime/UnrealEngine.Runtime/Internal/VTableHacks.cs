@@ -16,10 +16,13 @@ namespace UnrealEngine.Runtime
         {
             IntPtr objectClass = Runtime.Classes.UObject;
             IntPtr pawnClass = Runtime.Classes.APawn;
+            IntPtr actorClass = Runtime.Classes.AActor;
             IntPtr actorComponentClass = Runtime.Classes.UActorComponent;
 
             repProps = AddVTableRedirect(objectClass, "DummyRepProps", new GetLifetimeReplicatedPropsDel(OnGetLifetimeReplicatedProps));
             setupPlayerInput = AddVTableRedirect(pawnClass, "DummySetupPlayerInput", new SetupPlayerInputComponentDel(OnSetupPlayerInputComponent));
+            actorBeginPlay = AddVTableRedirect(actorClass, "DummyActorBeginPlay", new ActorBeginPlayDel(OnActorBeginPlay));
+            actorEndPlay = AddVTableRedirect(actorClass, "DummyActorEndPlay", new ActorEndPlayDel(OnActorEndPlay));
             actorComponentBeginPlay = AddVTableRedirect(actorComponentClass, "DummyActorComponentBeginPlay", new ActorComponentBeginPlayDel(OnActorComponentBeginPlay));
             actorComponentEndPlay = AddVTableRedirect(actorComponentClass, "DummyActorComponentEndPlay", new ActorComponentEndPlayDel(OnActorComponentEndPlay));
         }
@@ -50,6 +53,30 @@ namespace UnrealEngine.Runtime
             Native_VTableHacks.CallOriginal_SetupPlayerInputComponent(original, address, inputComponentAddress);
 
             obj.SetupPlayerInputComponent(inputComponentAddress);
+        }
+
+        private static FunctionRedirect actorBeginPlay;
+        delegate void ActorBeginPlayDel(IntPtr address);
+        private static void OnActorBeginPlay(IntPtr address)
+        {
+            UObject obj = GCHelper.Find(address);
+
+            IntPtr original = actorBeginPlay.GetOriginal(obj);
+            Native_VTableHacks.CallOriginal_ActorBeginPlay(original, address);
+
+            obj.BeginPlayInternal();
+        }
+
+        private static FunctionRedirect actorEndPlay;
+        delegate void ActorEndPlayDel(IntPtr address, byte endPlayReason);
+        private static void OnActorEndPlay(IntPtr address, byte endPlayReason)
+        {
+            UObject obj = GCHelper.Find(address);
+
+            IntPtr original = actorEndPlay.GetOriginal(obj);
+            Native_VTableHacks.CallOriginal_ActorEndPlay(original, address, endPlayReason);
+
+            obj.EndPlayInternal(endPlayReason);
         }
 
         private static FunctionRedirect actorComponentBeginPlay;

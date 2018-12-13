@@ -11,6 +11,8 @@ namespace UnrealEngine.Runtime
     {
         private static HashSet<string> suppressFunctions = new HashSet<string>()
         {
+             "/Script/Engine.Actor:ReceiveBeginPlay",
+             "/Script/Engine.Actor:ReceiveEndPlay",
              "/Script/Engine.ActorComponent:ReceiveBeginPlay",
              "/Script/Engine.ActorComponent:ReceiveEndPlay"
         };

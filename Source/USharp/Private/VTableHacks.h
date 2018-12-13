@@ -149,6 +149,88 @@ protected:
 };
 
 /////////////////////////////////////////////////////////////////////////////
+// AActor::BeginPlay
+/////////////////////////////////////////////////////////////////////////////
+
+typedef void(*ActorBeginPlayCallbackSig)(AActor* Obj);
+extern ActorBeginPlayCallbackSig ActorBeginPlayCallback;
+
+UCLASS(NotBlueprintable, NotBlueprintType)
+class USHARP_API ADummyActorBeginPlay1 : public AActor
+{
+	GENERATED_BODY()
+
+protected:
+	virtual void BeginPlay() override
+	{
+		if (ActorBeginPlayCallback != nullptr)
+		{
+			ActorBeginPlayCallback(this);
+		}
+	}
+};
+
+UCLASS(NotBlueprintable, NotBlueprintType)
+class USHARP_API ADummyActorBeginPlay2 : public ADummyActorBeginPlay1
+{
+	GENERATED_BODY()
+};
+
+UCLASS(NotBlueprintable, NotBlueprintType)
+class USHARP_API ADummyActorBeginPlay3 : public ADummyActorBeginPlay2
+{
+	GENERATED_BODY()
+
+protected:
+	virtual void BeginPlay() override
+	{
+		FMsg::Logf("", 0, FName(TEXT("USharp")), ELogVerbosity::Log, TEXT("ADummyActorBeginPlay3-BeginPlay"));
+	}
+};
+
+
+
+/////////////////////////////////////////////////////////////////////////////
+// AActor::BeginPlay
+/////////////////////////////////////////////////////////////////////////////
+
+typedef void(*ActorEndPlayCallbackSig)(AActor* Obj, const EEndPlayReason::Type EndPlayReason);
+extern ActorEndPlayCallbackSig ActorEndPlayCallback;
+
+UCLASS(NotBlueprintable, NotBlueprintType)
+class USHARP_API ADummyActorEndPlay1 : public AActor
+{
+	GENERATED_BODY()
+
+public:
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override
+	{
+		if (ActorEndPlayCallback != nullptr)
+		{
+			ActorEndPlayCallback(this, EndPlayReason);
+		}
+	}
+};
+
+UCLASS(NotBlueprintable, NotBlueprintType)
+class USHARP_API ADummyActorEndPlay2 : public ADummyActorEndPlay1
+{
+	GENERATED_BODY()
+};
+
+UCLASS(NotBlueprintable, NotBlueprintType)
+class USHARP_API ADummyActorEndPlay3 : public ADummyActorEndPlay2
+{
+	GENERATED_BODY()
+
+public:
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override
+	{
+		FMsg::Logf("", 0, FName(TEXT("USharp")), ELogVerbosity::Log, TEXT("ADummyActorEndPlay3-EndPlay"));
+	}
+};
+
+/////////////////////////////////////////////////////////////////////////////
 // UActorComponent::BeginPlay
 /////////////////////////////////////////////////////////////////////////////
 
