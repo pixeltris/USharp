@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 
 #pragma warning disable 649 // Field is never assigned
+#pragma warning disable 108 // Hides inherited member (GetType)
 
 namespace UnrealEngine.Runtime.Native
 {
@@ -14,7 +15,7 @@ namespace UnrealEngine.Runtime.Native
         public delegate void Del_GetBaseDir(IntPtr instance, ref FScriptArray result);
         public delegate void Del_GetContentDir(IntPtr instance, ref FScriptArray result);
         public delegate void Del_GetMountedAssetPath(IntPtr instance, ref FScriptArray result);
-        public delegate int Del_GetPluginType(IntPtr instance);
+        public delegate int Del_GetType(IntPtr instance);
         public delegate csbool Del_IsEnabled(IntPtr instance);
         public delegate csbool Del_IsEnabledByDefault(IntPtr instance);
         public delegate csbool Del_IsHidden(IntPtr instance);
@@ -26,7 +27,7 @@ namespace UnrealEngine.Runtime.Native
         public static Del_GetBaseDir GetBaseDir;
         public static Del_GetContentDir GetContentDir;
         public static Del_GetMountedAssetPath GetMountedAssetPath;
-        public static Del_GetPluginType GetPluginType;
+        public static Del_GetType GetType;
         public static Del_IsEnabled IsEnabled;
         public static Del_IsEnabledByDefault IsEnabledByDefault;
         public static Del_IsHidden IsHidden;

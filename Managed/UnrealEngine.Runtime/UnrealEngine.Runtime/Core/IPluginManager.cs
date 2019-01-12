@@ -301,7 +301,7 @@ namespace UnrealEngine.Runtime
         {
             get
             {
-                return (EPluginType)Native_IPlugin.GetPluginType(sharedPtr.Object);
+                return (EPluginType)Native_IPlugin.GetType(sharedPtr.Object);
             }
         }
 
