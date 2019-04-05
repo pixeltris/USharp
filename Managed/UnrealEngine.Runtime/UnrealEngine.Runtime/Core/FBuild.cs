@@ -289,7 +289,7 @@ namespace UnrealEngine.Runtime
             WithPerfCounters = Native_FBuildGlobals.WITH_PERFCOUNTERS();
             HackHeaderGenerator = Native_FBuildGlobals.HACK_HEADER_GENERATOR();
             WithAutomationWorker = Native_FBuildGlobals.WITH_AUTOMATION_WORKER();
-            BuildMinimal = Native_FBuildGlobals.UE_BUILD_MINIMAL();
+            //BuildMinimal = Native_FBuildGlobals.UE_BUILD_MINIMAL();
             IsMonolithic = Native_FBuildGlobals.IS_MONOLITHIC();
             IsProgram = Native_FBuildGlobals.IS_PROGRAM();
             WithHotReload = Native_FBuildGlobals.WITH_HOT_RELOAD();

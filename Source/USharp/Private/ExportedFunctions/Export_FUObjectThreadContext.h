@@ -23,10 +23,10 @@ CSEXPORT UObject* CSCONV Export_FUObjectThreadContext_Get_ConstructedObject()
 	return FUObjectThreadContext::Get().ConstructedObject;
 }
 
-CSEXPORT UObject* CSCONV Export_FUObjectThreadContext_Get_SerializedObject()
-{
-	return FUObjectThreadContext::Get().SerializedObject;
-}
+//CSEXPORT UObject* CSCONV Export_FUObjectThreadContext_Get_SerializedObject()
+//{
+//	return FUObjectThreadContext::Get().SerializedObject;
+//}
 
 CSEXPORT void CSCONV Export_FUObjectThreadContext(RegisterFunc registerFunc)
 {
@@ -35,5 +35,5 @@ CSEXPORT void CSCONV Export_FUObjectThreadContext(RegisterFunc registerFunc)
 	REGISTER_FUNC(Export_FUObjectThreadContext_TopInitializer);
 	REGISTER_FUNC(Export_FUObjectThreadContext_Get_IsInConstructor);
 	REGISTER_FUNC(Export_FUObjectThreadContext_Get_ConstructedObject);
-	REGISTER_FUNC(Export_FUObjectThreadContext_Get_SerializedObject);
+	/*REGISTER_FUNC(Export_FUObjectThreadContext_Get_SerializedObject);*/
 }

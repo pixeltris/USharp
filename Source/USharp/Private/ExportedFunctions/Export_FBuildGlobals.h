@@ -68,10 +68,10 @@ CSEXPORT csbool CSCONV Export_FBuildGlobals_WITH_AUTOMATION_WORKER()
 	return WITH_AUTOMATION_WORKER;
 }
 
-CSEXPORT csbool CSCONV Export_FBuildGlobals_UE_BUILD_MINIMAL()
-{
-	return UE_BUILD_MINIMAL;
-}
+//CSEXPORT csbool CSCONV Export_FBuildGlobals_UE_BUILD_MINIMAL()
+//{
+//	return UE_BUILD_MINIMAL;
+//}
 
 CSEXPORT csbool CSCONV Export_FBuildGlobals_IS_MONOLITHIC()
 {
@@ -264,7 +264,7 @@ CSEXPORT void CSCONV Export_FBuildGlobals(RegisterFunc registerFunc)
 	REGISTER_FUNC(Export_FBuildGlobals_WITH_PERFCOUNTERS);
 	REGISTER_FUNC(Export_FBuildGlobals_HACK_HEADER_GENERATOR);
 	REGISTER_FUNC(Export_FBuildGlobals_WITH_AUTOMATION_WORKER);
-	REGISTER_FUNC(Export_FBuildGlobals_UE_BUILD_MINIMAL);
+	//REGISTER_FUNC(Export_FBuildGlobals_UE_BUILD_MINIMAL);
 	REGISTER_FUNC(Export_FBuildGlobals_IS_MONOLITHIC);
 	REGISTER_FUNC(Export_FBuildGlobals_IS_PROGRAM);
 	REGISTER_FUNC(Export_FBuildGlobals_WITH_HOT_RELOAD);

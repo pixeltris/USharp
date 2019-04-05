@@ -58,9 +58,9 @@ namespace UnrealEngine.Runtime
             get { return GCHelper.Find(Native_FUObjectThreadContext.Get_ConstructedObject()); }
         }
 
-        public static UObject SerializedObject
-        {
-            get { return GCHelper.Find(Native_FUObjectThreadContext.Get_SerializedObject()); }
-        }
+        //public static UObject SerializedObject
+        //{
+        //    get { return GCHelper.Find(Native_FUObjectThreadContext.Get_SerializedObject()); }
+        //}
     }
 }

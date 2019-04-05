@@ -26,7 +26,7 @@ namespace UnrealEngine.Runtime.Native
         public static Del_BoolValue WITH_PERFCOUNTERS;
         public static Del_BoolValue HACK_HEADER_GENERATOR;
         public static Del_BoolValue WITH_AUTOMATION_WORKER;
-        public static Del_BoolValue UE_BUILD_MINIMAL;
+        //public static Del_BoolValue UE_BUILD_MINIMAL;
         public static Del_BoolValue IS_MONOLITHIC;
         public static Del_BoolValue IS_PROGRAM;
         public static Del_BoolValue WITH_HOT_RELOAD;
