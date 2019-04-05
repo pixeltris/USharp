@@ -514,7 +514,11 @@ CSEXPORT void CSCONV Export_UObject_SkipFunction(UObject* instance, FFrame& Stac
 
 CSEXPORT UClass* CSCONV Export_UObject_RegenerateClass(UObject* instance, UClass* ClassToRegenerate, UObject* PreviousCDO, TArray<UObject*>& ObjLoaded)
 {
-	return instance->RegenerateClass(ClassToRegenerate, PreviousCDO, ObjLoaded);
+	#if ENGINE_MINOR_VERSION == 22
+		return instance->RegenerateClass(ClassToRegenerate, PreviousCDO);
+	#else
+		return instance->RegenerateClass(ClassToRegenerate, PreviousCDO, ObjLoaded);
+	#endif
 }
 
 CSEXPORT csbool CSCONV Export_UObject_IsInBlueprint(UObject* instance)

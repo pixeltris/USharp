@@ -1,11 +1,11 @@
 CSEXPORT FSlowTask* CSCONV Export_FSlowTask_New(float InAmountOfWork, const FString& InDefaultMessage, csbool bInEnabled)
 {
-	return new FSlowTask(InAmountOfWork, FText::FromString(InDefaultMessage), bInEnabled);
+	return new FSlowTask(InAmountOfWork, FText::FromString(InDefaultMessage), (bool)bInEnabled);
 }
 
 CSEXPORT FScopedSlowTask* CSCONV Export_FSlowTask_New_FScopedSlowTask(float InAmountOfWork, const FString& InDefaultMessage, csbool bInEnabled)
 {
-	return new FScopedSlowTask(InAmountOfWork, FText::FromString(InDefaultMessage), bInEnabled);
+	return new FScopedSlowTask(InAmountOfWork, FText::FromString(InDefaultMessage), (bool)bInEnabled);
 }
 
 CSEXPORT void CSCONV Export_FSlowTask_Delete(FSlowTask* instance)
@@ -113,12 +113,12 @@ CSEXPORT void CSCONV Export_FSlowTask_Destroy(FSlowTask* instance)
 
 CSEXPORT void CSCONV Export_FSlowTask_MakeDialogDelayed(FSlowTask* instance, float Threshold, csbool bShowCancelButton, csbool bAllowInPIE)
 {
-	instance->MakeDialogDelayed(Threshold, bShowCancelButton, bAllowInPIE);
+	instance->MakeDialogDelayed(Threshold, (bool)bShowCancelButton, (bool)bAllowInPIE);
 }
 
 CSEXPORT void CSCONV Export_FSlowTask_MakeDialog(FSlowTask* instance, csbool bShowCancelButton, csbool bAllowInPIE)
 {
-	instance->MakeDialog(bShowCancelButton, bAllowInPIE);
+	instance->MakeDialog((bool)bShowCancelButton, (bool)bAllowInPIE);
 }
 
 CSEXPORT void CSCONV Export_FSlowTask_EnterProgressFrame(FSlowTask* instance, float ExpectedWorkThisFrame, const FString& Text)

@@ -145,7 +145,7 @@ CSEXPORT csbool CSCONV Export_FGlobals_Get_GIsCriticalError()
 
 CSEXPORT void CSCONV Export_FGlobals_Set_GIsCriticalError(csbool value)
 {
-	GIsCriticalError = value;
+	GIsCriticalError = (bool)value;
 }
 
 CSEXPORT csbool CSCONV Export_FGlobals_Get_GIsRunning()
