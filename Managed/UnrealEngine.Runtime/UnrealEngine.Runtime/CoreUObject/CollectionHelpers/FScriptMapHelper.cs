@@ -158,7 +158,7 @@ namespace UnrealEngine.Runtime
             }
 
             IntPtr pairPtr = map->GetData(index, ref mapLayout);
-            keyPtr = pairPtr + mapLayout.KeyOffset;
+            keyPtr = pairPtr;// + mapLayout.KeyOffset;
             valuePtr = pairPtr + mapLayout.ValueOffset;
             return true;
         }
@@ -177,7 +177,7 @@ namespace UnrealEngine.Runtime
                 return IntPtr.Zero;
             }
 
-            return map->GetData(index, ref mapLayout) + mapLayout.KeyOffset;
+            return map->GetData(index, ref mapLayout);// + mapLayout.KeyOffset;
         }
 
         /// <summary>

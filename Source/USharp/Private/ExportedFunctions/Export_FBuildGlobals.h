@@ -70,7 +70,11 @@ CSEXPORT csbool CSCONV Export_FBuildGlobals_WITH_AUTOMATION_WORKER()
 
 CSEXPORT csbool CSCONV Export_FBuildGlobals_UE_BUILD_MINIMAL()
 {
+#ifndef UE_BUILD_MINIMAL
+	return false;
+#else
 	return UE_BUILD_MINIMAL;
+#endif
 }
 
 CSEXPORT csbool CSCONV Export_FBuildGlobals_IS_MONOLITHIC()

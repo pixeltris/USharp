@@ -77,7 +77,6 @@ enum class TickFunctionType : uint8
 	FPrimitiveComponentPostPhysicsTickFunction,
 	FSkeletalMeshComponentClothTickFunction,
 	FSkeletalMeshComponentEndPhysicsTickFunction,
-	FStartAsyncSimulationFunction,
 	FStartPhysicsTickFunction
 };
 
@@ -99,8 +98,6 @@ CSEXPORT FTickFunction* CSCONV Export_FTickFunction_New(TickFunctionType Type)
 		//	return new FSkeletalMeshComponentClothTickFunction();
 		//case TickFunctionType::FSkeletalMeshComponentEndPhysicsTickFunction:
 		//	return new FSkeletalMeshComponentEndPhysicsTickFunction();
-		//case TickFunctionType::FStartAsyncSimulationFunction:
-		//	return new FStartAsyncSimulationFunction();
 		//case TickFunctionType::FStartPhysicsTickFunction:
 		//	return new FStartPhysicsTickFunction();
 		default:

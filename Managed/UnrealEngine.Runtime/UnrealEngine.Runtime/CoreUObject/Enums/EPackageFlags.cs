@@ -57,7 +57,11 @@ namespace UnrealEngine.Runtime
         // Unused = 0x00000800,
         // Unused = 0x00001000,
         // Unused = 0x00002000,
-        // Unused = 0x00004000,
+
+        /// <summary>   
+        /// Contains map data (UObjects only referenced by a single ULevel) but is stored in a different package
+        /// </summary>
+        ContainsMapData = 0x00004000,
 
         /// <summary>
         /// Client needs to download this package.
@@ -94,20 +98,15 @@ namespace UnrealEngine.Runtime
         /// </summary>
         ContainsScript = 0x00200000,
 
-        // Unused = 0x00400000,
+        /// <summary>
+        /// Editor should not export asset in this package
+        /// </summary>
+        DisallowExport = 0x00400000,
+
         // Unused = 0x00800000,
         // Unused = 0x01000000,
-
-        /// <summary>
-        /// Package is being stored compressed, requires archive support for compression
-        /// </summary>	
-        StoreCompressed = 0x02000000,
-
-        /// <summary>
-        /// Package is serialized normally, and then fully compressed after (must be decompressed before LoadPackage is called)
-        /// </summary>
-        StoreFullyCompressed = 0x04000000,
-
+        // Unused = 0x02000000,
+        // Unused = 0x04000000,
         // Unused = 0x08000000,	
         // Unused = 0x10000000,	
         // Unused = 0x20000000,

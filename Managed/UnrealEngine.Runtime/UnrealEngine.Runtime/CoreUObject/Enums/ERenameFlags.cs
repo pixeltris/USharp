@@ -8,6 +8,9 @@ namespace UnrealEngine.Runtime
     [Flags]
     public enum ERenameFlags : uint
     {
+        /// <summary>
+        /// Default rename behavior
+        /// </summary>
         None = 0x0000,
 
         /// <summary>

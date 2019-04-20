@@ -508,6 +508,30 @@ namespace UnrealEngine.Runtime
                         break;
                     }
 
+                case EExprToken.EX_LocalVirtualFunction:
+                    {
+                        string functionName = ReadName();
+                        output.AppendLine(FmtOpcodeIndent(opcode) + "Local Virtual Script Function named " + functionName);
+
+                        while (SerializeExpr() != EExprToken.EX_EndFunctionParms)
+                        {
+                        }
+                        break;
+                    }
+
+                case EExprToken.EX_LocalFinalFunction:
+                    {
+                        UStruct stackNode = ReadPointer<UStruct>();
+                        output.AppendLine(FmtOpcodeIndent(opcode) + "Local Final Script Function (stack node " +
+                            FmtObjOuterNameOrNull(stackNode) + " " + FmtObjNameOrNull(stackNode) + ")");
+
+                        while (SerializeExpr() != EExprToken.EX_EndFunctionParms)
+                        {
+                            // Params
+                        }
+                        break;
+                    }
+
                 case EExprToken.EX_LetMulticastDelegate:
                     {
                         output.AppendLine(FmtOpcodeIndent(opcode) + "LetMulticastDelegate (Variable = Expression)");

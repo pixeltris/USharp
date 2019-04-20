@@ -339,8 +339,16 @@ namespace UnrealEngine.Runtime
         /// </summary>
         EX_LetDelegate = 0x44,
 
-        // = 0x45, 
-        // = 0x46, // CST_ObjectToInterface
+        /// <summary>
+        /// Special instructions to quickly call a virtual function that we know is going to run only locally
+        /// </summary>
+        EX_LocalVirtualFunction = 0x45,
+
+        /// <summary>
+        /// Special instructions to quickly call a final function that we know is going to run only locally
+        /// </summary>
+        EX_LocalFinalFunction = 0x46,
+
         // = 0x47, // CST_ObjectToBool
 
         /// <summary>

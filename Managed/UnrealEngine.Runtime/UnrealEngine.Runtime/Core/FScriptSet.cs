@@ -276,7 +276,7 @@ namespace UnrealEngine.Runtime
     [StructLayout(LayoutKind.Sequential)]
     public struct FScriptSetLayout
     {
-        public int ElementOffset;
+        //public int ElementOffset;// always at zero offset from the TSetElement - not stored here
         public int HashNextIdOffset;
         public int HashIndexOffset;
         public int Size;
@@ -287,7 +287,7 @@ namespace UnrealEngine.Runtime
     [StructLayout(LayoutKind.Sequential)]
     public struct FScriptSparseArrayLayout
     {
-        public int ElementOffset;
+        //public int ElementOffset;// ElementOffset is at zero offset from the TSparseArrayElementOrFreeListLink - not stored here
         public int Alignment;
         public int Size;
     }

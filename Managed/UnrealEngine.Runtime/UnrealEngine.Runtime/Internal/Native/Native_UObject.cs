@@ -107,7 +107,7 @@ namespace UnrealEngine.Runtime.Native
         public delegate void Del_ProcessInternal(IntPtr instance, IntPtr context, IntPtr stack, IntPtr result);
         public delegate csbool Del_ProcessConsoleExec(IntPtr instance, ref FScriptArray cmd, IntPtr ar, IntPtr executor);
         public delegate void Del_SkipFunction(IntPtr instance, IntPtr stack, IntPtr result, IntPtr function);
-        public delegate IntPtr Del_RegenerateClass(IntPtr instance, IntPtr classToRegenerate, IntPtr previousCDO, IntPtr objLoaded);
+        public delegate IntPtr Del_RegenerateClass(IntPtr instance, IntPtr classToRegenerate, IntPtr previousCDO);
         public delegate csbool Del_IsInBlueprint(IntPtr instance);
         public delegate void Del_DestroyNonNativeProperties(IntPtr instance);
         

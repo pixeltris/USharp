@@ -882,6 +882,11 @@ namespace UnrealEngine.Runtime
         FilePathFilter,
 
         /// <summary>
+        /// Used by FFilePath properties. Indicates that the FilePicker dialog will output a path relative to the game directory when setting the property. An absolute path will be used when outside the game directory.
+        /// </summary>
+        RelativeToGameDir,// added 4.22
+
+        /// <summary>
         /// Deprecated
         /// </summary>
         FixedIncrement,
@@ -1215,6 +1220,8 @@ namespace UnrealEngine.Runtime
         /// The signature of the function depends on the operator type, and additional parameters may be passed as long as they're defaulted and the basic signature requirements are met.
         /// - For the bool conversion operator (bool) the signature must be:
         ///     bool FuncName(const FMyStruct&amp;); // FMyStruct may be passed by value rather than const-ref
+        /// - For the unary conversion operators (neg(-obj)) the signature must be:
+        ///     FMyStruct FuncName(const FMyStruct&); // FMyStruct may be passed by value rather than const-ref
         /// - For comparion operators (==, !=, &lt;, &lt;=, >, >=) the signature must be:
         ///     bool FuncName(const FMyStruct, OtherType); // OtherType can be any type, FMyStruct may be passed by value rather than const-ref
         /// - For mathematical operators (+, -, *, /, %, &amp;, |, ^, >>, &lt;&lt;) the signature must be:

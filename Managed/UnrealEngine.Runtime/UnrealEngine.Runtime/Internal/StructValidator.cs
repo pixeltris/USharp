@@ -67,7 +67,6 @@ namespace UnrealEngine.Runtime
                 Native_SizeOfStruct.SizeOf_FPrimitiveComponentPostPhysicsTickFunction,
                 Native_SizeOfStruct.SizeOf_FSkeletalMeshComponentClothTickFunction,
                 Native_SizeOfStruct.SizeOf_FSkeletalMeshComponentEndPhysicsTickFunction,
-                Native_SizeOfStruct.SizeOf_FStartAsyncSimulationFunction,
                 Native_SizeOfStruct.SizeOf_FStartPhysicsTickFunction
             };
 

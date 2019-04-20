@@ -55,7 +55,6 @@ namespace UnrealEngine.Runtime.Native
         public static Del_SizeOf SizeOf_FPrimitiveComponentPostPhysicsTickFunction;
         public static Del_SizeOf SizeOf_FSkeletalMeshComponentClothTickFunction;
         public static Del_SizeOf SizeOf_FSkeletalMeshComponentEndPhysicsTickFunction;
-        public static Del_SizeOf SizeOf_FStartAsyncSimulationFunction;
         public static Del_SizeOf SizeOf_FStartPhysicsTickFunction;
     }
 }

@@ -17,7 +17,6 @@ namespace UnrealEngine.Engine
     // FPrimitiveComponentPostPhysicsTickFunction - Engine\Source\Runtime\Engine\Classes\Engine\EngineBaseTypes.h
     // FSkeletalMeshComponentClothTickFunction - Engine\Source\Runtime\Engine\Classes\Components\SkeletalMeshComponent.h
     // FSkeletalMeshComponentEndPhysicsTickFunction - Engine\Source\Runtime\Engine\Classes\Components\SkeletalMeshComponent.h
-    // FStartAsyncSimulationFunction - Engine\Source\Runtime\Engine\Classes\Engine\World.h
     // FStartPhysicsTickFunction - Engine\Source\Runtime\Engine\Classes\Engine\World.h
 
     /// <summary>
@@ -29,7 +28,6 @@ namespace UnrealEngine.Engine
     /// <para/>FPrimitiveComponentPostPhysicsTickFunction - Tick function that calls UPrimitiveComponent::PostPhysicsTick
     /// <para/>FSkeletalMeshComponentClothTickFunction - Tick function that prepares and simulates cloth
     /// <para/>FSkeletalMeshComponentEndPhysicsTickFunction - Tick function that does post physics work on skeletal mesh component. This executes in EndPhysics (after physics is done)
-    /// <para/>FStartAsyncSimulationFunction - Tick function that starts the cloth tick
     /// <para/>FStartPhysicsTickFunction - Tick function that starts the physics tick
     /// </summary>
     [UStruct(Flags = 0x00000001), UMetaPath("/Script/Engine.TickFunction", "Engine", UnrealModuleType.Engine)]
@@ -378,7 +376,6 @@ namespace UnrealEngine.Engine
         FPrimitiveComponentPostPhysicsTickFunction,
         FSkeletalMeshComponentClothTickFunction,
         FSkeletalMeshComponentEndPhysicsTickFunction,
-        FStartAsyncSimulationFunction,
         FStartPhysicsTickFunction
     }
 }

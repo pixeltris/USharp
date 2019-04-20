@@ -130,7 +130,7 @@ namespace UnrealEngine.Runtime
     [StructLayout(LayoutKind.Sequential)]
     public struct FScriptMapLayout
     {
-        public int KeyOffset;
+        //public int KeyOffset;// is always at zero offset from the TPair - not stored here
         public int ValueOffset;
 
         public FScriptSetLayout SetLayout;

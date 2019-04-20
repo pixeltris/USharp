@@ -512,9 +512,9 @@ CSEXPORT void CSCONV Export_UObject_SkipFunction(UObject* instance, FFrame& Stac
 	instance->SkipFunction(Stack, RESULT_PARAM, Function);
 }
 
-CSEXPORT UClass* CSCONV Export_UObject_RegenerateClass(UObject* instance, UClass* ClassToRegenerate, UObject* PreviousCDO, TArray<UObject*>& ObjLoaded)
+CSEXPORT UClass* CSCONV Export_UObject_RegenerateClass(UObject* instance, UClass* ClassToRegenerate, UObject* PreviousCDO)
 {
-	return instance->RegenerateClass(ClassToRegenerate, PreviousCDO, ObjLoaded);
+	return instance->RegenerateClass(ClassToRegenerate, PreviousCDO);
 }
 
 CSEXPORT csbool CSCONV Export_UObject_IsInBlueprint(UObject* instance)

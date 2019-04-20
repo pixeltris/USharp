@@ -111,5 +111,10 @@ namespace UnrealEngine.Runtime
         /// Load the package (not for diffing in the editor), instead verify at the two packages serialized output are the same, if they are not then debug break so that you can get the callstack and object information
         /// </summary>
         ForFileDiff = 0x00200000,
+
+        /// <summary>
+        /// Prevent this load call from running compile on load for the loaded blueprint (intentionally not recursive, dependencies will still compile on load)
+        /// </summary>
+        DisableCompileOnLoad = 0x00400000
     }
 }
