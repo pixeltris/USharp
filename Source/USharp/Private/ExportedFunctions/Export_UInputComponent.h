@@ -142,7 +142,7 @@ CSEXPORT FInputKeyBinding& CSCONV Export_UInputComponent_BindKey(UInputComponent
 
 CSEXPORT FInputKeyBinding& CSCONV Export_UInputComponent_BindKeyChord(UInputComponent* instance, const FKey& Key, csbool bShift, csbool bCtrl, csbool bAlt, csbool bCmd, uint8 KeyEvent, UObject* Object, UFunction* Func)
 {
-	FInputKeyBinding KB(FInputChord(Key, bShift, bCtrl, bAlt, bCmd), (EInputEvent)KeyEvent);
+	FInputKeyBinding KB(FInputChord(Key, (bool)bShift, (bool)bCtrl, (bool)bAlt, (bool)bCmd), (EInputEvent)KeyEvent);
 	KB.KeyDelegate.BindDelegate(Object, Func->GetFName());
 	instance->KeyBindings.Add(KB);
 	return instance->KeyBindings.Last();

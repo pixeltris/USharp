@@ -60,7 +60,7 @@ CSEXPORT void CSCONV Export_FTickFunction_RemovePrerequisite(FTickFunction* inst
 
 CSEXPORT void CSCONV Export_FTickFunction_SetPriorityIncludingPrerequisites(FTickFunction* instance, csbool bInHighPriority)
 {
-	instance->SetPriorityIncludingPrerequisites(bInHighPriority);
+	instance->SetPriorityIncludingPrerequisites((bool)bInHighPriority);
 }
 
 CSEXPORT TArray<struct FTickPrerequisite>& CSCONV Export_FTickFunction_GetPrerequisites(FTickFunction* instance)
