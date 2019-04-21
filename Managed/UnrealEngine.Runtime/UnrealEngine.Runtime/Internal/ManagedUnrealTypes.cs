@@ -514,8 +514,19 @@ namespace UnrealEngine.Runtime
                     // is true or CodeGeneratorSettings.UseImplicitBlueprintImplementableEvent is true with no _Implementation method.
                     // (otherwise this is pretty bad and very silent - possibly add some additional logging if this ever happens)
 
-                    // This will advance the VM stack->Code address and satisfy the memory for the caller
-                    Native_UObject.SkipFunction(stack->Object, stackPtr, result, stack->CurrentNativeFunction);
+                    if (stack->Code != IntPtr.Zero)
+                    {
+                        // This will advance the VM stack->Code address and satisfy the memory for the caller
+                        Native_UObject.SkipFunction(stack->Object, stackPtr, result, stack->CurrentNativeFunction);
+                    }
+                    else
+                    {
+                        // stack->Code is null, we can't call UObject::SkipFunction (which needs stack->Code)
+                        // This will happen in cases where there is a BlueprintImplementedEvent defined in C# but there isn't
+                        // an implementation defined in blueprint. This is therefore treated as a direct native call.
+                        // TODO: ensure all memory is still freed correctly
+                        HandleInvokeFunctionFromNative(obj, stack, result, null);
+                    }
                 }
             }
 
@@ -642,9 +653,12 @@ namespace UnrealEngine.Runtime
                 IntPtr function = stack->CurrentNativeFunction;
                 IntPtr paramsBuffer = stack->Locals;
 
-                // Call the managed function invoker which will marshal the params from the native params buffer and then call the
-                // target managed function
-                managedFunctionInvoker(paramsBuffer, obj);
+                if (managedFunctionInvoker != null)
+                {
+                    // Call the managed function invoker which will marshal the params from the native params buffer and then call the
+                    // target managed function
+                    managedFunctionInvoker(paramsBuffer, obj);
+                }
 
                 // Copy out params back from the locals buffer
                 if (Native_UFunction.HasAnyFunctionFlags(function, EFunctionFlags.HasOutParms))
