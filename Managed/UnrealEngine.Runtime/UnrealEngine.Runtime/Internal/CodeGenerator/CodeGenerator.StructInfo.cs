@@ -948,7 +948,13 @@ namespace UnrealEngine.Runtime
             structInfo = new StructInfo(this, unrealStruct, isBlueprintType);
             foreach (UFunction function in unrealStruct.GetFields<UFunction>(false, true, true))
             {
-                structInfo.AddFunction(function, CanExportFunction(function, isBlueprintType));
+                // We need to include interface functions as otherwise some interface functions wont be implemented.
+                // If the interface function already has an implementation skip that function (as otherwise there will be duplicates).
+                if (!structInfo.IsClass || !function.GetOwnerClass().IsChildOf<UInterface>() ||
+                    structInfo.Class.FindFunctionByName(function.GetFName(), true).GetOwnerClass().IsChildOf<UInterface>())
+                {
+                    structInfo.AddFunction(function, CanExportFunction(function, isBlueprintType));
+                }
             }
 
             if (isBlueprintType)

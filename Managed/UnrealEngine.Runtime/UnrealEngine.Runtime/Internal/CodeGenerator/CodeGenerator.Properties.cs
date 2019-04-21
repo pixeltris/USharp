@@ -868,7 +868,15 @@ namespace UnrealEngine.Runtime
 
             if (unrealClass.IsChildOf<UEnum>())
             {
-                return UpdateTypeNamePrefix(Settings.Prefixes.Enum, name, fullyQualifiedName, namespaces, namespaceName);
+                if (field.IsA<UClass>())
+                {
+                    // The actual type is UEnum (as opposed to being an enum)
+                    return UpdateTypeNamePrefix(Settings.Prefixes.Object, name, fullyQualifiedName, namespaces, namespaceName);
+                }
+                else
+                {
+                    return UpdateTypeNamePrefix(Settings.Prefixes.Enum, name, fullyQualifiedName, namespaces, namespaceName);
+                }
             }
 
             if (unrealClass.IsChildOf<UScriptStruct>())
