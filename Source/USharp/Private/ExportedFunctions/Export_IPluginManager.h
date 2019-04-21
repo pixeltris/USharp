@@ -52,7 +52,7 @@ CSEXPORT void CSCONV Export_IPluginManager_GetDiscoveredPlugins(IPluginManager* 
 
 CSEXPORT void CSCONV Export_IPluginManager_AddPluginSearchPath(IPluginManager* instance, const FString& ExtraDiscoveryPath, csbool bRefresh)
 {
-	instance->AddPluginSearchPath(ExtraDiscoveryPath, bRefresh);
+	instance->AddPluginSearchPath(ExtraDiscoveryPath, (bool)bRefresh);
 }
 
 CSEXPORT void CSCONV Export_IPluginManager_GetPluginsWithPakFile(IPluginManager* instance, TArray<TSharedRef<IPlugin>>& result)
