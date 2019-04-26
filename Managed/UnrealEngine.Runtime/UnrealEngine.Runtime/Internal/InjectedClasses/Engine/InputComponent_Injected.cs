@@ -177,6 +177,10 @@ namespace UnrealEngine.Engine
                 return (FInputActionBindingHandle)Native_UInputComponent.BindAction(
                     Address, ref actionFName, (byte)keyEvent, obj.Address, functionAddress);
             }
+            else
+            {
+                LogFunctionNotFound("BindAction", actionName, handler);
+            }
             return default(FInputActionBindingHandle);
         }
 
@@ -193,6 +197,10 @@ namespace UnrealEngine.Engine
                 FName axisFName = (FName)axisName;
                 return (FInputAxisBindingHandle)Native_UInputComponent.BindAxis(
                     Address, ref axisFName, obj.Address, functionAddress);
+            }
+            else
+            {
+                LogFunctionNotFound("BindAxis", axisName, handler);
             }
             return default(FInputAxisBindingHandle);
         }
@@ -221,6 +229,10 @@ namespace UnrealEngine.Engine
                 return (FInputVectorAxisBindingHandle)Native_UInputComponent.BindVectorAxis(
                     Address, ref axisKey, obj.Address, functionAddress);
             }
+            else
+            {
+                LogFunctionNotFound("BindVectorAxis", axisKey.ToString(), handler);
+            }
             return default(FInputVectorAxisBindingHandle);
         }
 
@@ -247,6 +259,10 @@ namespace UnrealEngine.Engine
                 return (FInputKeyBindingHandle)Native_UInputComponent.BindKey(
                     Address, ref key, (byte)keyEvent, obj.Address, functionAddress);
             }
+            else
+            {
+                LogFunctionNotFound("BindKey", keyEvent.ToString(), handler);
+            }
             return default(FInputKeyBindingHandle);
         }
 
@@ -265,6 +281,10 @@ namespace UnrealEngine.Engine
                     ref inputChord.Key, inputChord.Shift, inputChord.Ctrl, inputChord.Alt, inputChord.Cmd,
                     (byte)keyEvent, obj.Address, functionAddress);
             }
+            else
+            {
+                LogFunctionNotFound("BindKey", keyEvent.ToString(), handler);
+            }
             return default(FInputKeyBindingHandle);
         }
 
@@ -276,6 +296,10 @@ namespace UnrealEngine.Engine
             {
                 return (FInputTouchBindingHandle)Native_UInputComponent.BindTouch(
                     Address, (byte)keyEvent, obj.Address, functionAddress);
+            }
+            else
+            {
+                LogFunctionNotFound("BindTouch", keyEvent.ToString(), handler);
             }
             return default(FInputTouchBindingHandle);
         }
@@ -293,7 +317,17 @@ namespace UnrealEngine.Engine
                 return (FInputGestureBindingHandle)Native_UInputComponent.BindGesture(
                     Address, ref gestureKey, obj.Address, functionAddress);
             }
+            else
+            {
+                LogFunctionNotFound("BindGesture", gestureKey.ToString(), handler);
+            }
             return default(FInputGestureBindingHandle);
+        }
+
+        private void LogFunctionNotFound(string bindType, string actionName, Delegate del)
+        {
+            FMessage.Log(ELogVerbosity.Warning, "Input " + bindType + " - the target function isn't marked as a [UFunction] for \"" + actionName + "\" " +
+                "(" + del.Method.DeclaringType.FullName + ":" + del.Method.Name + ")");
         }
     }
 

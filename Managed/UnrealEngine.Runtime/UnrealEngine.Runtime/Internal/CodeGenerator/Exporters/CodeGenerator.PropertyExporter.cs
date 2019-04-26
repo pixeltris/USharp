@@ -7,11 +7,36 @@ namespace UnrealEngine.Runtime
 {
     public partial class CodeGenerator
     {
+        // TODO: Remove this list and load this from a file instead so that it can easily be configured
         private static HashSet<string> forceExportProperties = new HashSet<string>()
         {
             "/Script/Engine.Actor:RootComponent",
             "/Script/Engine.Actor:InputComponent",
-            "/Script/Engine.Actor:bAllowTickBeforeBeginPlay"
+            "/Script/Engine.Actor:bAllowTickBeforeBeginPlay",
+
+            // Force export all FHitResult properties (maybe create a seperate list of structs/classes for this kind of thing?)
+            // NOTE: There are quite a few members which need to be converted per trace. Maybe slim this down? Or use custom
+            //       marshaling for FHitResult where we only deal with FHitResult as a pointer type?
+            // - FHitResult size editor build (windows): 144 bytes (should be -8 bytes for release build due to FName)
+            //   - The 2 bitsize bools (uint8) expand to 4 bytes
+            "/Script/Engine.HitResult:bBlockingHit",
+            "/Script/Engine.HitResult:bStartPenetrating",
+            "/Script/Engine.HitResult:FaceIndex",
+            "/Script/Engine.HitResult:Time",
+            "/Script/Engine.HitResult:Distance",
+            "/Script/Engine.HitResult:Location",
+            "/Script/Engine.HitResult:ImpactPoint",
+            "/Script/Engine.HitResult:Normal",
+            "/Script/Engine.HitResult:ImpactNormal",
+            "/Script/Engine.HitResult:TraceStart",
+            "/Script/Engine.HitResult:TraceEnd",
+            "/Script/Engine.HitResult:PenetrationDepth",
+            "/Script/Engine.HitResult:Item",
+            "/Script/Engine.HitResult:PhysMaterial",
+            "/Script/Engine.HitResult:Actor",
+            "/Script/Engine.HitResult:Component",
+            "/Script/Engine.HitResult:BoneName",
+            "/Script/Engine.HitResult:MyBoneName",
         };
         private static HashSet<string> forceHideProperties = new HashSet<string>();
 
@@ -132,11 +157,11 @@ namespace UnrealEngine.Runtime
                 UProperty property = collapsedMember.BackingProperty;
 
                 if ((// private (there is little point in allowing private code gen so make this protected instead?)
-               (property.HasAnyPropertyFlags(EPropertyFlags.DisableEditOnInstance) && !property.GetBoolMetaData(MDProp.AllowPrivateAccess)) ||
-               // protected
-               (property.HasAnyPropertyFlags(EPropertyFlags.NativeAccessSpecifierProtected | EPropertyFlags.Protected)))
-               // If this is being force exported make it public instead of protected
-               && !forceExportProperties.Contains(property.GetPathName()))
+                    (property.HasAnyPropertyFlags(EPropertyFlags.DisableEditOnInstance) && !property.GetBoolMetaData(MDProp.AllowPrivateAccess)) ||
+                    // protected
+                    (property.HasAnyPropertyFlags(EPropertyFlags.NativeAccessSpecifierProtected | EPropertyFlags.Protected)))
+                    // If this is being force exported make it public instead of protected
+                    && !forceExportProperties.Contains(property.GetPathName()))
                 {
                     modifiers.Append("protected");
                 }

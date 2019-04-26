@@ -62,6 +62,39 @@ namespace UnrealEngine.Engine
         {
             return SpawnActor(UClass.GetClass<T>(), ref location, ref rotation) as T;
         }
+        
+        
+        // The same as the above but non-ref
+        
+        public AActor SpawnActor(UClass unrealClass, FVector location, FRotator rotation, FActorSpawnParameters parameters)
+        {
+            return SpawnActor(unrealClass, ref location, ref rotation, ref parameters);
+        }
+
+        public AActor SpawnActor(UClass unrealClass, FVector location, FRotator rotation, FActorSpawnParametersInterop parameters)
+        {
+            return SpawnActor(unrealClass, ref location, ref rotation, ref parameters);
+        }
+
+        public AActor SpawnActor(UClass unrealClass, FVector location, FRotator rotation)
+        {
+            return SpawnActor(unrealClass, ref location, ref rotation);
+        }
+
+        public T SpawnActor<T>(FVector location, FRotator rotation, FActorSpawnParameters parameters) where T : AActor
+        {
+            return SpawnActor(UClass.GetClass<T>(), ref location, ref rotation, ref parameters) as T;
+        }
+
+        public T SpawnActor<T>(FVector location, FRotator rotation, FActorSpawnParametersInterop parameters) where T : AActor
+        {
+            return SpawnActor(UClass.GetClass<T>(), ref location, ref rotation, ref parameters) as T;
+        }
+
+        public T SpawnActor<T>(FVector location, FRotator rotation) where T : AActor
+        {
+            return SpawnActor(UClass.GetClass<T>(), ref location, ref rotation) as T;
+        }
     }
 
     public struct FActorSpawnParameters

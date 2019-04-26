@@ -46,6 +46,7 @@
   <ItemGroup>
     <Compile Include="CoreUObject\Enums\Script.cs" />
     <Compile Include="CoreUObject\FLifetimeProperty.cs" />
+    <Compile Include="Core\FFeedbackContext.cs" />
     <Compile Include="Core\IPluginManager.cs" />
     <None Include="Internal\InjectedClasses\Engine\Pawn_Injected.cs" />
     <Compile Include="InputCore\EKeys.cs" />
@@ -59,7 +60,7 @@
     <None Include="Internal\InjectedClasses\Engine\InputComponent_Injected.cs" />
     <Compile Include="Internal\AppDomainDiagnostic.cs" />
     <Compile Include="Internal\CodeGenerator\CodeManagers\SimpleFileParserUtility.cs" />
-    <Compile Include="Internal\CodeGenerator\TemplateProjectGenerator.cs" />
+    <Compile Include="Internal\CodeGenerator\ProjectProps.cs" />
     <Compile Include="Internal\CurrentAssemblyContext.cs" />
     <Compile Include="Internal\EntryPoint.Shared.AssemblyContext.cs" />
     <Compile Include="Internal\EntryPoint.Shared.cs" />
@@ -175,13 +176,16 @@
     <Compile Include="Core\FSlowTask.cs" />
     <Compile Include="Internal\IInterface.cs" />
     <Compile Include="CoreUObject\FLifetimePropertyCollection.cs" />
+    <None Include="Internal\InjectedClasses\Engine\EngineTypes_Injected.cs" />
     <Compile Include="Internal\ManagedUnrealTypeInfo.Exception.cs" />
     <Compile Include="Internal\ManagedUnrealTypeInfo.Validation.cs" />
     <Compile Include="Internal\ManagedUnrealTypes.Builder.cs" />
     <Compile Include="Internal\ManagedUnrealTypes.MetaData.cs" />
     <Compile Include="Internal\ManagedUnrealVisibility.cs" />
     <Compile Include="Internal\NativeReflectionCached.cs" />
-    <Compile Include="Internal\Native_FPlatformMisc.cs" />
+    <Compile Include="Internal\Native\Native_FFeedbackContext.cs" />
+    <Compile Include="Internal\Native\Native_UEngineTypes.cs" />
+    <Compile Include="Internal\Native\Native_FPlatformMisc.cs" />
     <Compile Include="Internal\ScriptDisassembler.cs" />
     <Compile Include="Internal\StaticVar.cs" />
     <Compile Include="Internal\StructAsClass.cs" />

@@ -150,7 +150,7 @@ namespace UnrealEngine.Runtime
             FMessage.Log("USharpMinHotReload: " + (value ? "Enabled" : "Disabled"));
         }
 
-        private static void GenerateCode(string[] args)
+        internal static void GenerateCode(string[] args)
         {
             try
             {
@@ -204,10 +204,43 @@ namespace UnrealEngine.Runtime
                             break;
 
                         case "modules":
+                            // Engine modules (whitelisted)
                             codeGenerator = new CodeGenerator();
                             //codeGenerator.Settings.ExportMode = CodeGeneratorSettings.CodeExportMode.All;
                             //codeGenerator.Settings.ExportAllFunctions = true;
                             //codeGenerator.Settings.ExportAllProperties = true;
+                            string whitelistFile = Path.Combine(codeGenerator.Settings.GetManagedPluginSettingsDir(), "ModulesWhitelist.txt");
+                            string blacklistFile = Path.Combine(codeGenerator.Settings.GetManagedPluginSettingsDir(), "ModulesBlacklist.txt");
+                            if (File.Exists(whitelistFile))
+                            {
+                                foreach (string line in File.ReadAllLines(whitelistFile))
+                                {
+                                    if (!string.IsNullOrEmpty(line))
+                                    {
+                                        codeGenerator.ModulesNamesWhitelist.Add(line);
+                                    }
+                                }
+                            }
+                            if (File.Exists(blacklistFile))
+                            {
+                                foreach (string line in File.ReadAllLines(blacklistFile))
+                                {
+                                    if (!string.IsNullOrEmpty(line))
+                                    {
+                                        codeGenerator.ModulesNamesBlacklist.Add(line);
+                                    }
+                                }
+                            }
+                            codeGenerator.GenerateCodeForEngineModules();
+                            break;
+
+                        case "all_modules":
+                            codeGenerator = new CodeGenerator();
+                            codeGenerator.GenerateCodeForAllModules();
+                            break;
+
+                        case "engine_modules":
+                            codeGenerator = new CodeGenerator();
                             codeGenerator.GenerateCodeForEngineModules();
                             break;
 
@@ -255,11 +288,17 @@ namespace UnrealEngine.Runtime
             }
         }
 
-        private static void CompileGeneratedCode()
+        internal static void CompileGeneratedCode()
         {
             CodeGeneratorSettings settings = new CodeGeneratorSettings();
             string slnPath = Path.GetFullPath(Path.Combine(settings.GetManagedModulesDir(), "UnrealEngine.sln"));
             string projPath = Path.GetFullPath(Path.Combine(settings.GetManagedModulesDir(), "UnrealEngine.csproj"));
+            CompileCode(slnPath, projPath);
+        }
+
+        internal static void CompileCode(string slnPath, string projPath)
+        {
+            CodeGeneratorSettings settings = new CodeGeneratorSettings();
             string pluginInstallerPath = Path.GetFullPath(Path.Combine(settings.GetManagedBinDir(), "PluginInstaller", "PluginInstaller.exe"));
 
             if (!File.Exists(slnPath))
@@ -267,7 +306,7 @@ namespace UnrealEngine.Runtime
                 CommandLog(ELogVerbosity.Error, "The solution '" + slnPath + "' doesn't exist");
                 return;
             }
-            if (!File.Exists(projPath))
+            if (!string.IsNullOrEmpty(projPath) && !File.Exists(projPath))
             {
                 CommandLog(ELogVerbosity.Error, "The project '" + projPath + "' doesn't exist");
                 return;
@@ -293,7 +332,7 @@ namespace UnrealEngine.Runtime
                         CommandLog(ELogVerbosity.Error, "Failed to load the plugin installer at '" + pluginInstallerPath + "'.");
                         return;
                     }
-                    
+
                     Type type = assembly.GetType(typeName);
                     if (type == null)
                     {
@@ -304,7 +343,7 @@ namespace UnrealEngine.Runtime
                     // Set the AppDirectory path so that it can resolve the local msbuild path (if a local msbuild exists)
                     type.GetField("AppDirectory", BindingFlags.Public | BindingFlags.Static).SetValue(
                         null, Path.GetDirectoryName(pluginInstallerPath));
-                    
+
                     pluginInstallerBuildSlnMethod = type.GetMethod(methodName, BindingFlags.NonPublic | BindingFlags.Static);
                 }
 

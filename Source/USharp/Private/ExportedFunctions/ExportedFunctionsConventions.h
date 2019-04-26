@@ -69,6 +69,11 @@
 #include "K2Node_CustomEvent.h"//BlueprintGraph
 #endif
 
+#if WITH_EDITOR
+// For Export_FFeedbackContext
+#include "DesktopPlatformModule.h"
+#endif
+
 #if PLATFORM_WINDOWS
 #define CSCONV __stdcall
 #else

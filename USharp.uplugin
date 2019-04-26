@@ -10,7 +10,7 @@
 	"DocsURL" : "",
 	"MarketplaceURL" : "",
 	"SupportURL" : "",
-	"EnabledByDefault" : false,
+	"EnabledByDefault" : true,
 	"CanContainContent" : true,
 	"IsBetaVersion" : false,
 	"Installed" : false,
@@ -21,6 +21,11 @@
 			"Type" : "Runtime",
 			"LoadingPhase" : "PostDefault",
 			"WhitelistPlatforms": [ "Win64", "Mac", "Linux" ]
-		}
+		},
+		{
+			"Name" : "USharpEditor",
+			"Type" : "Editor",
+			"LoadingPhase" : "PostDefault"
+		},
 	]
 }

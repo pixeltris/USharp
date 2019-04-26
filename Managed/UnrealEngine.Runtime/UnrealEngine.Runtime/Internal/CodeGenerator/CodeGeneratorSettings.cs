@@ -496,11 +496,11 @@ namespace UnrealEngine.Runtime
         }
 
         /// <summary>
-        /// Returns /USharp/Binaries/Managed/Settings/
+        /// Returns /USharp/Settings/
         /// </summary>
         public string GetManagedPluginSettingsDir()
         {
-            return Path.Combine(GetManagedBinDir(), "Settings");
+            return Path.Combine(GetUSharpBaseDir(), "Settings");
         }
 
         public string GetManagedProjectSettingsDir()

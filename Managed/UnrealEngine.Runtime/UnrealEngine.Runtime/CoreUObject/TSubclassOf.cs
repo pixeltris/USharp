@@ -39,6 +39,11 @@ namespace UnrealEngine.Runtime
             SetClass(unrealClass);
         }
 
+        public static TSubclassOf<T> From<TClass>() where TClass : T
+        {
+            return new TSubclassOf<T>(UClass.GetClass<TClass>());
+        }
+
         public void SetClass(UClass unrealClass)
         {
             if (unrealClass != null)

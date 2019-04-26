@@ -1,0 +1,23 @@
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  
+  <PropertyGroup>
+    <!-- The following properties are automatically updated when the editor runs (don't modify these manually). -->
+    <UE4Version></UE4Version>
+    <UE4ProjectName></UE4ProjectName>
+    <UE4Defines></UE4Defines>
+  </PropertyGroup>
+  
+  <PropertyGroup>
+    <!-- Projects listed here will be processed by UnrealEngine.AssemblyRewriter -->
+    <USharpGameProjects>TP_Puzzle.Managed</USharpGameProjects>
+  </PropertyGroup>
+  
+  <PropertyGroup>
+    <USharpAppDataFile>$([System.Environment]::GetFolderPath(SpecialFolder.ApplicationData))\USharp\UE_$(UE4Version).txt</USharpAppDataFile>
+    <USharpPluginPath Condition="Exists('$(USharpAppDataFile)')">$([System.IO.File]::ReadAllText('$(USharpAppDataFile)'))</USharpPluginPath>
+    <USharpPropsPath Condition="Exists('$(USharpPluginPath)')">$(USharpPluginPath)\Managed\USharp.props</USharpPropsPath>
+  </PropertyGroup>
+  
+  <Import Condition="Exists('$(USharpPropsPath)')" Project="$(USharpPropsPath)" />
+  
+</Project>

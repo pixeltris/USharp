@@ -18,7 +18,7 @@ namespace PluginInstaller
 {
     class Program
     {
-        private const string ExampleEnginePath = "C:/Epic Games/UE_4.20/";
+        private const string ExampleEnginePath = "C:/Epic Games/UE_4.22/";
         private static string msbuildPath;
 
         public static readonly bool IsLinux;

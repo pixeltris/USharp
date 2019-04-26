@@ -38,6 +38,8 @@ namespace UnrealEngine.Runtime.Native
         /// </summary>
         private static Del_RegisterFunction registerFunction = new Del_RegisterFunction(RegisterFunction);
 
+        internal static FFeedbackContext codeGenContext;
+
         /// <summary>
         /// Register all native functions with managed code
         /// </summary>
@@ -191,6 +193,15 @@ namespace UnrealEngine.Runtime.Native
                 UClass.Load();
             }
 
+            using (var timing = HotReload.Timing.Create(HotReload.Timing.NativeFunctions_GenerateAndCompileMissingAssemblies))
+            {
+                // Update the C# game project props file
+                ProjectProps.Update();
+
+                // Prompt to compile the C# engine wrapper code / C# game code (if it isn't already compiled)
+                GenerateAndCompileMissingAssemblies();
+            }
+
             // If any assemblies are loaded make sure to load their unreal types
             if (!AssemblyContext.IsCoreCLR || CurrentAssemblyContext.Reference.IsInvalid)
             {
@@ -265,9 +276,6 @@ namespace UnrealEngine.Runtime.Native
                     }
                 }
             }
-
-            // Generate / update the C# game project
-            TemplateProjectGenerator.Generate();
 
             using (var timing = HotReload.Timing.Create(HotReload.Timing.GC_Collect))
             {
@@ -425,6 +433,67 @@ namespace UnrealEngine.Runtime.Native
         private static string[] ResolveAssemblyDependencies(Assembly assembly)
         {
             return new string[0];
+        }
+
+        private static void GenerateAndCompileMissingAssemblies()
+        {
+            string projectFileName = FPaths.ProjectFilePath;
+
+            if (!FBuild.WithEditor || string.IsNullOrEmpty(projectFileName))
+            {
+                return;
+            }
+
+            // NOTE: This is called before ManagedUnrealModuleInfo.Load / ManagedUnrealTypes.Load so some things may not be accessible.
+            //       Maybe call load then unload after this is finished?
+
+            // NOTE: Most of the functions called here use FSlowTask but the UI isn't available until the engine is fully initialized.
+            //       Instead use FFeedbackContext to display a progress bar (FDesktopPlatformModule::Get()->GetNativeFeedbackContext())
+            // TODO: Redirect some of the FSlowTask messages to the log, so that the "show log" button displays useful info?
+            codeGenContext = FFeedbackContext.GetGetDesktopFeedbackContext();
+
+            string dialogTitle = "USharp";
+
+            CodeGeneratorSettings settings = new CodeGeneratorSettings();
+
+            string engineWrapperDllPath = Path.Combine(settings.GetManagedModulesDir(), "bin", "Debug", "UnrealEngine.dll");
+            string engineWrapperSlnPath = Path.Combine(settings.GetManagedModulesDir(), "UnrealEngine.sln");
+            bool compileEngineWrapperCode = false;
+            if (!File.Exists(engineWrapperSlnPath))
+            {
+                if (FMessage.OpenDialog(EAppMsgType.YesNo, "C# engine wrapper code not found. Generate it now?", dialogTitle) == EAppReturnType.Yes)
+                {
+                    codeGenContext.BeginSlowTask("Generating C# engine wrapper code (this might take a while...)", true);
+                    CodeGenerator.GenerateCode(new string[] { "modules" });
+                    codeGenContext.EndSlowTask();
+                    compileEngineWrapperCode = true;
+                }
+            }
+            if (!File.Exists(engineWrapperDllPath) && File.Exists(engineWrapperSlnPath))
+            {
+                if (compileEngineWrapperCode ||
+                    FMessage.OpenDialog(EAppMsgType.YesNo, "C# engine wrapper code isn't compiled. Compile it now?", dialogTitle) == EAppReturnType.Yes)
+                {
+                    codeGenContext.BeginSlowTask("Compiling C# engine wrapper code (this might take a while...)", true);
+                    CodeGenerator.CompileGeneratedCode();
+                    codeGenContext.EndSlowTask();
+                }
+            }
+
+            string projectName = settings.GetProjectName();
+            projectFileName = Path.GetFileNameWithoutExtension(projectFileName);
+            string gameSlnPath = Path.Combine(settings.GetManagedDir(), projectName + ".Managed.sln");
+            string gameDllPath = Path.Combine(FPaths.ProjectDir, "Binaries", "Managed", projectFileName + ".Managed.dll");
+
+            if (File.Exists(gameSlnPath) && !File.Exists(gameDllPath) &&
+                FMessage.OpenDialog(EAppMsgType.YesNo, "C# game project code isn't compiled. Compile it now?", dialogTitle) == EAppReturnType.Yes)
+            {
+                codeGenContext.BeginSlowTask("Compiling C# game project code (this might take a while...)", true);
+                CodeGenerator.CompileCode(gameSlnPath, null);
+                codeGenContext.EndSlowTask();
+            }
+
+            codeGenContext = null;
         }
     }
 }

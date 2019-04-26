@@ -241,6 +241,7 @@ namespace UnrealEngine.Runtime
 
             public const string TotalLoadTime = "TotalLoadTime";
             public const string DataStore_Load = "HotReload.DataStore.Load";
+            public const string NativeFunctions_GenerateAndCompileMissingAssemblies = "NativeFunctions.GenerateAndCompileMissingAssemblies";
             public const string NativeFunctions_LoadAssemblies = "NativeFunctions.LoadAssemblies";
             public const string Classes_OnNativeFunctionsRegistered = "Classes.OnNativeFunctionsRegistered";
             public const string UnrealTypes_Load = "UnrealTypes.Load";

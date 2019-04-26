@@ -1,0 +1,46 @@
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  
+  <PropertyGroup>
+    <USharpRuntimeDllPath>$(USharpPluginPath)\Binaries\Managed\UnrealEngine.Runtime.dll</USharpRuntimeDllPath>
+    <USharpModulesDllPath>$(USharpPluginPath)\Binaries\Managed\Modules\bin\Debug\UnrealEngine.dll</USharpModulesDllPath>
+    <USharpAssemblyRewriterPath>$(USharpPluginPath)\Binaries\Managed\AssemblyRewriter\UnrealEngine.AssemblyRewriter.exe</USharpAssemblyRewriterPath>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <DefineConstants>$(UE4Defines);$(DefineConstants)</DefineConstants>
+    <OutDir>$(SolutionDir)\..\Binaries\Managed</OutDir>
+    <OutputPath>$(OutDir)</OutputPath>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <USharpGameProjectsEscaped>;$(USharpGameProjects);</USharpGameProjectsEscaped>
+    <IsGameProject>$(USharpGameProjectsEscaped.Contains(';$(MSBuildProjectName);'))</IsGameProject>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Reference Include="UnrealEngine.Runtime">
+      <HintPath>$(USharpRuntimeDllPath)</HintPath>
+    </Reference>
+  </ItemGroup>
+
+  <ItemGroup Condition="Exists('$(USharpModulesDllPath)')">
+    <Reference Include="UnrealEngine">
+      <HintPath>$(USharpModulesDllPath)</HintPath>
+    </Reference>
+  </ItemGroup>
+
+  <Target Name="USharpValidate" BeforeTargets="CoreCompile">    
+    <Error
+      Condition="!Exists('$(USharpRuntimeDllPath)')"
+      Text="Could not find UnrealEngine.Runtime.dll at the path '$(USharpRuntimeDllPath)'. This will lead to managed solution compile errors."
+    />    
+  </Target>
+
+  <Target Name="AssemblyProcessing" AfterTargets="PostBuildEvent" Condition="$(IsGameProject)">
+    <Exec      
+      Command="&quot;$(USharpAssemblyRewriterPath)&quot; &quot;$(OutDir)$(AssemblyName).dll&quot;"
+      IgnoreExitCode="false"
+    />
+  </Target>
+  
+</Project>

@@ -340,5 +340,34 @@ namespace UnrealEngine.Runtime
         {
             return GetFields<T>(EFieldIteratorType.Property, includeSuper, includeDeprecated, includeInterface);
         }
+
+        /// <summary>
+        /// Gets the UStruct/UClass for the given path (e.g. "/Script/Engine.HitResult")
+        /// </summary>
+        /// <param name="path">The path of the object/struct</param>
+        /// <returns>The UStruct/UClass for the given path</returns>
+        public static UStruct GetStructOrClass(string path)
+        {
+            UStruct foundStruct = UObject.FindObject<UStruct>(UObject.AnyPackage, path);
+            if (foundStruct == null)
+            {
+                // Look for redirectors
+                FName newPath = FLinkerLoad.FindNewNameForStruct(new FName(path));
+                if (newPath != FName.None)
+                {
+                    foundStruct = UObject.FindObject<UStruct>(UObject.AnyPackage, newPath.ToString());
+                }
+
+                if (foundStruct == null)
+                {
+                    newPath = FLinkerLoad.FindNewNameForClass(new FName(path), false);
+                    if (newPath != FName.None)
+                    {
+                        foundStruct = UObject.FindObject<UClass>(UObject.AnyPackage, newPath.ToString());
+                    }
+                }
+            }
+            return foundStruct;
+        }
     }
 }

@@ -60,6 +60,11 @@ namespace UnrealEngine.Runtime
             {
                 double stepFraction = currentSlowTaskStep == 0 ? 1 : ((double)currentSlowTaskTarget / (double)currentSlowTaskStep);
                 slowTask.EnterProgressFrame((float)(100.0 / stepFraction), GetSlowTaskTitle());
+                if (Native.NativeFunctions.codeGenContext != null)
+                {
+                    Native.NativeFunctions.codeGenContext.StatusForceUpdate((int)slowTask.CompletedWork, slowTaskModuleCount * 100,
+                        "Generating: " + moduleName);
+                }
             }
 
             currentSlowTaskStep = 0;

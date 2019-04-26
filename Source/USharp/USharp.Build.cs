@@ -51,7 +51,8 @@ namespace UnrealBuildTool.Rules
                     new string[] {
                         "UnrealEd",
                         "BlueprintGraph",
-                        "KismetCompiler"
+                        "KismetCompiler",
+                        "DesktopPlatform"
                     }
                     );
                 DynamicallyLoadedModuleNames.AddRange(

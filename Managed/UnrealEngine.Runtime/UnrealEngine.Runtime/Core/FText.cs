@@ -430,6 +430,15 @@ namespace UnrealEngine.Runtime
                 return "nullptr";
             }
         }
+
+        public int GetReferenceCount()
+        {
+            if (nativeAddress != IntPtr.Zero)
+            {
+                return nativeInstance->TextData.GetSharedReferenceCount(espMode);
+            }
+            return 0;
+        }
     }
 
     public enum ETextComparisonLevel : int

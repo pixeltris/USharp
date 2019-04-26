@@ -15,6 +15,16 @@ namespace UnrealEngine.Runtime
         // Cache of known namespaces by package
         private Dictionary<UPackage, CachedNamespace> namespaceCache = new Dictionary<UPackage, CachedNamespace>();
 
+        /// <summary>
+        /// If this list has 1 or more elements then this list will be used to determine which modules should be included in code gen
+        /// </summary>
+        public List<string> ModulesNamesWhitelist = new List<string>();
+
+        /// <summary>
+        /// A list of module names to exclude in code gen
+        /// </summary>
+        public List<string> ModulesNamesBlacklist = new List<string>();
+
         private void UpdateModulesByName()
         {
             modulesByName.Clear();
@@ -62,6 +72,18 @@ namespace UnrealEngine.Runtime
         public void GenerateCodeForModules(UnrealModuleType[] moduleTypes)
         {
             BeginGenerateModules();
+
+            HashSet<string> moduleNamesWhitelistToLower = new HashSet<string>();
+            foreach (string moduleName in ModulesNamesWhitelist)
+            {
+                moduleNamesWhitelistToLower.Add(moduleName.ToLower());
+            }
+
+            HashSet<string> moduleNamesBlacklistToLower = new HashSet<string>();
+            foreach (string moduleName in ModulesNamesBlacklist)
+            {
+                moduleNamesBlacklistToLower.Add(moduleName.ToLower());
+            }
 
             Dictionary<UPackage, List<UStruct>> structsByPackage = new Dictionary<UPackage, List<UStruct>>();
             Dictionary<UPackage, List<UEnum>> enumsByPackage = new Dictionary<UPackage, List<UEnum>>();
@@ -184,7 +206,8 @@ namespace UnrealEngine.Runtime
                         FMessage.Log(ELogVerbosity.Error, string.Format("Unknown module type on module '{0}' '{1}'",
                             moduleInfo.Name, moduleInfo.Package));
                     }
-                    else if (!moduleTypes.Contains(moduleInfo.Type))
+                    else if (!moduleTypes.Contains(moduleInfo.Type) || moduleNamesBlacklistToLower.Contains(moduleInfo.Name.ToLower()) ||
+                        (moduleNamesWhitelistToLower.Count > 0 && !moduleNamesWhitelistToLower.Contains(moduleInfo.Name.ToLower())))
                     {
                         continue;
                     }

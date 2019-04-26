@@ -41,6 +41,7 @@
 
 #include "Export_UEngine.h"
 #include "Export_UEngineDelegates.h"
+#include "Export_UEngineTypes.h"
 #include "Export_UGameEngine.h"
 #include "Export_UWorld.h"
 #include "Export_FWorldDelegates.h"
@@ -112,6 +113,7 @@
 #include "Export_FMath.h"
 #include "Export_FParse.h"
 #include "Export_FSlowTask.h"
+#include "Export_FFeedbackContext.h"
 
 #include "Export_FKey.h"
 #include "Export_FInputBinding.h"
@@ -181,6 +183,7 @@ CSEXPORT void CSCONV RegisterFunctions(RegisterFunc registerFunc)
 	
 	Export_UEngine(registerFunc);
 	Export_UEngineDelegates(registerFunc);
+	Export_UEngineTypes(registerFunc);
 	Export_UGameEngine(registerFunc);
 	Export_UWorld(registerFunc);
 	Export_FWorldDelegates(registerFunc);
@@ -252,6 +255,7 @@ CSEXPORT void CSCONV RegisterFunctions(RegisterFunc registerFunc)
 	Export_FMath(registerFunc);
 	Export_FParse(registerFunc);
 	Export_FSlowTask(registerFunc);
+	Export_FFeedbackContext(registerFunc);
 	
 	Export_FKey(registerFunc);
 	Export_FInputBinding(registerFunc);
