@@ -10,6 +10,8 @@ Join the gitter chat room for quick help / discussion https://gitter.im/USharp/L
 
 # Features
 
+- Write C# using UObject exposed types (AActor, AGameMode, UActorComponent, etc). Define new UObject types and inherit existing ones. Exposed C# types can then be used used in (or extended by) Blueprint.
+- Access to [Unreal's reflection system](https://www.unrealengine.com/en-US/blog/unreal-property-system-reflection) (UClass, UFunction, UProperty, etc). 
 - Hotreload
 - Dynamically switch between .NET Framework, .NET Core and Mono for an improved debugging / runtime experience without having to reopen the editor
 - Supports Windows, Mac and Linux
