@@ -80,6 +80,42 @@ namespace UnrealBuildTool.Rules
                 }
                 );
 
+            // mscoree.lib doesn't auto resolve on some systems
+            if (Target.Platform == UnrealTargetPlatform.Win32 ||
+                Target.Platform == UnrealTargetPlatform.Win64)
+            {
+                Version newestVersion = default(Version);
+                string newestDir = null;
+                string newestLib = null;
+                string newestInclude = null;
+
+                string netFxDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86), "Windows Kits", "NETFXSDK");
+                if (Directory.Exists(netFxDir))
+                {
+                    foreach (string versionDir in Directory.GetDirectories(netFxDir))
+                    {
+                        string versionDirName = new DirectoryInfo(versionDir).Name;
+                        Version version;
+                        if (Version.TryParse(versionDirName, out version) && 
+                            (newestDir == null || version > newestVersion))
+                        {
+                            string lib = Path.Combine(versionDir, "Lib", "um", "x64", "mscoree.lib");
+                            string include = Path.Combine(versionDir, "Include", "um", "mscoree.h");
+                            if (File.Exists(lib) && File.Exists(include))
+                            {
+                                newestLib = lib;
+                                newestInclude = include;
+                            }
+                        }
+                    }
+                }
+                if (!string.IsNullOrEmpty(newestLib) && !string.IsNullOrEmpty(newestInclude))
+                {
+                    PublicIncludePaths.Add(Path.GetDirectoryName(newestInclude));
+                    PublicAdditionalLibraries.Add(newestLib);
+                }
+            }
+            
             if (Target.Type == TargetType.Game && Target.ProjectFile != null)
             {
                 // If this is a packaged build set up the /Managed/ folders

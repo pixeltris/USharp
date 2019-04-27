@@ -497,12 +497,12 @@ namespace PluginInstaller
             }
             else
             {
-                // We need to use the VS2017 MSBuild instead of the redistributable version as the redist version
-                // seems to target the wrong toolset and we get compile errors. The redist version can be found at:
-                // SOFTWARE\Microsoft\MSBUILD\ToolsVersions\4.0 (MSBuildToolsPath) then append msbuild.exe
-
                 try
                 {
+                    // We need to use the VS2017 MSBuild instead of the redistributable version as the redist version
+                    // seems to target the wrong toolset and we get compile errors. The redist version can be found at:
+                    // SOFTWARE\Microsoft\MSBUILD\ToolsVersions\4.0 (MSBuildToolsPath) then append msbuild.exe
+
                     string baseMicrosoftKeyPath = @"SOFTWARE\WOW6432Node\Microsoft";
                     string visualStudioRegistryKeyPath = baseMicrosoftKeyPath + @"\VisualStudio\SxS\VS7";
 
@@ -518,6 +518,79 @@ namespace PluginInstaller
                                 if (File.Exists(path))
                                 {
                                     return path;
+                                }
+                            }
+                        }
+                    }
+                }
+                catch
+                {
+                }
+
+                try
+                {
+                    // VS2019 doesn't use the \SxS\ registry key. Instead find the path from the VS installer (this is the same
+                    // lookup that vswhere.exe uses). This should also work for VS2017? Remove the above code?
+
+                    using (RegistryKey baseKey = RegistryKey.OpenBaseKey(RegistryHive.LocalMachine, RegistryView.Registry64))
+                    {
+                        if (baseKey != null)
+                        {
+                            using (RegistryKey key = baseKey.OpenSubKey(@"SOFTWARE\Microsoft\VisualStudio\Setup"))
+                            {
+                                if (key != null)
+                                {
+                                    string cachePath = key.GetValue("CachePath") as string;
+                                    if (!string.IsNullOrEmpty(cachePath) && Directory.Exists(cachePath))
+                                    {
+                                        string instancesPath = Path.Combine(cachePath, "_Instances");
+                                        if (Directory.Exists(instancesPath))
+                                        {
+                                            Dictionary<string, string> vsPaths = new Dictionary<string, string>();
+                                            foreach (string file in Directory.GetFiles(instancesPath, "state.json", SearchOption.AllDirectories))
+                                            {
+                                                try
+                                                {
+                                                    // TODO: Use an actual json parser as this could fail if someone modified the file manually
+                                                    string productLineHeader = "\"productLineVersion\":";
+                                                    string installPathHeader = "\"installationPath\":";
+
+                                                    string str = File.ReadAllText(file);
+                                                    int productLineHeaderIndex = str.IndexOf(productLineHeader);
+                                                    int installPathHeaderIndex = str.IndexOf(installPathHeader);
+                                                    if (productLineHeaderIndex > 0 && installPathHeaderIndex > 0)
+                                                    {
+                                                        productLineHeaderIndex = str.IndexOf('\"', productLineHeaderIndex + productLineHeader.Length) + 1;
+                                                        installPathHeaderIndex = str.IndexOf('\"', installPathHeaderIndex + installPathHeader.Length) + 1;
+                                                        string productLine = str.Substring(productLineHeaderIndex, str.IndexOf('\"', productLineHeaderIndex) - productLineHeaderIndex);
+                                                        string installPath = str.Substring(installPathHeaderIndex, str.IndexOf('\"', installPathHeaderIndex) - installPathHeaderIndex);
+                                                        vsPaths[productLine] = installPath;
+                                                    }
+                                                }
+                                                catch
+                                                {
+                                                }
+                                            }
+                                            Dictionary<string, string> supportedVersions = new Dictionary<string, string>()
+                                            {
+                                                { "2019", "MSBuild/Current/Bin/MSBuild.exe" },
+                                                { "2017", "MSBuild/15.0/Bin/MSBuild.exe" }
+                                            };
+                                            foreach (KeyValuePair<string, string> version in supportedVersions)
+                                            {
+                                                string path;
+                                                if (vsPaths.TryGetValue(version.Key, out path) && Directory.Exists(path))
+                                                {
+                                                    path = Path.Combine(path, version.Value);
+                                                    if (File.Exists(path))
+                                                    {
+                                                        path = Path.GetFullPath(path);
+                                                        return path;
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
                                 }
                             }
                         }
