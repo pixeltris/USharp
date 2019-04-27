@@ -462,7 +462,7 @@ namespace UnrealEngine.Runtime
                 }
                 else
                 {
-                    bool isThisParam = firstParameter;
+                    bool isThisParam = isExtensionMethod && firstParameter;
                     if (firstParameter)
                     {
                         firstParameter = false;
