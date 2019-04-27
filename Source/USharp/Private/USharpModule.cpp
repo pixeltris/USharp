@@ -10,12 +10,14 @@
 
 class FUSharpModule : public IUSharp
 {
+private:
+	TSharedPtr<ISettingsSection> SettingsSection;
 public:
 	void RegisterSettings()
 	{
 		if (ISettingsModule* SettingsModule = FModuleManager::GetModulePtr<ISettingsModule>("Settings"))
 		{
-			SettingsModule->RegisterSettings("Project", "Plugins", "USharp",
+			SettingsSection = SettingsModule->RegisterSettings("Project", "Plugins", "USharp",
 				LOCTEXT("USharpSettingsName", "USharp"),
 				LOCTEXT("USharpSettingsDescription", "Configure USharp"),
 				GetMutableDefault<USharpSettings>());
@@ -55,7 +57,20 @@ public:
 					if (FMessageDialog::Open(EAppMsgType::YesNo, Msg, &Title) == EAppReturnType::Yes)
 					{
 						Settings->bEnabled = true;
-						Settings->SaveConfig();
+						//Settings->SaveConfig();
+
+						// Calling Setting->SaveConfig() SHOULD work but if there is no existing value in a .ini
+						// file then it will save into /Saved/Config/Windows/Engine.ini and any following changes
+						// to the value in the editor will also be saved there. The problem with this is that the
+						// value in that .ini file doesn't get included in the packaged project (only the value in
+						// DefaultEngine.ini gets included in the packaged project)
+						//
+						// NOTE: Subsequent calls to SaveConfig DO seem to work even when there is no config value 
+						//       in any file (see USharpSettings::PostEditChangeProperty where SaveConfig() is called)
+						if (SettingsSection)
+						{
+							SettingsSection->Save();
+						}
 					}
 				}
 			}

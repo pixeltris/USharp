@@ -2,5 +2,11 @@
 	"FileVersion": 3,
 	"EngineAssociation": "",
 	"Category": "",
-	"Description": ""
+	"Description": "",
+	"Plugins": [
+		{
+			"Name": "USharp",
+			"Enabled": true
+		}
+	]
 }

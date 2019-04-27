@@ -307,6 +307,54 @@ namespace UnrealEngine.Engine
             Native_FTickFunction.Delete(Address);
         }
 
+        // The following are helper functions to set values where a FTickFunction is a member with getters/setters which make it difficult to set properties
+        // without first creating a local variable (though doing so is slightly better as each access the property has to read from native memory)
+
+        public void SetTickGroup(ETickingGroup tickGroup)
+        {
+            TickGroup = tickGroup;
+        }
+
+        public void SetEndTickGroup(ETickingGroup endTickGroup)
+        {
+            EndTickGroup = endTickGroup;
+        }
+
+        public void SetTickEvenWhenPaused(bool tickEvenWhenPaused)
+        {
+            TickEvenWhenPaused = tickEvenWhenPaused;
+        }
+
+        public void SetCanEverTick(bool canEverTick)
+        {
+            CanEverTick = canEverTick;
+        }
+
+        public void SetStartWithTickEnabled(bool startWithTickEnabled)
+        {
+            StartWithTickEnabled = startWithTickEnabled;
+        }
+
+        public void SetAllowTickOnDedicatedServer(bool allowTickOnDedicatedServer)
+        {
+            AllowTickOnDedicatedServer = allowTickOnDedicatedServer;
+        }
+
+        public void SetTickInterval(float tickInterval)
+        {
+            TickInterval = tickInterval;
+        }
+
+        public void SetHighPriority(bool highPriority)
+        {
+            HighPriority = highPriority;
+        }
+
+        public void SetRunOnAnyThread(bool runOnAnyThread)
+        {
+            RunOnAnyThread = runOnAnyThread;
+        }
+
         public FTickFunction(IntPtr address)
         {
             Address = address;

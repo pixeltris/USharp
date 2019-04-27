@@ -85,7 +85,6 @@ namespace UnrealBuildTool.Rules
                 Target.Platform == UnrealTargetPlatform.Win64)
             {
                 Version newestVersion = default(Version);
-                string newestDir = null;
                 string newestLib = null;
                 string newestInclude = null;
 
@@ -97,7 +96,7 @@ namespace UnrealBuildTool.Rules
                         string versionDirName = new DirectoryInfo(versionDir).Name;
                         Version version;
                         if (Version.TryParse(versionDirName, out version) && 
-                            (newestDir == null || version > newestVersion))
+                            (newestLib == null || version > newestVersion))
                         {
                             string lib = Path.Combine(versionDir, "Lib", "um", "x64", "mscoree.lib");
                             string include = Path.Combine(versionDir, "Include", "um", "mscoree.h");
@@ -105,6 +104,7 @@ namespace UnrealBuildTool.Rules
                             {
                                 newestLib = lib;
                                 newestInclude = include;
+                                newestVersion = version;
                             }
                         }
                     }

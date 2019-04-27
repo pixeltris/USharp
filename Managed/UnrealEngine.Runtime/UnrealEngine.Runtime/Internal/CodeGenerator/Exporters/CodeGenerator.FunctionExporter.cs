@@ -462,6 +462,7 @@ namespace UnrealEngine.Runtime
                 }
                 else
                 {
+                    bool isThisParam = firstParameter;
                     if (firstParameter)
                     {
                         firstParameter = false;
@@ -475,7 +476,7 @@ namespace UnrealEngine.Runtime
                         parameters.Append(", ");
                     }
 
-                    if (!parameter.HasAnyPropertyFlags(EPropertyFlags.ConstParm))
+                    if (!parameter.HasAnyPropertyFlags(EPropertyFlags.ConstParm) && !isThisParam)
                     {
                         if (parameter.HasAnyPropertyFlags(EPropertyFlags.ReferenceParm) || autoRefParamNames.Contains(rawParamName))
                         {

@@ -469,7 +469,7 @@ namespace UnrealEngine.Runtime.Native
                     compileEngineWrapperCode = true;
                 }
             }
-            if (!File.Exists(engineWrapperDllPath) && File.Exists(engineWrapperSlnPath))
+            if (compileEngineWrapperCode || (!File.Exists(engineWrapperDllPath) && File.Exists(engineWrapperSlnPath)))
             {
                 if (compileEngineWrapperCode ||
                     FMessage.OpenDialog(EAppMsgType.YesNo, "C# engine wrapper code isn't compiled. Compile it now?", dialogTitle) == EAppReturnType.Yes)
