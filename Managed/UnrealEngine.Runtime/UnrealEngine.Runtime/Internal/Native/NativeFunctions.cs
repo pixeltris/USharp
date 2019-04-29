@@ -475,25 +475,50 @@ namespace UnrealEngine.Runtime.Native
                     FMessage.OpenDialog(EAppMsgType.YesNo, "C# engine wrapper code isn't compiled. Compile it now?", dialogTitle) == EAppReturnType.Yes)
                 {
                     codeGenContext.BeginSlowTask("Compiling C# engine wrapper code (this might take a while...)", true);
-                    CodeGenerator.CompileGeneratedCode();
+                    bool compiled = CodeGenerator.CompileGeneratedCode();
                     codeGenContext.EndSlowTask();
+
+                    if (!compiled)
+                    {
+                        WarnCompileFailed(settings, null, dialogTitle);
+                    }
                 }
             }
 
-            string projectName = settings.GetProjectName();
-            projectFileName = Path.GetFileNameWithoutExtension(projectFileName);
+            string projectName = Path.GetFileNameWithoutExtension(projectFileName);
             string gameSlnPath = Path.Combine(settings.GetManagedDir(), projectName + ".Managed.sln");
-            string gameDllPath = Path.Combine(FPaths.ProjectDir, "Binaries", "Managed", projectFileName + ".Managed.dll");
+            string gameDllPath = Path.Combine(FPaths.ProjectDir, "Binaries", "Managed", projectName + ".Managed.dll");
+
+            if (!File.Exists(gameSlnPath) &&
+                FMessage.OpenDialog(EAppMsgType.YesNo, "USharp is enabled but the C# game project files weren't found. Generate them now?", dialogTitle) == EAppReturnType.Yes)
+            {
+                TemplateProjectGenerator.Generate();
+            }
 
             if (File.Exists(gameSlnPath) && !File.Exists(gameDllPath) &&
                 FMessage.OpenDialog(EAppMsgType.YesNo, "C# game project code isn't compiled. Compile it now?", dialogTitle) == EAppReturnType.Yes)
             {
                 codeGenContext.BeginSlowTask("Compiling C# game project code (this might take a while...)", true);
-                CodeGenerator.CompileCode(gameSlnPath, null);
+                bool compiled = CodeGenerator.CompileCode(gameSlnPath, null);
                 codeGenContext.EndSlowTask();
+
+                if (!compiled)
+                {
+                    WarnCompileFailed(settings, null, dialogTitle);
+                }
             }
 
             codeGenContext = null;
+        }
+
+        private static void WarnCompileFailed(CodeGeneratorSettings settings, string slnPath, string dialogTitle)
+        {
+            string logPath = Path.GetFullPath(Path.Combine(settings.GetManagedBinDir(), "PluginInstaller", "build.log"));
+            if (string.IsNullOrEmpty(slnPath))
+            {
+                slnPath = Path.GetFullPath(Path.Combine(settings.GetManagedModulesDir(), "UnrealEngine.sln"));
+            }
+            FMessage.OpenDialog("Compile failed.\nBuild log: '" + logPath + "'\nsln: '" + slnPath + "'");
         }
     }
 }

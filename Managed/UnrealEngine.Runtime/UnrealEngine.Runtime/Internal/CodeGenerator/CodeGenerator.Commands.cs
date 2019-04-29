@@ -288,15 +288,15 @@ namespace UnrealEngine.Runtime
             }
         }
 
-        internal static void CompileGeneratedCode()
+        internal static bool CompileGeneratedCode()
         {
             CodeGeneratorSettings settings = new CodeGeneratorSettings();
             string slnPath = Path.GetFullPath(Path.Combine(settings.GetManagedModulesDir(), "UnrealEngine.sln"));
             string projPath = Path.GetFullPath(Path.Combine(settings.GetManagedModulesDir(), "UnrealEngine.csproj"));
-            CompileCode(slnPath, projPath);
+            return CompileCode(slnPath, projPath);
         }
 
-        internal static void CompileCode(string slnPath, string projPath)
+        internal static bool CompileCode(string slnPath, string projPath)
         {
             CodeGeneratorSettings settings = new CodeGeneratorSettings();
             string pluginInstallerPath = Path.GetFullPath(Path.Combine(settings.GetManagedBinDir(), "PluginInstaller", "PluginInstaller.exe"));
@@ -304,17 +304,17 @@ namespace UnrealEngine.Runtime
             if (!File.Exists(slnPath))
             {
                 CommandLog(ELogVerbosity.Error, "The solution '" + slnPath + "' doesn't exist");
-                return;
+                return false;
             }
             if (!string.IsNullOrEmpty(projPath) && !File.Exists(projPath))
             {
                 CommandLog(ELogVerbosity.Error, "The project '" + projPath + "' doesn't exist");
-                return;
+                return false;
             }
             if (!File.Exists(pluginInstallerPath))
             {
                 CommandLog(ELogVerbosity.Error, "Plugin installer not found at '" + pluginInstallerPath + "'");
-                return;
+                return false;
             }
 
             const string typeName = "PluginInstaller.Program";
@@ -330,14 +330,14 @@ namespace UnrealEngine.Runtime
                     if (assembly == null)
                     {
                         CommandLog(ELogVerbosity.Error, "Failed to load the plugin installer at '" + pluginInstallerPath + "'.");
-                        return;
+                        return false;
                     }
 
                     Type type = assembly.GetType(typeName);
                     if (type == null)
                     {
                         CommandLog(ELogVerbosity.Error, "Failed to resolve the plugin installer type '" + typeName + "'.");
-                        return;
+                        return false;
                     }
 
                     // Set the AppDirectory path so that it can resolve the local msbuild path (if a local msbuild exists)
@@ -350,19 +350,20 @@ namespace UnrealEngine.Runtime
                 if (pluginInstallerBuildSlnMethod == null)
                 {
                     CommandLog(ELogVerbosity.Error, "Failed to resolve the '" + methodName + "' function in plugin installer.");
-                    return;
+                    return false;
                 }
             }
 
             CommandLog(ELogVerbosity.Log, "Attempting to build generated solution at " + slnPath);
 
+            bool built = false;
             using (FScopedSlowTask slowTask = new FScopedSlowTask(100, "Compiling..."))
             {
                 slowTask.MakeDialog();
 
                 try
                 {
-                    bool built = (bool)pluginInstallerBuildSlnMethod.Invoke(null, new object[] { slnPath, projPath });
+                    built = (bool)pluginInstallerBuildSlnMethod.Invoke(null, new object[] { slnPath, projPath });
                     if (built)
                     {
                         CommandLog(ELogVerbosity.Log, "Solution was compiled successfully.");
@@ -381,6 +382,7 @@ namespace UnrealEngine.Runtime
                 slowTask.EnterProgressFrame(99.9f);
                 slowTask.EnterProgressFrame(0.1f);
             }
+            return built;
         }
 
         private static void CommandLog(string value, params object[] args)

@@ -61,6 +61,7 @@
     <Compile Include="Internal\AppDomainDiagnostic.cs" />
     <Compile Include="Internal\CodeGenerator\CodeManagers\SimpleFileParserUtility.cs" />
     <Compile Include="Internal\CodeGenerator\ProjectProps.cs" />
+    <Compile Include="Internal\CodeGenerator\TemplateProjectGenerator.cs" />
     <Compile Include="Internal\CurrentAssemblyContext.cs" />
     <Compile Include="Internal\EntryPoint.Shared.AssemblyContext.cs" />
     <Compile Include="Internal\EntryPoint.Shared.cs" />
