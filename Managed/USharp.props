@@ -33,11 +33,17 @@
     <Error
       Condition="!Exists('$(USharpRuntimeDllPath)')"
       Text="Could not find UnrealEngine.Runtime.dll at the path '$(USharpRuntimeDllPath)'. This will lead to managed solution compile errors."
-    />    
+    />
   </Target>
 
   <Target Name="AssemblyProcessing" AfterTargets="PostBuildEvent" Condition="$(IsGameProject)">
-    <Exec      
+    <Exec
+      Condition="'$(OS)' != 'Windows_NT'"
+      Command="mono &quot;$(USharpAssemblyRewriterPath)&quot; &quot;$(OutDir)$(AssemblyName).dll&quot;"
+      IgnoreExitCode="false"
+    />
+    <Exec
+      Condition="'$(OS)' == 'Windows_NT'"
       Command="&quot;$(USharpAssemblyRewriterPath)&quot; &quot;$(OutDir)$(AssemblyName).dll&quot;"
       IgnoreExitCode="false"
     />

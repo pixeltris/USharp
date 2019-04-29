@@ -179,15 +179,21 @@ namespace PluginInstaller
                                 srcPath = monoEtcPath;
                                 dstPath = monoTargetEtcPath;
 
-                                // Don't allow an empty path on non local paths as this will point to /etc/
-                                allowEmptyPath = isLocalRuntimePath;
+                                if (profile == Profile.Mono_Linux)
+                                {
+                                    // Don't allow an empty path on non local paths as this will point to /etc/
+                                    allowEmptyPath = isLocalRuntimePath;
+                                }
                                 break;
                             case RuntimeConfigEntry.FolderType.Mono_Lib:
                                 srcPath = monoLibPath;
                                 dstPath = monoTargetLibPath;
 
-                                // Don't allow an empty path on non local paths as this will point to /usr/lib/
-                                allowEmptyPath = isLocalRuntimePath;
+                                if (profile == Profile.Mono_Linux)
+                                {
+                                    // Don't allow an empty path on non local paths as this will point to /usr/lib/
+                                    allowEmptyPath = isLocalRuntimePath;
+                                }
                                 break;
 
                             case RuntimeConfigEntry.FolderType.CoreCLR_Dotnet:

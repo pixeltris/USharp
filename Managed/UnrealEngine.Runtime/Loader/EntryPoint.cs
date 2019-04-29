@@ -37,7 +37,7 @@ namespace UnrealEngine
         private static string entryPointArg = null;
         private static string unloadMethod = "Unload";
 
-        // If true the assembly will be loaded directly (hot hotreload support).
+        // If true the assembly will be loaded directly (no hotreload support).
         public static bool LoadAssemblyWithoutContexts = false;
 
         // If this is true the loader assemblies will be shadow copied.
