@@ -185,9 +185,9 @@ namespace UnrealEngine.Runtime
     /// Ignores this property from being processed as an Unreal function.
     /// </summary>
     [AttributeUsage(AttributeTargets.Property | AttributeTargets.Field)]
-    public class UPropertyIngoreAttribute : ManagedUnrealAttributeBase
+    public class UPropertyIgnoreAttribute : ManagedUnrealAttributeBase
     {
-        public UPropertyIngoreAttribute()
+        public UPropertyIgnoreAttribute()
         {
             InvalidTarget = true;
         }

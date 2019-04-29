@@ -1483,7 +1483,7 @@ namespace UnrealEngine.Runtime
                 }
             }
 
-            BindingFlags bindingFlags = BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.DeclaredOnly;
+            BindingFlags bindingFlags = BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.DeclaredOnly | BindingFlags.Static;
             BindingFlags baseBindingFlags = BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic;
             foreach (MethodInfo method in type.GetMethods(bindingFlags))
             {
