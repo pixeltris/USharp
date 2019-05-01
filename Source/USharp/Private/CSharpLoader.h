@@ -3,7 +3,6 @@
 #if PLATFORM_WINDOWS
 
 #include "Windows/AllowWindowsPlatformTypes.h"
-#include "ExportedFunctionsConventions.h"
 
 // Define WIN32_LEAN_AND_MEAN to exclude rarely-used services from windows headers.
 #define WIN32_LEAN_AND_MEAN
@@ -15,6 +14,7 @@
 
 #endif
 
+#include "ExportedFunctionsConventions.h"
 #include "USharpPCH.h"
 
 enum class EDotNetRuntime : int32
@@ -43,6 +43,8 @@ public:
 	int32 IsActiveRuntimeComplete;
 	uint32 RuntimeCounter;
 	int32 Reload;// this should be a csbool, #include ExportedFunctionsConventions.h?
+	
+	const char* PlatformName;
 
 	int32 HotReloadDataLen;
 	int32 HotReloadDataLenInMemory;

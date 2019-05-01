@@ -203,6 +203,21 @@ namespace UnrealEngine
 
         private static void UpdateAssemblyWatchers()
         {
+            string platformName = SharedRuntimeState.GetPlatformName();
+            if (SharedRuntimeState.CurrentRuntime == EDotNetRuntime.Mono &&
+                !string.IsNullOrEmpty(platformName) && platformName.ToLower() == "mac")
+            {
+                // libmono-native-compat.dylib (required by FileSystemWatcher) either doesn't load or is corrupted?
+                // It crashes the Mono runtime when doing a symbol lookup (not sure which symbol)
+                //
+                // abort_with_payload
+                // dyld::fastBindLazySymbol(ImageLoader**, unsigned long)
+                // dyld_stub_binder
+                // ---- managed frames  ----
+                // mono_jit_runtime_invoke
+                return;
+            }
+
             string[] assemblyPaths = SharedRuntimeState.GetHotReloadAssemblyPaths();
             if (assemblyPaths != null)
             {

@@ -227,6 +227,11 @@ namespace UnrealEngine
         public UnrealEngine.Runtime.csbool Reload;
 
         /// <summary>
+        /// The name of the platform / OS (windows, mac, ps4, etc)
+        /// </summary>
+        public IntPtr PlatformName;
+
+        /// <summary>
         /// Length of the current data
         /// </summary>
         int HotReloadDataLen;
@@ -483,6 +488,11 @@ namespace UnrealEngine
             }
 
             return info;
+        }
+
+        public static string GetPlatformName()
+        {
+            return Marshal.PtrToStringAnsi(Instance->PlatformName);
         }
 
         public static void Log(byte verbosity, string message)

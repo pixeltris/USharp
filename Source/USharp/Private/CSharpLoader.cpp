@@ -195,6 +195,7 @@ CSharpLoader::CSharpLoader()
 	runtimeState.MessageBox = &RuntimeState_MessageBox;
 	runtimeState.LogMsg = &RuntimeState_LogMsg;
 	runtimeState.StructSize = (int32)sizeof(SharedRuntimeState);
+	runtimeState.PlatformName = FPlatformProperties::IniPlatformName();
 
 	SetupPaths();
 
@@ -508,7 +509,7 @@ bool CSharpLoader::LoadRuntimeMono()
 #endif
 
 #ifdef MONO_VERBOSE_LOGGING
-	// This doesn't seem to print anything on MacOS (regardless of environment variables)
+	// mono_trace_init() doesn't seem to print anything on MacOS (regardless of environment variables)
 	//mono_trace_init();
 
 	mono_trace_set_level_string("debug");// error, critical, warning, message, info, debug

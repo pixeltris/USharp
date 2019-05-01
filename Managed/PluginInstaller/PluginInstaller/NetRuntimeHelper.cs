@@ -289,7 +289,7 @@ namespace PluginInstaller
                     {
                         // Validate the /etc/config file, some entries are file redirects (e.g. libmono-system-native.dylib)
                         // Those redirects aren't handled in embedded mono so we need to make the config point to the real files
-                        FixupMonoConfigRedirects(monoTargetEtcPath, monoTargetLibPath);
+                        //FixupMonoConfigRedirects(monoTargetEtcPath, monoTargetLibPath);
                     }
 
                     Console.WriteLine("Copied .NET runtime " + profile);
