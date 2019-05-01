@@ -72,20 +72,45 @@ CSEXPORT void CSCONV Export_USharpClass_SetFallbackFunctionInvoker(USharpClass* 
 	}
 }
 
-CSEXPORT UFunction* CSCONV Export_USharpClass_SetFunctionInvoker(USharpClass* instance, const FString& FunctionName, FNativeFuncPtr Invoker)
+void USharpClassFunctionInvoker(UObject* Context, FFrame& Stack, RESULT_DECL)
 {
+	USharpClass* Class = (USharpClass*)Context->GetClass();
+	if (Class->ManagedFunctionInvoker != nullptr)
+	{
+		Class->ManagedFunctionInvoker(Context, Stack, RESULT_PARAM);
+	}
+	else
+	{
+		FallbackFunctionInvoker(Context, Stack, RESULT_PARAM);
+	}
+}
+
+CSEXPORT FNativeFuncPtr CSCONV Export_USharpClass_GetNativeFunctionInvoker()
+{
+	return (FNativeFuncPtr)&USharpClassFunctionInvoker;
+}
+
+CSEXPORT UFunction* CSCONV Export_USharpClass_SetFunctionInvoker(USharpClass* instance, const FString& FunctionName)
+{
+	FNativeFuncPtr NativeInvoker = (FNativeFuncPtr)&USharpClassFunctionInvoker;
+	
 	if (instance->FuncMapEx.Num() == instance->NativeFunctionLookupTable.Num())
 	{
 		FSharpFunctionLookup* SharpFunctionLookup = instance->FuncMapEx.Find(FName(*FunctionName));
 		if (SharpFunctionLookup != nullptr && SharpFunctionLookup->Index >= 0)
 		{
-			SharpFunctionLookup->Pointer = Invoker;
-			SharpFunctionLookup->Function->SetNativeFunc(Invoker);
-			instance->NativeFunctionLookupTable[SharpFunctionLookup->Index].Pointer = Invoker;
+			SharpFunctionLookup->Pointer = NativeInvoker;
+			SharpFunctionLookup->Function->SetNativeFunc(NativeInvoker);
+			instance->NativeFunctionLookupTable[SharpFunctionLookup->Index].Pointer = NativeInvoker;
 			return SharpFunctionLookup->Function;
 		}
 	}
 	return nullptr;
+}
+
+CSEXPORT void CSCONV Export_USharpClass_SetFunctionInvokerAddress(USharpClass* instance, USharpClass::ManagedFunctionInvokerType Invoker)
+{
+	instance->ManagedFunctionInvoker = Invoker;
 }
 
 // Could possibly use IMPLEMENT_INTRINSIC_CLASS so this can be defined in USharpClass directly?
@@ -188,18 +213,18 @@ CSEXPORT void CSCONV Export_USharpClass_UpdateNativeParentConstructor(USharpClas
 	check(instance->NativeParentConstructor != nullptr);
 }
 
-CSEXPORT void CSCONV Export_USharpClass_SetSharpClassConstructor(USharpClass* instance, UClass::ClassConstructorType ManagedConstructor)
+CSEXPORT void CSCONV Export_USharpClass_SetSharpClassConstructor(USharpClass* instance, USharpClass::ManagedClassConstructorType ManagedConstructor)
 {
 	instance->ClassConstructor = &SharpClassConstructor;
 	instance->ManagedConstructor = ManagedConstructor;
 }
 
-CSEXPORT UClass::ClassConstructorType CSCONV Export_USharpClass_Get_ManagedConstructor(USharpClass* instance)
+CSEXPORT USharpClass::ManagedClassConstructorType CSCONV Export_USharpClass_Get_ManagedConstructor(USharpClass* instance)
 {
 	return instance->ManagedConstructor;
 }
 
-CSEXPORT void CSCONV Export_USharpClass_Set_ManagedConstructor(USharpClass* instance, UClass::ClassConstructorType value)
+CSEXPORT void CSCONV Export_USharpClass_Set_ManagedConstructor(USharpClass* instance, USharpClass::ManagedClassConstructorType value)
 {
 	instance->ManagedConstructor = value;
 }
@@ -208,7 +233,9 @@ CSEXPORT void CSCONV Export_USharpClass(RegisterFunc registerFunc)
 {
 	REGISTER_FUNC(Export_USharpClass_ClearFuncMapEx);
 	REGISTER_FUNC(Export_USharpClass_SetFallbackFunctionInvoker);
+	REGISTER_FUNC(Export_USharpClass_GetNativeFunctionInvoker);
 	REGISTER_FUNC(Export_USharpClass_SetFunctionInvoker);
+	REGISTER_FUNC(Export_USharpClass_SetFunctionInvokerAddress);
 	REGISTER_FUNC(Export_USharpClass_SetSharpClassConstructor);
 	REGISTER_FUNC(Export_USharpClass_Get_ManagedConstructor);
 	REGISTER_FUNC(Export_USharpClass_Set_ManagedConstructor);

@@ -79,6 +79,7 @@ namespace UnrealEngine.Runtime.Native
                 BoolMarshaler.OnNativeFunctionsRegistered();
                 FStringMarshaler.OnNativeFunctionsRegistered();
                 InputCore.FKey.OnNativeFunctionsRegistered();
+                FFrame.OnNativeFunctionsRegistered();
 
                 // Validate native struct sizes match the managed struct sizes before running any handlers
                 // NOTE: This MUST come after FStringMarshaler.OnNativeFunctionsRegistered as this requires TCHAR size

@@ -1,5 +1,5 @@
 #if WITH_EDITOR
-void RegisterOnPIEEvent(FEditorDelegates::FOnPIEEvent& event, void(*handler)(csbool), FDelegateHandle* handle, csbool enable)
+void RegisterOnPIEEvent(FEditorDelegates::FOnPIEEvent& event, void(CSCONV *handler)(csbool), FDelegateHandle* handle, csbool enable)
 {
 	REGISTER_LAMBDA(event,
 		[handler](bool bIsSimulating)
@@ -8,52 +8,52 @@ void RegisterOnPIEEvent(FEditorDelegates::FOnPIEEvent& event, void(*handler)(csb
 		});
 }
 
-CSEXPORT void CSCONV Export_FEditorDelegates_Reg_PreBeginPIE(void* instance, void(*handler)(csbool), FDelegateHandle* handle, csbool enable)
+CSEXPORT void CSCONV Export_FEditorDelegates_Reg_PreBeginPIE(void* instance, void(CSCONV *handler)(csbool), FDelegateHandle* handle, csbool enable)
 {
 	RegisterOnPIEEvent(FEditorDelegates::PreBeginPIE, handler, handle, enable);
 }
 
-CSEXPORT void CSCONV Export_FEditorDelegates_Reg_BeginPIE(void* instance, void(*handler)(csbool), FDelegateHandle* handle, csbool enable)
+CSEXPORT void CSCONV Export_FEditorDelegates_Reg_BeginPIE(void* instance, void(CSCONV *handler)(csbool), FDelegateHandle* handle, csbool enable)
 {
 	RegisterOnPIEEvent(FEditorDelegates::BeginPIE, handler, handle, enable);
 }
 
-CSEXPORT void CSCONV Export_FEditorDelegates_Reg_PostPIEStarted(void* instance, void(*handler)(csbool), FDelegateHandle* handle, csbool enable)
+CSEXPORT void CSCONV Export_FEditorDelegates_Reg_PostPIEStarted(void* instance, void(CSCONV *handler)(csbool), FDelegateHandle* handle, csbool enable)
 {
 	RegisterOnPIEEvent(FEditorDelegates::PostPIEStarted, handler, handle, enable);
 }
 
-CSEXPORT void CSCONV Export_FEditorDelegates_Reg_PrePIEEnded(void* instance, void(*handler)(csbool), FDelegateHandle* handle, csbool enable)
+CSEXPORT void CSCONV Export_FEditorDelegates_Reg_PrePIEEnded(void* instance, void(CSCONV *handler)(csbool), FDelegateHandle* handle, csbool enable)
 {
 	RegisterOnPIEEvent(FEditorDelegates::PrePIEEnded, handler, handle, enable);
 }
 
-CSEXPORT void CSCONV Export_FEditorDelegates_Reg_EndPIE(void* instance, void(*handler)(csbool), FDelegateHandle* handle, csbool enable)
+CSEXPORT void CSCONV Export_FEditorDelegates_Reg_EndPIE(void* instance, void(CSCONV *handler)(csbool), FDelegateHandle* handle, csbool enable)
 {
 	RegisterOnPIEEvent(FEditorDelegates::EndPIE, handler, handle, enable);
 }
 
-CSEXPORT void CSCONV Export_FEditorDelegates_Reg_PausePIE(void* instance, void(*handler)(csbool), FDelegateHandle* handle, csbool enable)
+CSEXPORT void CSCONV Export_FEditorDelegates_Reg_PausePIE(void* instance, void(CSCONV *handler)(csbool), FDelegateHandle* handle, csbool enable)
 {
 	RegisterOnPIEEvent(FEditorDelegates::PausePIE, handler, handle, enable);
 }
 
-CSEXPORT void CSCONV Export_FEditorDelegates_Reg_ResumePIE(void* instance, void(*handler)(csbool), FDelegateHandle* handle, csbool enable)
+CSEXPORT void CSCONV Export_FEditorDelegates_Reg_ResumePIE(void* instance, void(CSCONV *handler)(csbool), FDelegateHandle* handle, csbool enable)
 {
 	RegisterOnPIEEvent(FEditorDelegates::ResumePIE, handler, handle, enable);
 }
 
-CSEXPORT void CSCONV Export_FEditorDelegates_Reg_SingleStepPIE(void* instance, void(*handler)(csbool), FDelegateHandle* handle, csbool enable)
+CSEXPORT void CSCONV Export_FEditorDelegates_Reg_SingleStepPIE(void* instance, void(CSCONV *handler)(csbool), FDelegateHandle* handle, csbool enable)
 {
 	RegisterOnPIEEvent(FEditorDelegates::SingleStepPIE, handler, handle, enable);
 }
 
-CSEXPORT void CSCONV Export_FEditorDelegates_Reg_OnPreSwitchBeginPIEAndSIE(void* instance, void(*handler)(csbool), FDelegateHandle* handle, csbool enable)
+CSEXPORT void CSCONV Export_FEditorDelegates_Reg_OnPreSwitchBeginPIEAndSIE(void* instance, void(CSCONV *handler)(csbool), FDelegateHandle* handle, csbool enable)
 {
 	RegisterOnPIEEvent(FEditorDelegates::OnPreSwitchBeginPIEAndSIE, handler, handle, enable);
 }
 
-CSEXPORT void CSCONV Export_FEditorDelegates_Reg_OnSwitchBeginPIEAndSIE(void* instance, void(*handler)(csbool), FDelegateHandle* handle, csbool enable)
+CSEXPORT void CSCONV Export_FEditorDelegates_Reg_OnSwitchBeginPIEAndSIE(void* instance, void(CSCONV *handler)(csbool), FDelegateHandle* handle, csbool enable)
 {
 	RegisterOnPIEEvent(FEditorDelegates::OnSwitchBeginPIEAndSIE, handler, handle, enable);
 }

@@ -38,7 +38,6 @@ namespace UnrealEngine.Runtime.Native
         public static Del_SizeOf SizeOf_FImplementedInterfaceInterop;
         public static Del_SizeOf SizeOf_FNativeFunctionLookup;
         public static Del_SizeOf SizeOf_FDelegateHandle;
-        public static Del_SizeOf SizeOf_FFrame;
         public static Del_SizeOf SizeOf_TStatId;
         public static Del_SizeOf SizeOf_FText;
         public static Del_SizeOf SizeOf_FGuid;

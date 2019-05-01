@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Engine/BlueprintGeneratedClass.h"
+#include "ExportedFunctionsConventions.h"
 #include "SharpClass.generated.h"
 
 struct FSharpFunctionLookup
@@ -26,8 +27,13 @@ public:
 	// hotreload lookups are slower. Combine / cache them to improve lookup speeds.
 	TMap<FName, FSharpFunctionLookup> FuncMapEx;
 	
-	UClass::ClassConstructorType ManagedConstructor;
+	typedef void (CSCONV *ManagedClassConstructorType)(const FObjectInitializer&);
+	typedef void (CSCONV *ManagedFunctionInvokerType)(UObject*, FFrame&, void*const);
+	
+	ManagedClassConstructorType ManagedConstructor;
 	UClass::ClassConstructorType NativeParentConstructor;
+	
+	ManagedFunctionInvokerType ManagedFunctionInvoker;
 
 	//virtual void Link(FArchive& Ar, bool bRelinkExistingProperties) override;
 };

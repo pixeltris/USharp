@@ -134,11 +134,6 @@ CSEXPORT int32 CSCONV Export_SizeOfStruct_SizeOf_FDelegateHandle()
 	return sizeof(FDelegateHandle);
 }
 
-CSEXPORT int32 CSCONV Export_SizeOfStruct_SizeOf_FFrame()
-{
-	return sizeof(FFrame);
-}
-
 CSEXPORT int32 CSCONV Export_SizeOfStruct_SizeOf_TStatId()
 {
 	return sizeof(TStatId);
@@ -230,7 +225,6 @@ CSEXPORT void CSCONV Export_SizeOfStruct(RegisterFunc registerFunc)
 	REGISTER_FUNC(Export_SizeOfStruct_SizeOf_FImplementedInterfaceInterop);
 	REGISTER_FUNC(Export_SizeOfStruct_SizeOf_FNativeFunctionLookup);
 	REGISTER_FUNC(Export_SizeOfStruct_SizeOf_FDelegateHandle);
-	REGISTER_FUNC(Export_SizeOfStruct_SizeOf_FFrame);
 	REGISTER_FUNC(Export_SizeOfStruct_SizeOf_TStatId);
 	REGISTER_FUNC(Export_SizeOfStruct_SizeOf_FActorSpawnParameters);
 	REGISTER_FUNC(Export_SizeOfStruct_SizeOf_FKey);

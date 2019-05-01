@@ -1,3 +1,25 @@
+CSEXPORT void* CSCONV Export_FFrame_GetNodeOffset()
+{
+	FFrame* Ptr = (FFrame*)0;
+	return (void*)&Ptr->Node;
+}
+
+CSEXPORT void* CSCONV Export_FFrame_GetbArrayContextFailedOffset()
+{
+	FFrame* Ptr = (FFrame*)0;
+	return (void*)&Ptr->bArrayContextFailed;
+}
+
+CSEXPORT SIZE_T CSCONV Export_FFrame_GetFlowStackSize()
+{
+	return sizeof(FlowStackType);
+}
+
+CSEXPORT void CSCONV Export_FFrame_Set_bArrayContextFailed(FFrame* instance, csbool value)
+{
+	instance->bArrayContextFailed = (bool)value;
+}
+
 CSEXPORT void CSCONV Export_FFrame_Step(FFrame* instance, UObject* Context, void*const Result)
 {
 	instance->Step(Context, Result);
@@ -85,6 +107,10 @@ CSEXPORT void CSCONV Export_FFrame_GetScriptCallstack(FString& result)
 
 CSEXPORT void CSCONV Export_FFrame(RegisterFunc registerFunc)
 {
+	REGISTER_FUNC(Export_FFrame_GetNodeOffset);
+	REGISTER_FUNC(Export_FFrame_GetbArrayContextFailedOffset);
+	REGISTER_FUNC(Export_FFrame_GetFlowStackSize);
+	REGISTER_FUNC(Export_FFrame_Set_bArrayContextFailed);
 	REGISTER_FUNC(Export_FFrame_Step);
 	REGISTER_FUNC(Export_FFrame_StepExplicitProperty);
 	REGISTER_FUNC(Export_FFrame_ReadInt8);

@@ -40,7 +40,6 @@ namespace UnrealEngine.Runtime
             ValidateStructSize<FImplementedInterface>(Native_SizeOfStruct.SizeOf_FImplementedInterfaceInterop);
             ValidateStructSize<FNativeFunctionLookup>(Native_SizeOfStruct.SizeOf_FNativeFunctionLookup);
             ValidateStructSize<FDelegateHandle>(Native_SizeOfStruct.SizeOf_FDelegateHandle);
-            ValidateStructSize<FFrame>(Native_SizeOfStruct.SizeOf_FFrame);
             ValidateStructSize<TStatId>(Native_SizeOfStruct.SizeOf_TStatId);
             ValidateStructSize<FText.FTextNative>(Native_SizeOfStruct.SizeOf_FText);
             ValidateStructSize<Guid>(Native_SizeOfStruct.SizeOf_FGuid);

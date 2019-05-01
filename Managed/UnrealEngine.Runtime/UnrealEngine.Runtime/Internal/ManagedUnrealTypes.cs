@@ -346,6 +346,7 @@ namespace UnrealEngine.Runtime
             /// The callback function which native code will call, this will prep the parameters for calling the managed invoker
             /// </summary>
             public UFunction.FuncInvokerNative FunctionInvoker { get; private set; }
+            public IntPtr FunctionInvokerAddress { get; private set; }
 
             public UClass.ClassConstructorType ClassConstructor { get; private set; }
 
@@ -363,6 +364,7 @@ namespace UnrealEngine.Runtime
             public ManagedClass()
             {
                 FunctionInvoker = InvokeFunction;
+                FunctionInvokerAddress = System.Runtime.InteropServices.Marshal.GetFunctionPointerForDelegate(FunctionInvoker);
                 ClassConstructor = Constructor;
             }
 
@@ -411,6 +413,7 @@ namespace UnrealEngine.Runtime
                         Native_USharpClass.SetFallbackFunctionInvoker(Address, function);
                     }
                 }
+                Native_USharpClass.SetFunctionInvokerAddress(Address, IntPtr.Zero);
             }
 
             public void AddInvoker(ManagedUnrealFunctionInfo functionInfo, IntPtr function)
@@ -484,16 +487,16 @@ namespace UnrealEngine.Runtime
                 // Use XXXX_generated.h files as reference for checking we are doing things somewhat correctly here
                 // ScriptCore.cpp / Stack.h / ScriptMacros.h - P_GET_XXXX / FFrame::StepXXXX mostly handle the native code path
 
-                FFrame* stack = (FFrame*)stackPtr;
+                FFrame stack = new FFrame(stackPtr);
 
                 UFunction.FuncInvokerManaged managedFunctionInvoker;
-                if (managedInvokersByAddress.TryGetValue(stack->CurrentNativeFunction, out managedFunctionInvoker))
+                if (managedInvokersByAddress.TryGetValue(stack.CurrentNativeFunction, out managedFunctionInvoker))
                 {
                     // FirstPropertyToInit only seems to be used by BP functions (FKismetCompilerContext::SetCalculatedMetaDataAndFlags)
                     // If this isn't the case then we need to ensure we use this to init these params by calling InitializeValue_InContainer
-                    Debug.Assert(Native_UFunction.Get_FirstPropertyToInit(stack->CurrentNativeFunction) == IntPtr.Zero);
+                    Debug.Assert(Native_UFunction.Get_FirstPropertyToInit(stack.CurrentNativeFunction) == IntPtr.Zero);
 
-                    if (stack->Code != IntPtr.Zero)
+                    if (stack.Code != IntPtr.Zero)
                     {
                         // If stack->Code is set that means the function is being called by a BP function. stack->Code should hold
                         // the VM opcodes / param memory which need to be obtained by using stack->Step() for each parameter which
@@ -514,10 +517,10 @@ namespace UnrealEngine.Runtime
                     // is true or CodeGeneratorSettings.UseImplicitBlueprintImplementableEvent is true with no _Implementation method.
                     // (otherwise this is pretty bad and very silent - possibly add some additional logging if this ever happens)
 
-                    if (stack->Code != IntPtr.Zero)
+                    if (stack.Code != IntPtr.Zero)
                     {
                         // This will advance the VM stack->Code address and satisfy the memory for the caller
-                        Native_UObject.SkipFunction(stack->Object, stackPtr, result, stack->CurrentNativeFunction);
+                        Native_UObject.SkipFunction(stack.Object, stackPtr, result, stack.CurrentNativeFunction);
                     }
                     else
                     {
@@ -530,16 +533,16 @@ namespace UnrealEngine.Runtime
                 }
             }
 
-            private unsafe void HandleInvokeFunctionFromBP(IntPtr obj, FFrame* stack, IntPtr result,
+            private unsafe void HandleInvokeFunctionFromBP(IntPtr obj, FFrame stack, IntPtr result,
                 UFunction.FuncInvokerManaged managedFunctionInvoker)
             {
                 // NOTE: ScriptCore.cpp uses PropertiesSize instead of ParamsSize. Is it ever any different? (it says alignment
                 // may make them different) If it is different we should probably use PropertiesSize (including in generated code /
                 // IL) as ScriptCore.cpp uses a memcpy of our memory.
-                Debug.Assert(Native_UStruct.Get_PropertiesSize(stack->CurrentNativeFunction) ==
-                    Native_UFunction.Get_ParmsSize(stack->CurrentNativeFunction));
+                Debug.Assert(Native_UStruct.Get_PropertiesSize(stack.CurrentNativeFunction) ==
+                    Native_UFunction.Get_ParmsSize(stack.CurrentNativeFunction));
 
-                IntPtr function = stack->CurrentNativeFunction;
+                IntPtr function = stack.CurrentNativeFunction;
                 int paramsSize = Native_UFunction.Get_ParmsSize(function);
                 int numParams = Native_UFunction.Get_NumParms(function);
                 bool hasOutParams = Native_UFunction.HasAnyFunctionFlags(function, EFunctionFlags.HasOutParms);
@@ -560,10 +563,10 @@ namespace UnrealEngine.Runtime
                     foreach (IntPtr param in new NativeReflection.NativeFieldIterator(Runtime.Classes.UProperty, function, false))
                     {
                         // Not required but using for Debug.Assert() when getting the value
-                        stack->MostRecentPropertyAddress = IntPtr.Zero;
+                        stack.MostRecentPropertyAddress = IntPtr.Zero;
                         
-                        stack->Step(stack->Object, paramsBuffer + Native_UProperty.GetOffset_ForUFunction(param));
-                        outParamsBufferPtr[paramIndex] = stack->MostRecentPropertyAddress;
+                        stack.Step(stack.Object, paramsBuffer + Native_UProperty.GetOffset_ForUFunction(param));
+                        outParamsBufferPtr[paramIndex] = stack.MostRecentPropertyAddress;
 
                         if (Native_UProperty.HasAnyPropertyFlags(param, EPropertyFlags.ReturnParm))
                         {
@@ -579,10 +582,10 @@ namespace UnrealEngine.Runtime
                 {
                     foreach (IntPtr param in new NativeReflection.NativeFieldIterator(Runtime.Classes.UProperty, function, false))
                     {
-                        stack->Step(stack->Object, paramsBuffer + Native_UProperty.GetOffset_ForUFunction(param));
+                        stack.Step(stack.Object, paramsBuffer + Native_UProperty.GetOffset_ForUFunction(param));
                     }
                 }
-                stack->PFinish();// Skip EX_EndFunctionParms
+                stack.PFinish();// Skip EX_EndFunctionParms
 
                 // Call the managed function invoker which will marshal the params from the native params buffer and then call the
                 // target managed function
@@ -647,11 +650,11 @@ namespace UnrealEngine.Runtime
                 }*/
             }
 
-            private unsafe void HandleInvokeFunctionFromNative(IntPtr obj, FFrame* stack, IntPtr result,
+            private unsafe void HandleInvokeFunctionFromNative(IntPtr obj, FFrame stack, IntPtr result,
                 UFunction.FuncInvokerManaged managedFunctionInvoker)
             {
-                IntPtr function = stack->CurrentNativeFunction;
-                IntPtr paramsBuffer = stack->Locals;
+                IntPtr function = stack.CurrentNativeFunction;
+                IntPtr paramsBuffer = stack.Locals;
 
                 if (managedFunctionInvoker != null)
                 {
@@ -665,7 +668,7 @@ namespace UnrealEngine.Runtime
                 {
                     // This assumes that UProperty will be itterated in the exact same order as the caller created stack->OutParms
                     // (we could iterate stack->OutParms until nullptr but it isn't null terminated on release builds)
-                    FOutParmRec* outParms = stack->OutParmsPtr;
+                    FOutParmRec* outParms = stack.OutParmsPtr;
 
                     foreach (IntPtr paramProp in new NativeReflection.NativeFieldIterator(Runtime.Classes.UProperty, function, false))
                     {

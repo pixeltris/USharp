@@ -1,9 +1,14 @@
-CSEXPORT void CSCONV Export_FWorldDelegates_Reg_OnPostWorldCreation(void* instance, void(*handler)(UWorld*), FDelegateHandle* handle, csbool enable)
+CSEXPORT void CSCONV Export_FWorldDelegates_Reg_OnPostWorldCreation(void* instance, void(CSCONV *handler)(UWorld*), FDelegateHandle* handle, csbool enable)
 {
-	REGISTER_DELEGATE(FWorldDelegates::OnPostWorldCreation);
+	//REGISTER_DELEGATE(FWorldDelegates::OnPostWorldCreation);
+	REGISTER_LAMBDA(FWorldDelegates::OnPostWorldCreation,
+		[handler](UWorld* World)
+		{
+			handler(World);
+		});
 }
 
-CSEXPORT void CSCONV Export_FWorldDelegates_Reg_OnPreWorldInitialization(void* instance, void(*handler)(UWorld*, UWorld::InitializationValues*), FDelegateHandle* handle, csbool enable)
+CSEXPORT void CSCONV Export_FWorldDelegates_Reg_OnPreWorldInitialization(void* instance, void(CSCONV *handler)(UWorld*, UWorld::InitializationValues*), FDelegateHandle* handle, csbool enable)
 {
 	REGISTER_LAMBDA(FWorldDelegates::OnPreWorldInitialization,
 		[handler](UWorld* World, UWorld::InitializationValues IVS)
@@ -12,7 +17,7 @@ CSEXPORT void CSCONV Export_FWorldDelegates_Reg_OnPreWorldInitialization(void* i
 		});
 }
 
-CSEXPORT void CSCONV Export_FWorldDelegates_Reg_OnPostWorldInitialization(void* instance, void(*handler)(UWorld*, UWorld::InitializationValues*), FDelegateHandle* handle, csbool enable)
+CSEXPORT void CSCONV Export_FWorldDelegates_Reg_OnPostWorldInitialization(void* instance, void(CSCONV *handler)(UWorld*, UWorld::InitializationValues*), FDelegateHandle* handle, csbool enable)
 {
 	REGISTER_LAMBDA(FWorldDelegates::OnPostWorldInitialization,
 		[handler](UWorld* World, UWorld::InitializationValues IVS)
@@ -21,7 +26,7 @@ CSEXPORT void CSCONV Export_FWorldDelegates_Reg_OnPostWorldInitialization(void* 
 		});
 }
 
-CSEXPORT void CSCONV Export_FWorldDelegates_Reg_OnPostDuplicate(void* instance, void(*handler)(UWorld*, csbool, TMap<UObject*, UObject*>&, TArray<UObject*>&), FDelegateHandle* handle, csbool enable)
+CSEXPORT void CSCONV Export_FWorldDelegates_Reg_OnPostDuplicate(void* instance, void(CSCONV *handler)(UWorld*, csbool, TMap<UObject*, UObject*>&, TArray<UObject*>&), FDelegateHandle* handle, csbool enable)
 {
 	REGISTER_LAMBDA(FWorldDelegates::OnPostDuplicate,
 		[handler](UWorld* World, bool bDuplicateForPIE, TMap<UObject*, UObject*>& ReplacementMap, TArray<UObject*>& ObjectsToFixReferences)
@@ -30,7 +35,7 @@ CSEXPORT void CSCONV Export_FWorldDelegates_Reg_OnPostDuplicate(void* instance, 
 		});
 }
 
-CSEXPORT void CSCONV Export_FWorldDelegates_Reg_OnWorldCleanup(void* instance, void(*handler)(UWorld*, csbool, csbool), FDelegateHandle* handle, csbool enable)
+CSEXPORT void CSCONV Export_FWorldDelegates_Reg_OnWorldCleanup(void* instance, void(CSCONV *handler)(UWorld*, csbool, csbool), FDelegateHandle* handle, csbool enable)
 {
 	REGISTER_LAMBDA(FWorldDelegates::OnWorldCleanup,
 		[handler](UWorld* World, bool bSessionEnded, bool bCleanupResources)
@@ -39,7 +44,7 @@ CSEXPORT void CSCONV Export_FWorldDelegates_Reg_OnWorldCleanup(void* instance, v
 		});
 }
 
-CSEXPORT void CSCONV Export_FWorldDelegates_Reg_OnPostWorldCleanup(void* instance, void(*handler)(UWorld*, csbool, csbool), FDelegateHandle* handle, csbool enable)
+CSEXPORT void CSCONV Export_FWorldDelegates_Reg_OnPostWorldCleanup(void* instance, void(CSCONV *handler)(UWorld*, csbool, csbool), FDelegateHandle* handle, csbool enable)
 {
 	REGISTER_LAMBDA(FWorldDelegates::OnPostWorldCleanup,
 		[handler](UWorld* World, bool bSessionEnded, bool bCleanupResources)
@@ -48,9 +53,14 @@ CSEXPORT void CSCONV Export_FWorldDelegates_Reg_OnPostWorldCleanup(void* instanc
 		});
 }
 
-CSEXPORT void CSCONV Export_FWorldDelegates_Reg_OnPreWorldFinishDestroy(void* instance, void(*handler)(UWorld*), FDelegateHandle* handle, csbool enable)
+CSEXPORT void CSCONV Export_FWorldDelegates_Reg_OnPreWorldFinishDestroy(void* instance, void(CSCONV *handler)(UWorld*), FDelegateHandle* handle, csbool enable)
 {
-	REGISTER_DELEGATE(FWorldDelegates::OnPreWorldFinishDestroy);
+	//REGISTER_DELEGATE(FWorldDelegates::OnPreWorldFinishDestroy);
+	REGISTER_LAMBDA(FWorldDelegates::OnPreWorldFinishDestroy,
+		[handler](UWorld* World)
+		{
+			handler(World);
+		});
 }
 
 CSEXPORT void CSCONV Export_FWorldDelegates(RegisterFunc registerFunc)

@@ -25,7 +25,7 @@ namespace UnrealEngine.Runtime
 
         // The invoker function which gets called from native code
         // UObject* obj, FFrame* stack, void*const Z_Param__Result
-        [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
+        //[UnmanagedFunctionPointer(CallingConvention.ThisCall)]
         public delegate void FuncInvokerNative(IntPtr obj, IntPtr stackPtr, IntPtr result);
 
         // The managed function for an invoker which creates the managed args and calls the actual managed function

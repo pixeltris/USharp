@@ -74,8 +74,10 @@
 #include "DesktopPlatformModule.h"
 #endif
 
-#if PLATFORM_WINDOWS
+#if PLATFORM_WINDOWS && PLATFORM_32BITS
 #define CSCONV __stdcall
+#elif PLATFORM_WINDOWS && PLATFORM_64BITS
+#define CSCONV __cdecl
 #else
 #define CSCONV
 #endif
@@ -111,10 +113,14 @@ template<typename T, typename U> constexpr int32 OffsetOf(U T::*member)
 	if (enable) *handle = Delegate.AddLambda(Lambda); \
 	else { Delegate.Remove(*handle); *handle = FDelegateHandle(); } \
 
+// Changes in calling conventions means we can't use REGISTER_DELEGATE. Provide a lamba alternative.
+#define REGISTER_LAMBDA_SIMPLE(Delegate, ...) \
+	REGISTER_LAMBDA(Delegate, [handler]() { handler(); })
+	
 #define REGISTER_DELEGATE(Delegate) \
 	if (enable) *handle = Delegate.AddStatic(handler); \
 	else { Delegate.Remove(*handle); *handle = FDelegateHandle(); } \
-
+	
 #define BIND_LAMBDA(Delegate, Lambda) \
 	if (enable) Delegate.BindLambda(Lambda); \
 	else Delegate.Unbind(); \

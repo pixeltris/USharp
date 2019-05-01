@@ -98,7 +98,8 @@ namespace UnrealBuildTool.Rules
                         if (Version.TryParse(versionDirName, out version) && 
                             (newestLib == null || version > newestVersion))
                         {
-                            string lib = Path.Combine(versionDir, "Lib", "um", "x64", "mscoree.lib");
+                            string archDir = Target.Platform == UnrealTargetPlatform.Win32 ? "x86" : "x64";
+                            string lib = Path.Combine(versionDir, "Lib", "um", archDir, "mscoree.lib");
                             string include = Path.Combine(versionDir, "Include", "um", "mscoree.h");
                             if (File.Exists(lib) && File.Exists(include))
                             {

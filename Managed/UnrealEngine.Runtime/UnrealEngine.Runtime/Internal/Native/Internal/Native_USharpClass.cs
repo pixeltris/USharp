@@ -11,7 +11,9 @@ namespace UnrealEngine.Runtime.Native
     {
         public delegate void Del_ClearFuncMapEx(IntPtr instance);
         public delegate void Del_SetFallbackFunctionInvoker(IntPtr instance, IntPtr function);
-        public delegate IntPtr Del_SetFunctionInvoker(IntPtr instance, ref FScriptArray functionName, IntPtr invoker);
+        public delegate IntPtr Del_GetNativeFunctionInvoker();
+        public delegate IntPtr Del_SetFunctionInvoker(IntPtr instance, ref FScriptArray functionName);
+        public delegate void Del_SetFunctionInvokerAddress(IntPtr instance, IntPtr invoker);
         public delegate void Del_SetSharpClassConstructor(IntPtr instance, IntPtr managedConstructor);
         public delegate IntPtr Del_Get_ManagedConstructor(IntPtr instance);
         public delegate void Del_Set_ManagedConstructor(IntPtr instance, IntPtr value);
@@ -19,7 +21,9 @@ namespace UnrealEngine.Runtime.Native
 
         public static Del_ClearFuncMapEx ClearFuncMapEx;
         public static Del_SetFallbackFunctionInvoker SetFallbackFunctionInvoker;
+        public static Del_GetNativeFunctionInvoker GetNativeFunctionInvoker;
         public static Del_SetFunctionInvoker SetFunctionInvoker;
+        public static Del_SetFunctionInvokerAddress SetFunctionInvokerAddress;
         public static Del_SetSharpClassConstructor SetSharpClassConstructor;
         public static Del_Get_ManagedConstructor Get_ManagedConstructor;
         public static Del_Set_ManagedConstructor Set_ManagedConstructor;

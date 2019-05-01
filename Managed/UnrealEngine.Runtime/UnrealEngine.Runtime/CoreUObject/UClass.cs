@@ -15,10 +15,22 @@ namespace UnrealEngine.Runtime
     [UMetaPath("/Script/CoreUObject.Class", "CoreUObject", UnrealModuleType.Engine)]
     public class UClass : UStruct
     {
+        internal class VTableOriginalFunc
+        {
+            public IntPtr FuncAddress;
+            public Delegate Func;
+
+            public VTableOriginalFunc(IntPtr address)
+            {
+                FuncAddress = address;
+                Func = null;
+            }
+        }
+
         /// <summary>
         /// VTable hack. Remove when we can override functions we need using UClass.
         /// </summary>
-        internal Dictionary<int, IntPtr> VTableOriginalFunctions;// <index, original function address>
+        internal Dictionary<int, VTableOriginalFunc> VTableOriginalFunctions;// <index, original function address>
 
         // Wrapper for holding onto a UClass and its address seperately in case a UClass gets destroyed by GC
         struct UClassRef

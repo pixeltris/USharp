@@ -23,9 +23,10 @@ CSEXPORT void CSCONV Export_IConsoleManager_CallAllConsoleVariableSinks(IConsole
 	instance->CallAllConsoleVariableSinks();
 }
 
-CSEXPORT void CSCONV Export_IConsoleManager_RegisterConsoleVariableSink_Handle(IConsoleManager* instance, void(*handler)(), FConsoleVariableSinkHandle& OutHandle)
-{	
-	OutHandle = instance->RegisterConsoleVariableSink_Handle(FConsoleCommandDelegate::CreateStatic(handler));
+CSEXPORT void CSCONV Export_IConsoleManager_RegisterConsoleVariableSink_Handle(IConsoleManager* instance, void(CSCONV *handler)(), FConsoleVariableSinkHandle& OutHandle)
+{
+	auto Callback = [handler]() { handler(); };
+	OutHandle = instance->RegisterConsoleVariableSink_Handle(FConsoleCommandDelegate::CreateLambda([handler](){handler();}));
 }
 
 CSEXPORT void CSCONV Export_IConsoleManager_UnregisterConsoleVariableSink_Handle(IConsoleManager* instance, FConsoleVariableSinkHandle& Handle)
@@ -33,29 +34,34 @@ CSEXPORT void CSCONV Export_IConsoleManager_UnregisterConsoleVariableSink_Handle
 	instance->UnregisterConsoleVariableSink_Handle(Handle);
 }
 
-CSEXPORT IConsoleCommand* CSCONV Export_IConsoleManager_RegisterConsoleCommandDefault(IConsoleManager* instance, const FString& Name, const FString& Help, void(*handler)(), uint32 Flags)
+CSEXPORT IConsoleCommand* CSCONV Export_IConsoleManager_RegisterConsoleCommandDefault(IConsoleManager* instance, const FString& Name, const FString& Help, void(CSCONV *handler)(), uint32 Flags)
 {
-	return instance->RegisterConsoleCommand(*Name, *Help, FConsoleCommandDelegate::CreateStatic(handler), Flags);
+	auto Callback = [handler]() { handler(); };
+	return instance->RegisterConsoleCommand(*Name, *Help, FConsoleCommandDelegate::CreateLambda(Callback), Flags);
 }
 
-CSEXPORT IConsoleCommand* CSCONV Export_IConsoleManager_RegisterConsoleCommandWithArgs(IConsoleManager* instance, const FString& Name, const FString& Help, void(*handler)(const TArray<FString>&), uint32 Flags)
+CSEXPORT IConsoleCommand* CSCONV Export_IConsoleManager_RegisterConsoleCommandWithArgs(IConsoleManager* instance, const FString& Name, const FString& Help, void(CSCONV *handler)(const TArray<FString>&), uint32 Flags)
 {
-	return instance->RegisterConsoleCommand(*Name, *Help, FConsoleCommandWithArgsDelegate::CreateStatic(handler), Flags);
+	auto Callback = [handler](const TArray<FString>& Args) { handler(Args); };
+	return instance->RegisterConsoleCommand(*Name, *Help, FConsoleCommandWithArgsDelegate::CreateLambda(handler), Flags);
 }
 
-CSEXPORT IConsoleCommand* CSCONV Export_IConsoleManager_RegisterConsoleCommandWithWorld(IConsoleManager* instance, const FString& Name, const FString& Help, void(*handler)(UWorld*), uint32 Flags)
+CSEXPORT IConsoleCommand* CSCONV Export_IConsoleManager_RegisterConsoleCommandWithWorld(IConsoleManager* instance, const FString& Name, const FString& Help, void(CSCONV *handler)(UWorld*), uint32 Flags)
 {
-	return instance->RegisterConsoleCommand(*Name, *Help, FConsoleCommandWithWorldDelegate::CreateStatic(handler), Flags);
+	auto Callback = [handler](UWorld* World) { handler(World); };
+	return instance->RegisterConsoleCommand(*Name, *Help, FConsoleCommandWithWorldDelegate::CreateLambda(Callback), Flags);
 }
 
-CSEXPORT IConsoleCommand* CSCONV Export_IConsoleManager_RegisterConsoleCommandWithWorldAndArgs(IConsoleManager* instance, const FString& Name, const FString& Help, void(*handler)(const TArray<FString>&, UWorld*), uint32 Flags)
+CSEXPORT IConsoleCommand* CSCONV Export_IConsoleManager_RegisterConsoleCommandWithWorldAndArgs(IConsoleManager* instance, const FString& Name, const FString& Help, void(CSCONV *handler)(const TArray<FString>&, UWorld*), uint32 Flags)
 {
-	return instance->RegisterConsoleCommand(*Name, *Help, FConsoleCommandWithWorldAndArgsDelegate::CreateStatic(handler), Flags);
+	auto Callback = [handler](const TArray<FString>& Args, UWorld* World) { handler(Args, World); };
+	return instance->RegisterConsoleCommand(*Name, *Help, FConsoleCommandWithWorldAndArgsDelegate::CreateLambda(Callback), Flags);
 }
 
-CSEXPORT IConsoleCommand* CSCONV Export_IConsoleManager_RegisterConsoleCommandWithOutputDevice(IConsoleManager* instance, const FString& Name, const FString& Help, void(*handler)(FOutputDevice&), uint32 Flags)
+CSEXPORT IConsoleCommand* CSCONV Export_IConsoleManager_RegisterConsoleCommandWithOutputDevice(IConsoleManager* instance, const FString& Name, const FString& Help, void(CSCONV *handler)(FOutputDevice&), uint32 Flags)
 {
-	return instance->RegisterConsoleCommand(*Name, *Help, FConsoleCommandWithOutputDeviceDelegate::CreateStatic(handler), Flags);
+	auto Callback = [handler](FOutputDevice& OutputDevice) { handler(OutputDevice); };
+	return instance->RegisterConsoleCommand(*Name, *Help, FConsoleCommandWithOutputDeviceDelegate::CreateLambda(Callback), Flags);
 }
 
 CSEXPORT IConsoleCommand* CSCONV Export_IConsoleManager_RegisterConsoleCommandExec(IConsoleManager* instance, const FString& Name, const FString& Help, uint32 Flags)
@@ -78,14 +84,16 @@ CSEXPORT IConsoleObject* CSCONV Export_IConsoleManager_FindConsoleObject(IConsol
 	return instance->FindConsoleObject(*Name);
 }
 
-CSEXPORT void CSCONV Export_IConsoleManager_ForEachConsoleObjectThatStartsWith(IConsoleManager* instance, void(*handler)(const TCHAR*, IConsoleObject*), const FString& ThatStartsWith)
+CSEXPORT void CSCONV Export_IConsoleManager_ForEachConsoleObjectThatStartsWith(IConsoleManager* instance, void(CSCONV *handler)(const TCHAR*, IConsoleObject*), const FString& ThatStartsWith)
 {
-	instance->ForEachConsoleObjectThatStartsWith(FConsoleObjectVisitor::CreateStatic(handler), *ThatStartsWith);
+	auto Callback = [handler](const TCHAR* Name, IConsoleObject* CVar) { handler(Name, CVar); };
+	instance->ForEachConsoleObjectThatStartsWith(FConsoleObjectVisitor::CreateLambda(Callback), *ThatStartsWith);
 }
 
-CSEXPORT void CSCONV Export_IConsoleManager_ForEachConsoleObjectThatContains(IConsoleManager* instance, void(*handler)(const TCHAR*, IConsoleObject*), const FString& Contains)
+CSEXPORT void CSCONV Export_IConsoleManager_ForEachConsoleObjectThatContains(IConsoleManager* instance, void(CSCONV *handler)(const TCHAR*, IConsoleObject*), const FString& Contains)
 {
-	instance->ForEachConsoleObjectThatContains(FConsoleObjectVisitor::CreateStatic(handler), *Contains);
+	auto Callback = [handler](const TCHAR* Name, IConsoleObject* CVar) { handler(Name, CVar); };
+	instance->ForEachConsoleObjectThatContains(FConsoleObjectVisitor::CreateLambda(Callback), *Contains);
 }
 
 CSEXPORT csbool CSCONV Export_IConsoleManager_ProcessUserConsoleInput(IConsoleManager* instance, const FString& Input, FOutputDevice& Ar, UWorld* InWorld)

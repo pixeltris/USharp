@@ -9,6 +9,10 @@ namespace UnrealEngine.Runtime.Native
 {
     static class Native_FFrame
     {
+        public delegate IntPtr Del_GetNodeOffset();
+        public delegate IntPtr Del_GetbArrayContextFailedOffset();
+        public delegate IntPtr Del_GetFlowStackSize();
+        public delegate void Del_Set_bArrayContextFailed(IntPtr instance, csbool value);
         public delegate void Del_Step(IntPtr instance, IntPtr context, IntPtr result);
         public delegate void Del_StepExplicitProperty(IntPtr instance, IntPtr result, IntPtr property);
         public delegate sbyte Del_ReadInt8(IntPtr instance);
@@ -27,6 +31,10 @@ namespace UnrealEngine.Runtime.Native
         public delegate void Del_GetStackTrace(IntPtr instance, ref FScriptArray result);
         public delegate void Del_GetScriptCallstack(ref FScriptArray result);
 
+        public static Del_GetNodeOffset GetNodeOffset;
+        public static Del_GetbArrayContextFailedOffset GetbArrayContextFailedOffset;
+        public static Del_GetFlowStackSize GetFlowStackSize;
+        public static Del_Set_bArrayContextFailed Set_bArrayContextFailed;
         public static Del_Step Step;
         public static Del_StepExplicitProperty StepExplicitProperty;
         public static Del_ReadInt8 ReadInt8;

@@ -107,7 +107,6 @@
 #include "Export_FSharedMemoryRegion.h"
 #include "Export_FCoreNet.h"
 #include "Export_FFrame.h"
-#include "Export_FFrameRef.h"
 #include "Export_FReferenceFinder.h"
 #include "Export_TStatId.h"
 #include "Export_FApp.h"
@@ -250,7 +249,6 @@ CSEXPORT void CSCONV RegisterFunctions(RegisterFunc registerFunc)
 	Export_FSharedMemoryRegion(registerFunc);
 	Export_FCoreNet(registerFunc);
 	Export_FFrame(registerFunc);
-	Export_FFrameRef(registerFunc);
 	Export_FReferenceFinder(registerFunc);
 	Export_TStatId(registerFunc);
 	Export_FApp(registerFunc);

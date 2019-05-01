@@ -15,7 +15,8 @@ CSEXPORT void CSCONV Export_IConsoleVariable_GetString(IConsoleVariable* instanc
 
 CSEXPORT void CSCONV Export_IConsoleVariable_SetOnChangedCallback(IConsoleVariable* instance, void(*handler)(IConsoleVariable*))
 {
-	instance->SetOnChangedCallback(FConsoleVariableDelegate::CreateStatic(handler));
+	auto Callback = [handler](IConsoleVariable* Var) { handler(Var); };
+	instance->SetOnChangedCallback(FConsoleVariableDelegate::CreateLambda(Callback));
 }
 
 CSEXPORT void CSCONV Export_IConsoleVariable_ClearOnChangedCallback(IConsoleVariable* instance)

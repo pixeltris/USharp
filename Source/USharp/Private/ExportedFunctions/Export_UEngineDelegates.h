@@ -1,11 +1,19 @@
-CSEXPORT void CSCONV Export_UEngineDelegates_Reg_OnWorldAdded(void* instance, void(*handler)(UWorld*), FDelegateHandle* handle, csbool enable)
+CSEXPORT void CSCONV Export_UEngineDelegates_Reg_OnWorldAdded(void* instance, void(CSCONV *handler)(UWorld*), FDelegateHandle* handle, csbool enable)
 {
-	REGISTER_DELEGATE(GEngine->OnWorldAdded());
+	REGISTER_LAMBDA(GEngine->OnWorldAdded(),
+		[handler](UWorld* World)
+		{
+			handler(World);
+		});
 }
 
-CSEXPORT void CSCONV Export_UEngineDelegates_Reg_OnWorldDestroyed(void* instance, void(*handler)(UWorld*), FDelegateHandle* handle, csbool enable)
+CSEXPORT void CSCONV Export_UEngineDelegates_Reg_OnWorldDestroyed(void* instance, void(CSCONV *handler)(UWorld*), FDelegateHandle* handle, csbool enable)
 {
-	REGISTER_DELEGATE(GEngine->OnWorldDestroyed());
+	REGISTER_LAMBDA(GEngine->OnWorldDestroyed(),
+		[handler](UWorld* World)
+		{
+			handler(World);
+		});
 }
 
 CSEXPORT void CSCONV Export_UEngineDelegates(RegisterFunc registerFunc)

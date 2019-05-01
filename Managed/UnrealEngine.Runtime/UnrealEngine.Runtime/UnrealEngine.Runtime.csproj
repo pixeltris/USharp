@@ -368,7 +368,6 @@
     <Compile Include="Internal\Native\Native_FDelegateHandle.cs" />
     <Compile Include="Internal\Native\Native_FEditorDelegates.cs" />
     <Compile Include="Internal\Native\Native_FFrame.cs" />
-    <Compile Include="Internal\Native\Native_FFrameRef.cs" />
     <Compile Include="Internal\Native\Native_FGlobals.cs" />
     <Compile Include="Internal\Native\Native_FCoreNet.cs" />
     <Compile Include="Internal\Native\Native_FInputActionBinding.cs" />

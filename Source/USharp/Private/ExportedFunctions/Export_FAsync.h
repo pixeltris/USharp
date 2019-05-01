@@ -6,9 +6,9 @@ enum class EAsyncThreadType : int32
 	AnyThread
 };
 
-CSEXPORT void CSCONV Export_FAsync_AsyncTask(void(*handler)(), EAsyncThreadType Thread)
+CSEXPORT void CSCONV Export_FAsync_AsyncTask(void(CSCONV *handler)(), EAsyncThreadType Thread)
 {
-	TFunction<void()> Function = handler;
+	TFunction<void()> Function = [handler]() { handler(); };
 	
 	ENamedThreads::Type NamedThread = ENamedThreads::GameThread;
 	switch (Thread)

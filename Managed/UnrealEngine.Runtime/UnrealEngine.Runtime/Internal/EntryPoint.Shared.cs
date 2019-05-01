@@ -224,7 +224,7 @@ namespace UnrealEngine
         /// <summary>
         /// If true the active runtime should reload when possible
         /// </summary>
-        public bool Reload;
+        public UnrealEngine.Runtime.csbool Reload;
 
         /// <summary>
         /// Length of the current data

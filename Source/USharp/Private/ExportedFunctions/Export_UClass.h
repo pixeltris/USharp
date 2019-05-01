@@ -1,49 +1,49 @@
-CSEXPORT UClass::ClassConstructorType Export_UClass_Get_ClassConstructor(UClass* instance)
+CSEXPORT UClass::ClassConstructorType CSCONV Export_UClass_Get_ClassConstructor(UClass* instance)
 {
 	return instance->ClassConstructor;
 }
 
-CSEXPORT void Export_UClass_Set_ClassConstructor(UClass* instance, UClass::ClassConstructorType ClassConstructor)
+CSEXPORT void CSCONV Export_UClass_Set_ClassConstructor(UClass* instance, UClass::ClassConstructorType ClassConstructor)
 {
 	instance->ClassConstructor = ClassConstructor;
 }
 
-CSEXPORT void Export_UClass_Call_ClassConstructor(UClass* instance, const FObjectInitializer& ObjectInitializer)
+CSEXPORT void CSCONV Export_UClass_Call_ClassConstructor(UClass* instance, const FObjectInitializer& ObjectInitializer)
 {
 	instance->ClassConstructor(ObjectInitializer);
 }
 
-CSEXPORT void Export_UClass_Call_ClassConstructorDirectly(UClass::ClassConstructorType ClassConstructor, const FObjectInitializer& ObjectInitializer)
+CSEXPORT void CSCONV Export_UClass_Call_ClassConstructorDirectly(UClass::ClassConstructorType ClassConstructor, const FObjectInitializer& ObjectInitializer)
 {
 	ClassConstructor(ObjectInitializer);
 }
 
-CSEXPORT UClass::ClassVTableHelperCtorCallerType Export_UClass_Get_ClassVTableHelperCtorCaller(UClass* instance)
+CSEXPORT UClass::ClassVTableHelperCtorCallerType CSCONV Export_UClass_Get_ClassVTableHelperCtorCaller(UClass* instance)
 {
 	return instance->ClassVTableHelperCtorCaller;
 }
 
-CSEXPORT void Export_UClass_Set_ClassVTableHelperCtorCaller(UClass* instance, UClass::ClassVTableHelperCtorCallerType ClassVTableHelperCtorCaller)
+CSEXPORT void CSCONV Export_UClass_Set_ClassVTableHelperCtorCaller(UClass* instance, UClass::ClassVTableHelperCtorCallerType ClassVTableHelperCtorCaller)
 {
 	instance->ClassVTableHelperCtorCaller = ClassVTableHelperCtorCaller;
 }
 
-CSEXPORT UObject* Export_UClass_Call_ClassVTableHelperCtorCaller(UClass* instance, FVTableHelper& Helper)
+CSEXPORT UObject* CSCONV Export_UClass_Call_ClassVTableHelperCtorCaller(UClass* instance, FVTableHelper& Helper)
 {
 	return instance->ClassVTableHelperCtorCaller(Helper);
 }
 
-CSEXPORT UClass::ClassAddReferencedObjectsType Export_UClass_Get_ClassAddReferencedObjects(UClass* instance)
+CSEXPORT UClass::ClassAddReferencedObjectsType CSCONV Export_UClass_Get_ClassAddReferencedObjects(UClass* instance)
 {
 	return instance->ClassAddReferencedObjects;
 }
 
-CSEXPORT void Export_UClass_Set_ClassAddReferencedObjects(UClass* instance, UClass::ClassAddReferencedObjectsType ClassAddReferencedObjects)
+CSEXPORT void CSCONV Export_UClass_Set_ClassAddReferencedObjects(UClass* instance, UClass::ClassAddReferencedObjectsType ClassAddReferencedObjects)
 {
 	instance->ClassAddReferencedObjects = ClassAddReferencedObjects;
 }
 
-CSEXPORT void Export_UClass_Call_ClassAddReferencedObjects(UClass* instance, UObject* InThis, class FReferenceCollector& Collector)
+CSEXPORT void CSCONV Export_UClass_Call_ClassAddReferencedObjects(UClass* instance, UObject* InThis, class FReferenceCollector& Collector)
 {
 	instance->ClassAddReferencedObjects(InThis, Collector);
 }

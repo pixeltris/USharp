@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -26,42 +27,139 @@ namespace UnrealEngine.Runtime
     /// <summary>
     /// Information about script execution at one stack level.
     /// </summary>
-    [StructLayout(LayoutKind.Explicit, Size = 152)]
     public unsafe struct FFrame
     {
-        [FieldOffset(0)]
-        public IntPtr vfptr;
-        [FieldOffset(8)]
-        [MarshalAs(UnmanagedType.I1)]
-        public Boolean bSuppressEventTag;
-        [FieldOffset(9)]
-        [MarshalAs(UnmanagedType.I1)]
-        public Boolean bAutoEmitLineTerminator;
-        [FieldOffset(16)]
-        public IntPtr Node;
-        [FieldOffset(24)]
-        public IntPtr Object;
-        [FieldOffset(32)]
-        public IntPtr Code;
-        [FieldOffset(40)]
-        public IntPtr Locals;
-        [FieldOffset(48)]
-        public IntPtr MostRecentProperty;
-        [FieldOffset(56)]
-        public IntPtr MostRecentPropertyAddress;
-        [FieldOffset(64)]
-        public FScriptArray FlowStack;
-        [FieldOffset(112)]
-        public IntPtr PreviousFrame;
-        [FieldOffset(120)]
-        public IntPtr OutParms;
-        [FieldOffset(128)]
-        public IntPtr PropertyChainForCompiledIn;
-        [FieldOffset(136)]
-        public IntPtr CurrentNativeFunction;
-        [FieldOffset(144)]
-        [MarshalAs(UnmanagedType.I1)]
-        public Boolean bArrayContextFailed;
+        public IntPtr Address;
+
+        public FFrame(IntPtr address)
+        {
+            Address = address;
+        }
+
+        //offset_vfptr IntPtr
+        //offset_bSuppressEventTag bool
+        //offset_bAutoEmitLineTerminator bool
+        private static int offset_Node;//IntPtr
+        private static int offset_Object;//IntPtr
+        private static int offset_Code;//IntPtr
+        private static int offset_Locals;//Intptr
+        private static int offset_MostRecentProperty;//IntPtr
+        private static int offset_MostRecentPropertyAddress;//IntPtr
+        private static int offset_FlowStack;//FScriptArray
+        private static int offset_PreviousFrame;//IntPtr
+        private static int offset_OutParms;//IntPtr
+        private static int offset_PropertyChainForCompiledIn;//IntPtr
+        private static int offset_CurrentNativeFunction;//IntPtr
+        private static int offset_bArrayContextFailed;//bool
+
+        internal static void OnNativeFunctionsRegistered()
+        {
+            int offset = (int)Native_FFrame.GetNodeOffset();
+            int endOffset = (int)Native_FFrame.GetbArrayContextFailedOffset();
+
+            offset_Node = offset;
+            offset += IntPtr.Size;
+
+            offset_Object = offset;
+            offset += IntPtr.Size;
+
+            offset_Code = offset;
+            offset += IntPtr.Size;
+
+            offset_Locals = offset;
+            offset += IntPtr.Size;
+
+            offset_MostRecentProperty = offset;
+            offset += IntPtr.Size;
+
+            offset_MostRecentPropertyAddress = offset;
+            offset += IntPtr.Size;
+
+            offset_FlowStack = offset;
+            offset += (int)Native_FFrame.GetFlowStackSize();
+
+            offset_PreviousFrame = offset;
+            offset += IntPtr.Size;
+
+            offset_OutParms = offset;
+            offset += IntPtr.Size;
+
+            offset_PropertyChainForCompiledIn = offset;
+            offset += IntPtr.Size;
+
+            offset_CurrentNativeFunction = offset;
+            offset += IntPtr.Size;
+
+            offset_bArrayContextFailed = offset;
+
+            if (offset != endOffset)
+            {
+                string error = string.Format("Failed calculate offsets for FFrame. Expected:{0} actual:{1}", offset, endOffset);
+                FMessage.Log(ELogVerbosity.Error, error);
+                System.Diagnostics.Debug.WriteLine(error);
+                System.Diagnostics.Debug.Assert(false, error);
+            }
+        }
+
+        public IntPtr Node
+        {
+            get { return *(IntPtr*)(Address + offset_Node); }
+            set { *(IntPtr*)(Address + offset_Node) = value; }
+        }
+        public IntPtr Object
+        {
+            get { return *(IntPtr*)(Address + offset_Object); }
+            set { *(IntPtr*)(Address + offset_Object) = value; }
+        }
+        public IntPtr Code
+        {
+            get { return *(IntPtr*)(Address + offset_Code); }
+            set { *(IntPtr*)(Address + offset_Code) = value; }
+        }
+        public IntPtr Locals
+        {
+            get { return *(IntPtr*)(Address + offset_Locals); }
+            set { *(IntPtr*)(Address + offset_Locals) = value; }
+        }
+        public IntPtr MostRecentProperty
+        {
+            get { return *(IntPtr*)(Address + offset_MostRecentProperty); }
+            set { *(IntPtr*)(Address + offset_MostRecentProperty) = value; }
+        }
+        public IntPtr MostRecentPropertyAddress
+        {
+            get { return *(IntPtr*)(Address + offset_MostRecentPropertyAddress); }
+            set { *(IntPtr*)(Address + offset_MostRecentPropertyAddress) = value; }
+        }
+        public FScriptArray* FlowStack
+        {
+            get { return (FScriptArray*)(Address + offset_FlowStack); }
+        }
+        public IntPtr PreviousFrame
+        {
+            get { return *(IntPtr*)(Address + offset_PreviousFrame); }
+            set { *(IntPtr*)(Address + offset_PreviousFrame) = value; }
+        }
+        public IntPtr OutParms
+        {
+            get { return *(IntPtr*)(Address + offset_OutParms); }
+            set { *(IntPtr*)(Address + offset_OutParms) = value; }
+        }
+        public IntPtr PropertyChainForCompiledIn
+        {
+            get { return *(IntPtr*)(Address + offset_PropertyChainForCompiledIn); }
+            set { *(IntPtr*)(Address + offset_PropertyChainForCompiledIn) = value; }
+        }
+        public IntPtr CurrentNativeFunction
+        {
+            get { return *(IntPtr*)(Address + offset_CurrentNativeFunction); }
+            set { *(IntPtr*)(Address + offset_CurrentNativeFunction) = value; }
+        }
+        public bool bArrayContextFailed
+        {
+            get { return *(byte*)(Address + offset_CurrentNativeFunction) != 0; }
+            set { Native_FFrame.Set_bArrayContextFailed(Address, value); }
+        }
 
         public FOutParmRec* OutParmsPtr
         {
@@ -101,7 +199,7 @@ namespace UnrealEngine.Runtime
         /// </summary>
         public void Step(IntPtr context, IntPtr result)
         {
-            Native_FFrameRef.Step(ref this, context, result);
+            Native_FFrame.Step(Address, context, result);
         }
 
         /// <summary>
@@ -109,7 +207,7 @@ namespace UnrealEngine.Runtime
         /// </summary>
         public void StepExplicitProperty(IntPtr result, IntPtr property)
         {
-            Native_FFrameRef.StepExplicitProperty(ref this, result, property);
+            Native_FFrame.StepExplicitProperty(Address, result, property);
         }
 
         /// <summary>
@@ -131,59 +229,59 @@ namespace UnrealEngine.Runtime
 
         public byte ReadByte()
         {
-            return Native_FFrameRef.ReadUInt8(ref this);
+            return Native_FFrame.ReadUInt8(Address);
         }
 
         public sbyte ReadSByte()
         {
-            return Native_FFrameRef.ReadInt8(ref this);
+            return Native_FFrame.ReadInt8(Address);
         }
 
         public short ReadInt16()
         {
-            return Native_FFrameRef.ReadInt16(ref this);
+            return Native_FFrame.ReadInt16(Address);
         }
 
         public ushort ReadUInt16()
         {
-            return Native_FFrameRef.ReadUInt16(ref this);
+            return Native_FFrame.ReadUInt16(Address);
         }
 
         public int ReadInt32()
         {
-            return Native_FFrameRef.ReadInt32(ref this);
+            return Native_FFrame.ReadInt32(Address);
         }
 
         public uint ReadUInt32()
         {
-            return Native_FFrameRef.ReadUInt32(ref this);
+            return Native_FFrame.ReadUInt32(Address);
         }
 
         public long ReadInt64()
         {
-            return Native_FFrameRef.ReadInt64(ref this);
+            return Native_FFrame.ReadInt64(Address);
         }
 
         public ulong ReadUInt64()
         {
-            return Native_FFrameRef.ReadUInt64(ref this);
+            return Native_FFrame.ReadUInt64(Address);
         }
 
         public float ReadFloat()
         {
-            return Native_FFrameRef.ReadFloat(ref this);
+            return Native_FFrame.ReadFloat(Address);
         }
 
         public FName ReadName()
         {
             FName result;
-            Native_FFrameRef.ReadName(ref this, out result);
+            Native_FFrame.ReadName(Address, out result);
             return result;
         }
 
         public IntPtr ReadObject()
         {
-            return Native_FFrameRef.ReadObject(ref this);
+            return Native_FFrame.ReadObject(Address);
         }
 
         /// <summary>
@@ -192,7 +290,7 @@ namespace UnrealEngine.Runtime
         /// </summary>
         public int ReadCodeSkipCount()
         {
-            return Native_FFrameRef.ReadCodeSkipCount(ref this);
+            return Native_FFrame.ReadCodeSkipCount(Address);
         }
 
         /// <summary>
@@ -203,7 +301,7 @@ namespace UnrealEngine.Runtime
         /// <returns></returns>
         public int ReadVariableSize(IntPtr expressionField)
         {
-            return Native_FFrameRef.ReadVariableSize(ref this, expressionField);
+            return Native_FFrame.ReadVariableSize(Address, expressionField);
         }
 
         /// <summary>
@@ -213,7 +311,7 @@ namespace UnrealEngine.Runtime
         {
             using (FStringUnsafe resultUnsafe = new FStringUnsafe())
             {
-                Native_FFrameRef.GetStackTrace(ref this, ref resultUnsafe.Array);
+                Native_FFrame.GetStackTrace(Address, ref resultUnsafe.Array);
                 return resultUnsafe.Value;
             }
         }
@@ -225,70 +323,8 @@ namespace UnrealEngine.Runtime
         {
             using (FStringUnsafe resultUnsafe = new FStringUnsafe())
             {
-                Native_FFrameRef.GetScriptCallstack(ref resultUnsafe.Array);
+                Native_FFrame.GetScriptCallstack(ref resultUnsafe.Array);
                 return resultUnsafe.Value;
-            }
-        }
-
-        // Helper for generating the above struct
-        internal static class StructBuilder
-        {
-            private static void FormatStructField(StringBuilder stringBuilder, string name, string typeName, int typeSize, ref int offset, int pad, bool align = false)
-            {
-                stringBuilder.AppendLine("[FieldOffset(" + offset + ")]");
-                if (typeName == "Boolean" || typeName == "bool")
-                {
-                    typeSize = 1;
-                    stringBuilder.AppendLine("[MarshalAs(UnmanagedType.I1)]");
-                }
-                stringBuilder.AppendLine("public " + typeName + " " + name + ";");
-                offset += typeSize;
-                if (align && offset % pad != 0)
-                {
-                    offset += pad - (offset % pad);
-                }
-            }
-
-            private static void FormatStructField(StringBuilder stringBuilder, string name, Type type, int typeSize, ref int offset, int pad, bool align = false)
-            {
-                FormatStructField(stringBuilder, name, type.Name, typeSize, ref offset, pad, align);
-            }
-
-            private static void FormatStructField(StringBuilder stringBuilder, string name, Type type, ref int offset, int pad, bool align = false)
-            {
-                FormatStructField(stringBuilder, name, type.Name, Marshal.SizeOf(type), ref offset, pad, align);
-            }
-
-            private static string GetString()
-            {
-                int offset = 0;
-                int align = 8;
-                int pointerSize = IntPtr.Size;
-                StringBuilder stringBuilder = new StringBuilder();
-                FormatStructField(stringBuilder, "vfptr", typeof(IntPtr), pointerSize, ref offset, align);
-                FormatStructField(stringBuilder, "bSuppressEventTag", typeof(bool), ref offset, align);
-                FormatStructField(stringBuilder, "bAutoEmitLineTerminator", typeof(bool), ref offset, align, true);
-
-                FormatStructField(stringBuilder, "Node", typeof(IntPtr), pointerSize, ref offset, align);
-                FormatStructField(stringBuilder, "Object", typeof(IntPtr), pointerSize, ref offset, align);
-                FormatStructField(stringBuilder, "Code", typeof(IntPtr), pointerSize, ref offset, align);
-                FormatStructField(stringBuilder, "Locals", typeof(IntPtr), pointerSize, ref offset, align);
-                FormatStructField(stringBuilder, "MostRecentProperty", typeof(IntPtr), pointerSize, ref offset, align);
-                FormatStructField(stringBuilder, "MostRecentPropertyAddress", typeof(IntPtr), pointerSize, ref offset, align);
-                FormatStructField(stringBuilder, "FlowStack", "FScriptArray", 48, ref offset, align);//32 if SCRIPT_LIMIT_BYTECODE_TO_64KB
-                FormatStructField(stringBuilder, "PreviousFrame", typeof(IntPtr), pointerSize, ref offset, align);
-                FormatStructField(stringBuilder, "OutParms", typeof(IntPtr), pointerSize, ref offset, align);
-                FormatStructField(stringBuilder, "PropertyChainForCompiledIn", typeof(IntPtr), pointerSize, ref offset, align);
-                FormatStructField(stringBuilder, "CurrentNativeFunction", typeof(IntPtr), pointerSize, ref offset, align);
-
-                FormatStructField(stringBuilder, "bArrayContextFailed", typeof(bool), ref offset, align, true);
-
-                stringBuilder.Insert(0, "{" + Environment.NewLine);
-                stringBuilder.Insert(0, "public struct FFrame" + Environment.NewLine);
-                stringBuilder.Insert(0, "[StructLayout(LayoutKind.Explicit, Size = " + offset + ")]" + Environment.NewLine);
-                stringBuilder.AppendLine("}");
-
-                return stringBuilder.ToString();
             }
         }
     }

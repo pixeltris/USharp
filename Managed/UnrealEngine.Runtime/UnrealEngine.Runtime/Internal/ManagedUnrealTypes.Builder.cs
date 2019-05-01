@@ -545,9 +545,10 @@ namespace UnrealEngine.Runtime
                 Native_UClass.Set_ClassFlags(sharpClass, classFlags);
 
                 // Create functions
+                Native_USharpClass.SetFunctionInvokerAddress(sharpClass, managedClass.FunctionInvokerAddress);
                 foreach (ManagedUnrealFunctionInfo functionInfo in managedClass.TypeInfo.Functions.Reverse<ManagedUnrealFunctionInfo>())
                 {
-                    IntPtr function = CreateFunction(sharpClass, parentClass, functionInfo, managedClass.FunctionInvoker);
+                    IntPtr function = CreateFunction(sharpClass, parentClass, functionInfo);
                     if (function != IntPtr.Zero)
                     {
                         managedClass.AddInvoker(functionInfo, function);
@@ -614,12 +615,12 @@ namespace UnrealEngine.Runtime
 
                 if (managedClass.TypeInfo.Functions.Count > 0)
                 {
-                    IntPtr invokerAddress = Marshal.GetFunctionPointerForDelegate(managedClass.FunctionInvoker);
+                    Native_USharpClass.SetFunctionInvokerAddress(managedClass.Address, managedClass.FunctionInvokerAddress);
                     foreach (ManagedUnrealFunctionInfo functionInfo in managedClass.TypeInfo.Functions)
                     {
                         using (FStringUnsafe functionNameUnsafe = new FStringUnsafe(functionInfo.GetName()))
                         {
-                            IntPtr function = Native_USharpClass.SetFunctionInvoker(managedClass.Address, ref functionNameUnsafe.Array, invokerAddress);
+                            IntPtr function = Native_USharpClass.SetFunctionInvoker(managedClass.Address, ref functionNameUnsafe.Array);
                             if (function != IntPtr.Zero)
                             {
                                 managedClass.AddInvoker(functionInfo, function);
@@ -1087,8 +1088,7 @@ namespace UnrealEngine.Runtime
             Native_UClass.Set_ClassConfigName(sharpClass, ref classConfigName);
         }
 
-        private static IntPtr CreateFunction(IntPtr outer, IntPtr parentClass, ManagedUnrealFunctionInfo functionInfo,
-            UFunction.FuncInvokerNative funcInvoker)
+        private static IntPtr CreateFunction(IntPtr outer, IntPtr parentClass, ManagedUnrealFunctionInfo functionInfo)
         {
             // NOTE: We need EObjectFlags.MarkAsNative to allow packages to include this as an import. Imports are an important
             //       part of package saving to ensure our referenced fields are serialized properly. Import gathering uses a 
@@ -1179,11 +1179,11 @@ namespace UnrealEngine.Runtime
             // Setting up the function address must come before Bind/StaticLink.
             // UFunction::Bind will look up the function address and use it to assign UFunction::Func
             {
-                IntPtr funcInvokerAddress = Marshal.GetFunctionPointerForDelegate(funcInvoker);
+                IntPtr nativeInvokerAddress = Native_USharpClass.GetNativeFunctionInvoker();
                 using (FStringUnsafe nameUnsafe = new FStringUnsafe(functionInfo.GetName()))
                 {
                     // This is the same as FNativeFunctionRegistrar::RegisterFunction()
-                    Native_UClass.AddNativeFunction(outer, ref nameUnsafe.Array, funcInvokerAddress);
+                    Native_UClass.AddNativeFunction(outer, ref nameUnsafe.Array, nativeInvokerAddress);
                 }
                 FName functionFName = NativeReflection.GetFName(function);
                 Native_UClass.AddFunctionToFunctionMap(outer, function, ref functionFName);

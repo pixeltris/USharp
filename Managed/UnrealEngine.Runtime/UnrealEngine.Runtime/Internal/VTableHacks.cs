@@ -29,12 +29,15 @@ namespace UnrealEngine.Runtime
 
         private static FunctionRedirect repProps;
         delegate void GetLifetimeReplicatedPropsDel(IntPtr address, IntPtr arrayAddress);
+        [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
+        delegate void GetLifetimeReplicatedPropsDel_ThisCall(IntPtr address, IntPtr arrayAddress);
         private static void OnGetLifetimeReplicatedProps(IntPtr address, IntPtr arrayAddress)
         {
             UObject obj = GCHelper.Find(address);
 
-            IntPtr original = repProps.GetOriginal(obj);
-            Native_VTableHacks.CallOriginal_GetLifetimeReplicatedProps(original, address, arrayAddress);
+            GetLifetimeReplicatedPropsDel_ThisCall original = repProps.GetOriginal<GetLifetimeReplicatedPropsDel_ThisCall>(obj);
+            original(address, arrayAddress);
+            //Native_VTableHacks.CallOriginal_GetLifetimeReplicatedProps(original, address, arrayAddress);
 
             using (TArrayUnsafeRef<FLifetimeProperty> lifetimePropsUnsafe = new TArrayUnsafeRef<FLifetimeProperty>(arrayAddress))
             {
@@ -45,60 +48,75 @@ namespace UnrealEngine.Runtime
 
         private static FunctionRedirect setupPlayerInput;
         delegate void SetupPlayerInputComponentDel(IntPtr address, IntPtr inputComponentAddress);
+        [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
+        delegate void SetupPlayerInputComponentDel_ThisCall(IntPtr address, IntPtr inputComponentAddress);
         private static void OnSetupPlayerInputComponent(IntPtr address, IntPtr inputComponentAddress)
         {
             UObject obj = GCHelper.Find(address);
 
-            IntPtr original = setupPlayerInput.GetOriginal(obj);
-            Native_VTableHacks.CallOriginal_SetupPlayerInputComponent(original, address, inputComponentAddress);
+            SetupPlayerInputComponentDel_ThisCall original = setupPlayerInput.GetOriginal<SetupPlayerInputComponentDel_ThisCall>(obj);
+            original(address, inputComponentAddress);
+            //Native_VTableHacks.CallOriginal_SetupPlayerInputComponent(original, address, inputComponentAddress);
 
             obj.SetupPlayerInputComponent(inputComponentAddress);
         }
 
         private static FunctionRedirect actorBeginPlay;
         delegate void ActorBeginPlayDel(IntPtr address);
+        [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
+        delegate void ActorBeginPlayDel_ThisCall(IntPtr address);
         private static void OnActorBeginPlay(IntPtr address)
         {
             UObject obj = GCHelper.Find(address);
 
-            IntPtr original = actorBeginPlay.GetOriginal(obj);
-            Native_VTableHacks.CallOriginal_ActorBeginPlay(original, address);
+            ActorBeginPlayDel_ThisCall original = actorBeginPlay.GetOriginal<ActorBeginPlayDel_ThisCall>(obj);
+            original(address);
+            //Native_VTableHacks.CallOriginal_ActorBeginPlay(original, address);
 
             obj.BeginPlayInternal();
         }
 
         private static FunctionRedirect actorEndPlay;
         delegate void ActorEndPlayDel(IntPtr address, byte endPlayReason);
+        [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
+        delegate void ActorEndPlayDel_ThisCall(IntPtr address, byte endPlayReason);
         private static void OnActorEndPlay(IntPtr address, byte endPlayReason)
         {
             UObject obj = GCHelper.Find(address);
 
-            IntPtr original = actorEndPlay.GetOriginal(obj);
-            Native_VTableHacks.CallOriginal_ActorEndPlay(original, address, endPlayReason);
+            ActorEndPlayDel_ThisCall original = actorEndPlay.GetOriginal<ActorEndPlayDel_ThisCall>(obj);
+            original(address, endPlayReason);
+            //Native_VTableHacks.CallOriginal_ActorEndPlay(original, address, endPlayReason);
 
             obj.EndPlayInternal(endPlayReason);
         }
 
         private static FunctionRedirect actorComponentBeginPlay;
         delegate void ActorComponentBeginPlayDel(IntPtr address);
+        [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
+        delegate void ActorComponentBeginPlayDel_ThisCall(IntPtr address);
         private static void OnActorComponentBeginPlay(IntPtr address)
         {
             UObject obj = GCHelper.Find(address);
 
-            IntPtr original = actorComponentBeginPlay.GetOriginal(obj);
-            Native_VTableHacks.CallOriginal_ActorComponentBeginPlay(original, address);
+            ActorComponentBeginPlayDel_ThisCall original = actorComponentBeginPlay.GetOriginal<ActorComponentBeginPlayDel_ThisCall>(obj);
+            original(address);
+            //Native_VTableHacks.CallOriginal_ActorComponentBeginPlay(original, address);
 
             obj.BeginPlayInternal();
         }
 
         private static FunctionRedirect actorComponentEndPlay;
         delegate void ActorComponentEndPlayDel(IntPtr address, byte endPlayReason);
+        [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
+        delegate void ActorComponentEndPlayDel_ThisCall(IntPtr address, byte endPlayReason);
         private static void OnActorComponentEndPlay(IntPtr address, byte endPlayReason)
         {
             UObject obj = GCHelper.Find(address);
 
-            IntPtr original = actorComponentEndPlay.GetOriginal(obj);
-            Native_VTableHacks.CallOriginal_ActorComponentEndPlay(original, address, endPlayReason);
+            ActorComponentEndPlayDel_ThisCall original = actorComponentEndPlay.GetOriginal<ActorComponentEndPlayDel_ThisCall>(obj);
+            original(address, endPlayReason);
+            //Native_VTableHacks.CallOriginal_ActorComponentEndPlay(original, 
 
             obj.EndPlayInternal(endPlayReason);
         }
@@ -128,7 +146,7 @@ namespace UnrealEngine.Runtime
             /// </summary>
             /// <param name="obj">An object which has the target function its vtable</param>
             /// <returns>The original function address</returns>
-            public IntPtr GetOriginal(UObject obj)
+            public UClass.VTableOriginalFunc GetOriginalFunc(UObject obj)
             {
                 UClass unrealClass = obj.GetClass();
                 Debug.Assert(unrealClass != null);
@@ -140,11 +158,21 @@ namespace UnrealEngine.Runtime
 
                 Debug.Assert(unrealClass.VTableOriginalFunctions != null);
 
-                IntPtr original;
+                UClass.VTableOriginalFunc original;
                 unrealClass.VTableOriginalFunctions.TryGetValue(VTableIndex, out original);
-                Debug.Assert(original != IntPtr.Zero);
+                Debug.Assert(original.FuncAddress != IntPtr.Zero);
 
                 return original;
+            }
+
+            public T GetOriginal<T>(UObject obj) where T : class
+            {
+                UClass.VTableOriginalFunc original = GetOriginalFunc(obj);
+                if (original.Func == null)
+                {
+                    original.Func = Marshal.GetDelegateForFunctionPointer<T>(original.FuncAddress) as Delegate;
+                }
+                return (T)(object)original.Func;
             }
         }
 
@@ -237,12 +265,12 @@ namespace UnrealEngine.Runtime
                         UClass unrealClass = obj.GetClass();
                         Debug.Assert(unrealClass != null);
 
-                        IntPtr originalFunc;
+                        UClass.VTableOriginalFunc originalFunc;
                         if (unrealClass.VTableOriginalFunctions != null &&
                             unrealClass.VTableOriginalFunctions.TryGetValue(redirect.VTableIndex, out originalFunc))
                         {
                             FMemory.PageProtect((IntPtr)(&vtable[redirect.VTableIndex]), (IntPtr)IntPtr.Size, true, true);
-                            *(&vtable[redirect.VTableIndex]) = originalFunc;
+                            *(&vtable[redirect.VTableIndex]) = originalFunc.FuncAddress;
                         }
                     }
                 }
@@ -260,7 +288,7 @@ namespace UnrealEngine.Runtime
                 {
                     IntPtr* vtable = *(IntPtr**)obj.Address;
 
-                    unrealClass.VTableOriginalFunctions = new Dictionary<int, IntPtr>();
+                    unrealClass.VTableOriginalFunctions = new Dictionary<int, UClass.VTableOriginalFunc>();
                     foreach (FunctionRedirect redirect in vtableRedirects)
                     {
                         if (!Native_UObjectBaseUtility.IsA(obj.Address, redirect.Class))
@@ -298,10 +326,10 @@ namespace UnrealEngine.Runtime
                             Debug.Assert(superClass != null && superClass.VTableOriginalFunctions != null &&
                                 superClass.VTableOriginalFunctions.ContainsKey(redirect.VTableIndex));
 
-                            originalFunctionAddress = superClass.VTableOriginalFunctions[redirect.VTableIndex];
+                            originalFunctionAddress = superClass.VTableOriginalFunctions[redirect.VTableIndex].FuncAddress;
                         }
 
-                        unrealClass.VTableOriginalFunctions.Add(redirect.VTableIndex, originalFunctionAddress);
+                        unrealClass.VTableOriginalFunctions.Add(redirect.VTableIndex, new UClass.VTableOriginalFunc(originalFunctionAddress));
                     }
                 }
             }

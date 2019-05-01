@@ -124,7 +124,7 @@ CSEXPORT void CSCONV Export_FModuleManager_GetModuleFilename(FModuleManager* ins
 }
 #endif
 
-CSEXPORT void CSCONV Export_FModuleManager_Reg_ModulesChanged(FModuleManager* instance, void(*handler)(const FName&, EModuleChangeReason), FDelegateHandle* handle, csbool enable)
+CSEXPORT void CSCONV Export_FModuleManager_Reg_ModulesChanged(FModuleManager* instance, void(CSCONV *handler)(const FName&, EModuleChangeReason), FDelegateHandle* handle, csbool enable)
 {
 	// Changing the signature as we can't use FName directly due to marshaling issues
 	REGISTER_LAMBDA(FModuleManager::Get().OnModulesChanged(),
@@ -134,9 +134,10 @@ CSEXPORT void CSCONV Export_FModuleManager_Reg_ModulesChanged(FModuleManager* in
 		});
 }
 
-CSEXPORT void CSCONV Export_FModuleManager_Reg_ProcessLoadedObjectsHandler(FModuleManager* instance, void(*handler)(), FDelegateHandle* handle, csbool enable)
+CSEXPORT void CSCONV Export_FModuleManager_Reg_ProcessLoadedObjectsHandler(FModuleManager* instance, void(CSCONV *handler)(), FDelegateHandle* handle, csbool enable)
 {
-	REGISTER_DELEGATE(FModuleManager::Get().OnProcessLoadedObjectsCallback());
+	//REGISTER_DELEGATE(FModuleManager::Get().OnProcessLoadedObjectsCallback());
+	REGISTER_LAMBDA_SIMPLE(FModuleManager::Get().OnProcessLoadedObjectsCallback());
 }
 
 CSEXPORT void CSCONV Export_FModuleManager(RegisterFunc registerFunc)

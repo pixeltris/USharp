@@ -1,15 +1,15 @@
 typedef void* GCHandle;
 TMap<TWeakObjectPtr<UObject>, GCHandle> ManagedObjectMap;
 
-GCHandle(*OnAdd)(UObject*) = nullptr;
-void(*OnRemove)(GCHandle) = nullptr;
+GCHandle(CSCONV *OnAdd)(UObject*) = nullptr;
+void(CSCONV *OnRemove)(GCHandle) = nullptr;
 
-CSEXPORT void CSCONV Export_GCHelper_Set_OnAdd(GCHandle(*handler)(UObject*))
+CSEXPORT void CSCONV Export_GCHelper_Set_OnAdd(GCHandle(CSCONV *handler)(UObject*))
 {
 	OnAdd = handler;
 }
 
-CSEXPORT void CSCONV Export_GCHelper_Set_OnRemove(void(*handler)(GCHandle))
+CSEXPORT void CSCONV Export_GCHelper_Set_OnRemove(void(CSCONV *handler)(GCHandle))
 {
 	OnRemove = handler;
 }

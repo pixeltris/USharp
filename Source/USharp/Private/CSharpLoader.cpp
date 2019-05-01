@@ -149,14 +149,29 @@ typedef int32(*ManagedEntryPointSig)(const char* arg);
 
 CSharpLoader* CSharpLoader::singleton = NULL;
 
-void MessageDialogProxy(char* text, char* title)
+void* CSCONV RuntimeState_Malloc(SIZE_T Count, uint32 Alignment)
+{
+	return FMemory::Malloc(Count, Alignment);
+}
+
+void* CSCONV RuntimeState_Realloc(void* Original, SIZE_T Count, uint32 Alignment)
+{
+	return FMemory::Realloc(Original, Count, Alignment);
+}
+
+void CSCONV RuntimeState_Free(void* Original)
+{
+	FMemory::Free(Original);
+}
+
+void CSCONV RuntimeState_MessageBox(char* text, char* title)
 {
 	FText textTemp = FText::FromString(FString(ANSI_TO_TCHAR(text)));
 	FText titleTemp = FText::FromString(FString(ANSI_TO_TCHAR(title)));
 	FMessageDialog::Open(EAppMsgType::Ok, textTemp, &titleTemp);
 }
 
-void LogMsgProxy(uint8 verbosity, char* message)
+void CSCONV RuntimeState_LogMsg(uint8 verbosity, char* message)
 {
 	FString categoryName = TEXT("USharp");
 	FString messageStr = FString(ANSI_TO_TCHAR(message));
@@ -174,11 +189,11 @@ CSharpLoader::CSharpLoader()
 #endif
 
 	runtimeState = {};
-	runtimeState.Malloc = &FMemory::Malloc;
-	runtimeState.Realloc = &FMemory::Realloc;
-	runtimeState.Free = &FMemory::Free;
-	runtimeState.MessageBox = &MessageDialogProxy;
-	runtimeState.LogMsg = &LogMsgProxy;
+	runtimeState.Malloc = &RuntimeState_Malloc;
+	runtimeState.Realloc = &RuntimeState_Realloc;
+	runtimeState.Free = &RuntimeState_Free;
+	runtimeState.MessageBox = &RuntimeState_MessageBox;
+	runtimeState.LogMsg = &RuntimeState_LogMsg;
 	runtimeState.StructSize = (int32)sizeof(SharedRuntimeState);
 
 	SetupPaths();

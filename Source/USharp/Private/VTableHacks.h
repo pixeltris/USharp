@@ -72,7 +72,7 @@ struct TStructOpsTypeTraits<FSharpActorComponentTickFunction> : public TStructOp
 // UObject::GetLifetimeReplicatedProps
 /////////////////////////////////////////////////////////////////////////////
 
-typedef void (*GetLifetimeReplicatedPropsCallbackSig)(const UObject* Obj, TArray<FLifetimeProperty>& OutLifetimeProps);
+typedef void (CSCONV *GetLifetimeReplicatedPropsCallbackSig)(const UObject* Obj, TArray<FLifetimeProperty>& OutLifetimeProps);
 extern GetLifetimeReplicatedPropsCallbackSig GetLifetimeReplicatedPropsCallback;
 
 UCLASS(NotBlueprintable, NotBlueprintType)
@@ -112,7 +112,7 @@ public:
 // APawn::SetupPlayerInputComponent
 /////////////////////////////////////////////////////////////////////////////
 
-typedef void (*SetupPlayerInputComponentCallbackSig)(APawn* Obj, UInputComponent* PlayerInputComponent);
+typedef void (CSCONV *SetupPlayerInputComponentCallbackSig)(APawn* Obj, UInputComponent* PlayerInputComponent);
 extern SetupPlayerInputComponentCallbackSig SetupPlayerInputComponentCallback;
 
 UCLASS(NotBlueprintable, NotBlueprintType)
@@ -152,7 +152,7 @@ protected:
 // AActor::BeginPlay
 /////////////////////////////////////////////////////////////////////////////
 
-typedef void(*ActorBeginPlayCallbackSig)(AActor* Obj);
+typedef void(CSCONV *ActorBeginPlayCallbackSig)(AActor* Obj);
 extern ActorBeginPlayCallbackSig ActorBeginPlayCallback;
 
 UCLASS(NotBlueprintable, NotBlueprintType)
@@ -194,7 +194,7 @@ protected:
 // AActor::BeginPlay
 /////////////////////////////////////////////////////////////////////////////
 
-typedef void(*ActorEndPlayCallbackSig)(AActor* Obj, const EEndPlayReason::Type EndPlayReason);
+typedef void(CSCONV *ActorEndPlayCallbackSig)(AActor* Obj, const EEndPlayReason::Type EndPlayReason);
 extern ActorEndPlayCallbackSig ActorEndPlayCallback;
 
 UCLASS(NotBlueprintable, NotBlueprintType)
@@ -234,7 +234,7 @@ public:
 // UActorComponent::BeginPlay
 /////////////////////////////////////////////////////////////////////////////
 
-typedef void(*ActorComponentBeginPlayCallbackSig)(UActorComponent* Obj);
+typedef void(CSCONV *ActorComponentBeginPlayCallbackSig)(UActorComponent* Obj);
 extern ActorComponentBeginPlayCallbackSig ActorComponentBeginPlayCallback;
 
 UCLASS(NotBlueprintable, NotBlueprintType)
@@ -274,7 +274,7 @@ public:
 // UActorComponent::EndPlay
 /////////////////////////////////////////////////////////////////////////////
 
-typedef void(*ActorComponentEndPlayCallbackSig)(UActorComponent* Obj, const EEndPlayReason::Type EndPlayReason);
+typedef void(CSCONV *ActorComponentEndPlayCallbackSig)(UActorComponent* Obj, const EEndPlayReason::Type EndPlayReason);
 extern ActorComponentEndPlayCallbackSig ActorComponentEndPlayCallback;
 
 UCLASS(NotBlueprintable, NotBlueprintType)

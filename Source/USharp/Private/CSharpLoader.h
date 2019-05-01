@@ -3,6 +3,7 @@
 #if PLATFORM_WINDOWS
 
 #include "Windows/AllowWindowsPlatformTypes.h"
+#include "ExportedFunctionsConventions.h"
 
 // Define WIN32_LEAN_AND_MEAN to exclude rarely-used services from windows headers.
 #define WIN32_LEAN_AND_MEAN
@@ -41,6 +42,7 @@ public:
 	EDotNetRuntime NextRuntime;
 	int32 IsActiveRuntimeComplete;
 	uint32 RuntimeCounter;
+	int32 Reload;// this should be a csbool, #include ExportedFunctionsConventions.h?
 
 	int32 HotReloadDataLen;
 	int32 HotReloadDataLenInMemory;
@@ -50,11 +52,11 @@ public:
 	int32 HotReloadAssemblyPathsLenInMemory;
 	uint8* HotReloadAssemblyPaths;	
 
-	void*(*Malloc)(SIZE_T, uint32);
-	void*(*Realloc)(void*, SIZE_T, uint32);
-	void(*Free)(void*);
-	void(*MessageBox)(char*, char*);
-	void(*LogMsg)(uint8, char*);
+	void*(CSCONV *Malloc)(SIZE_T, uint32);
+	void*(CSCONV *Realloc)(void*, SIZE_T, uint32);
+	void(CSCONV *Free)(void*);
+	void(CSCONV *MessageBox)(char*, char*);
+	void(CSCONV *LogMsg)(uint8, char*);
 	
 	int32 StructSize;
 };

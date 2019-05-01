@@ -33,37 +33,54 @@ CSEXPORT int32 CSCONV Export_FScriptSet_AddUninitialized(FScriptSet* instance, c
 	return instance->AddUninitialized(Layout);
 }
 
-CSEXPORT void CSCONV Export_FScriptSet_Rehash(FScriptSet* instance, const FScriptSetLayout& Layout, uint32(*GetKeyHash)(const void*))
+CSEXPORT void CSCONV Export_FScriptSet_Rehash(FScriptSet* instance, const FScriptSetLayout& Layout, uint32(CSCONV *GetKeyHash)(const void*))
 {
-	instance->Rehash(Layout, GetKeyHash);
+	instance->Rehash(
+		Layout,
+		[GetKeyHash](const void* InElement)
+		{
+			return GetKeyHash(InElement);
+		});
 }
 
-CSEXPORT int32 CSCONV Export_FScriptSet_FindIndex(FScriptSet* instance, const void* Element, const FScriptSetLayout& Layout, uint32(*GetKeyHash)(const void*), csbool(*EqualityFn)(const void*, const void*))
+CSEXPORT int32 CSCONV Export_FScriptSet_FindIndex(FScriptSet* instance, const void* Element, const FScriptSetLayout& Layout, uint32(CSCONV *GetKeyHash)(const void*), csbool(CSCONV *EqualityFn)(const void*, const void*))
 {
 	// Create a wrapper func due to bool return result conversion
 	return instance->FindIndex(
 		Element,
 		Layout,
-		GetKeyHash,
+		[GetKeyHash](const void* InElement)
+		{
+			return GetKeyHash(InElement);
+		},
 		[EqualityFn](const void* A, const void* B)
 		{
 			return !!EqualityFn(A, B);
 		});
 }
 
-CSEXPORT void CSCONV Export_FScriptSet_Add(FScriptSet* instance, const void* Element, const FScriptSetLayout& Layout, uint32(*GetKeyHash)(const void*), csbool(*EqualityFn)(const void*, const void*), void(*ConstructFn)(void*), void(*DestructFn)(void*))
+CSEXPORT void CSCONV Export_FScriptSet_Add(FScriptSet* instance, const void* Element, const FScriptSetLayout& Layout, uint32(CSCONV *GetKeyHash)(const void*), csbool(CSCONV *EqualityFn)(const void*, const void*), void(CSCONV *ConstructFn)(void*), void(CSCONV *DestructFn)(void*))
 {
 	// Create a wrapper func due to bool return result conversion
 	instance->Add(
 		Element,
 		Layout,
-		GetKeyHash,
+		[GetKeyHash](const void* InElement)
+		{
+			return GetKeyHash(InElement);
+		},
 		[EqualityFn](const void* A, const void* B)
 		{
 			return !!EqualityFn(A, B);
 		},
-		ConstructFn,
-		DestructFn);
+		[ConstructFn](void* InElement)
+		{
+			ConstructFn(InElement);
+		},
+		[DestructFn](void* InElement)
+		{
+			DestructFn(InElement);
+		});
 }
 
 CSEXPORT void CSCONV Export_FScriptSet_Destroy(FScriptSet* instance)

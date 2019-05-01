@@ -1,4 +1,4 @@
-CSEXPORT void CSCONV Export_FTicker_Reg_CoreTicker(void* instance, csbool(*handler)(float), FDelegateHandle* handle, csbool enable, float delay)
+CSEXPORT void CSCONV Export_FTicker_Reg_CoreTicker(void* instance, csbool(CSCONV *handler)(float), FDelegateHandle* handle, csbool enable, float delay)
 {
 	if (enable)
 	{
@@ -19,7 +19,7 @@ CSEXPORT void CSCONV Export_FTicker_Tick(float DeltaTime)
 	FTicker::GetCoreTicker().Tick(DeltaTime);
 }
 
-CSEXPORT void CSCONV Export_FTicker_AddStaticTicker(csbool(*handler)(float), float delay)
+CSEXPORT void CSCONV Export_FTicker_AddStaticTicker(csbool(CSCONV *handler)(float), float delay)
 {
 	FDelegateHandle Handle;
 	Export_FTicker_Reg_CoreTicker(nullptr, handler, &Handle, true, delay);
