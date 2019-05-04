@@ -123,6 +123,12 @@ namespace UnrealBuildTool.Rules
                 SetupManagedPaths();
             }
         }
+        
+        private string GetPlatformString()
+        {
+            // Keep this up to date with CSharpLoader::GetPlatformString()
+            return Target.Platform.ToString();
+        }
 
         private void SetupManagedPaths()
         {
@@ -141,7 +147,8 @@ namespace UnrealBuildTool.Rules
 
                 if (!Directory.Exists(managedBinDir))
                 {
-                    Directory.CreateDirectory(managedBinDir);
+                    // This might not be a USharp enabled project?
+                    return;
                 }
 
                 outputRelativeDir = new Uri(Path.GetFullPath(Path.Combine(projectDir, "Binaries")), UriKind.Absolute);
@@ -160,17 +167,25 @@ namespace UnrealBuildTool.Rules
                 // 
                 // NOTE: We need to copy the folders locally rather than directly referencing the folders in the engine
                 //       plugins folder as RuntimeDependencies depends on paths being within the game project folder.
-                string sourceCoreCLRDir = Path.Combine(pluginManagedBinDir, "Runtimes", "CoreCLR");
-                string sourceMonoDir = Path.Combine(pluginManagedBinDir, "Runtimes", "Mono");
+                string sourceCoreCLRDir = Path.Combine(pluginManagedBinDir, "Runtimes", "CoreCLR", GetPlatformString());
+                string sourceMonoDir = Path.Combine(pluginManagedBinDir, "Runtimes", "Mono", GetPlatformString());
                 string sourceRuntimesFile = Path.Combine(pluginManagedBinDir, "Runtimes", "DotNetRuntime.txt");
 
-                string destCoreCLRDir = Path.Combine(managedBinDir, "Runtimes", "CoreCLR");
-                string destMonoDir = Path.Combine(managedBinDir, "Runtimes", "Mono");
+                string destCoreCLRDir = Path.Combine(managedBinDir, "Runtimes", "CoreCLR", GetPlatformString());
+                string destMonoDir = Path.Combine(managedBinDir, "Runtimes", "Mono", GetPlatformString());
                 string destRuntimesFile = Path.Combine(managedBinDir, "Runtimes", "DotNetRuntime.txt");
 
                 bool copyCoreCLR = false;
                 bool copyMono = false;
                 bool cleanRuntimeFolders = false;// If true delete the contents of the target runtime folders before copying
+                
+                switch (Target.Platform)
+                {
+                    case UnrealTargetPlatform.Android:
+                        // Mono is currently the only supported runtime on Android. Ensure that it gets packaged.
+                        copyMono = true;
+                        break;
+                }
 
                 if (File.Exists(sourceRuntimesFile))
                 {
@@ -186,16 +201,10 @@ namespace UnrealBuildTool.Rules
                             switch (line.ToLower())
                             {
                                 case "mono":
-                                    if (Directory.Exists(sourceMonoDir))
-                                    {
-                                        copyMono = true;
-                                    }
+                                    copyMono = true;
                                     break;
                                 case "coreclr":
-                                    if (Directory.Exists(sourceCoreCLRDir))
-                                    {
-                                        copyCoreCLR = true;
-                                    }
+                                    copyCoreCLR = true;
                                     break;
                                 case "clean":
                                     cleanRuntimeFolders = true;
@@ -203,38 +212,48 @@ namespace UnrealBuildTool.Rules
                             }
                         }
                     }
-
-                    if (copyCoreCLR || copyMono)
+                }
+                
+                if (copyMono && !Directory.Exists(sourceMonoDir))
+                {
+                    copyMono = false;
+                }
+                
+                if (copyCoreCLR && !Directory.Exists(sourceCoreCLRDir))
+                {
+                    copyCoreCLR = false;
+                }
+                
+                if (copyCoreCLR || copyMono)
+                {
+                    // Copy the runtimes text file to the output directory
+                    FileInfo destRuntimesFileInfo = new FileInfo(destRuntimesFile);
+                    if (!destRuntimesFileInfo.Directory.Exists)
                     {
-                        // Copy the runtimes text file to the output directory
-                        FileInfo destRuntimesFileInfo = new FileInfo(destRuntimesFile);
-                        if (!destRuntimesFileInfo.Directory.Exists)
-                        {
-                            Directory.CreateDirectory(destRuntimesFileInfo.DirectoryName);
-                        }
-                        CopyFile(sourceRuntimesFile, destRuntimesFile, true);
+                        Directory.CreateDirectory(destRuntimesFileInfo.DirectoryName);
+                    }
+                    CopyFile(sourceRuntimesFile, destRuntimesFile, true);
 
-                        if (copyCoreCLR)
+                    if (copyCoreCLR)
+                    {
+                        if (cleanRuntimeFolders)
                         {
-                            if (cleanRuntimeFolders)
-                            {
-                                CleanFolder(destCoreCLRDir);
-                            }
-
-                            // Copy the CoreCLR folder into the project binaries folder
-                            CopyFilesRecursive(new DirectoryInfo(sourceCoreCLRDir), new DirectoryInfo(destCoreCLRDir), true);
+                            CleanFolder(destCoreCLRDir);
                         }
 
-                        if (copyMono)
-                        {
-                            if (cleanRuntimeFolders)
-                            {
-                                CleanFolder(destMonoDir);
-                            }
+                        // Copy the CoreCLR folder into the project binaries folder
+                        CopyFilesRecursive(new DirectoryInfo(sourceCoreCLRDir), new DirectoryInfo(destCoreCLRDir), true);
+                    }
 
-                            // Copy the Mono folder into the project binaries folder
-                            CopyFilesRecursive(new DirectoryInfo(sourceMonoDir), new DirectoryInfo(destMonoDir), true);
+                    if (copyMono)
+                    {
+                        if (cleanRuntimeFolders)
+                        {
+                            CleanFolder(destMonoDir);
                         }
+
+                        // Copy the Mono folder into the project binaries folder
+                        CopyFilesRecursive(new DirectoryInfo(sourceMonoDir), new DirectoryInfo(destMonoDir), true);
                     }
                 }
             }

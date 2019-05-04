@@ -10,7 +10,7 @@
 //#define MONO_VERBOSE_LOGGING // Enable this if mono fails to load or crashes without errors
 #define MONO_STATIC_LINK PLATFORM_IOS
 
-#if PLATFORM_LINUX
+#if PLATFORM_LINUX || PLATFORM_ANDROID
 #define DLL_EXTENSION TEXT(".so")
 #elif PLATFORM_APPLE
 #define DLL_EXTENSION TEXT(".dylib")
@@ -276,6 +276,8 @@ FString CSharpLoader::GetPlatformString()
 	return FString(TEXT("Linux"));
 #elif PLATFORM_MAC
 	return FString(TEXT("Mac"));
+#elif PLATFORM_ANDROID
+	return FString(TEXT("Android"));
 #else
 	check(0);
 	return FString(TEXT("Unknown"));
@@ -304,6 +306,8 @@ FString CSharpLoader::GetMonoDllPath()
 	FString dllName = FString(TEXT("mono-sgen"));
 #elif PLATFORM_MAC
 	FString dllName = FString(TEXT("mono-sgen64"));
+#elif PLATFORM_ANDROID
+	FString dllName = FString(TEXT("libmonosgen-2.0")) + DLL_EXTENSION;
 #else
 	FString dllName = FString(TEXT("mono-sgen"));
 	check(0);
@@ -939,6 +943,11 @@ void CSharpLoader::LogLoaderError(FString error)
 
 FString CSharpLoader::GetPluginBinariesDir()
 {
+#if PLATFORM_ANDROID
+	// On android the files will in a .obb archive under /ProjectName/Binaries
+	// NOTE: 20tab's UnrealEnginePython implementation (which is based on FAndroidPlatformFile::Initialize?) does some additional .obb scanning. TODO: Look into.
+	return FPaths::Combine(FPaths::ProjectDir(), TEXT("Binaries"));
+#endif
 	// This gives up "/Binaries/XXXX/" where XXXX is the platform (Win32, Win64, Android, etc)
 #if !IS_MONOLITHIC
 	FString PluginsBaseDir = FPaths::GetPath(FModuleManager::Get().GetModuleFilename("USharp"));

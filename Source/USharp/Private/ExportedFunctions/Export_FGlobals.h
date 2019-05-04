@@ -293,10 +293,12 @@ CSEXPORT void CSCONV Export_FGlobals_Get_GInternalProjectName(FString& result)
 	result = GInternalProjectName;
 }
 
+#if PLATFORM_DESKTOP
 CSEXPORT void CSCONV Export_FGlobals_Get_GForeignEngineDir(FString& result)
 {
 	result = GForeignEngineDir;
 }
+#endif
 
 CSEXPORT FExec* CSCONV Export_FGlobals_Get_GDebugToolExec()
 {
@@ -648,7 +650,9 @@ CSEXPORT void CSCONV Export_FGlobals(RegisterFunc registerFunc)
 	REGISTER_FUNC(Export_FGlobals_Set_GNearClippingPlane);
 	REGISTER_FUNC(Export_FGlobals_Get_GExitPurge);
 	REGISTER_FUNC(Export_FGlobals_Get_GInternalProjectName);
+#if PLATFORM_DESKTOP
 	REGISTER_FUNC(Export_FGlobals_Get_GForeignEngineDir);
+#endif
 	REGISTER_FUNC(Export_FGlobals_Get_GDebugToolExec);
 	REGISTER_FUNC(Export_FGlobals_IsAsyncLoading);
 	REGISTER_FUNC(Export_FGlobals_SuspendAsyncLoading);

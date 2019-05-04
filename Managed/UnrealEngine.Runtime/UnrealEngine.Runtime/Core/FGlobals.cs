@@ -563,6 +563,7 @@ namespace UnrealEngine.Runtime
         {
             get
             {
+                //#if PLATFORM_DESKTOP
                 using (FStringUnsafe resultUnsafe = new FStringUnsafe())
                 {
                     Native_FGlobals.Get_GForeignEngineDir(ref resultUnsafe.Array);
