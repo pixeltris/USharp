@@ -6,6 +6,10 @@
 #include <signal.h>
 #endif
 
+#if PLATFORM_ANDROID
+#include "MonoAndroidBootstrap.h"
+#endif
+
 //#define FORCE_MONO
 //#define MONO_VERBOSE_LOGGING // Enable this if mono fails to load or crashes without errors
 #define MONO_STATIC_LINK PLATFORM_IOS
@@ -81,6 +85,9 @@ struct MonoException
 
 typedef void(*MonoPrintCallback)(const char* str, mono_bool is_stdout);
 typedef void(*MonoLogCallback)(const char* log_domain, const char* log_level, const char* message, mono_bool fatal, void* user_data);
+typedef void*(*MonoDlFallbackLoad) (const char *name, int flags, char **err, void *user_data);
+typedef void*(*MonoDlFallbackSymbol) (void *handle, const char *name, char **err, void *user_data);
+typedef void*(*MonoDlFallbackClose) (void *handle, void *user_data);
 
 typedef void(*import__mono_config_parse)(const char* filename);
 typedef void(*import__mono_domain_set_config)(MonoDomain *domain, const char* base_dir, const char* config_file_name);
@@ -104,6 +111,7 @@ typedef void(*import__mono_trace_set_mask_string)(const char* value);
 typedef void(*import__mono_trace_set_log_handler)(MonoLogCallback callback, void* user_data);
 typedef void(*import__mono_trace_set_print_handler)(MonoPrintCallback callback);
 typedef void(*import__mono_trace_set_printerr_handler)(MonoPrintCallback callback);
+typedef void*(*import__mono_dl_fallback_register)(MonoDlFallbackLoad load_func, MonoDlFallbackSymbol symbol_func, MonoDlFallbackClose close_func, void *user_data);
 
 import__mono_config_parse mono_config_parse;
 import__mono_domain_set_config mono_domain_set_config;
@@ -127,6 +135,7 @@ import__mono_trace_set_mask_string mono_trace_set_mask_string;
 import__mono_trace_set_log_handler mono_trace_set_log_handler;
 import__mono_trace_set_print_handler mono_trace_set_print_handler;
 import__mono_trace_set_printerr_handler mono_trace_set_printerr_handler;
+import__mono_dl_fallback_register mono_dl_fallback_register;
 #endif
 
 // CoreCLR functions
@@ -203,7 +212,7 @@ CSharpLoader::CSharpLoader()
 	runtimeState.DesiredRuntimes = EDotNetRuntime::Mono
 #else
 	// Find the desired runtimes to use
-	FString runtimeInfoFile = FPaths::Combine(GetPluginBinariesDir(), TEXT("Managed"), TEXT("Runtimes"), TEXT("DotNetRuntime.txt"));
+	FString runtimeInfoFile = FPaths::Combine(GetManagedBinariesDir(), TEXT("Runtimes"), TEXT("DotNetRuntime.txt"));
 	if (FPaths::FileExists(runtimeInfoFile))
 	{
 		runtimeInfoFile = FPaths::ConvertRelativePathToFull(runtimeInfoFile);
@@ -252,16 +261,16 @@ CSharpLoader* CSharpLoader::GetInstance()
 
 void CSharpLoader::SetupPaths()
 {
-	FString PluginsBaseDir = GetPluginBinariesDir();
+	FString ManagedBinDir = GetManagedBinariesDir();
 
 	// Managed plugins should be under "/Binaries/Managed/"
-	csharpPaths.Add(FPaths::Combine(*PluginsBaseDir, TEXT("Managed")));
+	csharpPaths.Add(ManagedBinDir);
 	
 	// Mono should be under "/Binaries/Managed/Runtimes/Mono/[PLATFORM]/bin/"
-	monoLibPaths.Add(FPaths::Combine(*PluginsBaseDir, TEXT("Managed"), TEXT("Runtimes"), TEXT("Mono"), *GetPlatformString(), TEXT("bin")));
+	monoLibPaths.Add(FPaths::Combine(*ManagedBinDir, TEXT("Runtimes"), TEXT("Mono"), *GetPlatformString(), TEXT("bin")));
 
 	// CoreCLR should be under "/Binaries/Managed/Runtimes/CoreCLR/[PLATFORM]/"
-	coreCLRLibPaths.Add(FPaths::Combine(*PluginsBaseDir, TEXT("Managed"), TEXT("Runtimes"), TEXT("CoreCLR"), *GetPlatformString()));
+	coreCLRLibPaths.Add(FPaths::Combine(*ManagedBinDir, TEXT("Runtimes"), TEXT("CoreCLR"), *GetPlatformString()));
 }
 
 FString CSharpLoader::GetPlatformString()
@@ -465,6 +474,7 @@ bool CSharpLoader::LoadRuntimeMono()
 	mono_trace_set_log_handler = (import__mono_trace_set_log_handler)FPlatformProcess::GetDllExport(dllHandle, TEXT("mono_trace_set_log_handler"));
 	mono_trace_set_print_handler = (import__mono_trace_set_print_handler)FPlatformProcess::GetDllExport(dllHandle, TEXT("mono_trace_set_print_handler"));
 	mono_trace_set_printerr_handler = (import__mono_trace_set_printerr_handler)FPlatformProcess::GetDllExport(dllHandle, TEXT("mono_trace_set_printerr_handler"));
+	mono_dl_fallback_register = (import__mono_dl_fallback_register)FPlatformProcess::GetDllExport(dllHandle, TEXT("mono_dl_fallback_register"));
 
 	if (mono_config_parse == NULL ||
 		mono_domain_set_config == NULL ||
@@ -487,7 +497,8 @@ bool CSharpLoader::LoadRuntimeMono()
 		mono_trace_set_mask_string == NULL ||
 		mono_trace_set_log_handler == NULL ||
 		mono_trace_set_print_handler == NULL ||
-		mono_trace_set_printerr_handler == NULL)
+		mono_trace_set_printerr_handler == NULL ||
+		mono_dl_fallback_register == NULL)
 	{
 		return false;
 	}
@@ -521,6 +532,11 @@ bool CSharpLoader::LoadRuntimeMono()
 	mono_trace_set_log_handler(OnMonoLog, NULL);
 	mono_trace_set_print_handler(OnMonoPrint);
 	mono_trace_set_printerr_handler(OnMonoPrint);
+#endif
+
+#if PLATFORM_ANDROID
+	bootstrap_mono_android_init();
+	mono_dl_fallback_register(bootstrap_mono_android_dlopen, bootstrap_mono_android_dlsym, NULL, NULL);
 #endif
 
 	FString assemblyDir = FPaths::Combine(*monoDirectory, TEXT(".."), TEXT("lib"));
@@ -941,23 +957,87 @@ void CSharpLoader::LogLoaderError(FString error)
 	FMessageDialog::Open(EAppMsgType::Ok, FText::FromString(error), &title);
 }
 
-FString CSharpLoader::GetPluginBinariesDir()
+FString CSharpLoader::GetManagedBinariesDir()
 {
 #if PLATFORM_ANDROID
-	// On android the files will in a .obb archive under /ProjectName/Binaries
-	// NOTE: 20tab's UnrealEnginePython implementation (which is based on FAndroidPlatformFile::Initialize?) does some additional .obb scanning. TODO: Look into.
-	return FPaths::Combine(FPaths::ProjectDir(), TEXT("Binaries"));
+	// We can store Mono / managed game dlls in either the .apk under /assets/ or in the UE4 .obb archive.
+	// Mono can't be loaded directly from the .obb / .apk so it must first be copied to another location.
+
+	extern FString GExternalFilePath;
+	FString TargetDir = FPaths::Combine(GExternalFilePath, TEXT("USharp"), TEXT("Managed"));
+	if (FPaths::DirectoryExists(TargetDir))
+	{
+		return TargetDir;
+	}
+	
+	IFileManager& FileManager = IFileManager::Get();
+	int32 NumCopied = 0;
+	int32 NumCopyFailed = 0;
+	
+	FString SrcDir;
+	
+	// Safer to prepend the DllPathInAssetsFolder string with FString(FPlatformProcess::BaseDir())?
+	FString DllPathInAssetsFolder = FString(TEXT("Binaries")) / TEXT("Managed") / TEXT("UnrealEngine.Runtime.dll");
+	if (FPaths::FileExists(DllPathInAssetsFolder))
+	{
+		// The files are in the main apk in the /assets/ folder
+		SrcDir = FString(TEXT("Binaries")) / TEXT("Managed");
+	}
+	else
+	{
+		// The files are in an .obb archive under /ProjectName/Binaries
+		// NOTE: 20tab's UnrealEnginePython implementation (which is based on FAndroidPlatformFile::Initialize?) does some additional .obb scanning. TODO: Look into.
+		SrcDir = FPaths::Combine(FPaths::ProjectDir(), TEXT("Binaries"), TEXT("Managed"));
+	}
+	
+	FString AndroidFileListFile = SrcDir / TEXT("AndroidFileList.txt");
+	if (FPaths::FileExists(AndroidFileListFile))
+	{
+		TArray<FString> AndrodFileList;
+		if (FFileHelper::LoadFileToStringArray(AndrodFileList, *AndroidFileListFile))
+		{
+			// This currently wont copy empty directories. Hopefully this wont be an issue.
+			for (FString FileName : AndrodFileList)
+			{
+				FString SrcFileName = SrcDir / FileName;
+				TArray<uint8> MemFile;
+				if (FFileHelper::LoadFileToArray(MemFile, *SrcFileName, 0))
+				{
+					FString DestFileName = TargetDir / FileName;
+					if (FFileHelper::SaveArrayToFile(MemFile, *DestFileName, &FileManager))
+					{
+						NumCopied++;
+					}
+					else
+					{
+						NumCopyFailed++;
+					}
+				}
+				else
+				{
+					NumCopyFailed++;
+				}
+			}
+		}
+	}
+	
+	if (NumCopyFailed > 0)
+	{
+		LogLoaderError(FString::Printf(TEXT("Failed unpack USharp files. Copied:%d failed:%d"), NumCopied, NumCopyFailed));
+	}
+	
+	return TargetDir;
 #endif
 	// This gives up "/Binaries/XXXX/" where XXXX is the platform (Win32, Win64, Android, etc)
 #if !IS_MONOLITHIC
-	FString PluginsBaseDir = FPaths::GetPath(FModuleManager::Get().GetModuleFilename("USharp"));
+	FString Dir = FPaths::GetPath(FModuleManager::Get().GetModuleFilename("USharp"));
 #else
 	// In monolithic builds there are no plugins (and such FModuleManager::GetModuleFilename doesn't exist)
 	// FPlatformProcess::BaseDir() should be the binaries are?
-	FString PluginsBaseDir = FPlatformProcess::BaseDir();
+	FString Dir = FPlatformProcess::BaseDir();
 #endif
-	// Move this up to "/Binaries/"
-	PluginsBaseDir = FPaths::Combine(*PluginsBaseDir, TEXT("../"));
+	// Move to "/Binaries/Managed/"
+	Dir = FPaths::Combine(Dir, TEXT("../"), TEXT("Managed"));
 
-	return PluginsBaseDir;
+	return Dir;
 }

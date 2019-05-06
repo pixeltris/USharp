@@ -1,5 +1,7 @@
 using System;
 using System.IO;
+using System.Text;
+using System.Collections.Generic;
 
 namespace UnrealBuildTool.Rules
 {
@@ -129,6 +131,29 @@ namespace UnrealBuildTool.Rules
             // Keep this up to date with CSharpLoader::GetPlatformString()
             return Target.Platform.ToString();
         }
+        
+        private string GetPluginManagedBinDir()
+        {
+            string pluginBinDir = Path.Combine(ModuleDirectory, "..", "..", "Binaries");
+            return Path.Combine(pluginBinDir, "Managed");
+        }
+        
+        private string GetMonoDir(string managedBinDir, bool checkInstallDir)
+        {
+            // TODO: Also check the default install path of Mono
+            return Path.Combine(managedBinDir, "Runtimes", "Mono", GetPlatformString());
+        }
+        
+        private string GetCoreCLRDir(string managedBinDir, bool checkInstallDir)
+        {
+            // TODO: Also check the default install path of .NET Core
+            return Path.Combine(managedBinDir, "Runtimes", "CoreCLR", GetPlatformString());
+        }
+        
+        private string GetDotNetRuntimesFile(string managedBinDir)
+        {
+            return Path.Combine(managedBinDir, "Runtimes", "DotNetRuntime.txt");
+        }
 
         private void SetupManagedPaths()
         {
@@ -137,55 +162,36 @@ namespace UnrealBuildTool.Rules
             if (File.Exists(projectFile) && Path.GetExtension(projectFile) == ".uproject" && Directory.Exists(ModuleDirectory))
             {
                 // USharp paths (engine plugins folder)
-                string pluginBinDir = Path.Combine(ModuleDirectory, "..", "..", "Binaries");
-                string pluginManagedBinDir = Path.Combine(pluginBinDir, "Managed");
+                string pluginManagedBinDir = GetPluginManagedBinDir();
                 string pluginShippingManagedBinDir = Path.Combine(pluginManagedBinDir, "Shipping");
 
                 // Game project paths
                 string projectDir = Path.GetDirectoryName(projectFile);
                 string managedBinDir = Path.Combine(projectDir, "Binaries", "Managed");
+                
+                outputRelativeDir = new Uri(Path.GetFullPath(Path.Combine(projectDir, "Binaries")), UriKind.Absolute);
 
                 if (!Directory.Exists(managedBinDir))
                 {
                     // This might not be a USharp enabled project?
                     return;
                 }
-
-                outputRelativeDir = new Uri(Path.GetFullPath(Path.Combine(projectDir, "Binaries")), UriKind.Absolute);
-
-                // Copy the shipping build version of UnrealEngine.Runtime.dll to /ProjectName/Binaries/Managed
-                string shippingRuntimeDllPath = Path.Combine(pluginShippingManagedBinDir, "UnrealEngine.Runtime.dll");
-                if (File.Exists(shippingRuntimeDllPath))
-                {
-                    File.Copy(shippingRuntimeDllPath, Path.Combine(managedBinDir, "UnrealEngine.Runtime.dll"), true);
-                }
-
-                // Add "ProjectName/Binaries/Managed/" to the RuntimeDependencies
-                AddToRuntimeDependenciesRecursively(new DirectoryInfo(managedBinDir));
-
+                
                 // Add CoreCLR/Mono folders to RuntimeDependencies (if they exists)
                 // 
                 // NOTE: We need to copy the folders locally rather than directly referencing the folders in the engine
                 //       plugins folder as RuntimeDependencies depends on paths being within the game project folder.
-                string sourceCoreCLRDir = Path.Combine(pluginManagedBinDir, "Runtimes", "CoreCLR", GetPlatformString());
-                string sourceMonoDir = Path.Combine(pluginManagedBinDir, "Runtimes", "Mono", GetPlatformString());
-                string sourceRuntimesFile = Path.Combine(pluginManagedBinDir, "Runtimes", "DotNetRuntime.txt");
+                string sourceCoreCLRDir = GetCoreCLRDir(pluginManagedBinDir, true);
+                string sourceMonoDir = GetMonoDir(pluginManagedBinDir, true);
+                string sourceRuntimesFile = GetDotNetRuntimesFile(pluginManagedBinDir);
 
-                string destCoreCLRDir = Path.Combine(managedBinDir, "Runtimes", "CoreCLR", GetPlatformString());
-                string destMonoDir = Path.Combine(managedBinDir, "Runtimes", "Mono", GetPlatformString());
-                string destRuntimesFile = Path.Combine(managedBinDir, "Runtimes", "DotNetRuntime.txt");
+                string destCoreCLRDir = GetCoreCLRDir(managedBinDir, false);
+                string destMonoDir = GetMonoDir(managedBinDir, false);
+                string destRuntimesFile = GetDotNetRuntimesFile(managedBinDir);
 
                 bool copyCoreCLR = false;
                 bool copyMono = false;
                 bool cleanRuntimeFolders = false;// If true delete the contents of the target runtime folders before copying
-                
-                switch (Target.Platform)
-                {
-                    case UnrealTargetPlatform.Android:
-                        // Mono is currently the only supported runtime on Android. Ensure that it gets packaged.
-                        copyMono = true;
-                        break;
-                }
 
                 if (File.Exists(sourceRuntimesFile))
                 {
@@ -214,6 +220,15 @@ namespace UnrealBuildTool.Rules
                     }
                 }
                 
+                switch (Target.Platform)
+                {
+                    case UnrealTargetPlatform.Android:
+                        // Mono is currently the only supported runtime on Android. Ensure that it gets packaged.
+                        copyMono = true;
+                        copyCoreCLR = false;
+                        break;
+                }
+                
                 if (copyMono && !Directory.Exists(sourceMonoDir))
                 {
                     copyMono = false;
@@ -223,6 +238,79 @@ namespace UnrealBuildTool.Rules
                 {
                     copyCoreCLR = false;
                 }
+                
+                if (Target.Platform == UnrealTargetPlatform.Android)
+                {
+                    // We need to store a file list somewhere as there are issues with traversing the folder hierarchy
+                    // (both the .obb file structure and the .apk file structure have issues with traversal)
+                    
+                    // NOTE: There is currently a crash loading files outside of the obb (FFileHelper::LoadFileToStringArray / FFileHelper::LoadFileToArray)
+                    bool storeInObb = true;
+                    
+                    StringBuilder fileListStr = new StringBuilder();
+                    Uri rootRelativeDir = new Uri(Path.GetFullPath(Path.Combine(projectDir, "Binaries", "Managed", "_")), UriKind.Absolute);
+                    foreach (string file in GetAllFiles(new DirectoryInfo(managedBinDir), "Runtimes"))
+                    {
+                        string relativePath = rootRelativeDir.MakeRelativeUri(new Uri(file, UriKind.Absolute)).ToString();
+                        fileListStr.Append(relativePath + "\n");
+                    }
+                    // Not needed until .NET Core is supported
+                    /*if ((copyMono || copyCoreCLR) && File.Exists(sourceRuntimesFile))
+                    {
+                        string relativePath = rootRelativeDir.MakeRelativeUri(new Uri(sourceRuntimesFile, UriKind.Absolute)).ToString();
+                        fileListStr.Append(relativePath + "\n");
+                    }*/
+                    if (copyMono)
+                    {
+                        Uri monoRelativeDir = new Uri(Path.GetFullPath(Path.Combine(sourceMonoDir, "_")), UriKind.Absolute);
+                        foreach (string file in Directory.GetFiles(sourceMonoDir, "*.*", SearchOption.AllDirectories))
+                        {
+                            string relativePath = monoRelativeDir.MakeRelativeUri(new Uri(file, UriKind.Absolute)).ToString();
+                            fileListStr.Append("Runtimes/Mono/Android/" + relativePath + "\n");
+                        }
+                    }
+                    if (copyCoreCLR)
+                    {
+                        Uri coreClrRelativeDir = new Uri(Path.GetFullPath(Path.Combine(sourceCoreCLRDir, "_")), UriKind.Absolute);
+                        foreach (string file in Directory.GetFiles(sourceCoreCLRDir, "*.*", SearchOption.AllDirectories))
+                        {
+                            string relativePath = coreClrRelativeDir.MakeRelativeUri(new Uri(file, UriKind.Absolute)).ToString();
+                            fileListStr.Append("Runtimes/CoreCLR/Android/" + relativePath + "\n");
+                        }
+                    }
+                    
+                    string androidFileListFile = Path.Combine(managedBinDir, "AndroidFileList.txt");
+                    try
+                    {
+                        File.WriteAllText(androidFileListFile, fileListStr.ToString());
+                    }
+                    catch
+                    {
+                    }
+                    
+                    if (storeInObb)
+                    {
+                        // Store USharp files in the .obb
+                        AddFileToRuntimeDependencies(androidFileListFile);
+                    }
+                    else
+                    {
+                        // Store USharp files in the .apk under /assets/
+                        string pluginPath = Utils.MakePathRelativeTo(ModuleDirectory, Target.RelativeEnginePath);
+                        AdditionalPropertiesForReceipt.Add("AndroidPlugin", Path.Combine(pluginPath, "USharp_APL.xml"));
+                        return;
+                    }
+                }
+
+                // Copy the shipping build version of UnrealEngine.Runtime.dll to /ProjectName/Binaries/Managed
+                string shippingRuntimeDllPath = Path.Combine(pluginShippingManagedBinDir, "UnrealEngine.Runtime.dll");
+                if (File.Exists(shippingRuntimeDllPath))
+                {
+                    File.Copy(shippingRuntimeDllPath, Path.Combine(managedBinDir, "UnrealEngine.Runtime.dll"), true);
+                }
+
+                // Add "ProjectName/Binaries/Managed/" to the RuntimeDependencies
+                AddToRuntimeDependenciesRecursively(new DirectoryInfo(managedBinDir), "Runtimes");
                 
                 if (copyCoreCLR || copyMono)
                 {
@@ -337,17 +425,42 @@ namespace UnrealBuildTool.Rules
             }
         }
 
+        private string[] GetAllFiles(DirectoryInfo target, params string[] ignoreDirs)
+        {
+            List<string> result = new List<string>();
+            GetAllFiles(target, result, ignoreDirs);
+            return result.ToArray();
+        }
+        
+        private void GetAllFiles(DirectoryInfo target, List<string> result, params string[] ignoreDirs)
+        {
+            foreach (DirectoryInfo dir in target.GetDirectories())
+            {
+                if (Array.IndexOf(ignoreDirs, dir.Name) >= 0)
+                {
+                    result.AddRange(GetAllFiles(dir));
+                }
+            }
+            foreach (FileInfo file in target.GetFiles())
+            {
+                result.Add(file.FullName);
+            }
+        }
+        
         /// <summary>
         /// Recursively adds a folder and all files to runtime dependencies without copying
         /// </summary>
         /// <param name="target">The folder to include in the runtime dependencies (the folder must be under the project directory)</param>
-        private void AddToRuntimeDependenciesRecursively(DirectoryInfo target)
+        private void AddToRuntimeDependenciesRecursively(DirectoryInfo target, params string[] ignoreDirs)
         {
             if (target.Exists)
             {
                 foreach (DirectoryInfo dir in target.GetDirectories())
                 {
-                    AddToRuntimeDependenciesRecursively(dir);
+                    if (Array.IndexOf(ignoreDirs, dir.Name) >= 0)
+                    {
+                        AddToRuntimeDependenciesRecursively(target);
+                    }
                 }
                 foreach (FileInfo file in target.GetFiles())
                 {

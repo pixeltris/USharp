@@ -986,6 +986,87 @@ namespace UnrealEngine.Runtime
             get { return *worldPtr; }
         }
 
+        /// <summary>
+        /// Engine\Source\Runtime\Core\Private\Android\AndroidFile.cpp
+        /// </summary>
+        public static class AndrodFile
+        {
+            /// <summary>
+            /// External File Path base - setup during load
+            /// </summary>
+            public static string FilePathBase
+            {
+                get
+                {
+                    using (FStringUnsafe resultUnsafe = new FStringUnsafe())
+                    {
+                        Native_FGlobals.Get_GFilePathBase(ref resultUnsafe.Array);
+                        return resultUnsafe.Value;
+                    }
+                }
+            }
+
+            /// <summary>
+            /// Obb File Path base - setup during load
+            /// </summary>
+            public static string OBBFilePathBase
+            {
+                get
+                {
+                    using (FStringUnsafe resultUnsafe = new FStringUnsafe())
+                    {
+                        Native_FGlobals.Get_GOBBFilePathBase(ref resultUnsafe.Array);
+                        return resultUnsafe.Value;
+                    }
+                }
+            }
+
+            /// <summary>
+            /// Internal File Direcory Path (for application) - setup during load
+            /// </summary>
+            public static string InternalFilePath
+            {
+                get
+                {
+                    using (FStringUnsafe resultUnsafe = new FStringUnsafe())
+                    {
+                        Native_FGlobals.Get_GInternalFilePath(ref resultUnsafe.Array);
+                        return resultUnsafe.Value;
+                    }
+                }
+            }
+
+            /// <summary>
+            /// External File Direcory Path (for application) - setup during load
+            /// </summary>
+            public static string ExternalFilePath
+            {
+                get
+                {
+                    using (FStringUnsafe resultUnsafe = new FStringUnsafe())
+                    {
+                        Native_FGlobals.Get_GExternalFilePath(ref resultUnsafe.Array);
+                        return resultUnsafe.Value;
+                    }
+                }
+            }
+
+            /// <summary>
+            /// External font path base - setup during load
+            /// </summary>
+            public static string FontPathBase
+            {
+                get
+                {
+                    using (FStringUnsafe resultUnsafe = new FStringUnsafe())
+                    {
+                        Native_FGlobals.Get_GFontPathBase(ref resultUnsafe.Array);
+                        return resultUnsafe.Value;
+                    }
+                }
+            }
+        }
+
         internal static void OnNativeFunctionsRegistered()
         {
             lastGCFramePtr = (ulong*)Native_FGlobals.Get_GLastGCFramePtr();

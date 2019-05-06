@@ -582,6 +582,41 @@ CSEXPORT UWorld** CSCONV Export_FGlobals_Get_GWorldPtr()
 	return (UWorld**)&GWorld;
 }
 
+#if PLATFORM_ANDROID
+///////////////////////////////////////////////////////////////////////////////
+// Engine\Source\Runtime\Core\Private\Android\AndroidFile.cpp
+///////////////////////////////////////////////////////////////////////////////
+CSEXPORT void CSCONV Export_FGlobals_Get_GFilePathBase(FString& result)
+{
+	extern FString GFilePathBase;
+	result = GFilePathBase;
+}
+
+CSEXPORT void CSCONV Export_FGlobals_Get_GOBBFilePathBase(FString& result)
+{
+	extern FString GOBBFilePathBase;
+	result = GOBBFilePathBase;
+}
+
+CSEXPORT void CSCONV Export_FGlobals_Get_GInternalFilePath(FString& result)
+{
+	extern FString GInternalFilePath;
+	result = GInternalFilePath;
+}
+
+CSEXPORT void CSCONV Export_FGlobals_Get_GExternalFilePath(FString& result)
+{
+	extern FString GExternalFilePath;
+	result = GExternalFilePath;
+}
+
+CSEXPORT void CSCONV Export_FGlobals_Get_GFontPathBase(FString& result)
+{
+	extern FString GFontPathBase;
+	result = GFontPathBase;
+}
+#endif
+
 CSEXPORT void CSCONV Export_FGlobals(RegisterFunc registerFunc)
 {
 	///////////////////////////////////////////////////////////////////////////////
@@ -728,4 +763,15 @@ CSEXPORT void CSCONV Export_FGlobals(RegisterFunc registerFunc)
 	// Engine\Source\Runtime\Engine\Classes\Engine\World.h
 	///////////////////////////////////////////////////////////////////////////////
 	REGISTER_FUNC(Export_FGlobals_Get_GWorldPtr);
+	
+#if PLATFORM_ANDROID
+	///////////////////////////////////////////////////////////////////////////////
+	// Engine\Source\Runtime\Core\Private\Android\AndroidFile.cpp
+	///////////////////////////////////////////////////////////////////////////////
+	REGISTER_FUNC(Export_FGlobals_Get_GFilePathBase);
+	REGISTER_FUNC(Export_FGlobals_Get_GOBBFilePathBase);
+	REGISTER_FUNC(Export_FGlobals_Get_GInternalFilePath);
+	REGISTER_FUNC(Export_FGlobals_Get_GExternalFilePath);
+	REGISTER_FUNC(Export_FGlobals_Get_GFontPathBase);
+#endif
 }

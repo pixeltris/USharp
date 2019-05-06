@@ -140,7 +140,14 @@ namespace UnrealEngine.Runtime.Native
         // Engine\Source\Runtime\Engine\Classes\Engine\World.h
         ///////////////////////////////////////////////////////////////////////////////
         public delegate IntPtr Del_Get_GWorldPtr();
-
+        ///////////////////////////////////////////////////////////////////////////////
+        // Engine\Source\Runtime\Core\Private\Android\AndroidFile.cpp
+        ///////////////////////////////////////////////////////////////////////////////
+        public delegate void Del_Get_GFilePathBase(ref FScriptArray result);
+        public delegate void Del_Get_GOBBFilePathBase(ref FScriptArray result);
+        public delegate void Del_Get_GInternalFilePath(ref FScriptArray result);
+        public delegate void Del_Get_GExternalFilePath(ref FScriptArray result);
+        public delegate void Del_Get_GFontPathBase(ref FScriptArray result);
 
 
         ///////////////////////////////////////////////////////////////////////////////
@@ -274,5 +281,13 @@ namespace UnrealEngine.Runtime.Native
         // Engine\Source\Runtime\Engine\Classes\Engine\World.h
         ///////////////////////////////////////////////////////////////////////////////
         public static Del_Get_GWorldPtr Get_GWorldPtr;
+        ///////////////////////////////////////////////////////////////////////////////
+        // Engine\Source\Runtime\Core\Private\Android\AndroidFile.cpp
+        ///////////////////////////////////////////////////////////////////////////////
+        public static Del_Get_GFilePathBase Get_GFilePathBase;
+        public static Del_Get_GOBBFilePathBase Get_GOBBFilePathBase;
+        public static Del_Get_GInternalFilePath Get_GInternalFilePath;
+        public static Del_Get_GExternalFilePath Get_GExternalFilePath;
+        public static Del_Get_GFontPathBase Get_GFontPathBase;
     }
 }

@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- See Engine/Source/Programs/UnrealBuildTool/System/UnrealPluginLanguage.cs for docs -->
+<root xmlns:android="http://schemas.android.com/apk/res/android">
+	<!-- init section is always evaluated once per architecture -->
+	<init>
+		<!-- currently only support armv7 -->
+		<setBool result="bSupported" value="false"/>
+		<isArch arch="armeabi-v7a">
+			<setBool result="bSupported" value="true"/>
+		</isArch>
+		
+		<if condition="bSupported">
+			<false>
+				<log text="WARNING: this architecture is not supported by USharp!"/>
+			</false>
+		</if>
+	</init>
+	
+	<!-- optional files or directories to copy to Intermediate/Android/APK -->
+	<resourceCopies>
+		<copyFile src="$S(ProjectDir)/Binaries/Managed/AndroidFileList.txt" dst="$S(BuildDir)/assets/Binaries/Managed/AndroidFileList.txt" />
+		<copyDir src="$S(ProjectDir)/Binaries/Managed" dst="$S(BuildDir)/assets/Binaries/Managed" />
+		<copyFile src="$S(PluginDir)/../../Binaries/Managed/Shipping/UnrealEngine.Runtime.dll" dst="$S(BuildDir)/assets/Binaries/Managed/UnrealEngine.Runtime.dll" />
+		<deleteFiles filespec="/assets/Binaries/Managed/*.pdb" />
+		<copyDir src="$S(PluginDir)/../../Binaries/Managed/Runtimes/Mono/Android" dst="$S(BuildDir)/assets/Binaries/Managed/Runtimes/Mono/Android" />
+	</resourceCopies>
+	
+	<!-- Files to copy before the build so they can be used in the build -->
+	<prebuildCopies>
+	</prebuildCopies>
+</root>

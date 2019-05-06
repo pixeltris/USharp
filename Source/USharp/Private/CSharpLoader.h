@@ -95,11 +95,11 @@ private:
 	FString GetCoreCLRDllPath();
 	FString GetAssemblyPath(FString assemblyName);
 	bool GetAssemblyPath(FString assemblyPath, FString& outAssemblyPath, bool showLoadError);
-	FString GetLoadErrorReason(int32 retVal);	
+	FString GetLoadErrorReason(int32 retVal);
+	FString GetManagedBinariesDir();
 public:
 	static CSharpLoader* GetInstance();
 	bool Load(FString assemblyPath, FString customArgs, FString loaderAssemblyPath, bool loaderEnabled);
 	bool IsLoaded();
 	void LogLoaderError(FString error);
-	static FString GetPluginBinariesDir();
 };

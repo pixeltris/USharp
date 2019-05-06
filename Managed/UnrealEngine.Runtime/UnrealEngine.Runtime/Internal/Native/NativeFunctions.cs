@@ -366,38 +366,68 @@ namespace UnrealEngine.Runtime.Native
             // If a managed assembly is found just use the found assembly path (and its references).
             HashSet<string> assemblyPaths = new HashSet<string>();
 
-            string projectFileName = FPaths.ProjectFilePath;
-            if (!string.IsNullOrEmpty(projectFileName))
+            EPlatform platform = FPlatformProperties.GetPlatform();
+            if (platform == EPlatform.Android)
             {
-                projectFileName = Path.GetFileNameWithoutExtension(projectFileName);
-                string projectManagedBinDir = Path.Combine(FPaths.ProjectDir, "Binaries", "Managed");
-                if (FBuild.WithEditor && !Directory.Exists(projectManagedBinDir))
+                string externalFilePath = FGlobals.AndrodFile.ExternalFilePath;
+                string managedBinDir = Path.Combine(externalFilePath, "USharp", "Managed");
+
+                string projectName;
+                string projectFileName = FPaths.ProjectFilePath;
+                if (!string.IsNullOrEmpty(projectFileName))
                 {
-                    Directory.CreateDirectory(projectManagedBinDir);
+                    projectName = Path.GetFileNameWithoutExtension(projectFileName);
                 }
-                string assemblyPath = Path.GetFullPath(Path.Combine(projectManagedBinDir, projectFileName + gameAssemblySuffix));
+
+                string assemblyPath = Path.GetFullPath(Path.Combine(managedBinDir, projectFileName + gameAssemblySuffix));
+                assemblyPaths.Add(assemblyPath);
+
+                if (!File.Exists(assemblyPath))
+                {
+                    assemblyPath = Path.GetFullPath(Path.Combine(managedBinDir, FGlobals.InternalProjectName + gameAssemblySuffix));
+                    assemblyPaths.Add(assemblyPath);
+                }
+
                 if (File.Exists(assemblyPath))
                 {
                     gameAssemblyFileName = assemblyPath;
                 }
-                assemblyPaths.Add(assemblyPath);
             }
-
-            string projectName = FGlobals.InternalProjectName;
-            if (string.IsNullOrEmpty(gameAssemblyFileName) && !string.IsNullOrEmpty(projectName))
+            else
             {
-                string path = Path.GetFullPath(projectName + gameAssemblySuffix);
-                assemblyPaths.Add(path);
-                if (!File.Exists(path))
+                string projectFileName = FPaths.ProjectFilePath;
+                if (!string.IsNullOrEmpty(projectFileName))
                 {
-                    path = Path.GetFullPath(Path.Combine("../", "Managed", projectName + gameAssemblySuffix));
+                    projectFileName = Path.GetFileNameWithoutExtension(projectFileName);
+                    string projectManagedBinDir = Path.Combine(FPaths.ProjectDir, "Binaries", "Managed");
+                    if (FBuild.WithEditor && !Directory.Exists(projectManagedBinDir))
+                    {
+                        Directory.CreateDirectory(projectManagedBinDir);
+                    }
+                    string assemblyPath = Path.GetFullPath(Path.Combine(projectManagedBinDir, projectFileName + gameAssemblySuffix));
+                    if (File.Exists(assemblyPath))
+                    {
+                        gameAssemblyFileName = assemblyPath;
+                    }
+                    assemblyPaths.Add(assemblyPath);
                 }
 
-                if (File.Exists(path))
+                string projectName = FGlobals.InternalProjectName;
+                if (string.IsNullOrEmpty(gameAssemblyFileName) && !string.IsNullOrEmpty(projectName))
                 {
-                    gameAssemblyFileName = path;
+                    string path = Path.GetFullPath(projectName + gameAssemblySuffix);
+                    assemblyPaths.Add(path);
+                    if (!File.Exists(path))
+                    {
+                        path = Path.GetFullPath(Path.Combine("../", "Managed", projectName + gameAssemblySuffix));
+                    }
+
+                    if (File.Exists(path))
+                    {
+                        gameAssemblyFileName = path;
+                    }
+                    assemblyPaths.Add(path);
                 }
-                assemblyPaths.Add(path);
             }
 
             // We either need to load all unreal assemblies or hold some metadata to know what modules to load dynamically
