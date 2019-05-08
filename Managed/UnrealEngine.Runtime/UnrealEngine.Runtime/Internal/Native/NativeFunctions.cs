@@ -369,7 +369,7 @@ namespace UnrealEngine.Runtime.Native
             EPlatform platform = FPlatformProperties.GetPlatform();
             if (platform == EPlatform.Android)
             {
-                string externalFilePath = FGlobals.AndrodFile.ExternalFilePath;
+                string externalFilePath = FGlobals.AndroidFile.ExternalFilePath;
                 string managedBinDir = Path.Combine(externalFilePath, "USharp", "Managed");
 
                 string projectName;

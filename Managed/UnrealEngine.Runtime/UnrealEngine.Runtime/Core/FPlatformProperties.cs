@@ -246,28 +246,37 @@ namespace UnrealEngine.Runtime
             return Native_FPlatformProperties.AllowsCallStackDumpDuringAssert();
         }
 
+        // The platform shouldn't change, cache it from the platform name.
+        static bool hasPlatformValue;
+        static EPlatform platform;
         public static EPlatform GetPlatform()
         {
-            string platformName = IniPlatformName();
-            if (string.IsNullOrEmpty(platformName))
+            if (hasPlatformValue)
             {
-                return EPlatform.Unknown;
+                return platform;
             }
 
-            switch (platformName.ToLower())
+            string platformName = IniPlatformName();
+            if (!string.IsNullOrEmpty(platformName))
             {
-                case "windows": return EPlatform.Windows;// Engine\Source\Runtime\Core\Public\Windows\WindowsPlatformProperties.h
-                case "ps4": return EPlatform.PS4;// Engine\Source\Runtime\Core\Public\PS4\PS4Properties.h
-                case "xboxone": return EPlatform.XboxOne;// Engine\Source\Runtime\Core\Public\XboxOne\XboxOneProperties.h
-                case "mac": return EPlatform.Mac;// Engine\Source\Runtime\Core\Public\Mac\MacPlatformProperties.h
-                case "ios": return EPlatform.IOS;// Engine\Source\Runtime\Core\Public\iOS\IOSPlatformProperties.h
-                case "android": return EPlatform.Android;// Engine\Source\Runtime\Core\Public\Android\AndroidProperties.h
-                case "uwp": return EPlatform.UWP; // Engine\Source\Runtime\Core\Public\UWP\UWPProperties.h
-                case "html5": return EPlatform.HTML5;// Engine\Source\Runtime\Core\Public\HTML5\HTML5PlatformProperties.h                
-                case "linux": return EPlatform.Linux;// Engine\Source\Runtime\Core\Public\Linux\LinuxPlatformProperties.h
-                case "switch": return EPlatform.Switch;// Engine\Source\Runtime\Core\Public\Switch\SwitchPlatformProperties.h
-                default: return EPlatform.Unknown;
+                switch (platformName.ToLower())
+                {
+                    case "windows": platform = EPlatform.Windows; break;// Engine\Source\Runtime\Core\Public\Windows\WindowsPlatformProperties.h
+                    case "ps4": platform = EPlatform.PS4; break;// Engine\Source\Runtime\Core\Public\PS4\PS4Properties.h
+                    case "xboxone": platform = EPlatform.XboxOne; break;// Engine\Source\Runtime\Core\Public\XboxOne\XboxOneProperties.h
+                    case "mac": platform = EPlatform.Mac; break;// Engine\Source\Runtime\Core\Public\Mac\MacPlatformProperties.h
+                    case "ios": platform = EPlatform.IOS; break;// Engine\Source\Runtime\Core\Public\iOS\IOSPlatformProperties.h
+                    case "android": platform = EPlatform.Android; break;// Engine\Source\Runtime\Core\Public\Android\AndroidProperties.h
+                    case "uwp": platform = EPlatform.UWP; break; // Engine\Source\Runtime\Core\Public\UWP\UWPProperties.h
+                    case "html5": platform = EPlatform.HTML5; break;// Engine\Source\Runtime\Core\Public\HTML5\HTML5PlatformProperties.h                
+                    case "linux": platform = EPlatform.Linux; break;// Engine\Source\Runtime\Core\Public\Linux\LinuxPlatformProperties.h
+                    case "switch": platform = EPlatform.Switch; break;// Engine\Source\Runtime\Core\Public\Switch\SwitchPlatformProperties.h
+                    default: platform = EPlatform.Unknown; break;
+                }
             }
+
+            hasPlatformValue = true;
+            return platform;
         }
     }
 

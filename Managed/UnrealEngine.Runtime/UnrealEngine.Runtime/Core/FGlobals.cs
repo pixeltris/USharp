@@ -989,7 +989,7 @@ namespace UnrealEngine.Runtime
         /// <summary>
         /// Engine\Source\Runtime\Core\Private\Android\AndroidFile.cpp
         /// </summary>
-        public static class AndrodFile
+        public static class AndroidFile
         {
             /// <summary>
             /// External File Path base - setup during load

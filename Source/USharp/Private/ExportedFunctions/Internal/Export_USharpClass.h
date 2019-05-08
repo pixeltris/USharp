@@ -1,6 +1,29 @@
 #include "SharpClass.h"
 #include "VTableHacks.h"
 
+USharpClass* GetUSharpClass(UClass* Class)
+{
+	USharpClass* SharpClass = nullptr;
+	if (Class->GetClass() == USharpClass::StaticClass())
+	{
+		SharpClass = (USharpClass*)Class;
+	}
+	else
+	{
+		UClass* TempClass = Class;
+		while (TempClass != nullptr)
+		{
+			if (((UObject*)TempClass)->IsA(USharpClass::StaticClass()))
+			{
+				SharpClass = (USharpClass*)TempClass;
+				break;
+			}
+			TempClass = TempClass->GetSuperClass();
+		}
+	}
+	return SharpClass;
+}
+
 // typedef void (FNativeFuncPtr)(UObject* Context, FFrame* TheStack, RESULT_DECL);
 void FallbackFunctionInvoker(UObject* Context, FFrame& Stack, RESULT_DECL)
 {
@@ -74,7 +97,8 @@ CSEXPORT void CSCONV Export_USharpClass_SetFallbackFunctionInvoker(USharpClass* 
 
 void USharpClassFunctionInvoker(UObject* Context, FFrame& Stack, RESULT_DECL)
 {
-	USharpClass* Class = (USharpClass*)Context->GetClass();
+	USharpClass* Class = GetUSharpClass(Context->GetClass());
+	check(Class != nullptr);
 	if (Class->ManagedFunctionInvoker != nullptr)
 	{
 		Class->ManagedFunctionInvoker(Context, Stack, RESULT_PARAM);
@@ -118,25 +142,7 @@ CSEXPORT void CSCONV Export_USharpClass_SetFunctionInvokerAddress(USharpClass* i
 void SharpClassConstructor(const FObjectInitializer& ObjectInitializer)
 {	
 	UClass* Class = ObjectInitializer.GetClass();
-	USharpClass* SharpClass = nullptr;
-	
-	if (Class->GetClass() == USharpClass::StaticClass())
-	{
-		SharpClass = (USharpClass*)Class;
-	}
-	else
-	{
-		UClass* TempClass = Class;
-		while (TempClass != nullptr)
-		{
-			if (((UObject*)TempClass)->IsA(USharpClass::StaticClass()))
-			{
-				SharpClass = (USharpClass*)TempClass;
-				break;
-			}
-			TempClass = TempClass->GetSuperClass();
-		}
-	}
+	USharpClass* SharpClass = GetUSharpClass(Class);
 	check(SharpClass != nullptr);
 	
 	if (SharpClass->ManagedConstructor != nullptr)
