@@ -395,22 +395,21 @@ namespace UnrealEngine.Runtime
                 }
             }
 
-            List<string> otherFields = type.Fields.Except(type.Fields.Where(x=>FieldToSetter.ContainsKey(x.Name))).Select(x=>x.Name).ToList();
+            List<string> otherFields = type.Fields.Except(type.Fields.Where(x => FieldToSetter.ContainsKey(x.Name))).Select(x => x.Name).ToList();
 
-            List<Instruction> removedInstructions = new List<Instruction>();
-            MethodDefinition ctor = type.GetConstructors().FirstOrDefault(x => !x.HasParameters && !x.IsStatic);
-            MethodDefinition baseCtor = type.BaseType.Resolve().GetConstructors().FirstOrDefault(x => !x.HasParameters && !x.IsStatic);
+            MethodDefinition ctorMethod = type.GetConstructors().FirstOrDefault(x => !x.HasParameters && !x.IsStatic);
+            MethodDefinition baseCtorMethod = type.BaseType.Resolve().GetConstructors().FirstOrDefault(x => !x.HasParameters && !x.IsStatic);
 
-            if ((ctor == null) || (baseCtor == null))
+            if ((ctorMethod == null) || (baseCtorMethod == null))
             {
                 // Something went very wrong
                 throw new RewriteException(type, "Found no ctor or base ctor");
             }
 
-            ILProcessor processor = ctor.Body.GetILProcessor();
+            ILProcessor processor = ctorMethod.Body.GetILProcessor();
 
             Instruction ctorStart = null;
-            foreach (Instruction instruction in ctor.Body.Instructions)
+            foreach (Instruction instruction in ctorMethod.Body.Instructions)
             {
                 // Find the call to base ctor first
                 if (instruction.OpCode == OpCodes.Call)
@@ -428,7 +427,7 @@ namespace UnrealEngine.Runtime
                     {
                         throw new RewriteException(type, "Could not resolve reference of " + ctorRef.Name);
                     }
-                    if (methodRefToDef.FullName == baseCtor.FullName)
+                    if (methodRefToDef.FullName == baseCtorMethod.FullName)
                     {
                         ctorStart = instruction;
                         // and then break
@@ -446,9 +445,9 @@ namespace UnrealEngine.Runtime
             ILProcessor injectedProcessor = injectedMethod.Body.GetILProcessor();
 
             // Create and/or get the ILProcessor for the Initialize method
-            ILProcessor initializeProcessor = GetOrCreateInitializeMethodProcessor(type, injectedMethod);
+            CreateOrModifyInitializeMethod(type, injectedMethod);
 
-            Instruction walker = ctor.Body.Instructions.First();
+            Instruction walker = ctorMethod.Body.Instructions.First();
 
             bool added = false;
             while (walker != ctorStart)
@@ -526,15 +525,15 @@ namespace UnrealEngine.Runtime
             injectedProcessor.Append(injectedProcessor.Create(OpCodes.Ret));
 
             // Copy over the variable definitions from ctor
-            foreach (VariableDefinition vd in ctor.Body.Variables)
+            foreach (VariableDefinition variableDefinition in ctorMethod.Body.Variables)
             {
-                injectedMethod.Body.Variables.Add(vd);
+                injectedMethod.Body.Variables.Add(variableDefinition);
             }
 
             FinalizeMethod(injectedMethod);
         }
 
-        private ILProcessor GetOrCreateInitializeMethodProcessor(TypeDefinition type, MethodDefinition injectedMethod)
+        private void CreateOrModifyInitializeMethod(TypeDefinition type, MethodDefinition injectedMethod)
         {
             // Get FObjectInitializer definition
             TypeReference objectInitializer = null;
@@ -548,30 +547,30 @@ namespace UnrealEngine.Runtime
             }
 
             // Check first if method already exists
-            MethodDefinition initialize = type.Methods.FirstOrDefault(x => (x.Name == "Initialize") && x.HasParameters && (x.Parameters.First().ParameterType.Resolve().FullName == objectInitializer.FullName));
+            MethodDefinition initializeMethod = type.Methods.FirstOrDefault(x => (x.Name == "Initialize") && x.HasParameters && (x.Parameters.First().ParameterType.Resolve().FullName == objectInitializer.FullName));
 
-            MethodReference baseInitialize = type.BaseType.Resolve().Methods.FirstOrDefault(x => (x.Name == "Initialize") && x.HasParameters && (x.Parameters.First().ParameterType.Resolve().FullName == objectInitializer.FullName));
+            MethodReference baseInitializeMethod = type.BaseType.Resolve().Methods.FirstOrDefault(x => (x.Name == "Initialize") && x.HasParameters && (x.Parameters.First().ParameterType.Resolve().FullName == objectInitializer.FullName));
 
 
-            if (initialize == null)
+            if (initializeMethod == null)
             {
                 // Has to be created
-                initialize = new MethodDefinition("Initialize", new MethodAttributes(), voidTypeRef);
-                initialize.IsVirtual = true;
-                initialize.IsHideBySig = true;
-                initialize.IsReuseSlot = true;
-                initialize.HasThis = true;
-                initialize.IsPublic = true;
-                initialize.IsManaged = true;
-                initialize.IsIL = true;
-                type.Methods.Add(initialize);
+                initializeMethod = new MethodDefinition("Initialize", new MethodAttributes(), voidTypeRef);
+                initializeMethod.IsVirtual = true;
+                initializeMethod.IsHideBySig = true;
+                initializeMethod.IsReuseSlot = true;
+                initializeMethod.HasThis = true;
+                initializeMethod.IsPublic = true;
+                initializeMethod.IsManaged = true;
+                initializeMethod.IsIL = true;
+                type.Methods.Add(initializeMethod);
 
                 // And also add the base call here already
-                if (baseInitialize != null)
+                if (baseInitializeMethod != null)
                 {
                     // Import the base method, just to be sure
-                    MethodReference baseInitializeImported = assembly.MainModule.ImportEx(baseInitialize);
-                    ILProcessor processor = initialize.Body.GetILProcessor();
+                    MethodReference baseInitializeImported = assembly.MainModule.ImportEx(baseInitializeMethod);
+                    ILProcessor processor = initializeMethod.Body.GetILProcessor();
 
                     // Call our injected method first
                     processor.Emit(OpCodes.Ldarg_0);
@@ -582,20 +581,19 @@ namespace UnrealEngine.Runtime
                     processor.Emit(OpCodes.Ldarg_0);
                     processor.Emit(OpCodes.Ldarg_1);
                     processor.Emit(OpCodes.Call, baseInitializeImported);
+                    FinalizeMethod(initializeMethod);
                 }
             }
             else
             {
                 // Insert the call to the injected method in front of anything else
-                ILProcessor processor = initialize.Body.GetILProcessor();
-                processor.InsertBefore(initialize.Body.Instructions.First(), processor.Create(OpCodes.Ldarg_0));
-                processor.InsertAfter(initialize.Body.Instructions.First(), processor.Create(OpCodes.Call, injectedMethod));
+                ILProcessor processor = initializeMethod.Body.GetILProcessor();
+                processor.InsertBefore(initializeMethod.Body.Instructions.First(), processor.Create(OpCodes.Ldarg_0));
+                processor.InsertAfter(initializeMethod.Body.Instructions.First(), processor.Create(OpCodes.Call, injectedMethod));
             }
-
-            return initialize.Body.GetILProcessor();
         }
 
-        private int IsValidStfldInstruction(Instruction test, Dictionary<string, MethodReference> dict, List<string> otherFields)
+        private int IsValidStfldInstruction(Instruction test, Dictionary<string, MethodReference> exposedProperties, List<string> otherFields)
         {
             if (test.OpCode != OpCodes.Stfld)
             {
@@ -606,7 +604,7 @@ namespace UnrealEngine.Runtime
                 return 0;
             }
             // First check for exposed properties (UProperty)
-            if (dict.ContainsKey((test.Operand as FieldReference).Name))
+            if (exposedProperties.ContainsKey((test.Operand as FieldReference).Name))
             {
                 return 1;
             }
