@@ -385,17 +385,17 @@ namespace UnrealEngine.Runtime
 
         private void RemoveFieldDefaultSetterFromConstructor(TypeDefinition type)
         {
-            Dictionary<FieldReference, MethodReference> FieldToSetter = new Dictionary<FieldReference, MethodReference>();
+            Dictionary<string, MethodReference> FieldToSetter = new Dictionary<string, MethodReference>();
 
             foreach (PropertyDefinition property in type.Properties)
             {
                 if (property.CustomAttributes.Any(x => x.Constructor.DeclaringType.Name == "UPropertyAttribute"))
                 {
-                    FieldToSetter.Add(type.Fields.First(x => x.Name == string.Format("<{0}>k__BackingField", property.Name)), property.SetMethod);
+                    FieldToSetter.Add(string.Format("<{0}>k__BackingField", property.Name), property.SetMethod);
                 }
             }
 
-            List<FieldReference> otherFields = type.Fields.Except(FieldToSetter.Keys).ToList();
+            List<string> otherFields = type.Fields.Except(type.Fields.Where(x=>FieldToSetter.ContainsKey(x.Name))).Select(x=>x.Name).ToList();
 
             List<Instruction> removedInstructions = new List<Instruction>();
             MethodDefinition ctor = type.GetConstructors().FirstOrDefault(x => !x.HasParameters && !x.IsStatic);
@@ -507,7 +507,7 @@ namespace UnrealEngine.Runtime
                     Instruction stfld = block.Dequeue();
 
                     // Import the setter just to be sure
-                    MethodReference methodRef = assembly.MainModule.ImportEx(FieldToSetter[FieldToSetter.Keys.First(x => x.Name == (stfld.Operand as FieldReference).Name)]);
+                    MethodReference methodRef = assembly.MainModule.ImportEx(FieldToSetter[FieldToSetter.Keys.First(x => x == (stfld.Operand as FieldReference).Name)]);
 
                     injectedProcessor.Append(injectedProcessor.Create(OpCodes.Call, methodRef));
                     Console.WriteLine("Moved property default value set to initialize (" + (stfld.Operand as FieldReference).Name.Split('<')[1].Split('>')[0] + ")");
@@ -593,7 +593,7 @@ namespace UnrealEngine.Runtime
             return initialize.Body.GetILProcessor();
         }
 
-        private int IsValidStfldInstruction(Instruction test, Dictionary<FieldReference, MethodReference> dict, List<FieldReference> otherFields)
+        private int IsValidStfldInstruction(Instruction test, Dictionary<string, MethodReference> dict, List<string> otherFields)
         {
             if (test.OpCode != OpCodes.Stfld)
             {
@@ -604,12 +604,12 @@ namespace UnrealEngine.Runtime
                 return 0;
             }
             // First check for exposed properties (UProperty)
-            if (dict.Keys.Any(x => x.Name == (test.Operand as FieldReference).Name))
+            if (dict.ContainsKey((test.Operand as FieldReference).Name))
             {
                 return 1;
             }
             // Or is a internal field?
-            if (otherFields.Any(x => x.Name == (test.Operand as FieldReference).Name))
+            if (otherFields.Contains((test.Operand as FieldReference).Name))
             {
                 return 2;
             }
