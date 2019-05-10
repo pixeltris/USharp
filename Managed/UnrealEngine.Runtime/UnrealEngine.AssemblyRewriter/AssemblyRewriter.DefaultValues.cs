@@ -409,7 +409,6 @@ namespace UnrealEngine.Runtime
 
             Stack<Instruction> instructionStack = new Stack<Instruction>();
 
-            bool foundCtorCall = false;
             bool foundDefaultSet = false;
             foreach (Instruction instruction in ctor.Body.Instructions)
             {
