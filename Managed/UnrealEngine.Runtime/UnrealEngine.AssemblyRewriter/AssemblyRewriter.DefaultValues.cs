@@ -237,7 +237,7 @@ namespace UnrealEngine.Runtime
             switch (paramTypeCode)
             {
                 case EPropertyType.Enum:
-                    return CreateLdRefOutParam(processor, null, 
+                    return CreateLdRefOutParam(processor, null,
                         GetPrimitiveTypeCode(param.ParameterType.Resolve().GetEnumUnderlyingType()));
 
                 case EPropertyType.Bool:
@@ -304,13 +304,13 @@ namespace UnrealEngine.Runtime
             switch (paramTypeCode)
             {
                 case EPropertyType.Enum:
-                    return CreateStRefOutParam(processor, null, 
+                    return CreateStRefOutParam(processor, null,
                         GetPrimitiveTypeCode(param.ParameterType.Resolve().GetEnumUnderlyingType()));
 
                 case EPropertyType.Bool:
                 case EPropertyType.Int8:
                 case EPropertyType.Byte:
-                    return processor.Create(OpCodes.Stind_I1);                
+                    return processor.Create(OpCodes.Stind_I1);
 
                 case EPropertyType.Int16:
                 case EPropertyType.UInt16:
@@ -381,6 +381,239 @@ namespace UnrealEngine.Runtime
                 default:
                     throw new NotImplementedException();
             }
+        }
+
+        private void RemoveFieldDefaultSetterFromConstructor(TypeDefinition type)
+        {
+            Dictionary<string, MethodReference> FieldToSetter = new Dictionary<string, MethodReference>();
+
+            foreach (PropertyDefinition property in type.Properties)
+            {
+                if (property.CustomAttributes.Any(x => x.Constructor.DeclaringType.Name == "UPropertyAttribute"))
+                {
+                    FieldToSetter.Add(string.Format("<{0}>k__BackingField", property.Name), property.SetMethod);
+                }
+            }
+
+            List<string> otherFields = type.Fields.Except(type.Fields.Where(x => FieldToSetter.ContainsKey(x.Name))).Select(x => x.Name).ToList();
+
+            MethodDefinition ctorMethod = type.GetConstructors().FirstOrDefault(x => !x.HasParameters && !x.IsStatic);
+            MethodDefinition baseCtorMethod = type.BaseType.Resolve().GetConstructors().FirstOrDefault(x => !x.HasParameters && !x.IsStatic);
+
+            if ((ctorMethod == null) || (baseCtorMethod == null))
+            {
+                // Something went very wrong
+                throw new RewriteException(type, "Found no ctor or base ctor");
+            }
+
+            ILProcessor processor = ctorMethod.Body.GetILProcessor();
+
+            Instruction ctorStart = null;
+            foreach (Instruction instruction in ctorMethod.Body.Instructions)
+            {
+                // Find the call to base ctor first
+                if (instruction.OpCode == OpCodes.Call)
+                {
+                    // is it already the ctor call?
+                    MethodReference ctorRef = instruction.Operand as MethodReference;
+                    if (ctorRef == null)
+                    {
+                        throw new RewriteException(type, "Call instruction had type " + instruction.Operand.GetType().FullName + " as operand");
+                    }
+
+                    MethodDefinition methodRefToDef = ctorRef.Resolve();
+
+                    if (methodRefToDef == null)
+                    {
+                        throw new RewriteException(type, "Could not resolve reference of " + ctorRef.Name);
+                    }
+                    if (methodRefToDef.FullName == baseCtorMethod.FullName)
+                    {
+                        ctorStart = instruction;
+                        // and then break
+                        break;
+                    }
+                }
+            }
+
+            // Create the injected method
+            MethodDefinition injectedMethod = new MethodDefinition("_awSetDefaults", new MethodAttributes(), voidTypeRef);
+            // and add the injected method to the class
+            type.Methods.Add(injectedMethod);
+
+            // Get the processor
+            ILProcessor injectedProcessor = injectedMethod.Body.GetILProcessor();
+
+            // Create and/or get the ILProcessor for the Initialize method
+            CreateOrModifyInitializeMethod(type, injectedMethod);
+
+            Instruction walker = ctorMethod.Body.Instructions.First();
+
+            bool added = false;
+            while (walker != ctorStart)
+            {
+                Queue<Instruction> block = new Queue<Instruction>();
+                while (true)
+                {
+                    if (walker == ctorStart)
+                    {
+                        walker = walker.Previous;
+                        block.Clear();
+                        break;
+                    }
+
+                    int testResult = IsValidStfldInstruction(walker, FieldToSetter, otherFields);
+
+                    // private field encountered, just discard this block
+                    if (testResult == 2)
+                    {
+                        block.Clear();
+                        break;
+                    }
+                    else if (testResult == 0)
+                    {
+                        // no stfld, just continue
+                        block.Enqueue(walker);
+                        walker = walker.Next;
+                        continue;
+                    }
+                    else if (testResult == 1)
+                    {
+                        // Found property
+                        block.Enqueue(walker);
+                        break;
+                    }
+                }
+
+                if (block.Any())
+                {
+                    // Copy everything up to the last instruction
+                    while (block.Count > 1)
+                    {
+                        Instruction instruction = block.Dequeue();
+                        // remove it from ctor first
+                        processor.Remove(instruction);
+
+                        // then add to injected method
+                        injectedProcessor.Append(instruction);
+                    }
+
+                    // Walk before removing/adding anything
+                    walker = walker.Next;
+                    added = true;
+
+                    // now it's time for the call to the setter
+                    Instruction stfld = block.Dequeue();
+
+                    // Import the setter just to be sure
+                    MethodReference methodRef = assembly.MainModule.ImportEx(FieldToSetter[FieldToSetter.Keys.First(x => x == (stfld.Operand as FieldReference).Name)]);
+
+                    injectedProcessor.Append(injectedProcessor.Create(OpCodes.Call, methodRef));
+                    // Console.WriteLine("Moved property default value set to initialize (" + (stfld.Operand as FieldReference).Name.Split('<')[1].Split('>')[0] + ")");
+
+                    // Finally remove the stfld instruction from ctor
+                    processor.Remove(stfld);
+                }
+
+                // Only walk if nothing was added, because before adding the walker has to be moved
+                if (!added)
+                {
+                    walker = walker.Next;
+                }
+                added = false;
+            }
+            injectedProcessor.Append(injectedProcessor.Create(OpCodes.Ret));
+
+            // Copy over the variable definitions from ctor
+            foreach (VariableDefinition variableDefinition in ctorMethod.Body.Variables)
+            {
+                injectedMethod.Body.Variables.Add(variableDefinition);
+            }
+
+            FinalizeMethod(injectedMethod);
+        }
+
+        private void CreateOrModifyInitializeMethod(TypeDefinition type, MethodDefinition injectedMethod)
+        {
+            // Get FObjectInitializer definition
+            TypeReference objectInitializer = null;
+
+            objectInitializer = assembly.MainModule.ImportEx(typeof(FObjectInitializer));
+
+            if (objectInitializer == null)
+            {
+                // Could not find FObjectInitializer class, sorry
+                throw new RewriteException("Could not find type reference to FObjectInitializer!");
+            }
+
+            // Check first if method already exists
+            MethodDefinition initializeMethod = type.Methods.FirstOrDefault(x => (x.Name == "Initialize") && x.HasParameters && (x.Parameters.First().ParameterType.Resolve().FullName == objectInitializer.FullName));
+
+            MethodReference baseInitializeMethod = type.BaseType.Resolve().Methods.FirstOrDefault(x => (x.Name == "Initialize") && x.HasParameters && (x.Parameters.First().ParameterType.Resolve().FullName == objectInitializer.FullName));
+
+
+            if (initializeMethod == null)
+            {
+                // Has to be created
+                initializeMethod = new MethodDefinition("Initialize", new MethodAttributes(), voidTypeRef);
+                initializeMethod.IsVirtual = true;
+                initializeMethod.IsHideBySig = true;
+                initializeMethod.IsReuseSlot = true;
+                initializeMethod.HasThis = true;
+                initializeMethod.IsPublic = true;
+                initializeMethod.IsManaged = true;
+                initializeMethod.IsIL = true;
+                type.Methods.Add(initializeMethod);
+
+                // And also add the base call here already
+                if (baseInitializeMethod != null)
+                {
+                    // Import the base method, just to be sure
+                    MethodReference baseInitializeImported = assembly.MainModule.ImportEx(baseInitializeMethod);
+                    ILProcessor processor = initializeMethod.Body.GetILProcessor();
+
+                    // Call our injected method first
+                    processor.Emit(OpCodes.Ldarg_0);
+                    processor.Emit(OpCodes.Call, injectedMethod);
+
+                    // then the base initialize method
+                    processor.Emit(OpCodes.Nop);
+                    processor.Emit(OpCodes.Ldarg_0);
+                    processor.Emit(OpCodes.Ldarg_1);
+                    processor.Emit(OpCodes.Call, baseInitializeImported);
+                    FinalizeMethod(initializeMethod);
+                }
+            }
+            else
+            {
+                // Insert the call to the injected method in front of anything else
+                ILProcessor processor = initializeMethod.Body.GetILProcessor();
+                processor.InsertBefore(initializeMethod.Body.Instructions.First(), processor.Create(OpCodes.Ldarg_0));
+                processor.InsertAfter(initializeMethod.Body.Instructions.First(), processor.Create(OpCodes.Call, injectedMethod));
+            }
+        }
+
+        private int IsValidStfldInstruction(Instruction test, Dictionary<string, MethodReference> exposedProperties, List<string> otherFields)
+        {
+            if (test.OpCode != OpCodes.Stfld)
+            {
+                return 0;
+            }
+            if (!(test.Operand is FieldReference))
+            {
+                return 0;
+            }
+            // First check for exposed properties (UProperty)
+            if (exposedProperties.ContainsKey((test.Operand as FieldReference).Name))
+            {
+                return 1;
+            }
+            // Or is a internal field?
+            if (otherFields.Contains((test.Operand as FieldReference).Name))
+            {
+                return 2;
+            }
+            return 0;
         }
     }
 }
