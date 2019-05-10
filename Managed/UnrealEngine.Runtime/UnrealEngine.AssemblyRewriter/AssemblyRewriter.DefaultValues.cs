@@ -438,7 +438,7 @@ namespace UnrealEngine.Runtime
             }
 
             // Create the injected method
-            MethodDefinition injectedMethod = new MethodDefinition("", new MethodAttributes(), voidTypeRef);
+            MethodDefinition injectedMethod = new MethodDefinition("_awSetDefaults", new MethodAttributes(), voidTypeRef);
             // and add the injected method to the class
             type.Methods.Add(injectedMethod);
 
@@ -510,7 +510,7 @@ namespace UnrealEngine.Runtime
                     MethodReference methodRef = assembly.MainModule.ImportEx(FieldToSetter[FieldToSetter.Keys.First(x => x == (stfld.Operand as FieldReference).Name)]);
 
                     injectedProcessor.Append(injectedProcessor.Create(OpCodes.Call, methodRef));
-                    Console.WriteLine("Moved property default value set to initialize (" + (stfld.Operand as FieldReference).Name.Split('<')[1].Split('>')[0] + ")");
+                    // Console.WriteLine("Moved property default value set to initialize (" + (stfld.Operand as FieldReference).Name.Split('<')[1].Split('>')[0] + ")");
 
                     // Finally remove the stfld instruction from ctor
                     processor.Remove(stfld);
@@ -530,6 +530,8 @@ namespace UnrealEngine.Runtime
             {
                 injectedMethod.Body.Variables.Add(vd);
             }
+
+            FinalizeMethod(injectedMethod);
         }
 
         private ILProcessor GetOrCreateInitializeMethodProcessor(TypeDefinition type, MethodDefinition injectedMethod)
