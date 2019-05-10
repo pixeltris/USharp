@@ -510,7 +510,7 @@ namespace UnrealEngine.Runtime
                     MethodReference methodRef = assembly.MainModule.ImportEx(FieldToSetter[FieldToSetter.Keys.First(x => x.Name == (stfld.Operand as FieldReference).Name)]);
 
                     injectedProcessor.Append(injectedProcessor.Create(OpCodes.Call, methodRef));
-                    Console.WriteLine("Moved property default value set to initialize (" + (stfld.Operand as FieldReference).Name.Split('<')[1].Split('>')[0]);
+                    Console.WriteLine("Moved property default value set to initialize (" + (stfld.Operand as FieldReference).Name.Split('<')[1].Split('>')[0] + ")");
 
                     // Finally remove the stfld instruction from ctor
                     processor.Remove(stfld);
