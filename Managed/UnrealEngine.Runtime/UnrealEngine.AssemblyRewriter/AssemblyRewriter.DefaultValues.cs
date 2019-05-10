@@ -387,7 +387,7 @@ namespace UnrealEngine.Runtime
         {
             // Approach:
             // Find the proper stfld instruction and then go backwards
-            // Find the base class Initialize method           <-------- NEEDS TO BE FIXED. If this goes outside of the dll, i can't find it (UnrealEngine.Runtime should be loaded too, not a cecil crack myself)
+            // Find the base class Initialize method
             // If the initialize method does not exist, add it
             // Add setter stuff in front of the base initialize call. Should be fine since it only affect local properties
             // Remove instructions for this property/field from ctor
@@ -433,14 +433,13 @@ namespace UnrealEngine.Runtime
                     {
                         // It's the right one
                         foundDefaultSet = true;
-                        Console.WriteLine("Found default set in ctor for " + propertyName);
+                        Console.WriteLine("Moving default set from ctor to initialize method for property " + propertyName);
                         break;
                     }
                 }
-
                 // Finding the base ctor call
                 // only happening if the property is not found
-                if (instruction.OpCode == OpCodes.Call)
+                else if (instruction.OpCode == OpCodes.Call)
                 {
                     // is it already the ctor call?
                     MethodReference ctorRef = instruction.Operand as MethodReference;
@@ -448,7 +447,9 @@ namespace UnrealEngine.Runtime
                     {
                         throw new RewriteException(type, "Call instruction had type " + instruction.Operand.GetType().FullName + " as operand");
                     }
+
                     MethodDefinition methodRefToDef = ctorRef.Resolve();
+
                     if (methodRefToDef == null)
                     {
                         throw new RewriteException(type, "Could not resolve reference of " + ctorRef.Name);
@@ -574,48 +575,11 @@ namespace UnrealEngine.Runtime
             // Get FObjectInitializer definition
             TypeReference objectInitializer = null;
 
-            /*
-             * This is without effect atm, since the respective dll is not loaded (seeking FObjectInitializer reference here)
-             * Workaround below, but some class NEEDS to have a Initialize method
-             
-            foreach (ModuleDefinition module in assembly.Modules)
-            {
-                foreach (TypeDefinition tp in module.Types)
-                {
-                    if (tp.Name == "ObjectInitializer")
-                    {
-                        objectInitializer = tp;
-                    }
-                }
-            }
-            */
-
-            // HACKY
-            if (objectInitializer == null)
-            {
-                foreach (ModuleDefinition module in assembly.Modules)
-                {
-                    foreach (TypeDefinition tp in module.Types)
-                    {
-                        foreach (MethodDefinition method in tp.Methods)
-                        {
-                            if (method.HasParameters)
-                            {
-                                foreach (ParameterDefinition pm in method.Parameters)
-                                {
-                                    if (pm.Name == "initializer")
-                                    {
-                                        objectInitializer = pm.ParameterType;
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
+            objectInitializer = assembly.MainModule.ImportEx(typeof(FObjectInitializer));
 
             if (objectInitializer == null)
             {
+                // Could not find FObjectInitializer class, sorry
                 throw new RewriteException("Could not find type reference to FObjectInitializer!");
             }
 
@@ -639,11 +603,6 @@ namespace UnrealEngine.Runtime
                 }
             }
 
-
-
-            // Notice: This only works for dll's which are loaded. Any ref to UnrealEngine.Runtime.dll is not resolved at this point!
-            // Needs to be fixed, then this whole thing can work smoother, since we can store the ref way earlier into a field
-
             MethodReference baseInitialize = type.BaseType.Resolve().Methods.FirstOrDefault(x => (x.Name == "Initialize") && x.HasParameters &&
             (x.Parameters.First().Name == "initializer") && (x.Parameters.First().ParameterType.Resolve().FullName == objectInitializer.FullName));
 
@@ -661,19 +620,18 @@ namespace UnrealEngine.Runtime
                 initialize.IsIL = true;
                 type.Methods.Add(initialize);
 
-
-                // CAN BE FALSE, need to get ref to UnrealEngine.Runtime.dll types for direct descendants of for example AActor!
-
                 // And also add the base call here already
                 // /!\ Mind, that setting default values has to appear before that
 
                 if (baseInitialize != null)
                 {
+                    // Import the base method, just to be sure
+                    MethodReference baseInitializeImported = assembly.MainModule.ImportEx(baseInitialize);
                     ILProcessor processor = initialize.Body.GetILProcessor();
                     processor.Emit(OpCodes.Nop);
                     processor.Emit(OpCodes.Ldarg_0);
                     processor.Emit(OpCodes.Ldarg_1);
-                    processor.Emit(OpCodes.Call, baseInitialize);
+                    processor.Emit(OpCodes.Call, baseInitializeImported);
                 }
             }
 
