@@ -31,9 +31,22 @@ namespace UnrealEngine.Runtime
                 OverrideStructAsClassGetStructAddress(type, structAddressField);
             }
 
+            List<string> propertiesWithDefaults = new List<string>();
             foreach (ManagedUnrealPropertyInfo propertyInfo in classInfo.Properties)
             {
                 PropertyDefinition propertyDefinition = FindPropertyByName(type, propertyInfo.Name);
+                if (propertyDefinition.HasDefault)
+                {
+                    propertiesWithDefaults.Add(propertyInfo.Name);
+                }
+            }
+
+            foreach (ManagedUnrealPropertyInfo propertyInfo in classInfo.Properties)
+            {
+                PropertyDefinition propertyDefinition = FindPropertyByName(type, propertyInfo.Name);
+
+                // Moving default set has to happen before stripping to keep resolvability
+                RemoveFieldDefaultSetterFromConstructor(type, propertyInfo.Name);
 
                 if (!propertyInfo.IsField && !propertyInfo.IsBackingFieldPreStripped)
                 {

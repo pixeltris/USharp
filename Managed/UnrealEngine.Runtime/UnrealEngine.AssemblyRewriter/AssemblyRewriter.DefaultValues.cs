@@ -237,7 +237,7 @@ namespace UnrealEngine.Runtime
             switch (paramTypeCode)
             {
                 case EPropertyType.Enum:
-                    return CreateLdRefOutParam(processor, null, 
+                    return CreateLdRefOutParam(processor, null,
                         GetPrimitiveTypeCode(param.ParameterType.Resolve().GetEnumUnderlyingType()));
 
                 case EPropertyType.Bool:
@@ -304,13 +304,13 @@ namespace UnrealEngine.Runtime
             switch (paramTypeCode)
             {
                 case EPropertyType.Enum:
-                    return CreateStRefOutParam(processor, null, 
+                    return CreateStRefOutParam(processor, null,
                         GetPrimitiveTypeCode(param.ParameterType.Resolve().GetEnumUnderlyingType()));
 
                 case EPropertyType.Bool:
                 case EPropertyType.Int8:
                 case EPropertyType.Byte:
-                    return processor.Create(OpCodes.Stind_I1);                
+                    return processor.Create(OpCodes.Stind_I1);
 
                 case EPropertyType.Int16:
                 case EPropertyType.UInt16:
@@ -381,6 +381,303 @@ namespace UnrealEngine.Runtime
                 default:
                     throw new NotImplementedException();
             }
+        }
+
+        private void RemoveFieldDefaultSetterFromConstructor(TypeDefinition type, string propertyName)
+        {
+            // Approach:
+            // Find the proper stfld instruction and then go backwards
+            // Find the base class Initialize method           <-------- NEEDS TO BE FIXED. If this goes outside of the dll, i can't find it (UnrealEngine.Runtime should be loaded too, not a cecil crack myself)
+            // If the initialize method does not exist, add it
+            // Add setter stuff in front of the base initialize call. Should be fine since it only affect local properties
+            // Remove instructions for this property/field from ctor
+
+            List<Instruction> removedInstructions = new List<Instruction>();
+            MethodDefinition ctor = type.GetConstructors().FirstOrDefault(x => !x.HasParameters);
+            MethodDefinition baseCtor = type.BaseType.Resolve().GetConstructors().FirstOrDefault(x => !x.HasParameters);
+            if ((ctor == null) || (baseCtor == null))
+            {
+                // Something went very wrong
+                throw new RewriteException(type, "Found no ctor or base ctor");
+            }
+
+            ILProcessor processor = ctor.Body.GetILProcessor();
+
+            // Find the backing field first
+            string backingFieldName = string.Format("<{0}>k__BackingField", propertyName);
+            FieldDefinition fieldDefinition = type.Fields.Single(x => x.Name == backingFieldName);
+
+            Stack<Instruction> instructionStack = new Stack<Instruction>();
+
+            bool foundCtorCall = false;
+            bool foundDefaultSet = false;
+            foreach (Instruction instruction in ctor.Body.Instructions)
+            {
+                instructionStack.Push(instruction);
+                if (instruction.OpCode == OpCodes.Stfld)
+                {
+                    // Found the right type, now lets check the operand
+                    FieldReference reference = instruction.Operand as FieldReference;
+                    if (reference == null)
+                    {
+                        throw new RewriteException(type, "Found type " + instruction.Operand.GetType().FullName + " as operand in stfld instruction");
+                    }
+
+                    FieldDefinition refToDef = reference.Resolve();
+                    if (refToDef == null)
+                    {
+                        throw new RewriteException(type, "Could not resolve reference of " + reference.Name);
+                    }
+
+                    if (refToDef.Name == backingFieldName)
+                    {
+                        // It's the right one
+                        foundDefaultSet = true;
+                        Console.WriteLine("Found default set in ctor for " + propertyName);
+                        break;
+                    }
+                }
+
+                // Finding the base ctor call
+                // only happening if the property is not found
+                if (instruction.OpCode == OpCodes.Call)
+                {
+                    // is it already the ctor call?
+                    MethodReference ctorRef = instruction.Operand as MethodReference;
+                    if (ctorRef == null)
+                    {
+                        throw new RewriteException(type, "Call instruction had type " + instruction.Operand.GetType().FullName + " as operand");
+                    }
+                    MethodDefinition methodRefToDef = ctorRef.Resolve();
+                    if (methodRefToDef == null)
+                    {
+                        throw new RewriteException(type, "Could not resolve reference of " + ctorRef.Name);
+                    }
+                    if (methodRefToDef.FullName == baseCtor.FullName)
+                    {
+                        // Yes, thats the base ctor call
+                        // now pop this and the last ldarg0
+                        instructionStack.Pop();
+                        instructionStack.Pop();
+                        // and then break
+                        break;
+                    }
+                }
+            }
+
+            // Not found? Then just back
+            if (!foundDefaultSet)
+            {
+                return;
+            }
+
+            // Lets store the stfld instruction temporarily for later removal
+            removedInstructions.Add(instructionStack.Pop());
+
+            // Lets walk back until empty or another stfld is found
+            while (instructionStack.Any() && (instructionStack.Peek().OpCode != OpCodes.Stfld))
+            {
+                // And insert the others into removedInstructions
+                removedInstructions.Insert(0, instructionStack.Pop());
+            }
+
+            // The removedInstructions list now holds all relevant instructions for this field
+            // Now we only have to transfer these to the start of the initialize method
+
+            // Create and/or get the ILProcessor for the Initialize method
+            ILProcessor initializeProcessor = GetOrCreateInitializeMethodProcessor(type);
+
+            // Store the first instruction, we have to insert before that
+            Instruction initializeFirst = initializeProcessor.Body.Instructions.FirstOrDefault();
+
+            // Get the property setter method ref
+            MethodReference setter = type.Properties.First(x => x.Name == propertyName).SetMethod;
+
+            // Copy and modify IL to the Initialize method
+            foreach (Instruction walker in removedInstructions)
+            {
+                if (walker.OpCode == OpCodes.Stfld)
+                {
+                    // Thats the important one we want to change to call the setter
+                    initializeProcessor.InsertBefore(initializeFirst, initializeProcessor.Create(OpCodes.Call, setter));
+                }
+                else
+                if (walker.Operand != null)
+                {
+                    // has an operand, so lets insert them with the proper type
+                    // Notice: not all types are in there, since variablereferences can not be in default setters
+                    if (walker.Operand is FieldReference)
+                    {
+                        initializeProcessor.InsertBefore(initializeFirst, initializeProcessor.Create(walker.OpCode, walker.Operand as FieldReference));
+                    }
+                    else if (walker.Operand is TypeReference)
+                    {
+                        initializeProcessor.InsertBefore(initializeFirst, initializeProcessor.Create(walker.OpCode, walker.Operand as TypeReference));
+                    }
+                    else if (walker.Operand is MethodReference)
+                    {
+                        initializeProcessor.InsertBefore(initializeFirst, initializeProcessor.Create(walker.OpCode, walker.Operand as MethodReference));
+                    }
+                    else if (walker.Operand is CallSite)
+                    {
+                        initializeProcessor.InsertBefore(initializeFirst, initializeProcessor.Create(walker.OpCode, walker.Operand as CallSite));
+                    }
+                    else if (walker.Operand is ParameterDefinition)
+                    {
+                        initializeProcessor.InsertBefore(initializeFirst, initializeProcessor.Create(walker.OpCode, walker.Operand as ParameterDefinition));
+                    }
+                    else if (walker.Operand is byte)
+                    {
+                        initializeProcessor.InsertBefore(initializeFirst, initializeProcessor.Create(walker.OpCode, (byte)walker.Operand));
+                    }
+                    else if (walker.Operand is sbyte)
+                    {
+                        initializeProcessor.InsertBefore(initializeFirst, initializeProcessor.Create(walker.OpCode, (sbyte)walker.Operand));
+                    }
+                    else if (walker.Operand is int)
+                    {
+                        initializeProcessor.InsertBefore(initializeFirst, initializeProcessor.Create(walker.OpCode, (int)walker.Operand));
+                    }
+                    else if (walker.Operand is long)
+                    {
+                        initializeProcessor.InsertBefore(initializeFirst, initializeProcessor.Create(walker.OpCode, (long)walker.Operand));
+                    }
+                    else if (walker.Operand is double)
+                    {
+                        initializeProcessor.InsertBefore(initializeFirst, initializeProcessor.Create(walker.OpCode, (double)walker.Operand));
+                    }
+                    else if (walker.Operand is float)
+                    {
+                        initializeProcessor.InsertBefore(initializeFirst, initializeProcessor.Create(walker.OpCode, (float)walker.Operand));
+                    }
+                    else if (walker.Operand is string)
+                    {
+                        initializeProcessor.InsertBefore(initializeFirst, initializeProcessor.Create(walker.OpCode, (string)walker.Operand));
+                    }
+                }
+                else
+                {
+                    // Anything without operand, just copy over
+                    initializeProcessor.InsertBefore(initializeFirst, initializeProcessor.Create(walker.OpCode));
+                }
+            }
+
+            // Now that method Initialize finally is done, lets clear out the instructions in the ctor
+            foreach (Instruction remove in removedInstructions)
+            {
+                processor.Remove(remove);
+            }
+        }
+
+        private ILProcessor GetOrCreateInitializeMethodProcessor(TypeDefinition type)
+        {
+            // Get FObjectInitializer definition
+            TypeReference objectInitializer = null;
+
+            /*
+             * This is without effect atm, since the respective dll is not loaded (seeking FObjectInitializer reference here)
+             * Workaround below, but some class NEEDS to have a Initialize method
+             
+            foreach (ModuleDefinition module in assembly.Modules)
+            {
+                foreach (TypeDefinition tp in module.Types)
+                {
+                    if (tp.Name == "ObjectInitializer")
+                    {
+                        objectInitializer = tp;
+                    }
+                }
+            }
+            */
+
+            // HACKY
+            if (objectInitializer == null)
+            {
+                foreach (ModuleDefinition module in assembly.Modules)
+                {
+                    foreach (TypeDefinition tp in module.Types)
+                    {
+                        foreach (MethodDefinition method in tp.Methods)
+                        {
+                            if (method.HasParameters)
+                            {
+                                foreach (ParameterDefinition pm in method.Parameters)
+                                {
+                                    if (pm.Name == "initializer")
+                                    {
+                                        objectInitializer = pm.ParameterType;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            if (objectInitializer == null)
+            {
+                throw new RewriteException("Could not find type reference to FObjectInitializer!");
+            }
+
+            // Check first if method already exists
+            MethodDefinition initialize = null;
+            foreach (MethodDefinition md in type.Methods)
+            {
+                if (md.Name == "Initialize")
+                {
+                    if (md.HasParameters)
+                    {
+                        if (md.Parameters.First().Name == "initializer")
+                        {
+                            if (md.Parameters.First().ParameterType.Resolve().FullName == objectInitializer.FullName)
+                            {
+                                initialize = md;
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+
+
+
+            // Notice: This only works for dll's which are loaded. Any ref to UnrealEngine.Runtime.dll is not resolved at this point!
+            // Needs to be fixed, then this whole thing can work smoother, since we can store the ref way earlier into a field
+
+            MethodReference baseInitialize = type.BaseType.Resolve().Methods.FirstOrDefault(x => (x.Name == "Initialize") && x.HasParameters &&
+            (x.Parameters.First().Name == "initializer") && (x.Parameters.First().ParameterType.Resolve().FullName == objectInitializer.FullName));
+
+
+            if (initialize == null)
+            {
+                // Has to be created
+                initialize = new MethodDefinition("Initialize", new MethodAttributes(), voidTypeRef);
+                initialize.IsVirtual = true;
+                initialize.IsHideBySig = true;
+                initialize.IsReuseSlot = true;
+                initialize.HasThis = true;
+                initialize.IsPublic = true;
+                initialize.IsManaged = true;
+                initialize.IsIL = true;
+                type.Methods.Add(initialize);
+
+
+                // CAN BE FALSE, need to get ref to UnrealEngine.Runtime.dll types for direct descendants of for example AActor!
+
+                // And also add the base call here already
+                // /!\ Mind, that setting default values has to appear before that
+
+                if (baseInitialize != null)
+                {
+                    ILProcessor processor = initialize.Body.GetILProcessor();
+                    processor.Emit(OpCodes.Nop);
+                    processor.Emit(OpCodes.Ldarg_0);
+                    processor.Emit(OpCodes.Ldarg_1);
+                    processor.Emit(OpCodes.Call, baseInitialize);
+                }
+            }
+
+            return initialize.Body.GetILProcessor();
         }
     }
 }
