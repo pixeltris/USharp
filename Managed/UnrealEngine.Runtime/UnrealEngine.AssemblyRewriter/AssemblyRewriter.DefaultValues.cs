@@ -548,6 +548,7 @@ namespace UnrealEngine.Runtime
 
                 // Update the type info
                 classInfo.OverridesObjectInitializerHierarchical = true;
+                classInfo.OverridesObjectInitializer = true;
             }
         }
 
