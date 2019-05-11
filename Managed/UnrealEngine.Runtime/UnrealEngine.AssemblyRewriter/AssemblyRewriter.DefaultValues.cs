@@ -383,15 +383,19 @@ namespace UnrealEngine.Runtime
             }
         }
 
+        /// <summary>
+        /// Move default value setting from ctor to Initialize method
+        /// </summary>
+        /// <param name="type">Class to process</param>
         private void RemoveFieldDefaultSetterFromConstructor(TypeDefinition type)
         {
             Dictionary<string, MethodReference> FieldToSetter = new Dictionary<string, MethodReference>();
 
             foreach (PropertyDefinition property in type.Properties)
             {
-                if (property.CustomAttributes.Any(x => x.Constructor.DeclaringType.Name == "UPropertyAttribute"))
+                if (property.CustomAttributes.Any(x => x.Constructor.DeclaringType.Name == nameof(UPropertyAttribute)))
                 {
-                    FieldToSetter.Add(string.Format("<{0}>k__BackingField", property.Name), property.SetMethod);
+                    FieldToSetter.Add(string.Format(backingFieldFormat, property.Name), property.SetMethod);
                 }
             }
 
@@ -436,16 +440,8 @@ namespace UnrealEngine.Runtime
                 }
             }
 
-            // Create the injected method
-            MethodDefinition injectedMethod = new MethodDefinition("_awSetDefaults", new MethodAttributes(), voidTypeRef);
-            // and add the injected method to the class
-            type.Methods.Add(injectedMethod);
-
-            // Get the processor
-            ILProcessor injectedProcessor = injectedMethod.Body.GetILProcessor();
-
-            // Create and/or get the ILProcessor for the Initialize method
-            CreateOrModifyInitializeMethod(type, injectedMethod);
+            MethodDefinition injectedMethod = null;
+            ILProcessor injectedProcessor = null;
 
             Instruction walker = ctorMethod.Body.Instructions.First();
 
@@ -487,6 +483,21 @@ namespace UnrealEngine.Runtime
 
                 if (block.Any())
                 {
+                    // If there is anything to add, initialize method and its ILprocessor
+                    if (injectedProcessor == null)
+                    {
+                        // Create the injected method
+                        injectedMethod = new MethodDefinition(DefaultSetterMethodName, new MethodAttributes(), voidTypeRef);
+                        // and add the injected method to the class
+                        type.Methods.Add(injectedMethod);
+
+                        // Get the processor
+                        injectedProcessor = injectedMethod.Body.GetILProcessor();
+
+                        // Create and/or get the ILProcessor for the Initialize method
+                        CreateOrModifyInitializeMethod(type, injectedMethod);
+                    }
+
                     // Copy everything up to the last instruction
                     while (block.Count > 1)
                     {
@@ -522,17 +533,26 @@ namespace UnrealEngine.Runtime
                 }
                 added = false;
             }
-            injectedProcessor.Append(injectedProcessor.Create(OpCodes.Ret));
 
-            // Copy over the variable definitions from ctor
-            foreach (VariableDefinition variableDefinition in ctorMethod.Body.Variables)
+            // Only add ret if injected method was created at all
+            if (injectedProcessor != null)
             {
-                injectedMethod.Body.Variables.Add(variableDefinition);
-            }
+                injectedProcessor.Append(injectedProcessor.Create(OpCodes.Ret));
+                // Copy over the variable definitions from ctor
+                foreach (VariableDefinition variableDefinition in ctorMethod.Body.Variables)
+                {
+                    injectedMethod.Body.Variables.Add(variableDefinition);
+                }
 
-            FinalizeMethod(injectedMethod);
+                FinalizeMethod(injectedMethod);
+            }
         }
 
+        /// <summary>
+        /// Create or modify the initialize method
+        /// </summary>
+        /// <param name="type">Class to be injected to</param>
+        /// <param name="injectedMethod">Injected method to be called</param>
         private void CreateOrModifyInitializeMethod(TypeDefinition type, MethodDefinition injectedMethod)
         {
             // Get FObjectInitializer definition
@@ -547,15 +567,27 @@ namespace UnrealEngine.Runtime
             }
 
             // Check first if method already exists
-            MethodDefinition initializeMethod = type.Methods.FirstOrDefault(x => (x.Name == "Initialize") && x.HasParameters && (x.Parameters.First().ParameterType.Resolve().FullName == objectInitializer.FullName));
+            MethodDefinition initializeMethod = type.Methods.FirstOrDefault(x => (x.Name == nameof(UObject.Initialize)) && x.HasParameters && (x.Parameters.First().ParameterType.Resolve().FullName == objectInitializer.FullName));
 
-            MethodReference baseInitializeMethod = type.BaseType.Resolve().Methods.FirstOrDefault(x => (x.Name == "Initialize") && x.HasParameters && (x.Parameters.First().ParameterType.Resolve().FullName == objectInitializer.FullName));
-
+            // Walk up classes until we hit at least UObject to find the initialize method
+            TypeReference baseRef = type;
+            MethodReference baseInitializeMethod = null;
+            while (baseInitializeMethod==null)
+            {
+                baseRef = baseRef.Resolve().BaseType;
+                if (baseRef==null)
+                {
+                    // This should never happen, since topmost class is always UObject
+                    break;
+                }
+                baseInitializeMethod = baseRef.Resolve().Methods.FirstOrDefault(x => (x.Name == nameof(UObject.Initialize)) && x.HasParameters && (x.Parameters.First().ParameterType.Resolve().FullName == objectInitializer.FullName));
+            }
 
             if (initializeMethod == null)
             {
                 // Has to be created
-                initializeMethod = new MethodDefinition("Initialize", new MethodAttributes(), voidTypeRef);
+                initializeMethod = new MethodDefinition(nameof(UObject.Initialize), new MethodAttributes(), voidTypeRef);
+                initializeMethod.Parameters.Add(new ParameterDefinition(objectInitializer) { Name = "initializer" });
                 initializeMethod.IsVirtual = true;
                 initializeMethod.IsHideBySig = true;
                 initializeMethod.IsReuseSlot = true;
@@ -565,24 +597,26 @@ namespace UnrealEngine.Runtime
                 initializeMethod.IsIL = true;
                 type.Methods.Add(initializeMethod);
 
+                ILProcessor processor = initializeMethod.Body.GetILProcessor();
+
+                // Call our injected method first
+                processor.Emit(OpCodes.Ldarg_0);
+                processor.Emit(OpCodes.Call, injectedMethod);
+
                 // And also add the base call here already
                 if (baseInitializeMethod != null)
                 {
                     // Import the base method, just to be sure
                     MethodReference baseInitializeImported = assembly.MainModule.ImportEx(baseInitializeMethod);
-                    ILProcessor processor = initializeMethod.Body.GetILProcessor();
-
-                    // Call our injected method first
-                    processor.Emit(OpCodes.Ldarg_0);
-                    processor.Emit(OpCodes.Call, injectedMethod);
 
                     // then the base initialize method
                     processor.Emit(OpCodes.Nop);
                     processor.Emit(OpCodes.Ldarg_0);
                     processor.Emit(OpCodes.Ldarg_1);
                     processor.Emit(OpCodes.Call, baseInitializeImported);
-                    FinalizeMethod(initializeMethod);
                 }
+                processor.Emit(OpCodes.Ret);
+                FinalizeMethod(initializeMethod);
             }
             else
             {
@@ -593,6 +627,13 @@ namespace UnrealEngine.Runtime
             }
         }
 
+        /// <summary>
+        /// Test the operand of the instruction to be a exposed field or unrelated instruction
+        /// </summary>
+        /// <param name="test">Instruction to test</param>
+        /// <param name="exposedProperties">List of exposed properties</param>
+        /// <param name="otherFields">List of not exposed fields</param>
+        /// <returns></returns>
         private int IsValidStfldInstruction(Instruction test, Dictionary<string, MethodReference> exposedProperties, List<string> otherFields)
         {
             if (test.OpCode != OpCodes.Stfld)

@@ -62,6 +62,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AssemblyRewriter.Class.cs" />
+    <Compile Include="AssemblyRewriter.Constants.cs" />
     <Compile Include="AssemblyRewriter.cs" />
     <Compile Include="AssemblyRewriter.DefaultValues.cs" />
     <Compile Include="AssemblyRewriter.Function.cs" />
