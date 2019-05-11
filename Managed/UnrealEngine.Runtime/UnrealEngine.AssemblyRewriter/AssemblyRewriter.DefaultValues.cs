@@ -387,7 +387,7 @@ namespace UnrealEngine.Runtime
         /// Move default value setting from ctor to Initialize method
         /// </summary>
         /// <param name="type">Class to process</param>
-        private void RemoveFieldDefaultSetterFromConstructor(TypeDefinition type)
+        private void RemoveFieldDefaultSetterFromConstructor(TypeDefinition type, ManagedUnrealTypeInfo classInfo)
         {
             Dictionary<string, MethodReference> FieldToSetter = new Dictionary<string, MethodReference>();
 
@@ -545,6 +545,9 @@ namespace UnrealEngine.Runtime
                 }
 
                 FinalizeMethod(injectedMethod);
+
+                // Update the type info
+                classInfo.OverridesObjectInitializerHierarchical = true;
             }
         }
 

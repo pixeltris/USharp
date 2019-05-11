@@ -42,7 +42,7 @@ namespace UnrealEngine.Runtime
             }
 
             // Moving default set has to happen before stripping to keep resolvability
-            RemoveFieldDefaultSetterFromConstructor(type);
+            RemoveFieldDefaultSetterFromConstructor(type, classInfo);
 
             foreach (ManagedUnrealPropertyInfo propertyInfo in classInfo.Properties)
             {
