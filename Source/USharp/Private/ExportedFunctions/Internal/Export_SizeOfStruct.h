@@ -154,6 +154,182 @@ CSEXPORT int32 CSCONV Export_SizeOfStruct_SizeOf_FLifetimeProperty()
 	return sizeof(FLifetimeProperty);
 }
 
+// Math structs
+
+CSEXPORT int32 CSCONV Export_SizeOfStruct_SizeOf_FInterpCurvePointFloat()
+{
+	return sizeof(FInterpCurvePointFloat);
+}
+
+CSEXPORT int32 CSCONV Export_SizeOfStruct_SizeOf_FInterpCurvePointLinearColor()
+{
+	return sizeof(FInterpCurvePointLinearColor);
+}
+
+CSEXPORT int32 CSCONV Export_SizeOfStruct_SizeOf_FInterpCurvePointQuat()
+{
+	return sizeof(FInterpCurvePointQuat);
+}
+
+CSEXPORT int32 CSCONV Export_SizeOfStruct_SizeOf_FInterpCurvePointTwoVectors()
+{
+	return sizeof(FInterpCurvePointTwoVectors);
+}
+
+CSEXPORT int32 CSCONV Export_SizeOfStruct_SizeOf_FInterpCurvePointVector()
+{
+	return sizeof(FInterpCurvePointVector);
+}
+
+CSEXPORT int32 CSCONV Export_SizeOfStruct_SizeOf_FInterpCurvePointVector2D()
+{
+	return sizeof(FInterpCurvePointVector2D);
+}
+
+CSEXPORT int32 CSCONV Export_SizeOfStruct_SizeOf_FFloatInterval()
+{
+	return sizeof(FFloatInterval);
+}
+
+CSEXPORT int32 CSCONV Export_SizeOfStruct_SizeOf_FInt32Interval()
+{
+	return sizeof(FInt32Interval);
+}
+
+CSEXPORT int32 CSCONV Export_SizeOfStruct_SizeOf_FFloatRange()
+{
+	return sizeof(FFloatRange);
+}
+
+CSEXPORT int32 CSCONV Export_SizeOfStruct_SizeOf_FInt32Range()
+{
+	return sizeof(FInt32Range);
+}
+
+CSEXPORT int32 CSCONV Export_SizeOfStruct_SizeOf_FFloatRangeBound()
+{
+	return sizeof(FFloatRangeBound);
+}
+
+CSEXPORT int32 CSCONV Export_SizeOfStruct_SizeOf_FInt32RangeBound()
+{
+	return sizeof(FInt32RangeBound);
+}
+
+CSEXPORT int32 CSCONV Export_SizeOfStruct_SizeOf_FBox()
+{
+	return sizeof(FBox);
+}
+
+CSEXPORT int32 CSCONV Export_SizeOfStruct_SizeOf_FBox2D()
+{
+	return sizeof(FBox2D);
+}
+
+CSEXPORT int32 CSCONV Export_SizeOfStruct_SizeOf_FBoxSphereBounds()
+{
+	return sizeof(FBoxSphereBounds);
+}
+
+CSEXPORT int32 CSCONV Export_SizeOfStruct_SizeOf_FColor()
+{
+	return sizeof(FColor);
+}
+
+CSEXPORT int32 CSCONV Export_SizeOfStruct_SizeOf_FIntPoint()
+{
+	return sizeof(FIntPoint);
+}
+
+CSEXPORT int32 CSCONV Export_SizeOfStruct_SizeOf_FIntRect()
+{
+	return sizeof(FIntRect);
+}
+
+CSEXPORT int32 CSCONV Export_SizeOfStruct_SizeOf_FIntVector()
+{
+	return sizeof(FIntVector);
+}
+
+CSEXPORT int32 CSCONV Export_SizeOfStruct_SizeOf_FIntVector4()
+{
+	return sizeof(FIntVector4);
+}
+
+CSEXPORT int32 CSCONV Export_SizeOfStruct_SizeOf_FLinearColor()
+{
+	return sizeof(FLinearColor);
+}
+
+CSEXPORT int32 CSCONV Export_SizeOfStruct_SizeOf_FMatrix()
+{
+	return sizeof(FMatrix);
+}
+
+CSEXPORT int32 CSCONV Export_SizeOfStruct_SizeOf_FOrientedBox()
+{
+	return sizeof(FOrientedBox);
+}
+
+CSEXPORT int32 CSCONV Export_SizeOfStruct_SizeOf_FPlane()
+{
+	return sizeof(FPlane);
+}
+
+CSEXPORT int32 CSCONV Export_SizeOfStruct_SizeOf_FQuat()
+{
+	return sizeof(FQuat);
+}
+
+CSEXPORT int32 CSCONV Export_SizeOfStruct_SizeOf_FRandomStream()
+{
+	return sizeof(FRandomStream);
+}
+
+CSEXPORT int32 CSCONV Export_SizeOfStruct_SizeOf_FRotator()
+{
+	return sizeof(FRotator);
+}
+
+CSEXPORT int32 CSCONV Export_SizeOfStruct_SizeOf_FSphere()
+{
+	return sizeof(FSphere);
+}
+
+CSEXPORT int32 CSCONV Export_SizeOfStruct_SizeOf_FTransform()
+{
+	return sizeof(FTransform);
+}
+
+CSEXPORT int32 CSCONV Export_SizeOfStruct_SizeOf_FTransform_IsVectorized()
+{
+#if ENABLE_VECTORIZED_TRANSFORM
+	return 1;
+#else
+	return 0;
+#endif
+}
+
+CSEXPORT int32 CSCONV Export_SizeOfStruct_SizeOf_FTwoVectors()
+{
+	return sizeof(FTwoVectors);
+}
+
+CSEXPORT int32 CSCONV Export_SizeOfStruct_SizeOf_FVector()
+{
+	return sizeof(FVector);
+}
+
+CSEXPORT int32 CSCONV Export_SizeOfStruct_SizeOf_FVector2D()
+{
+	return sizeof(FVector2D);
+}
+
+CSEXPORT int32 CSCONV Export_SizeOfStruct_SizeOf_FVector4()
+{
+	return sizeof(FVector4);
+}
+
 // FTickFunction structs
 
 CSEXPORT int32 CSCONV Export_SizeOfStruct_SizeOf_FActorComponentTickFunction()
@@ -228,6 +404,42 @@ CSEXPORT void CSCONV Export_SizeOfStruct(RegisterFunc registerFunc)
 	REGISTER_FUNC(Export_SizeOfStruct_SizeOf_TStatId);
 	REGISTER_FUNC(Export_SizeOfStruct_SizeOf_FActorSpawnParameters);
 	REGISTER_FUNC(Export_SizeOfStruct_SizeOf_FKey);
+	
+	// Math structs
+	REGISTER_FUNC(Export_SizeOfStruct_SizeOf_FInterpCurvePointFloat);
+	REGISTER_FUNC(Export_SizeOfStruct_SizeOf_FInterpCurvePointLinearColor);
+	REGISTER_FUNC(Export_SizeOfStruct_SizeOf_FInterpCurvePointQuat);
+	REGISTER_FUNC(Export_SizeOfStruct_SizeOf_FInterpCurvePointTwoVectors);
+	REGISTER_FUNC(Export_SizeOfStruct_SizeOf_FInterpCurvePointVector);
+	REGISTER_FUNC(Export_SizeOfStruct_SizeOf_FInterpCurvePointVector2D);
+	REGISTER_FUNC(Export_SizeOfStruct_SizeOf_FFloatInterval);
+	REGISTER_FUNC(Export_SizeOfStruct_SizeOf_FInt32Interval);
+	REGISTER_FUNC(Export_SizeOfStruct_SizeOf_FFloatRange);
+	REGISTER_FUNC(Export_SizeOfStruct_SizeOf_FInt32Range);
+	REGISTER_FUNC(Export_SizeOfStruct_SizeOf_FFloatRangeBound);
+	REGISTER_FUNC(Export_SizeOfStruct_SizeOf_FInt32RangeBound);
+	REGISTER_FUNC(Export_SizeOfStruct_SizeOf_FBox);
+	REGISTER_FUNC(Export_SizeOfStruct_SizeOf_FBox2D);
+	REGISTER_FUNC(Export_SizeOfStruct_SizeOf_FBoxSphereBounds);
+	REGISTER_FUNC(Export_SizeOfStruct_SizeOf_FColor);
+	REGISTER_FUNC(Export_SizeOfStruct_SizeOf_FIntPoint);
+	REGISTER_FUNC(Export_SizeOfStruct_SizeOf_FIntRect);
+	REGISTER_FUNC(Export_SizeOfStruct_SizeOf_FIntVector);
+	REGISTER_FUNC(Export_SizeOfStruct_SizeOf_FIntVector4);
+	REGISTER_FUNC(Export_SizeOfStruct_SizeOf_FLinearColor);
+	REGISTER_FUNC(Export_SizeOfStruct_SizeOf_FMatrix);
+	REGISTER_FUNC(Export_SizeOfStruct_SizeOf_FOrientedBox);
+	REGISTER_FUNC(Export_SizeOfStruct_SizeOf_FPlane);
+	REGISTER_FUNC(Export_SizeOfStruct_SizeOf_FQuat);
+	REGISTER_FUNC(Export_SizeOfStruct_SizeOf_FRandomStream);
+	REGISTER_FUNC(Export_SizeOfStruct_SizeOf_FRotator);
+	REGISTER_FUNC(Export_SizeOfStruct_SizeOf_FSphere);
+	REGISTER_FUNC(Export_SizeOfStruct_SizeOf_FTransform);
+	REGISTER_FUNC(Export_SizeOfStruct_SizeOf_FTransform_IsVectorized);
+	REGISTER_FUNC(Export_SizeOfStruct_SizeOf_FTwoVectors);
+	REGISTER_FUNC(Export_SizeOfStruct_SizeOf_FVector);
+	REGISTER_FUNC(Export_SizeOfStruct_SizeOf_FVector2D);
+	REGISTER_FUNC(Export_SizeOfStruct_SizeOf_FVector4);
 	
 	// FTickFunction structs
 	REGISTER_FUNC(Export_SizeOfStruct_SizeOf_FActorComponentTickFunction);

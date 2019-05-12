@@ -40,7 +40,7 @@ namespace UnrealEngine.Runtime
         /// Holds a flag indicating whether this box is valid.
         /// </summary>
         [UProperty(Flags = (PropFlags)0x0018001040000200), UMetaPath("/Script/CoreUObject.Box:IsValid")]
-        private byte isValid;
+        private byte isValid;// make sure this is always a uint8 in C++! (as opposed to a bool, for blitting)
 
         /// <summary>
         /// Holds a flag indicating whether this box is valid.
@@ -78,7 +78,7 @@ namespace UnrealEngine.Runtime
             Max_IsValid = NativeReflectionCached.ValidatePropertyClass(classAddress, "Max", Classes.UStructProperty);
             IsValid_Offset = NativeReflectionCached.GetPropertyOffset(classAddress, "IsValid");
             IsValid_IsValid = NativeReflectionCached.ValidatePropertyClass(classAddress, "IsValid", Classes.UByteProperty);
-            NativeReflection.ValidateBlittableStructSize(classAddress, typeof(FBox));
+            //NativeReflection.ValidateBlittableStructSize(classAddress, typeof(FBox));
         }
 
         /// <summary>

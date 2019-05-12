@@ -663,5 +663,34 @@ namespace UnrealEngine.Runtime
 
             return null;
         }
+
+        /// <summary>
+        /// Copies the value from a property into the string OutForm. ContainerMem points to the Struct or Class containing Property
+        /// 
+        /// <para/>This is a copy of FBlueprintEditorUtils::PropertyValueToString()
+        /// </summary>
+        public bool ValueToString(IntPtr container, out string result)
+        {
+            return ValueToString_Direct(ContainerPtrToValuePtr(container), out result);
+        }
+
+        /// <summary>
+        /// Copies the value from a property into the string OutForm. DirectValue is the raw memory address of the property value
+        /// 
+        /// <para/>This is a copy of FBlueprintEditorUtils::PropertyValueToString_Direct()
+        /// </summary>
+        public bool ValueToString_Direct(IntPtr directValue, out string result)
+        {
+            // TODO: Handle the special case math structs like in FBlueprintEditorUtils::PropertyValueToString_Direct
+
+            using (FStringUnsafe resultUnsafe = new FStringUnsafe())
+            {
+                IntPtr defaultValue = directValue;
+                bool succeeded = Native_UProperty.ExportText_Direct(Address, ref resultUnsafe.Array,
+                    directValue, defaultValue, IntPtr.Zero, (int)EPropertyPortFlags.SerializedAsImportText, IntPtr.Zero);
+                result = resultUnsafe.Value;
+                return succeeded;
+            }
+        }
     }
 }

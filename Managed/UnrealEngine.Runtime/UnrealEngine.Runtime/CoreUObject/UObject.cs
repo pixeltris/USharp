@@ -683,6 +683,21 @@ namespace UnrealEngine.Runtime
         }
 
         /// <summary>
+        /// Uses the TArchiveObjectReferenceCollector to build a list of all components referenced by this object which have this object as the outer
+        /// </summary>
+        /// <param name="includeNestedSubobjects">controls whether subobjects which are contained by this object, but do not have this object
+        /// as its direct Outer should be included</param>
+        /// <returns>the array that should be populated with the default subobjects "owned" by this object</returns>
+        public UObject[] CollectDefaultSubobjects(bool includeNestedSubobjects = false)
+        {
+            using (TArrayUnsafe<UObject> result = new TArrayUnsafe<UObject>())
+            {
+                Native_UObject.CollectDefaultSubobjects(Address, result.Address, includeNestedSubobjects);
+                return result.ToArray();
+            }
+        }
+
+        /// <summary>
         /// Gets all objects which inherit from a specified base class. 
         /// Does not include any class default objects
         /// </summary>

@@ -46,6 +46,7 @@
   <ItemGroup>
     <Compile Include="CoreUObject\Enums\Script.cs" />
     <Compile Include="CoreUObject\FLifetimeProperty.cs" />
+    <Compile Include="CoreUObject\Properties\EPropertyPortFlags.cs" />
     <Compile Include="Core\FFeedbackContext.cs" />
     <Compile Include="Core\IPluginManager.cs" />
     <None Include="Internal\InjectedClasses\Engine\Pawn_Injected.cs" />
@@ -179,6 +180,7 @@
     <Compile Include="CoreUObject\FLifetimePropertyCollection.cs" />
     <None Include="Internal\InjectedClasses\Engine\EngineTypes_Injected.cs" />
     <None Include="Internal\InjectedClasses\Engine\SceneComponent_Injected.cs" />
+    <None Include="Internal\InjectedClasses\Engine\MaterialInstanceDynamic_Injected.cs" />
     <Compile Include="Internal\ManagedUnrealTypeInfo.Exception.cs" />
     <Compile Include="Internal\ManagedUnrealTypeInfo.Validation.cs" />
     <Compile Include="Internal\ManagedUnrealTypes.Builder.cs" />
@@ -188,7 +190,9 @@
     <Compile Include="Internal\Native\Native_FFeedbackContext.cs" />
     <Compile Include="Internal\Native\Native_UEngineTypes.cs" />
     <Compile Include="Internal\Native\Native_FPlatformMisc.cs" />
+    <Compile Include="Internal\Native\Native_UMaterialInstanceDynamic.cs" />
     <Compile Include="Internal\Native\Native_USceneComponent.cs" />
+    <Compile Include="Internal\NonBlittableAttribute.cs" />
     <Compile Include="Internal\ScriptDisassembler.cs" />
     <Compile Include="Internal\StaticVar.cs" />
     <Compile Include="Internal\StructAsClass.cs" />

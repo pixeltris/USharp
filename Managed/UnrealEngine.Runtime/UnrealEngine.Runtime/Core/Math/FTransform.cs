@@ -9,6 +9,12 @@ namespace UnrealEngine.Runtime
 {
     // Engine\Source\Runtime\Core\Public\Math\Transform.h
 
+    // Regarding the blittable-ness of FTransform:
+    // FTransform is implemented in C++ in two ways; vectorized / non vectorized. In the vectorized version the struct is
+    // 48 bytes (40 by default, 16 aligned), in the non vectorized it should be 40 bytes. We should be safe to blit FTransform
+    // as 40 bytes of data, but any FTransform we pass as PInvoke to C++ directly should be done so using a custom struct at
+    // a fixed size of 40 bytes (in case we were to write 48 bytes of data in C++ for a value which is 40 bytes on the stack from C#)
+
     // NOTE: Native FTransform has a non-zero default ctor. Use FTransform.Default/FTransform.Identity for default init.
 
     /// <summary>
@@ -69,6 +75,40 @@ namespace UnrealEngine.Runtime
             return result;
         }
 
+        /*public static FTransform FromNative(IntPtr nativeBuffer)
+        {
+            return new FTransform(nativeBuffer);
+        }
+
+        public static void ToNative(IntPtr nativeBuffer, FTransform value)
+        {
+            value.ToNative(nativeBuffer);
+        }
+
+        public static FTransform FromNative(IntPtr nativeBuffer, int arrayIndex, IntPtr prop)
+        {
+            return new FTransform(nativeBuffer + (arrayIndex * FTransform_StructSize));
+        }
+
+        public static void ToNative(IntPtr nativeBuffer, int arrayIndex, IntPtr prop, FTransform value)
+        {
+            value.ToNative(nativeBuffer + (arrayIndex * FTransform_StructSize));
+        }
+
+        public void ToNative(IntPtr nativeStruct)
+        {
+            BlittableTypeMarshaler<FQuat>.ToNative(IntPtr.Add(nativeStruct, Rotation_Offset), Rotation);
+            BlittableTypeMarshaler<FVector>.ToNative(IntPtr.Add(nativeStruct, Translation_Offset), Translation);
+            BlittableTypeMarshaler<FVector>.ToNative(IntPtr.Add(nativeStruct, Scale3D_Offset), Scale3D);
+        }
+
+        public FTransform(IntPtr nativeStruct)
+        {
+            Rotation = BlittableTypeMarshaler<FQuat>.FromNative(IntPtr.Add(nativeStruct, Rotation_Offset));
+            Translation = BlittableTypeMarshaler<FVector>.FromNative(IntPtr.Add(nativeStruct, Translation_Offset));
+            Scale3D = BlittableTypeMarshaler<FVector>.FromNative(IntPtr.Add(nativeStruct, Scale3D_Offset));
+        }*/
+
         static FTransform()
         {
             if (UnrealTypes.CanLazyLoadNativeType(typeof(FTransform)))
@@ -88,7 +128,7 @@ namespace UnrealEngine.Runtime
             Translation_IsValid = NativeReflectionCached.ValidatePropertyClass(classAddress, "Translation", Classes.UStructProperty);
             Scale3D_Offset = NativeReflectionCached.GetPropertyOffset(classAddress, "Scale3D");
             Scale3D_IsValid = NativeReflectionCached.ValidatePropertyClass(classAddress, "Scale3D", Classes.UStructProperty);
-            NativeReflection.ValidateBlittableStructSize(classAddress, typeof(FTransform));
+            //NativeReflection.ValidateBlittableStructSize(classAddress, typeof(FTransform));
         }
 
         /// <summary>

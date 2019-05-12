@@ -15,6 +15,7 @@ namespace UnrealEngine.InputCore
 
     [UStruct(Flags = 0x000F1201), BlueprintType, UMetaPath("/Script/InputCore.Key", "InputCore", UnrealModuleType.Engine)]
     [StructLayout(LayoutKind.Sequential)]
+    [NonBlittable]// This class is blittable, but we have our own FromNative/ToNative functions with some validation
     public struct FKey : IEquatable<FKey>, IComparable<FKey>
     {
         /// <summary>

@@ -46,6 +46,42 @@ namespace UnrealEngine.Runtime.Native
         public static Del_SizeOf SizeOf_FKey;
         public static Del_SizeOf SizeOf_FLifetimeProperty;
 
+        // Math structs
+        public static Del_SizeOf SizeOf_FInterpCurvePointFloat;
+        public static Del_SizeOf SizeOf_FInterpCurvePointLinearColor;
+        public static Del_SizeOf SizeOf_FInterpCurvePointQuat;
+        public static Del_SizeOf SizeOf_FInterpCurvePointTwoVectors;
+        public static Del_SizeOf SizeOf_FInterpCurvePointVector;
+        public static Del_SizeOf SizeOf_FInterpCurvePointVector2D;
+        public static Del_SizeOf SizeOf_FFloatInterval;
+        public static Del_SizeOf SizeOf_FInt32Interval;
+        public static Del_SizeOf SizeOf_FFloatRange;
+        public static Del_SizeOf SizeOf_FInt32Range;
+        public static Del_SizeOf SizeOf_FFloatRangeBound;
+        public static Del_SizeOf SizeOf_FInt32RangeBound;
+        public static Del_SizeOf SizeOf_FBox;
+        public static Del_SizeOf SizeOf_FBox2D;
+        public static Del_SizeOf SizeOf_FBoxSphereBounds;
+        public static Del_SizeOf SizeOf_FColor;
+        public static Del_SizeOf SizeOf_FIntPoint;
+        public static Del_SizeOf SizeOf_FIntRect;
+        public static Del_SizeOf SizeOf_FIntVector;
+        public static Del_SizeOf SizeOf_FIntVector4;
+        public static Del_SizeOf SizeOf_FLinearColor;
+        public static Del_SizeOf SizeOf_FMatrix;
+        public static Del_SizeOf SizeOf_FOrientedBox;
+        public static Del_SizeOf SizeOf_FPlane;
+        public static Del_SizeOf SizeOf_FQuat;
+        public static Del_SizeOf SizeOf_FRandomStream;
+        public static Del_SizeOf SizeOf_FRotator;
+        public static Del_SizeOf SizeOf_FSphere;
+        public static Del_SizeOf SizeOf_FTransform;
+        public static Del_SizeOf SizeOf_FTransform_IsVectorized;
+        public static Del_SizeOf SizeOf_FTwoVectors;
+        public static Del_SizeOf SizeOf_FVector;
+        public static Del_SizeOf SizeOf_FVector2D;
+        public static Del_SizeOf SizeOf_FVector4;
+
         // FTickFunction structs (we (dangerously) expect these to all be the same size to get the Target pointer)
         public static Del_SizeOf SizeOf_FActorComponentTickFunction;
         public static Del_SizeOf SizeOf_FActorTickFunction;

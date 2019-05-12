@@ -131,11 +131,10 @@ namespace UnrealEngine.Runtime
             this.unrealClass = unrealClass;
             this.exclusionFlags = additionalExclusionFlags;
             this.internalExclusionFlags = internalExclusionFlags;
-            uobjectClass = UClass.GetClass<UObject>();
-            if (unrealClass == uobjectClass)
+            if (this.unrealClass == UClass.GetClass<UObject>())
             {
                 // Set to null to avoid additional UClass checks if this already the UObject class
-                unrealClass = null;
+                this.unrealClass = null;
             }
         }
 
@@ -169,8 +168,8 @@ namespace UnrealEngine.Runtime
                 UObject obj = GCHelper.Find(Native_FUObjectArray.GetObjectAtIndex(objectArrayPtr, index));
                 if (obj != null)
                 {
-                    if (!obj.HasAnyFlags(exclusionFlags) ||
-                        (unrealClass != null && unrealClass != uobjectClass && !obj.IsA(unrealClass)) ||
+                    if (obj.HasAnyFlags(exclusionFlags) ||
+                        (unrealClass != null && !obj.IsA(unrealClass)) ||
                         obj.HasAnyInternalFlags(internalExclusionFlags))
                     {
                         continue;

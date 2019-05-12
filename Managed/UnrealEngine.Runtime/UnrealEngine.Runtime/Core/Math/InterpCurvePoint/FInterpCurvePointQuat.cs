@@ -26,6 +26,10 @@ namespace UnrealEngine.Runtime
         [UProperty(Flags = (PropFlags)0x0018001040000205), UMetaPath("/Script/CoreUObject.InterpCurvePointQuat:InVal")]
         public float InVal;
 
+        // Alignment issued due to FQuat
+        private long padding1;
+        private int padding2;
+
         static bool OutVal_IsValid;
         static int OutVal_Offset;
         /// <summary>
@@ -59,6 +63,9 @@ namespace UnrealEngine.Runtime
         /// <see cref="EInterpCurveMode"/>
         [UProperty(Flags = (PropFlags)0x0018001040000205), UMetaPath("/Script/CoreUObject.InterpCurvePointQuat:InterpMode")]
         public EInterpCurveMode InterpMode;
+
+        // Alignment issued due to FQuat
+        private int padding3;
 
         static int FInterpCurvePointQuat_StructSize;
 
@@ -107,6 +114,7 @@ namespace UnrealEngine.Runtime
             ArriveTangent = default(FQuat);
             LeaveTangent = default(FQuat);
             InterpMode = EInterpCurveMode.Linear;
+            padding1 = padding2 = padding3 = 0;
         }
 
         /// <summary>
@@ -125,6 +133,7 @@ namespace UnrealEngine.Runtime
             ArriveTangent = arriveTangent;
             LeaveTangent = leaveTangent;
             InterpMode = interpMode;
+            padding1 = padding2 = padding3 = 0;
         }
 
         /// <summary>

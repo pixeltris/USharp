@@ -97,6 +97,16 @@ CSEXPORT void CSCONV Export_USharpClass_SetFallbackFunctionInvoker(USharpClass* 
 
 void USharpClassFunctionInvoker(UObject* Context, FFrame& Stack, RESULT_DECL)
 {
+	// TODO: Improve this. This used to be just a callback directly to C#, but due to calling convention differences
+	// this wasn't super safe. Looking up the class hierarchy for function calls probably isn't the best idea. Is there
+	// some way to get the USharpClass any faster (and idealy the target C# target function too, as there is a dictionary lookup in C#!)
+	//
+	// Maybe get a GCHandle for the UFunction.FuncInvokerManaged, and do a dictionary lookup based on Stack.CurrentNativeFunction?
+	// This would idealy be done per class though as a global dictionary of functions could be quite slow for lookups...
+	// - We could also make our functions custom UFunction instances which hold an additional member pointing to the managed function address?
+	//   this would be much more efficient and we wouldn't need to do any dictionary lookups or hierarchy lookups.
+	//   (this could be accessed via Stack.CurrentNativeFunction). Based on the hierarchy there is only UFunction / UDelegateFunction to deal with.
+	//   - This may cause some issues where there are explicit checks for UFunction::StaticClass() / UDelegateFunction::StaticClass()
 	USharpClass* Class = GetUSharpClass(Context->GetClass());
 	check(Class != nullptr);
 	if (Class->ManagedFunctionInvoker != nullptr)

@@ -234,3 +234,30 @@ struct FCopyPropertiesForUnrelatedObjectsParamsInterop
 		return Result;
 	}
 };
+
+struct FTransformInterop
+{
+	FQuat Rotation;
+	FVector Translation;
+	FVector Scale3D;
+	
+	static FTransformInterop FromNative(const FTransform& Instance)
+	{
+		FTransformInterop Result;
+#if ENABLE_VECTORIZED_TRANSFORM
+		Result.Rotation = Instance.GetRotation();
+		Result.Translation = Instance.GetTranslation();
+		Result.Scale3D = Instance.GetScale3D();
+#else
+		Result.Rotation = Instance.Rotation;
+		Result.Translation = Instance.Translation;
+		Result.Scale3D = Instance.Scale3D;
+#endif
+		return Result;
+	}
+	
+	static FTransform ToNative(const FTransformInterop& Instance)
+	{
+		return FTransform(Instance.Rotation, Instance.Translation, Instance.Scale3D);
+	}
+};

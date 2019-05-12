@@ -63,7 +63,10 @@ namespace UnrealEngine.Runtime
                     }
                     else
                     {
-                        if (type.IsLayoutSequential || type.IsExplicitLayout)
+                        NonBlittableAttribute[] nonBlittableAttributes = (NonBlittableAttribute[])
+                            type.GetCustomAttributes(typeof(NonBlittableAttribute), false);
+
+                        if (nonBlittableAttributes.Length == 0 && (type.IsLayoutSequential || type.IsExplicitLayout))
                         {
                             result[path] = ProjectDefinedType.BlittableStruct;
                         }

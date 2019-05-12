@@ -28,22 +28,22 @@ namespace UnrealEngine.Runtime
             {
                 if (BitConverter.IsLittleEndian)
                 {
-                    return (byte)(packedValue >> 24);
+                    return (byte)(packedValue);
                 }
                 else
                 {
-                    return (byte)(packedValue);
+                    return (byte)(packedValue >> 24);
                 }
             }
             set
             {
                 if (BitConverter.IsLittleEndian)
                 {
-                    packedValue = (packedValue & 0x00FFFFFF) | (uint)(value << 24);
+                    packedValue = (packedValue & 0xFFFFFF00) | value;
                 }
                 else
                 {
-                    packedValue = (packedValue & 0xFFFFFF00) | value;
+                    packedValue = (packedValue & 0x00FFFFFF) | (uint)(value << 24);
                 }
             }
         }
@@ -54,22 +54,22 @@ namespace UnrealEngine.Runtime
             {
                 if (BitConverter.IsLittleEndian)
                 {
-                    return (byte)(packedValue >> 16);
+                    return (byte)(packedValue >> 8);
                 }
                 else
                 {
-                    return (byte)(packedValue >> 8);
+                    return (byte)(packedValue >> 16);
                 }
             }
             set
             {
                 if (BitConverter.IsLittleEndian)
                 {
-                    packedValue = (packedValue & 0xFF00FFFF) | (uint)(value << 16);
+                    packedValue = (packedValue & 0xFFFF00FF) | (uint)(value << 8);
                 }
                 else
                 {
-                    packedValue = (packedValue & 0xFFFF00FF) | (uint)(value << 8);
+                    packedValue = (packedValue & 0xFF00FFFF) | (uint)(value << 16);
                 }
             }
         }
@@ -80,22 +80,22 @@ namespace UnrealEngine.Runtime
             {
                 if (BitConverter.IsLittleEndian)
                 {
-                    return (byte)(packedValue >> 8);
+                    return (byte)(packedValue >> 16);
                 }
                 else
                 {
-                    return (byte)(packedValue >> 16);
+                    return (byte)(packedValue >> 8);
                 }
             }
             set
             {
                 if (BitConverter.IsLittleEndian)
                 {
-                    packedValue = (packedValue & 0xFFFF00FF) | (uint)(value << 8);
+                    packedValue = (packedValue & 0xFF00FFFF) | (uint)(value << 16);
                 }
                 else
                 {
-                    packedValue = (packedValue & 0xFF00FFFF) | (uint)(value << 16);
+                    packedValue = (packedValue & 0xFFFF00FF) | (uint)(value << 8);
                 }
             }
         }
@@ -106,22 +106,22 @@ namespace UnrealEngine.Runtime
             {
                 if (BitConverter.IsLittleEndian)
                 {
-                    return (byte)(packedValue);
+                    return (byte)(packedValue >> 24);
                 }
                 else
                 {
-                    return (byte)(packedValue >> 24);
+                    return (byte)(packedValue);
                 }
             }
             set
             {
                 if (BitConverter.IsLittleEndian)
                 {
-                    packedValue = (packedValue & 0xFFFFFF00) | value;
+                    packedValue = (packedValue & 0x00FFFFFF) | (uint)(value << 24);
                 }
                 else
                 {
-                    packedValue = (packedValue & 0x00FFFFFF) | (uint)(value << 24);
+                    packedValue = (packedValue & 0xFFFFFF00) | value;
                 }
             }
         }
@@ -194,11 +194,11 @@ namespace UnrealEngine.Runtime
         {
             if (BitConverter.IsLittleEndian)
             {
-                packedValue = (uint)((b << 24) | (g << 16) | (r << 8) | (a));
+                packedValue = (uint)((a << 24) | (r << 16) | (g << 8) | (b));
             }
             else
             {
-                packedValue = (uint)((a << 24) | (r << 16) | (g << 8) | (b));
+                packedValue = (uint)((b << 24) | (g << 16) | (r << 8) | (a));
             }
         }
 
@@ -210,7 +210,7 @@ namespace UnrealEngine.Runtime
         internal static FColor FromABGR(uint color)
         {
             FColor col = new FColor(color);
-            return new FColor(col.A, col.R, col.G, col.B);
+            return new FColor(col.B, col.G, col.R, col.A);
         }
 
         /// <summary>

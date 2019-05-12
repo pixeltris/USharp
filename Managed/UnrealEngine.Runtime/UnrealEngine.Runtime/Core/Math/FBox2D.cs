@@ -6,7 +6,9 @@ using System.Text;
 
 namespace UnrealEngine.Runtime
 {
-    // This struct isn't blittable as it contains a native bool type
+    // Is this blittable?
+    // Engine\Source\Runtime\CoreUObject\Public\UObject\NoExportTypes.h - defines FBox2D with a uint8 bIsValid property
+    // Engine\Source\Runtime\Core\Public\Math\Box.h - defines FBox2D with a bool bIsValid value
 
     // Engine\Source\Runtime\Core\Public\Math\Box2D.h
 

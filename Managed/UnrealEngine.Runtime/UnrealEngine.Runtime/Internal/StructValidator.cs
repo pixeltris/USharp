@@ -47,6 +47,53 @@ namespace UnrealEngine.Runtime
             ValidateStructSize<FTickPrerequisite>(Native_SizeOfStruct.SizeOf_FTickPrerequisite);
             ValidateStructSize<FKey>(Native_SizeOfStruct.SizeOf_FKey);
             ValidateStructSize<FLifetimeProperty>(Native_SizeOfStruct.SizeOf_FLifetimeProperty);
+            // Math structs
+            ValidateStructSize<FInterpCurvePointFloat>(Native_SizeOfStruct.SizeOf_FInterpCurvePointFloat);
+            ValidateStructSize<FInterpCurvePointLinearColor>(Native_SizeOfStruct.SizeOf_FInterpCurvePointLinearColor);
+            ValidateStructSize<FInterpCurvePointQuat>(Native_SizeOfStruct.SizeOf_FInterpCurvePointQuat);
+            ValidateStructSize<FInterpCurvePointTwoVectors>(Native_SizeOfStruct.SizeOf_FInterpCurvePointTwoVectors);
+            ValidateStructSize<FInterpCurvePointVector>(Native_SizeOfStruct.SizeOf_FInterpCurvePointVector);
+            ValidateStructSize<FInterpCurvePointVector2D>(Native_SizeOfStruct.SizeOf_FInterpCurvePointVector2D);
+            ValidateStructSize<FFloatInterval>(Native_SizeOfStruct.SizeOf_FFloatInterval);
+            ValidateStructSize<FInt32Interval>(Native_SizeOfStruct.SizeOf_FInt32Interval);
+            ValidateStructSize<FFloatRange>(Native_SizeOfStruct.SizeOf_FFloatRange);
+            ValidateStructSize<FInt32Range>(Native_SizeOfStruct.SizeOf_FInt32Range);
+            ValidateStructSize<FFloatRangeBound>(Native_SizeOfStruct.SizeOf_FFloatRangeBound);
+            ValidateStructSize<FInt32RangeBound>(Native_SizeOfStruct.SizeOf_FInt32RangeBound);
+            ValidateStructSize<FBox>(Native_SizeOfStruct.SizeOf_FBox);
+            ValidateStructSize<FBox2D>(Native_SizeOfStruct.SizeOf_FBox2D);
+            ValidateStructSize<FBoxSphereBounds>(Native_SizeOfStruct.SizeOf_FBoxSphereBounds);
+            ValidateStructSize<FColor>(Native_SizeOfStruct.SizeOf_FColor);
+            ValidateStructSize<FIntPoint>(Native_SizeOfStruct.SizeOf_FIntPoint);
+            ValidateStructSize<FIntRect>(Native_SizeOfStruct.SizeOf_FIntRect);
+            ValidateStructSize<FIntVector>(Native_SizeOfStruct.SizeOf_FIntVector);
+            ValidateStructSize<FIntVector4>(Native_SizeOfStruct.SizeOf_FIntVector4);
+            ValidateStructSize<FLinearColor>(Native_SizeOfStruct.SizeOf_FLinearColor);
+            ValidateStructSize<FMatrix>(Native_SizeOfStruct.SizeOf_FMatrix);
+            ValidateStructSize<FOrientedBox>(Native_SizeOfStruct.SizeOf_FOrientedBox);
+            ValidateStructSize<FPlane>(Native_SizeOfStruct.SizeOf_FPlane);
+            ValidateStructSize<FQuat>(Native_SizeOfStruct.SizeOf_FQuat);
+            ValidateStructSize<FRandomStream>(Native_SizeOfStruct.SizeOf_FRandomStream);
+            ValidateStructSize<FRotator>(Native_SizeOfStruct.SizeOf_FRotator);
+            ValidateStructSize<FSphere>(Native_SizeOfStruct.SizeOf_FSphere);
+            //ValidateStructSize<FTransform>(Native_SizeOfStruct.SizeOf_FTransform);// See below
+            ValidateStructSize<FTwoVectors>(Native_SizeOfStruct.SizeOf_FTwoVectors);
+            ValidateStructSize<FVector>(Native_SizeOfStruct.SizeOf_FVector);
+            ValidateStructSize<FVector2D>(Native_SizeOfStruct.SizeOf_FVector2D);
+            ValidateStructSize<FVector4>(Native_SizeOfStruct.SizeOf_FVector4);
+
+            // FTransform is a special case... it has MS_ALIGN(16) on the vectorized version, but that should still
+            // be blittable (we just wont ever write the align bytes)
+            int managedTransformSize = Marshal.SizeOf<FTransform>();
+            int nativeTransformSize = Native_SizeOfStruct.SizeOf_FTransform();
+            if (managedTransformSize != nativeTransformSize)
+            {
+                if (managedTransformSize + 8 != nativeTransformSize ||
+                    Native_SizeOfStruct.SizeOf_FTransform_IsVectorized() == 0)
+                {
+                    ValidateStructSize<FTransform>(Native_SizeOfStruct.SizeOf_FTransform);
+                }
+            }
 
             ValidateFTickFunctionStructSize();
         }
@@ -90,8 +137,12 @@ namespace UnrealEngine.Runtime
             {
                 string error = string.Format("Struct size mismatch on '{0}' managed:{1} native:{2}", typeof(T), managedSize, nativeSize);
                 FMessage.Log(ELogVerbosity.Error, error);
+#if DEBUG
                 System.Diagnostics.Debug.WriteLine(error);
                 System.Diagnostics.Debug.Assert(false, error);
+#else
+                FMessage.OpenDialog(error);
+#endif
             }
         }
     }
