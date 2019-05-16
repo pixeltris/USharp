@@ -26,6 +26,10 @@ namespace UnrealEngine.Engine
             PrimaryComponentTick_Offset = NativeReflectionCached.GetPropertyOffset(classAddress, "PrimaryComponentTick");
         }
 
+        public void RegisterComponent() {
+            Native_UActorComponent.RegisterComponent(this.Address);
+        }
+
         internal override void BeginPlayInternal()
         {
             BeginPlay();

@@ -188,6 +188,7 @@
     <Compile Include="Internal\ManagedUnrealVisibility.cs" />
     <Compile Include="Internal\NativeReflectionCached.cs" />
     <Compile Include="Internal\Native\Native_FFeedbackContext.cs" />
+    <Compile Include="Internal\Native\Native_UActorComponent.cs" />
     <Compile Include="Internal\Native\Native_UEngineTypes.cs" />
     <Compile Include="Internal\Native\Native_FPlatformMisc.cs" />
     <Compile Include="Internal\Native\Native_UMaterialInstanceDynamic.cs" />
