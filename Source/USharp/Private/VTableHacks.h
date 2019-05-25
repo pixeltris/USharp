@@ -4,6 +4,7 @@
 #include "GameFramework/Actor.h"
 #include "GameFramework/Pawn.h"
 #include "Components/ActorComponent.h"
+#include "ExportedFunctions/ExportedFunctionsConventions.h"
 #include "VTableHacks.generated.h"
 
 USTRUCT()
