@@ -111,7 +111,7 @@ namespace UnrealEngine.Runtime
             MutateSeed();
 
             float sRandTemp = 1.0f;
-            float result;
+            float result = 0;
 
             *(int*)&result = (int)(*(int*)&sRandTemp & 0xff800000) | (Seed & 0x007fffff);
 
