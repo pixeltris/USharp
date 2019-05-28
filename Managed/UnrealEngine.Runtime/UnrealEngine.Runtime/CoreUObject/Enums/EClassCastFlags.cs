@@ -41,11 +41,11 @@ namespace UnrealEngine.Runtime
         UObjectPropertyBase = 0x0000000004000000,
         UWeakObjectProperty = 0x0000000008000000,
         ULazyObjectProperty = 0x0000000010000000,
-        UAssetObjectProperty = 0x0000000020000000,
+        USoftObjectProperty = 0x0000000020000000,
         UTextProperty = 0x0000000040000000,
         UInt16Property = 0x0000000080000000,
         UDoubleProperty = 0x0000000100000000,
-        UAssetClassProperty = 0x0000000200000000,
+        USoftClassProperty = 0x0000000200000000,
         UPackage = 0x0000000400000000,
         ULevel = 0x0000000800000000,
         AActor = 0x0000001000000000,
@@ -59,6 +59,8 @@ namespace UnrealEngine.Runtime
         UDelegateFunction = 0x0000100000000000,
         UStaticMeshComponent = 0x0000200000000000,
         UMapProperty = 0x0000400000000000,
+        USetProperty = 0x0000800000000000,
+        UEnumProperty = 0x0001000000000000,
 
         AllFlags = 0xFFFFFFFFFFFFFFFF
     }

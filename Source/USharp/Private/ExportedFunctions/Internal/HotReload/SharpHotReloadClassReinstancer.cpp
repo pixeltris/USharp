@@ -6,6 +6,7 @@
 #include "UObject/UObjectIterator.h"
 #include "UObject/Package.h"
 #include "Serialization/ArchiveReplaceObjectRef.h"
+#include "BlueprintCompilationManager.h"
 #if WITH_ENGINE
 #include "Engine/Blueprint.h"
 #include "Engine/BlueprintGeneratedClass.h"
@@ -201,10 +202,8 @@ void FSharpHotReloadClassReinstancer::SetupNewClassReinstancing(UClass* InNewCla
 	bNeedsReinstancing = true;
 	NewClass = InNewClass;
 
-	// Collect the original CDO property values
-	SerializeCDOProperties(InOldClass->GetDefaultObject(), OriginalCDOProperties);
-	// Collect the property values of the new CDO
-	SerializeCDOProperties(InNewClass->GetDefaultObject(), ReconstructedCDOProperties);
+	// Collect the CDO property values
+	CollectChangedProperties();
 
 	SaveClassFieldMapping(InOldClass);
 
@@ -245,135 +244,6 @@ void FSharpHotReloadClassReinstancer::SetupNewClassReinstancing(UClass* InNewCla
 	InOldClass->ClassFlags |= CLASS_NewerVersionExists;
 }
 
-void FSharpHotReloadClassReinstancer::SerializeCDOProperties(UObject* InObject, FSharpHotReloadClassReinstancer::FCDOPropertyData& OutData)
-{
-	// Creates a mem-comparable CDO data
-	class FCDOWriter : public FMemoryWriter
-	{
-		/** Objects already visited by this archive */
-		TSet<UObject*>& VisitedObjects;
-		/** Output property data */
-		FCDOPropertyData& PropertyData;
-		/** Current subobject being serialized */
-		FName SubobjectName;
-
-	public:
-		/** Serializes all script properties of the provided DefaultObject */
-		FCDOWriter(FCDOPropertyData& InOutData, TSet<UObject*>& InVisitedObjects, FName InSubobjectName)
-			: FMemoryWriter(InOutData.Bytes, /* bIsPersistent = */ false, /* bSetOffset = */ true)
-			, VisitedObjects(InVisitedObjects)
-			, PropertyData(InOutData)
-			, SubobjectName(InSubobjectName)
-		{
-			// Disable delta serialization, we want to serialize everything
-			ArNoDelta = true;
-		}
-		virtual void Serialize(void* Data, int64 Num) override
-		{
-			// Collect serialized properties so we can later update their values on instances if they change
-			UProperty* SerializedProperty = GetSerializedProperty();
-			if (SerializedProperty != nullptr)
-			{
-				FCDOProperty& PropertyInfo = PropertyData.Properties.FindOrAdd(SerializedProperty->GetFName());
-				if (PropertyInfo.Property == nullptr)
-				{
-					PropertyInfo.Property = SerializedProperty;
-					PropertyInfo.SubobjectName = SubobjectName;
-					PropertyInfo.SerializedValueOffset = Tell();
-					PropertyInfo.SerializedValueSize = Num;
-				}
-				else
-				{
-					PropertyInfo.SerializedValueSize += Num;
-				}
-			}
-			FMemoryWriter::Serialize(Data, Num);
-		}
-		/** Serializes an object. Only name and class for normal references, deep serialization for DSOs */
-		virtual FArchive& operator<<(class UObject*& InObj) override
-		{
-			FArchive& Ar = *this;
-			if (InObj)
-			{
-				FName ClassName = InObj->GetClass()->GetFName();
-				FName ObjectName = InObj->GetFName();
-				Ar << ClassName;
-				Ar << ObjectName;
-				if (!VisitedObjects.Contains(InObj))
-				{
-					VisitedObjects.Add(InObj);
-					if (Ar.GetSerializedProperty() && Ar.GetSerializedProperty()->ContainsInstancedObjectProperty())
-					{
-						// Serialize all DSO properties too
-						FCDOWriter DefaultSubobjectWriter(PropertyData, VisitedObjects, InObj->GetFName());
-						InObj->SerializeScriptProperties(DefaultSubobjectWriter);
-						Seek(PropertyData.Bytes.Num());
-					}
-				}
-			}
-			else
-			{
-				FName UnusedName = NAME_None;
-				Ar << UnusedName;
-				Ar << UnusedName;
-			}
-
-			return *this;
-		}
-		/** Serializes an FName as its index and number */
-		virtual FArchive& operator<<(FName& InName) override
-		{
-			FArchive& Ar = *this;
-			NAME_INDEX ComparisonIndex = InName.GetComparisonIndex();
-			NAME_INDEX DisplayIndex = InName.GetDisplayIndex();
-			int32 Number = InName.GetNumber();
-			Ar << ComparisonIndex;
-			Ar << DisplayIndex;
-			Ar << Number;
-			return Ar;
-		}
-		virtual FArchive& operator<<(FLazyObjectPtr& LazyObjectPtr) override
-		{
-			FArchive& Ar = *this;
-			FUniqueObjectGuid UniqueID = LazyObjectPtr.GetUniqueID();
-			Ar << UniqueID;
-			return *this;
-		}
-		virtual FArchive& operator<<(FSoftObjectPtr& Value) override
-		{
-			FArchive& Ar = *this;
-			FSoftObjectPath UniqueID = Value.GetUniqueID();
-			Ar << UniqueID;
-			return Ar;
-		}
-		virtual FArchive& operator<<(FSoftObjectPath& Value) override
-		{
-			FArchive& Ar = *this;
-
-			FString Path = Value.ToString();
-
-			Ar << Path;
-
-			if (IsLoading())
-			{
-				Value.SetPath(MoveTemp(Path));
-			}
-
-			return Ar;
-		}
-		FArchive& operator<<(FWeakObjectPtr& WeakObjectPtr) override
-		{
-			return FArchiveUObject::SerializeWeakObjectPtr(*this, WeakObjectPtr);
-		}
-		/** Archive name, for debugging */
-		virtual FString GetArchiveName() const override { return TEXT("FCDOWriter"); }
-	};
-	TSet<UObject*> VisitedObjects;
-	VisitedObjects.Add(InObject);
-	FCDOWriter Ar(OutData, VisitedObjects, NAME_None);
-	InObject->SerializeScriptProperties(Ar);
-}
-
 void FSharpHotReloadClassReinstancer::ReconstructClassDefaultObject(UClass* InClass, UObject* InOuter, FName InName, EObjectFlags InFlags)
 {
 	// Get the parent CDO
@@ -402,9 +272,6 @@ void FSharpHotReloadClassReinstancer::RecreateCDOAndSetupOldClassReinstancing(UC
 	bNeedsReinstancing = false;
 	NewClass = InOldClass; // The class doesn't change in this case
 
-	// Collect the original property values
-	SerializeCDOProperties(InOldClass->GetDefaultObject(), OriginalCDOProperties);
-
 	// Remember all the basic info about the object before we rename it
 	EObjectFlags CDOFlags = OriginalCDO->GetFlags();
 	UObject* CDOOuter = OriginalCDO->GetOuter();
@@ -426,8 +293,8 @@ void FSharpHotReloadClassReinstancer::RecreateCDOAndSetupOldClassReinstancing(UC
 
 	GReconstructedCDOsMap.Add(OriginalCDO, InOldClass->GetDefaultObject());
 
-	// Collect the property values after re-constructing the CDO
-	SerializeCDOProperties(InOldClass->GetDefaultObject(), ReconstructedCDOProperties);
+	// Collect the changed property values after re-constructing the CDO
+	CollectChangedProperties();
 
 	// We only want to re-instance the old class if its CDO's values have changed or any of its DSOs' property values have changed
 	if (DefaultPropertiesHaveChanged())
@@ -508,197 +375,338 @@ FSharpHotReloadClassReinstancer::~FSharpHotReloadClassReinstancer()
 	HotReloadedNewClass = nullptr;
 }
 
-/** Helper for finding subobject in an array. Usually there's not that many subobjects on a class to justify a TMap */
-FORCEINLINE static UObject* FindDefaultSubobject(TArray<UObject*>& InDefaultSubobjects, FName SubobjectName)
+void FSharpHotReloadClassReinstancer::CollectChangedProperties()
 {
-	for (UObject* Subobject : InDefaultSubobjects)
+	TSet<UObject*> SeenObjects;
+	ChangedProperties.OldStruct = DuplicatedClass;
+	ChangedProperties.NewStruct = ClassToReinstance;
+	ChangedProperties.OldProperty = nullptr;
+	ChangedProperties.NewProperty = nullptr;
+	ChangedProperties.OldPtr = OriginalCDO;
+	ChangedProperties.NewPtr = ClassToReinstance->GetDefaultObject(true);
+	ChangedProperties.bUpdateRequired = false;
+	ChangedProperties.Parent = nullptr;
+	ChangedProperties.Children.Empty();
+	ChangedProperties.ChangedProperties.Empty();
+	CollectChangedProperties(ChangedProperties, SeenObjects);
+}
+
+void FSharpHotReloadClassReinstancer::CollectChangedProperties(FCDOPropertyContainer& Container, TSet<UObject*>& SeenObjects)
+{
+	// Related functions:
+	//CopyPropertiesToCDO (PersonaUtils.cpp)
+	//EditorUtilities::CopySingleProperty
+	//EditorUtilities::CopyActorProperties (Editor.cpp)
+
+	TMap<FName, FCDOPropertyInfo> Properties;
+	if (Container.OldStruct == Container.NewStruct)
 	{
-		if (Subobject->GetFName() == SubobjectName)
+		for (TFieldIterator<UProperty> PropertyIt(Container.OldStruct); PropertyIt; ++PropertyIt)
 		{
-			return Subobject;
+			UProperty* Property = *PropertyIt;
+			FCDOPropertyInfo& PropertyInfo = Properties.FindOrAdd(Property->GetFName());
+			PropertyInfo.OldProperty = Property;
+			PropertyInfo.NewProperty = Property;
 		}
 	}
-	return nullptr;
+	else
+	{
+		for (TFieldIterator<UProperty> PropertyIt(Container.OldStruct); PropertyIt; ++PropertyIt)
+		{
+			UProperty* Property = *PropertyIt;
+			FCDOPropertyInfo& PropertyInfo = Properties.FindOrAdd(Property->GetFName());
+			PropertyInfo.OldProperty = Property;
+		}
+		for (TFieldIterator<UProperty> PropertyIt(Container.NewStruct); PropertyIt; ++PropertyIt)
+		{
+			UProperty* Property = *PropertyIt;
+			FCDOPropertyInfo& PropertyInfo = Properties.FindOrAdd(Property->GetFName());
+			PropertyInfo.NewProperty = Property;
+		}
+	}
+
+	for (const TPair<FName, FCDOPropertyInfo>& Pair : Properties)
+	{
+		const FCDOPropertyInfo& Property = Pair.Value;
+		UProperty* OldProperty = Property.OldProperty;
+		UProperty* NewProperty = Property.NewProperty;
+		if (OldProperty == nullptr || NewProperty == nullptr)
+		{
+			continue;
+		}
+
+		UClass* OldPropertyClass = OldProperty->GetClass();
+		UClass* NewPropertyClass = NewProperty->GetClass();
+
+		const EClassCastFlags BaseCastFlags = CASTCLASS_UField | CASTCLASS_UProperty;
+
+		if (OldPropertyClass->ClassCastFlags == NewPropertyClass->ClassCastFlags)
+		{
+			switch ((uint64)OldPropertyClass->ClassCastFlags)
+			{
+				// Primitive types
+				case (BaseCastFlags | CASTCLASS_UNumericProperty | CASTCLASS_UInt8Property):
+				case (BaseCastFlags | CASTCLASS_UNumericProperty | CASTCLASS_UByteProperty):
+				case (BaseCastFlags | CASTCLASS_UNumericProperty | CASTCLASS_UIntProperty):
+				case (BaseCastFlags | CASTCLASS_UNumericProperty | CASTCLASS_UFloatProperty):
+				case (BaseCastFlags | CASTCLASS_UNumericProperty | CASTCLASS_UUInt64Property):
+				case (BaseCastFlags | CASTCLASS_UNumericProperty | CASTCLASS_UUInt32Property):
+				case (BaseCastFlags | CASTCLASS_UBoolProperty):
+				case (BaseCastFlags | CASTCLASS_UNumericProperty | CASTCLASS_UUInt16Property):
+				case (BaseCastFlags | CASTCLASS_UNumericProperty | CASTCLASS_UInt64Property):
+				case (BaseCastFlags | CASTCLASS_UNumericProperty | CASTCLASS_UInt16Property):
+				case (BaseCastFlags | CASTCLASS_UNumericProperty | CASTCLASS_UDoubleProperty):
+				case (BaseCastFlags | CASTCLASS_UEnumProperty):
+				// Name / string
+				case (BaseCastFlags | CASTCLASS_UNameProperty):
+				case (BaseCastFlags | CASTCLASS_UStrProperty):
+				// Delegates
+				case (BaseCastFlags | CASTCLASS_UDelegateProperty):
+				case (BaseCastFlags | CASTCLASS_UMulticastDelegateProperty):
+					{
+						void* OldValuePtr = OldProperty->ContainerPtrToValuePtr<void>(Container.OldPtr);
+						void* NewValuePtr = NewProperty->ContainerPtrToValuePtr<void>(Container.NewPtr);
+						if (!OldProperty->Identical(OldValuePtr, NewValuePtr))
+						{
+							Container.AddChangedProperty(Property);
+						}
+					}
+					break;
+				// Text
+				case (BaseCastFlags | CASTCLASS_UTextProperty):
+					{
+						// UTextProperty::Identical / FText::IdenticalTo will often return true for differing values
+						// (TextData->GetLocalizedString() will often return "Null" on differing strings whose values are in History)
+						UTextProperty* OldTextProperty = CastChecked<UTextProperty>(OldProperty);
+						UTextProperty* NewTextProperty = CastChecked<UTextProperty>(NewProperty);
+						FText OldText = OldTextProperty->GetPropertyValue_InContainer(Container.OldPtr);
+						FText NewText = NewTextProperty->GetPropertyValue_InContainer(Container.NewPtr);
+						if (!OldText.EqualTo(NewText))
+						{
+							Container.AddChangedProperty(Property);
+						}
+					}
+					break;
+				// Collections
+				case (BaseCastFlags | CASTCLASS_USetProperty):
+				case (BaseCastFlags | CASTCLASS_UMapProperty):
+				case (BaseCastFlags | CASTCLASS_UArrayProperty):
+					break;
+				// Interface
+				case (BaseCastFlags | CASTCLASS_UInterfaceProperty):
+					break;
+				// UObjectPropertyBase types
+				case (BaseCastFlags | CASTCLASS_UObjectPropertyBase | CASTCLASS_UObjectProperty | CASTCLASS_UClassProperty):
+				case (BaseCastFlags | CASTCLASS_UObjectPropertyBase | CASTCLASS_UWeakObjectProperty):
+				case (BaseCastFlags | CASTCLASS_UObjectPropertyBase | CASTCLASS_ULazyObjectProperty):
+				case (BaseCastFlags | CASTCLASS_UObjectPropertyBase | CASTCLASS_USoftObjectProperty):
+				case (BaseCastFlags | CASTCLASS_UObjectPropertyBase | CASTCLASS_USoftClassProperty):
+					break;
+				case (BaseCastFlags | CASTCLASS_UObjectPropertyBase | CASTCLASS_UObjectProperty):
+					{
+						UObjectProperty* OldObjectProperty = CastChecked<UObjectProperty>(OldProperty);
+						UObjectProperty* NewObjectProperty = CastChecked<UObjectProperty>(NewProperty);
+						if (OldObjectProperty->PropertyClass != nullptr &&
+							NewObjectProperty->PropertyClass != nullptr &&
+							OldObjectProperty->ContainsInstancedObjectProperty() &&
+							NewObjectProperty->ContainsInstancedObjectProperty())
+						{
+							FString OldClassName = OldObjectProperty->PropertyClass->GetName();
+							if (OldClassName.StartsWith(TEXT("USharpHotreloaded_"), ESearchCase::CaseSensitive))
+							{
+								OldClassName = OldClassName.RightChop(18);
+							}
+							if (OldClassName.Equals(NewObjectProperty->PropertyClass->GetName(), ESearchCase::CaseSensitive))
+							{
+								UObject* OldObject = OldObjectProperty->GetPropertyValue_InContainer(Container.OldPtr);
+								UObject* NewObject = NewObjectProperty->GetPropertyValue_InContainer(Container.NewPtr);
+								if (OldObject != nullptr && NewObject != nullptr && !SeenObjects.Contains(NewObject))
+								{
+									SeenObjects.Add(NewObject);
+									FCDOPropertyContainer& ObjContainer = Container.AddChild();
+									ObjContainer.OldProperty = OldProperty;
+									ObjContainer.NewProperty = NewProperty;
+									ObjContainer.OldPtr = OldObject;
+									ObjContainer.NewPtr = NewObject;
+									ObjContainer.OldStruct = OldObjectProperty->PropertyClass;
+									ObjContainer.NewStruct = NewObjectProperty->PropertyClass;
+									ObjContainer.Parent = &Container;
+									CollectChangedProperties(ObjContainer, SeenObjects);
+									if (!ObjContainer.bUpdateRequired)
+									{
+										Container.RemoveChild(ObjContainer);
+									}
+								}
+							}
+						}
+					}
+					break;
+				case (BaseCastFlags | CASTCLASS_UStructProperty):
+					{
+						FCDOPropertyContainer& StructContainer = Container.AddChild();
+						StructContainer.OldProperty = OldProperty;
+						StructContainer.NewProperty = NewProperty;
+						StructContainer.OldPtr = OldProperty->ContainerPtrToValuePtr<void>(Container.OldPtr);
+						StructContainer.NewPtr = NewProperty->ContainerPtrToValuePtr<void>(Container.NewPtr);
+						StructContainer.OldStruct = Cast<UStructProperty>(OldProperty)->Struct;
+						StructContainer.NewStruct = Cast<UStructProperty>(NewProperty)->Struct;
+						StructContainer.Parent = &Container;
+						CollectChangedProperties(StructContainer, SeenObjects);
+						if (!StructContainer.bUpdateRequired)
+						{
+							Container.RemoveChild(StructContainer);
+						}
+					}
+					break;
+				default:
+					//check(0);
+					UE_LOG(LogTemp, Fatal, TEXT("Unhandled property class cast flags %llu"), (uint64)OldPropertyClass->ClassCastFlags);
+					break;
+			}
+		}
+		else
+		{
+			// TODO: Handle type changes
+			check(0);
+		}
+	}
 }
 
 void FSharpHotReloadClassReinstancer::UpdateDefaultProperties()
 {
-	struct FPropertyToUpdate
+	for (FObjectIterator It(NewClass); It; ++It)
 	{
-		UProperty* Property;
-		FName SubobjectName;
-		uint8* OldSerializedValuePtr;
-		uint8* NewValuePtr;
-		int64 OldSerializedSize;
-	};
-	/** Memory writer archive that supports UObject values the same way as FCDOWriter. */
-	class FPropertyValueMemoryWriter : public FMemoryWriter
-	{
-	public:
-		FPropertyValueMemoryWriter(TArray<uint8>& OutData)
-			: FMemoryWriter(OutData)
-		{}
-		virtual FArchive& operator<<(class UObject*& InObj) override
+		UObject* ObjectPtr = *It;
+
+		if (ObjectPtr == ChangedProperties.OldPtr ||
+			ObjectPtr == ChangedProperties.NewPtr)
 		{
-			FArchive& Ar = *this;
-			if (InObj)
+			// Skip the old/new CDO
+			continue;
+		}
+
+		UpdateDefaultProperties(ChangedProperties, (void*)ObjectPtr);
+		
+		AActor* Actor = Cast<AActor>(ObjectPtr);
+		if (Actor != nullptr)
+		{
+			Actor->MarkComponentsRenderStateDirty();
+		}
+		else
+		{
+			USceneComponent* SceneComponent = Cast<USceneComponent>(ObjectPtr);
+			if (SceneComponent != nullptr)
 			{
-				FName ClassName = InObj->GetClass()->GetFName();
-				FName ObjectName = InObj->GetFName();
-				Ar << ClassName;
-				Ar << ObjectName;
-			}
-			else
-			{
-				FName UnusedName = NAME_None;
-				Ar << UnusedName;
-				Ar << UnusedName;
-			}
-			return *this;
-		}
-		virtual FArchive& operator<<(FName& InName) override
-		{
-			FArchive& Ar = *this;
-			NAME_INDEX ComparisonIndex = InName.GetComparisonIndex();
-			NAME_INDEX DisplayIndex = InName.GetDisplayIndex();
-			int32 Number = InName.GetNumber();
-			Ar << ComparisonIndex;
-			Ar << DisplayIndex;
-			Ar << Number;
-			return Ar;
-		}
-		virtual FArchive& operator<<(FLazyObjectPtr& LazyObjectPtr) override
-		{
-			FArchive& Ar = *this;
-			FUniqueObjectGuid UniqueID = LazyObjectPtr.GetUniqueID();
-			Ar << UniqueID;
-			return *this;
-		}
-		virtual FArchive& operator<<(FSoftObjectPtr& Value) override
-		{
-			FArchive& Ar = *this;
-			FSoftObjectPath UniqueID = Value.GetUniqueID();
-			Ar << UniqueID;
-			return Ar;
-		}
-		virtual FArchive& operator<<(FSoftObjectPath& Value) override
-		{
-			FArchive& Ar = *this;
-
-			FString Path = Value.ToString();
-
-			Ar << Path;
-
-			if (IsLoading())
-			{
-				Value.SetPath(MoveTemp(Path));
-			}
-
-			return Ar;
-		}
-		FArchive& operator<<(FWeakObjectPtr& WeakObjectPtr) override
-		{
-			return FArchiveUObject::SerializeWeakObjectPtr(*this, WeakObjectPtr);
-		}
-	};
-
-	// Collect default subobjects to update their properties too
-	const int32 DefaultSubobjectArrayCapacity = 16;
-	TArray<UObject*> DefaultSubobjectArray;
-	DefaultSubobjectArray.Empty(DefaultSubobjectArrayCapacity);
-	NewClass->GetDefaultObject()->CollectDefaultSubobjects(DefaultSubobjectArray);
-
-	TArray<FPropertyToUpdate> PropertiesToUpdate;
-	// Collect all properties that have actually changed
-	for (const TPair<FName, FCDOProperty>& Pair : ReconstructedCDOProperties.Properties)
-	{
-		FCDOProperty* OldPropertyInfo = OriginalCDOProperties.Properties.Find(Pair.Key);
-		if (OldPropertyInfo)
-		{
-			const FCDOProperty& NewPropertyInfo = Pair.Value;
-
-			uint8* OldSerializedValuePtr = OriginalCDOProperties.Bytes.GetData() + OldPropertyInfo->SerializedValueOffset;
-			uint8* NewSerializedValuePtr = ReconstructedCDOProperties.Bytes.GetData() + NewPropertyInfo.SerializedValueOffset;
-			if (OldPropertyInfo->SerializedValueSize != NewPropertyInfo.SerializedValueSize ||
-				FMemory::Memcmp(OldSerializedValuePtr, NewSerializedValuePtr, OldPropertyInfo->SerializedValueSize) != 0)
-			{
-				// Property value has changed so add it to the list of properties that need updating on instances
-				FPropertyToUpdate PropertyToUpdate;
-				PropertyToUpdate.Property = NewPropertyInfo.Property;
-				PropertyToUpdate.NewValuePtr = nullptr;
-				PropertyToUpdate.SubobjectName = NewPropertyInfo.SubobjectName;
-
-				if (NewPropertyInfo.Property->GetOuter() == NewClass)
-				{
-					PropertyToUpdate.NewValuePtr = PropertyToUpdate.Property->ContainerPtrToValuePtr<uint8>(NewClass->GetDefaultObject());
-				}
-				else if (NewPropertyInfo.SubobjectName != NAME_None)
-				{
-					UObject* DefaultSubobjectPtr = FindDefaultSubobject(DefaultSubobjectArray, NewPropertyInfo.SubobjectName);
-					if (DefaultSubobjectPtr && NewPropertyInfo.Property->GetOuter() == DefaultSubobjectPtr->GetClass())
-					{
-						PropertyToUpdate.NewValuePtr = PropertyToUpdate.Property->ContainerPtrToValuePtr<uint8>(DefaultSubobjectPtr);
-					}
-				}
-				if (PropertyToUpdate.NewValuePtr)
-				{
-					PropertyToUpdate.OldSerializedValuePtr = OldSerializedValuePtr;
-					PropertyToUpdate.OldSerializedSize = OldPropertyInfo->SerializedValueSize;
-
-					PropertiesToUpdate.Add(PropertyToUpdate);
-				}
+				SceneComponent->MarkRenderStateDirty();
 			}
 		}
 	}
-	if (PropertiesToUpdate.Num())
+}
+
+void FSharpHotReloadClassReinstancer::UpdateDefaultProperties(const FCDOPropertyContainer& Container, void* Obj)
+{
+	for (const FCDOPropertyInfo& Property : Container.ChangedProperties)
 	{
-		TArray<uint8> CurrentValueSerializedData;
+		UProperty* OldProperty = Property.OldProperty;
+		UProperty* NewProperty = Property.NewProperty;
+		UClass* OldPropertyClass = OldProperty->GetClass();
+		UClass* NewPropertyClass = NewProperty->GetClass();
 
-		// Update properties on all existing instances of the class
-		for (FObjectIterator It(NewClass); It; ++It)
+		const EClassCastFlags BaseCastFlags = CASTCLASS_UField | CASTCLASS_UProperty;
+
+		if (OldPropertyClass->ClassCastFlags == NewPropertyClass->ClassCastFlags)
 		{
-			UObject* ObjectPtr = *It;
-			DefaultSubobjectArray.Empty(DefaultSubobjectArrayCapacity);
-			ObjectPtr->CollectDefaultSubobjects(DefaultSubobjectArray);
-
-			for (auto& PropertyToUpdate : PropertiesToUpdate)
+			switch ((uint64)OldPropertyClass->ClassCastFlags)
 			{
-				uint8* InstanceValuePtr = nullptr;
-				if (PropertyToUpdate.SubobjectName == NAME_None)
-				{
-					InstanceValuePtr = PropertyToUpdate.Property->ContainerPtrToValuePtr<uint8>(ObjectPtr);
-				}
-				else
-				{
-					UObject* DefaultSubobjectPtr = FindDefaultSubobject(DefaultSubobjectArray, PropertyToUpdate.SubobjectName);
-					if (DefaultSubobjectPtr && PropertyToUpdate.Property->GetOuter() == DefaultSubobjectPtr->GetClass())
+				// Primitive types
+				case (BaseCastFlags | CASTCLASS_UNumericProperty | CASTCLASS_UInt8Property):
+				case (BaseCastFlags | CASTCLASS_UNumericProperty | CASTCLASS_UByteProperty):
+				case (BaseCastFlags | CASTCLASS_UNumericProperty | CASTCLASS_UIntProperty):
+				case (BaseCastFlags | CASTCLASS_UNumericProperty | CASTCLASS_UFloatProperty):
+				case (BaseCastFlags | CASTCLASS_UNumericProperty | CASTCLASS_UUInt64Property):
+				case (BaseCastFlags | CASTCLASS_UNumericProperty | CASTCLASS_UUInt32Property):
+				case (BaseCastFlags | CASTCLASS_UBoolProperty):
+				case (BaseCastFlags | CASTCLASS_UNumericProperty | CASTCLASS_UUInt16Property):
+				case (BaseCastFlags | CASTCLASS_UNumericProperty | CASTCLASS_UInt64Property):
+				case (BaseCastFlags | CASTCLASS_UNumericProperty | CASTCLASS_UInt16Property):
+				case (BaseCastFlags | CASTCLASS_UNumericProperty | CASTCLASS_UDoubleProperty):
+				// Name / string
+				case (BaseCastFlags | CASTCLASS_UNameProperty):
+				case (BaseCastFlags | CASTCLASS_UStrProperty):
+				// Delegates
+				case (BaseCastFlags | CASTCLASS_UDelegateProperty):
+				case (BaseCastFlags | CASTCLASS_UMulticastDelegateProperty):
 					{
-						InstanceValuePtr = PropertyToUpdate.Property->ContainerPtrToValuePtr<uint8>(DefaultSubobjectPtr);
+						void* OldValuePtr = OldProperty->ContainerPtrToValuePtr<void>(Container.OldPtr);
+						void* NewValuePtr = NewProperty->ContainerPtrToValuePtr<void>(Obj);
+						if (OldProperty->Identical(OldValuePtr, NewValuePtr))
+						{
+							NewProperty->CopyCompleteValue_InContainer(Obj, Container.NewPtr);
+						}
 					}
-				}
-
-				if (InstanceValuePtr)
-				{
-					// Serialize current value to a byte array as we don't have the previous CDO to compare against, we only have its serialized property data
-					CurrentValueSerializedData.Empty(CurrentValueSerializedData.Num() + CurrentValueSerializedData.GetSlack());
-					FPropertyValueMemoryWriter CurrentValueWriter(CurrentValueSerializedData);
-					PropertyToUpdate.Property->SerializeItem(FStructuredArchiveFromArchive(CurrentValueWriter).GetSlot(), InstanceValuePtr);
-
-					// Update only when the current value on the instance is identical to the original CDO
-					if (CurrentValueSerializedData.Num() == PropertyToUpdate.OldSerializedSize &&
-						FMemory::Memcmp(CurrentValueSerializedData.GetData(), PropertyToUpdate.OldSerializedValuePtr, CurrentValueSerializedData.Num()) == 0)
+					break;
+				// Text
+				case (BaseCastFlags | CASTCLASS_UTextProperty):
 					{
-						// Update with the new value
-						PropertyToUpdate.Property->CopyCompleteValue(InstanceValuePtr, PropertyToUpdate.NewValuePtr);
+						UTextProperty* OldTextProperty = CastChecked<UTextProperty>(OldProperty);
+						UTextProperty* NewTextProperty = CastChecked<UTextProperty>(NewProperty);
+						FText OldText = OldTextProperty->GetPropertyValue_InContainer(Container.OldPtr);
+						FText NewText = NewTextProperty->GetPropertyValue_InContainer(Obj);
+						if (OldText.EqualTo(NewText))
+						{
+							NewProperty->CopyCompleteValue_InContainer(Obj, Container.NewPtr);
+						}
 					}
-				}
+					break;
 			}
+		}
+		else
+		{
+			// TODO: Handle type changes
+			check(0);
+		}
+	}
+
+	for (const FCDOPropertyContainer& ChildContainer : Container.Children)
+	{
+		void* ChildPtr = nullptr;
+
+		const EClassCastFlags BaseCastFlags = CASTCLASS_UField | CASTCLASS_UProperty;
+		switch ((uint64)ChildContainer.NewProperty->GetClass()->ClassCastFlags)
+		{
+			case (BaseCastFlags | CASTCLASS_UObjectPropertyBase | CASTCLASS_UObjectProperty):
+				{
+					UObjectProperty* ObjectProperty = CastChecked<UObjectProperty>(ChildContainer.NewProperty);
+					ChildPtr = ObjectProperty->GetPropertyValue_InContainer(Obj);
+				}
+				break;
+			default:
+				{
+					ChildPtr = ChildContainer.NewProperty->ContainerPtrToValuePtr<void>(Obj);
+				}
+				break;
+		}
+
+		if (ChildPtr != nullptr)
+		{
+			UpdateDefaultProperties(ChildContainer, ChildPtr);
 		}
 	}
 }
 
 void FSharpHotReloadClassReinstancer::ReinstanceObjectsAndUpdateDefaults()
 {
+	// Update the archetypes for this class. This MUST be done for component types to ensure correct lookups of the archetypes.
+	// This could possibly be skipped for other types (blueprint compilation always recreates the archetypes).
+	// Requires engine source modification
+	/*{
+		TMap<UClass*, UClass*> OldClassToNewClass;
+		OldClassToNewClass.Add(DuplicatedClass, ClassToReinstance);
+		FBlueprintCompilationManager::UpdateArchetypesForHotreload(OldClassToNewClass);
+
+		bUpdatedClassArchetypes = true;
+	}*/
+
 	ReinstanceObjects(true);
 	UpdateDefaultProperties();
 }

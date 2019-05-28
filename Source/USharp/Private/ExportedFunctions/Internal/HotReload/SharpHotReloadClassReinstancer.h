@@ -21,37 +21,83 @@ class UBlueprint;
 */
 class FSharpHotReloadClassReinstancer : public FBlueprintCompileReinstancer
 {
-	/** Holds a property and its offset in the serialized properties data array */
-	struct FCDOProperty
+	struct FCDOPropertyInfo
 	{
-		FCDOProperty()
-			: Property(nullptr)
-			, SubobjectName(NAME_None)
-			, SerializedValueOffset(0)
-			, SerializedValueSize(0)
-		{}
-
-		UProperty* Property;
-		FName SubobjectName;
-		int64 SerializedValueOffset;
-		int64 SerializedValueSize;
+		UProperty* OldProperty;
+		UProperty* NewProperty;
 	};
 
-	/** Contains all serialized CDO property data and the map of all serialized properties */
-	struct FCDOPropertyData
+	struct FCDOPropertyContainer
 	{
-		TArray<uint8> Bytes;
-		TMap<FName, FCDOProperty> Properties;
+		FCDOPropertyContainer* Parent;
+		TArray<FCDOPropertyContainer> Children;
+
+		/** The property that was used to get from Parent->this (so we can get the offset to this in instanced objects in the world) */
+		UProperty* OldProperty;
+		UProperty* NewProperty;
+
+		bool bUpdateRequired;
+		void* OldPtr;
+		void* NewPtr;
+		UStruct* OldStruct;
+		UStruct* NewStruct;
+		TArray<FCDOPropertyInfo> ChangedProperties;
+
+		void AddChangedProperty(FCDOPropertyInfo ChangedProperty)
+		{
+			ChangedProperties.Add(ChangedProperty);
+			if (!bUpdateRequired)
+			{
+				bUpdateRequired = true;
+				FCDOPropertyContainer* Container = Parent;
+				while (Container != nullptr)
+				{
+					Container->bUpdateRequired = true;
+					Container = Container->Parent;
+				}
+			}
+		}
+
+		FCDOPropertyContainer& AddChild()
+		{
+			int32 Index = Children.AddDefaulted();
+			check(Index != INDEX_NONE);
+			FCDOPropertyContainer& Result = Children[Index];
+			Result = FCDOPropertyContainer();
+			Result.Parent = this;
+			return Result;
+		}
+
+		void RemoveChild(FCDOPropertyContainer& Child)
+		{
+			int32 Num = Children.Num();
+			if (Num > 0)
+			{
+				// The child should be the last element (we only remove after failing to find any changed properties)
+				int32 LastIndex = Num - 1;
+				if (&Child == &Children[LastIndex])
+				{
+					Children.RemoveAt(LastIndex);
+				}
+				else
+				{
+					for (int32 Index = 0; Index < Num; ++Index)
+					{
+						if (&Children[Index] == &Child)
+						{
+							Children.RemoveAt(Index);
+							break;
+						}
+					}
+				}
+			}
+		}
 	};
 
 	/** Hot-reloaded version of the old class */
 	UClass* NewClass;
 
-	/** Serialized properties of the original CDO (before hot-reload) */
-	FCDOPropertyData OriginalCDOProperties;
-
-	/** Serialized properties of the new CDO (after hot-reload) */
-	FCDOPropertyData ReconstructedCDOProperties;
+	FCDOPropertyContainer ChangedProperties;
 
 	/** True if the provided native class needs re-instancing */
 	bool bNeedsReinstancing;
@@ -75,14 +121,6 @@ class FSharpHotReloadClassReinstancer : public FBlueprintCompileReinstancer
 	void RecreateCDOAndSetupOldClassReinstancing(UClass* InOldClass);
 
 	/**
-	* Creates a mem-comparable array of data containing CDO property values.
-	*
-	* @param InObject CDO
-	* @param OutData Data containing all of the CDO property values
-	*/
-	void SerializeCDOProperties(UObject* InObject, FCDOPropertyData& OutData);	
-
-	/**
 	* Re-creates class default object.
 	*
 	* @param InClass Class that has NOT changed after hot-reload.
@@ -90,20 +128,32 @@ class FSharpHotReloadClassReinstancer : public FBlueprintCompileReinstancer
 	* @param InName Name of the new CDO.
 	* @param InFlags Flags of the new CDO.
 	*/
-	void ReconstructClassDefaultObject(UClass* InClass, UObject* InOuter, FName InName, EObjectFlags InFlags);	
+	void ReconstructClassDefaultObject(UClass* InClass, UObject* InOuter, FName InName, EObjectFlags InFlags);
+
+	/** Collects all of the changed CDO property values for the target class */
+	void CollectChangedProperties();
+
+	/**
+	* Collects all of the changed CDO property values for the given container (UObject / struct / collection).
+	*
+	* @param Container The target container to find changed properties
+	* @param SeenObjects Objects which have already been seen / processed
+	*/
+	void CollectChangedProperties(FCDOPropertyContainer& Container, TSet<UObject*>& SeenObjects);
 
 	/** Updates property values on instances of the hot-reloaded class */
 	void UpdateDefaultProperties();
 
+	/** Updates property values on instances of the hot-reloaded class */
+	void UpdateDefaultProperties(const FCDOPropertyContainer& Container, void* Obj);
+
 	/** Returns true if the properties of the CDO have changed during hot-reload */
 	FORCEINLINE bool DefaultPropertiesHaveChanged() const
 	{
-		return OriginalCDOProperties.Bytes.Num() != ReconstructedCDOProperties.Bytes.Num() ||
-			FMemory::Memcmp(OriginalCDOProperties.Bytes.GetData(), ReconstructedCDOProperties.Bytes.GetData(), OriginalCDOProperties.Bytes.Num());
+		return ChangedProperties.bUpdateRequired;
 	}
 
 public:
-
 	/** Sets the re-instancer up to re-instance native classes */
 	FSharpHotReloadClassReinstancer(UClass* InNewClass, UClass* InOldClass);
 

@@ -1,5 +1,21 @@
 typedef void* GCHandle;
-TMap<TWeakObjectPtr<UObject>, GCHandle> ManagedObjectMap;
+struct FManagedObject
+{
+	GCHandle Handle;
+	TWeakObjectPtr<UObject> WeakPtr;
+	
+	FManagedObject(GCHandle InHandle, UObject* InPtr)
+		: Handle(InHandle)
+		, WeakPtr(InPtr)
+	{}
+	
+	bool IsValid()
+	{
+		return WeakPtr.IsValid();
+	}
+};
+// NOTE: What happens if a UObject address is reused? Is this protected by the GC events?
+TMap<UObject*, FManagedObject> ManagedObjectMap;
 
 GCHandle(CSCONV *OnAdd)(UObject*) = nullptr;
 void(CSCONV *OnRemove)(GCHandle) = nullptr;
@@ -22,7 +38,7 @@ CSEXPORT GCHandle CSCONV Export_GCHelper_Add(UObject* obj)
 		gcHandle = OnAdd(obj);
 		if (gcHandle != nullptr)
 		{
-			ManagedObjectMap.Add(obj, gcHandle);
+			ManagedObjectMap.Add(obj, FManagedObject(gcHandle, obj));
 		}
 	}
 	return gcHandle;
@@ -30,12 +46,12 @@ CSEXPORT GCHandle CSCONV Export_GCHelper_Add(UObject* obj)
 
 CSEXPORT void CSCONV Export_GCHelper_Remove(UObject* obj)
 {
-	GCHandle* gcHandle = ManagedObjectMap.Find(obj);
-	if (gcHandle != nullptr)
+	FManagedObject* managedObject = ManagedObjectMap.Find(obj);
+	if (managedObject != nullptr)
 	{
 		int32 removed = ManagedObjectMap.Remove(obj);
 		check(removed == 1);
-		OnRemove(*gcHandle);
+		OnRemove(managedObject->Handle);
 	}
 }
 
@@ -43,10 +59,10 @@ CSEXPORT void CSCONV Export_GCHelper_CollectGarbage()
 {
 	for (auto it = ManagedObjectMap.CreateIterator(); it; ++it)
 	{
-		if (!it.Key().IsValid())
+		if (!it.Value().IsValid())
 		{
-			OnRemove(it.Value());
-			it.RemoveCurrent();			
+			OnRemove(it.Value().Handle);
+			it.RemoveCurrent();
 		}
 	}
 }

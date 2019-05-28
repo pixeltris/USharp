@@ -148,10 +148,10 @@ namespace UnrealEngine.Runtime
                     {
                         namesUnsafe.AddRange(values.Keys.ToArray());
                         valuesUnsafe.AddRange(values.Values.ToArray());
-                        Native_UEnum.SetEnums(sharpEnum, namesUnsafe.Address, valuesUnsafe.Address, 
+                        Native_UEnum.SetEnums(sharpEnum, namesUnsafe.Address, valuesUnsafe.Address,
                             UEnum.ECppForm.EnumClass, true);
                     }
-                    
+
                     if (FBuild.WithEditor)
                     {
                         SetAllMetaData(sharpEnum, enumInfo, UMeta.Target.Enum);
@@ -279,7 +279,7 @@ namespace UnrealEngine.Runtime
                 // - FUserDefinedStructureCompilerInner::ReplaceStructWithTempDuplicate
                 using (TArrayUnsafe<IntPtr> oldSharpStructs = new TArrayUnsafe<IntPtr>())
                 {
-                    foreach(ManagedStruct managedStruct in depends.Keys)
+                    foreach (ManagedStruct managedStruct in depends.Keys)
                     {
                         if (managedStruct.OldAddress != IntPtr.Zero)
                         {
@@ -292,7 +292,7 @@ namespace UnrealEngine.Runtime
                         Native_SharpHotReloadUtils.PreUpdateStructs(oldSharpStructs.Address, ref blueprintsToRecompile, ref bpStructsToRecompile);
                     }
                 }
-                Debug.Assert(blueprintsToRecompile != IntPtr.Zero && bpStructsToRecompile != IntPtr.Zero);                
+                Debug.Assert(blueprintsToRecompile != IntPtr.Zero && bpStructsToRecompile != IntPtr.Zero);
             }
 
             HashSet<ManagedStruct> compiledStructs = new HashSet<ManagedStruct>();
@@ -339,15 +339,10 @@ namespace UnrealEngine.Runtime
 
                 FObjectInitializer objectInitializer = new FObjectInitializer(objectInitializerPtr);
 
-                // Call the initializer if this isn't an interface and the initializer is overridden somewhere in the class hierarchy
-                UObject obj = objectInitializer.GetObj();//null;//changed for VTable hacks
-                bool callInitializer = !managedClass.IsInterface && managedClass.TypeInfo.OverridesObjectInitializerHierarchical;
-                if (callInitializer)
-                {
-                    GCHelper.ManagedObjectBeingInitialized = objectInitializer.ObjectAddress;
-                    //obj = objectInitializer.GetObj();
-                    GCHelper.ManagedObjectBeingInitialized = IntPtr.Zero;
-                }
+                // GetObj() will construct a new object. ManagedObjectBeingInitialized guards against calling the Initialize() function
+                GCHelper.ManagedObjectBeingInitialized = objectInitializer.ObjectAddress;
+                UObject obj = objectInitializer.GetObj();
+                GCHelper.ManagedObjectBeingInitialized = IntPtr.Zero;
 
                 // Initialize C# members which can't be zero initialized (e.g. FText)
                 // - Does this impact how the FObjectInitializer destructor is called (it will call FObjectInitializer::InitProperties). This could
@@ -360,7 +355,7 @@ namespace UnrealEngine.Runtime
                     {
                         break;
                     }
-                    
+
                     // Only initialize the value if the property can't be zero initialized
                     if (!Native_UProperty.HasAnyPropertyFlags(prop, EPropertyFlags.ZeroConstructor))
                     {
@@ -381,7 +376,7 @@ namespace UnrealEngine.Runtime
 
                 VTableHacks.HackVTable(obj);
 
-                if (callInitializer)
+                if (!managedClass.IsInterface && managedClass.TypeInfo.OverridesObjectInitializerHierarchical)
                 {
                     try
                     {
@@ -427,7 +422,7 @@ namespace UnrealEngine.Runtime
             BuildClassesInterfaces(Classes);
         }
 
-        private static void BuildClassAndBaseHierarchical<T>(ManagedClass managedClass, Dictionary<Type, T> collection, 
+        private static void BuildClassAndBaseHierarchical<T>(ManagedClass managedClass, Dictionary<Type, T> collection,
             HashSet<ManagedClass> compiledClasses, Dictionary<string, ManagedClass> classesByPath) where T : ManagedClass
         {
             // If the class has been structurally modified create a reinstancer and reinstance.
@@ -572,7 +567,7 @@ namespace UnrealEngine.Runtime
                 Native_UClass.AssembleReferenceTokenStream(sharpClass, true);
                 managedClass.Linked = true;
             }
-            
+
             if (managedClass.OldAddress != IntPtr.Zero)
             {
                 classesToReinstance.Add(managedClass);
@@ -744,7 +739,7 @@ namespace UnrealEngine.Runtime
             Dictionary<Type, ManagedTypeBase> allTypes = new Dictionary<Type, ManagedTypeBase>();
             Dictionary<Type, ManagedTypeBase> changedTypes = new Dictionary<Type, ManagedTypeBase>();
             Dictionary<Type, ManagedTypeBase> unchangedTypes = new Dictionary<Type, ManagedTypeBase>();
-            
+
             CollectTypes(Classes, allTypes, changedTypes, unchangedTypes);
             CollectTypes(Interfaces, allTypes, changedTypes, unchangedTypes);
             CollectTypes(Structs, allTypes, changedTypes, unchangedTypes);
@@ -866,7 +861,7 @@ namespace UnrealEngine.Runtime
                     UClass.RegisterManagedClass(managedType.Address, managedType.Type);
                 }
             }
-            
+
             if (hotReloadedClasses.Count > 0)
             {
                 UpdateClassReferences(allTypes);
@@ -936,7 +931,6 @@ namespace UnrealEngine.Runtime
                     foreach (ManagedClass managedClass in classesToReinstance)
                     {
                         IntPtr classReinstancer = IntPtr.Zero;
-
                         classReinstancer = Native_SharpHotReloadUtils.CreateClassReinstancer(
                             managedClass.Address, managedClass.OldAddress != IntPtr.Zero ? managedClass.OldAddress : managedClass.Address);
                         Debug.Assert(classReinstancer != IntPtr.Zero);

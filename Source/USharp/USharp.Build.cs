@@ -51,6 +51,7 @@ namespace UnrealBuildTool.Rules
             {
                 PublicDependencyModuleNames.AddRange(
                     new string[] {
+                        "Kismet",
                         "UnrealEd",
                         "BlueprintGraph",
                         "KismetCompiler",
