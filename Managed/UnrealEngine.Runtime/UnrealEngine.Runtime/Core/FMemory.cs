@@ -353,6 +353,11 @@ namespace UnrealEngine.Runtime
         {
             return Native_FMemory.UnmapNamedSharedMemoryRegion(memoryRegion.Address);
         }
+
+        public static IntPtr PageAlignPointer(IntPtr ptr)
+        {
+            return (IntPtr)(ptr.ToInt64() & ~(Environment.SystemPageSize - 1));
+        }
     }
 
     /// <summary>

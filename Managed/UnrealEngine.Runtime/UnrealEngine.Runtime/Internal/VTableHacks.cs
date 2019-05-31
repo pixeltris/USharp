@@ -269,7 +269,8 @@ namespace UnrealEngine.Runtime
                         if (unrealClass.VTableOriginalFunctions != null &&
                             unrealClass.VTableOriginalFunctions.TryGetValue(redirect.VTableIndex, out originalFunc))
                         {
-                            FMemory.PageProtect((IntPtr)(&vtable[redirect.VTableIndex]), (IntPtr)IntPtr.Size, true, true);
+                            IntPtr pageAlignedPtr = FMemory.PageAlignPointer((IntPtr)(&vtable[redirect.VTableIndex]));
+                            FMemory.PageProtect(pageAlignedPtr, (IntPtr)IntPtr.Size, true, true);
                             *(&vtable[redirect.VTableIndex]) = originalFunc.FuncAddress;
                         }
                     }
@@ -312,7 +313,8 @@ namespace UnrealEngine.Runtime
                                 }
                             }
 
-                            FMemory.PageProtect((IntPtr)(&vtable[redirect.VTableIndex]), (IntPtr)IntPtr.Size, true, true);
+                            IntPtr pageAlignedPtr = FMemory.PageAlignPointer((IntPtr)(&vtable[redirect.VTableIndex]));
+                            FMemory.PageProtect(pageAlignedPtr, (IntPtr)IntPtr.Size, true, true);
                             *(&vtable[redirect.VTableIndex]) = redirect.NativeCallback;
                         }
                         else
