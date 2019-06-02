@@ -253,15 +253,16 @@ namespace UnrealEngine.Runtime
         /// <param name="key"></param>
         /// <param name="outValue"></param>
         /// <returns></returns>
-        public bool GetStringMetaDataHierarchical(FName key, ref string outValue)
+        public bool GetStringMetaDataHierarchical(FName key, out string outValue)
         {
             // WITH_EDITOR
             if (Native_UStruct.GetStringMetaDataHierarchical == null)
             {
+                outValue = null;
                 return false;
             }
 
-            using (FStringUnsafe outValueUnsafe = new FStringUnsafe(outValue))
+            using (FStringUnsafe outValueUnsafe = new FStringUnsafe())
             {
                 bool result = Native_UStruct.GetStringMetaDataHierarchical(Address, ref key, ref outValueUnsafe.Array);
                 outValue = outValueUnsafe.Value;

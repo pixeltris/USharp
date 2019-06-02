@@ -74,16 +74,25 @@ namespace UnrealEngine.Runtime
         protected Dictionary<IntPtr, T> values = new Dictionary<IntPtr, T>();
         protected int worldTypeFlags;
 
+        public GetDefaultValueHandler GetDefaultValue;
+        public delegate T GetDefaultValueHandler(UObject world);
+
         public WorldStaticVar()
         {
         }
 
-        public WorldStaticVar(params EWorldType[] worldTypes)
+        public WorldStaticVar(GetDefaultValueHandler getDefaultValue, params EWorldType[] worldTypes)
         {
+            GetDefaultValue = getDefaultValue;
             foreach (EWorldType worldType in worldTypes)
             {
                 worldTypeFlags |= (1 << (int)worldType);
             }
+        }
+
+        public WorldStaticVar(params EWorldType[] worldTypes)
+            : this (null, worldTypes)
+        {
         }
 
         public virtual bool HasValue(UObject worldContextObject)
@@ -156,6 +165,14 @@ namespace UnrealEngine.Runtime
             return false;
         }
 
+        public override void OnWorldAdded(IntPtr world)
+        {
+            if (GetDefaultValue != null)
+            {
+                values[world] = GetDefaultValue(GCHelper.Find(world));
+            }
+        }
+
         public override void OnWorldDestroyed(IntPtr world)
         {
             values.Remove(world);
@@ -171,9 +188,28 @@ namespace UnrealEngine.Runtime
     {
         public T Value;
 
+        public GetDefaultValueHandler GetDefaultValue;
+        public delegate T GetDefaultValueHandler();
+
+        public GameStaticVar()
+        {
+        }
+
+        public GameStaticVar(GetDefaultValueHandler getDefaultValue)
+        {
+            GetDefaultValue = getDefaultValue;
+        }
+
         public override void OnPIEBegin(bool simulating)
         {
-            Value = default(T);
+            if (GetDefaultValue != null)
+            {
+                Value = GetDefaultValue();
+            }
+            else
+            {
+                Value = default(T);
+            }
         }
 
         public override void OnPIEEnd(bool simulating)
@@ -378,7 +414,7 @@ namespace UnrealEngine.Runtime
             // TODO: Only call this on types which override this function
             foreach (StaticVar staticVar in Vars)
             {
-                staticVar.OnWorldDestroyed(world);
+                staticVar.OnWorldAdded(world);
             }
         }
 

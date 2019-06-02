@@ -912,7 +912,7 @@ namespace UnrealEngine.Runtime
                 {
                     // This is the declaration method
 
-                    if (functionInfo.IsBlueprintImplemented)
+                    if (functionInfo.IsBlueprintImplementable)
                     {
                         // Treat this as BlueprintImplementableEvent
                         return;

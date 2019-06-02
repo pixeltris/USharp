@@ -2889,7 +2889,7 @@ namespace UnrealEngine.Runtime
         /// <summary>
         /// This is the equivalent of BlueprintImplementableEvent which states the implementation is defined in Blueprint
         /// </summary>
-        BlueprintImplemented = 0x00000008,
+        BlueprintImplementable = 0x00000008,
 
         /// <summary>
         /// States that this method is an "_Implementation" method (this is used as the suffix may be trimmed to remove the name)
@@ -2937,10 +2937,10 @@ namespace UnrealEngine.Runtime
             set { SetFlag(ManagedUnrealFunctionFlags.Override, value); }
         }
         [ManagedUnrealReflectIgnore]
-        public bool IsBlueprintImplemented
+        public bool IsBlueprintImplementable
         {
-            get { return AdditionalFlags.HasFlag(ManagedUnrealFunctionFlags.BlueprintImplemented); }
-            set { SetFlag(ManagedUnrealFunctionFlags.BlueprintImplemented, value); }
+            get { return AdditionalFlags.HasFlag(ManagedUnrealFunctionFlags.BlueprintImplementable); }
+            set { SetFlag(ManagedUnrealFunctionFlags.BlueprintImplementable, value); }
         }
         [ManagedUnrealReflectIgnore]
         public bool IsImplementation

@@ -114,9 +114,6 @@ namespace UnrealEngine.Runtime
         /// </summary>
         private EInternalObjectFlags internalExclusionFlags;
 
-        // Cache UObject UClass
-        private UClass uobjectClass;
-
         public FObjectIterator() : this(null)
         {
         }

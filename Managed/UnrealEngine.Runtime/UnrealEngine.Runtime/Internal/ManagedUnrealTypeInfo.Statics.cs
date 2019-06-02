@@ -73,7 +73,6 @@ namespace UnrealEngine.Runtime
                 case EPropertyType.Int16:
                 case EPropertyType.UInt16:
                 case EPropertyType.UInt32:
-                case EPropertyType.Int64:
                 case EPropertyType.UInt64:
                 case EPropertyType.Double:
                 case EPropertyType.LazyObject:

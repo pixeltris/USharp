@@ -1385,9 +1385,9 @@ namespace UnrealEngine.Runtime
             return unrealStruct.GetBoolMetaDataHierarchical(new FName(UMeta.GetKey(key)));
         }
 
-        public static bool GetStringMetaDataHierarchical<TEnum>(this UStruct unrealStruct, TEnum key, ref string outValue) where TEnum : struct, Enum
+        public static bool GetStringMetaDataHierarchical<TEnum>(this UStruct unrealStruct, TEnum key, out string outValue) where TEnum : struct, Enum
         {
-            return unrealStruct.GetStringMetaDataHierarchical(new FName(UMeta.GetKey(key)), ref outValue);
+            return unrealStruct.GetStringMetaDataHierarchical(new FName(UMeta.GetKey(key)), out outValue);
         }
     }
 }
