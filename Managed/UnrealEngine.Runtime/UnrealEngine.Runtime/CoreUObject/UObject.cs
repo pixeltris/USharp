@@ -1102,16 +1102,6 @@ namespace UnrealEngine.Runtime
             return false;
         }
 
-        public Coroutine StartCoroutine(object obj, IEnumerator coroutine, bool pool = Coroutine.PoolByDefault)
-        {
-            return Coroutine.StartCoroutine(this, coroutine, pool);
-        }
-
-        public Coroutine StartCoroutine(IEnumerator coroutine, CoroutineGroup group = CoroutineGroup.Tick, bool pool = Coroutine.PoolByDefault)
-        {
-            return Coroutine.StartCoroutine(this, coroutine, group, pool);
-        }
-
         public Coroutine StartCoroutine(IEnumerator coroutine, CoroutineGroup group = CoroutineGroup.Tick, string tag = null, bool pool = Coroutine.PoolByDefault)
         {
             return Coroutine.StartCoroutine(this, coroutine, group, tag, pool);

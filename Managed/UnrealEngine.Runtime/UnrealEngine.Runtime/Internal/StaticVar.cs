@@ -198,6 +198,10 @@ namespace UnrealEngine.Runtime
         public GameStaticVar(GetDefaultValueHandler getDefaultValue)
         {
             GetDefaultValue = getDefaultValue;
+            if (GetDefaultValue != null)
+            {
+                Value = GetDefaultValue();
+            }
         }
 
         public override void OnPIEBegin(bool simulating)

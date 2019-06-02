@@ -120,13 +120,7 @@ namespace UnrealEngine.Runtime
 
         public static Coroutine StartCoroutine(object obj, IEnumerator coroutine, bool pool = Coroutine.PoolByDefault)
         {
-            return StartCoroutine(obj, coroutine, CoroutineGroup.Tick, pool);
-        }
-
-        public static Coroutine StartCoroutine(object obj, IEnumerator coroutine,
-            CoroutineGroup group, bool pool = Coroutine.PoolByDefault)
-        {
-            return StartCoroutine(obj, coroutine, group, null, pool);
+            return StartCoroutine(obj, coroutine, CoroutineGroup.Tick, null, pool);
         }
 
         public static Coroutine StartCoroutine(object obj, IEnumerator coroutine,
