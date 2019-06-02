@@ -258,10 +258,10 @@ namespace UnrealEngine.Runtime
         }
     }
 
-    /// <summary>
+    // This has no real purpose. This is essentially the same as using GameStaticVar<T>
+    /*/// <summary>
     /// A static variable which can have a unique value for each UGameInstance<para/>
     /// NOTE: The value will be reset on hotreload<para/>
-    /// NOTE: As each UGameInstance typically works with a single UWorld this is likely no different than using <see cref="WorldStaticVar{T}"/>
     /// </summary>
     /// <typeparam name="T">The type of the static variable</typeparam>
     public class GameInstanceStaticVar<T> : StaticVar
@@ -394,7 +394,7 @@ namespace UnrealEngine.Runtime
         {
             values.Remove(gameInstance);
         }
-    }
+    }*/
 
     public static class StaticVarManager
     {

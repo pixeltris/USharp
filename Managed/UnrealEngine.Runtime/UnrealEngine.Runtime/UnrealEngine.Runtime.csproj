@@ -60,6 +60,7 @@
     <None Include="Internal\InjectedClasses\Engine\World_Injected.cs" />
     <None Include="Internal\InjectedClasses\Engine\InputComponent_Injected.cs" />
     <Compile Include="Internal\AppDomainDiagnostic.cs" />
+    <Compile Include="Internal\Bitflags.cs" />
     <Compile Include="Internal\CodeGenerator\CodeManagers\SimpleFileParserUtility.cs" />
     <Compile Include="Internal\CodeGenerator\ProjectProps.cs" />
     <Compile Include="Internal\CodeGenerator\TemplateProjectGenerator.cs" />
