@@ -178,7 +178,7 @@ namespace UnrealEngine.InputCore
 
         public static bool operator !=(FKey a, FKey b)
         {
-            return a != b;
+            return !(a == b);
         }
 
         public override bool Equals(object obj)

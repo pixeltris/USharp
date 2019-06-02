@@ -330,37 +330,26 @@ namespace UnrealEngine.Runtime
             Function
         }
 
-        private static void ValidateKeyEnum<TEnum>() where TEnum : struct
-        {
-            if (!typeof(TEnum).IsEnum)
-            {
-                throw new Exception("Using metadata enum functions on a non-enum type! " + typeof(TEnum).FullName);
-            }
-        }
-
         /// <summary>
         /// Returns the group name for the given group enum (just uses typeof(TEnum).Name)
         /// </summary>
-        public static string GetGroup<TEnum>() where TEnum : struct
+        public static string GetGroup<TEnum>() where TEnum : struct, Enum
         {
             return typeof(TEnum).Name;
         }
 
-        public static FName GetKeyName<TEnum>(TEnum key) where TEnum : struct
+        public static FName GetKeyName<TEnum>(TEnum key) where TEnum : struct, Enum
         {
-            ValidateKeyEnum<TEnum>();
             return new FName(key.ToString());
         }
 
-        public static string GetKey<TEnum>(TEnum key) where TEnum : struct
+        public static string GetKey<TEnum>(TEnum key) where TEnum : struct, Enum
         {
-            ValidateKeyEnum<TEnum>();
             return key.ToString();
         }
 
-        public static TEnum ParseKey<TEnum>(string key) where TEnum : struct
+        public static TEnum ParseKey<TEnum>(string key) where TEnum : struct, Enum
         {
-            ValidateKeyEnum<TEnum>();
             TEnum result;
             Enum.TryParse(key, out result);
             return result;
@@ -393,7 +382,7 @@ namespace UnrealEngine.Runtime
             return false;
         }
 
-        public static bool HasMetaData<TEnum>(IntPtr obj, TEnum key) where TEnum : struct
+        public static bool HasMetaData<TEnum>(IntPtr obj, TEnum key) where TEnum : struct, Enum
         {
             return HasMetaData(obj, GetKey(key));
         }
@@ -422,12 +411,12 @@ namespace UnrealEngine.Runtime
             }
         }
 
-        public static void SetMetaData<TEnum, T>(IntPtr obj, TEnum key, T value) where TEnum : struct
+        public static void SetMetaData<TEnum, T>(IntPtr obj, TEnum key, T value) where TEnum : struct, Enum
         {
             SetMetaData(obj, GetKey(key), value);
         }
 
-        public static void RemoveMetaData<TEnum>(IntPtr obj, TEnum key) where TEnum : struct
+        public static void RemoveMetaData<TEnum>(IntPtr obj, TEnum key) where TEnum : struct, Enum
         {
             RemoveMetaData(obj, GetKey(key));
         }
@@ -1345,17 +1334,17 @@ namespace UnrealEngine.Runtime
 
     public static class MetadataExtensions
     {
-        public static bool HasMetaData<TEnum>(this UField field, TEnum key) where TEnum : struct
+        public static bool HasMetaData<TEnum>(this UField field, TEnum key) where TEnum : struct, Enum
         {
             return field.HasMetaData(UMeta.GetKey(key));
         }        
 
-        public static string GetMetaData<TEnum>(this UField field, TEnum key) where TEnum : struct
+        public static string GetMetaData<TEnum>(this UField field, TEnum key) where TEnum : struct, Enum
         {
             return field.GetMetaData(UMeta.GetKey(key));
         }
 
-        public static void SetMetaData<TEnum, T>(this UField field, TEnum key, T value) where TEnum : struct
+        public static void SetMetaData<TEnum, T>(this UField field, TEnum key, T value) where TEnum : struct, Enum
         {
             string valueStr = null;
             UClass unrealClass = value as UClass;
@@ -1371,34 +1360,34 @@ namespace UnrealEngine.Runtime
             field.SetMetaData(UMeta.GetKey(key), valueStr);
         }
 
-        public static bool GetBoolMetaData<TEnum>(this UField field, TEnum key) where TEnum : struct
+        public static bool GetBoolMetaData<TEnum>(this UField field, TEnum key) where TEnum : struct, Enum
         {
             return field.GetBoolMetaData(UMeta.GetKey(key));
         }
 
-        public static int GetIntMetaData<TEnum>(this UField field, TEnum key) where TEnum : struct
+        public static int GetIntMetaData<TEnum>(this UField field, TEnum key) where TEnum : struct, Enum
         {
             return field.GetIntMetaData(UMeta.GetKey(key));
         }
 
-        public static float GetFloatMetaData<TEnum>(this UField field, TEnum key) where TEnum : struct
+        public static float GetFloatMetaData<TEnum>(this UField field, TEnum key) where TEnum : struct, Enum
         {
             return field.GetFloatMetaData(UMeta.GetKey(key));
         }
 
-        public static UClass GetClassMetaData<TEnum>(this UField field, TEnum key) where TEnum : struct
+        public static UClass GetClassMetaData<TEnum>(this UField field, TEnum key) where TEnum : struct, Enum
         {
             return field.GetClassMetaData(UMeta.GetKey(key));
         }
 
-        public static bool GetBoolMetaDataHierarchical<TEnum>(this UStruct unrealStruct, TEnum key) where TEnum : struct
+        public static bool GetBoolMetaDataHierarchical<TEnum>(this UStruct unrealStruct, TEnum key) where TEnum : struct, Enum
         {
             return unrealStruct.GetBoolMetaDataHierarchical(new FName(UMeta.GetKey(key)));
         }
 
-        public static bool GeStringMetaDataHierarchical<TEnum>(this UStruct unrealStruct, TEnum key) where TEnum : struct
+        public static bool GetStringMetaDataHierarchical<TEnum>(this UStruct unrealStruct, TEnum key, ref string outValue) where TEnum : struct, Enum
         {
-            return unrealStruct.GeStringMetaDataHierarchical(new FName(UMeta.GetKey(key)));
+            return unrealStruct.GetStringMetaDataHierarchical(new FName(UMeta.GetKey(key)), ref outValue);
         }
     }
 }
