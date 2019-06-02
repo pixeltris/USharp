@@ -88,6 +88,24 @@ namespace UnrealEngine.Runtime
             {
                 worldTypeFlags |= (1 << (int)worldType);
             }
+
+            // Initialize the value for already created worlds
+            FWorldContext[] worldContexts = FWorldContext.GetWorldContexts();
+            foreach (FWorldContext worldContext in worldContexts)
+            {
+                if (worldContext.CurrentWorld != IntPtr.Zero)
+                {
+                    int worldType = (1 << (int)worldContext.WorldType);
+                    if ((worldTypeFlags & worldType) == worldType)
+                    {
+                        UObject world = GCHelper.Find(worldContext.CurrentWorld);
+                        if (world != null)
+                        {
+                            Set(world, GetDefaultValue(world));
+                        }
+                    }
+                }
+            }
         }
 
         public WorldStaticVar(params EWorldType[] worldTypes)
@@ -200,7 +218,15 @@ namespace UnrealEngine.Runtime
             GetDefaultValue = getDefaultValue;
             if (GetDefaultValue != null)
             {
+#if WITH_EDITORONLY_DATA
+                IntPtr pieWorldContext = Native_UEditorEngine.GetPIEWorldContext(FGlobals.GEditor);
+                if (pieWorldContext != IntPtr.Zero)
+                {
+                    Value = GetDefaultValue();
+                }
+#else
                 Value = GetDefaultValue();
+#endif
             }
         }
 

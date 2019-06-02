@@ -8,6 +8,17 @@ namespace UnrealEngine.Engine
 {
     public partial class UWorld : UObject
     {
+        public static UWorld GetWorlds()
+        {
+            FWorldContext[] contexts = FWorldContext.GetWorldContexts();
+            UWorld[] result = new UWorld[contexts.Length];
+            for (int i = 0; i < contexts.Length; i++)
+            {
+                result[i] = contexts[i].World();
+            }
+            return result;
+        }
+
         public T[] GetAllActorsOfClass<T>() where T : AActor
         {
             return UGameplayStatics.GetAllActorsOfClass<T>(this);

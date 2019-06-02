@@ -160,22 +160,4 @@ namespace UnrealEngine.Runtime
         {
         }
     }
-
-    // We need the enum prefix here?
-    ///// <summary>
-    ///// Metadata that associates a bitmask property with a bitflag enum.
-    ///// </summary>
-    //[AttributeUsage(AttributeTargets.Enum)]
-    //public class BitmaskEnumAttribute : UMetaAttribute
-    //{
-    //    public BitmaskEnumAttribute(Type enumType) 
-    //        : base(MDEnum.BitmaskEnum, enumType.Name)
-    //    {
-    //    }
-    //
-    //    public BitmaskEnumAttribute(string enumTypeName) 
-    //        : base(MDEnum.BitmaskEnum, enumTypeName)
-    //    {
-    //    }
-    //}
 }

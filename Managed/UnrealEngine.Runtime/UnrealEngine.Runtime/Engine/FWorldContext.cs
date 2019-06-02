@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using UnrealEngine.Runtime;
@@ -155,6 +156,24 @@ namespace UnrealEngine.Engine
         public FWorldContext(IntPtr address)
         {
             Address = address;
+        }
+
+        public static FWorldContext[] GetWorldContexts()
+        {
+            using (TArrayUnsafe<IntPtr> resultUnsafe = new TArrayUnsafe<IntPtr>())
+            {
+                Native_UEngine.GetWorldContexts(resultUnsafe.Address);
+
+                int count = resultUnsafe.Count;
+                FWorldContext[] result = new FWorldContext[count];
+                for (int i = 0; i < count; i++)
+                {
+                    IntPtr worldContextPtr = resultUnsafe[i];
+                    Debug.Assert(worldContextPtr != IntPtr.Zero);
+                    result[i] = new FWorldContext(worldContextPtr);
+                }
+                return result;
+            }
         }
     }
 }
