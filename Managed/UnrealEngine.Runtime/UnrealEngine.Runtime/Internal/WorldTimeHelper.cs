@@ -131,7 +131,7 @@ namespace UnrealEngine.Runtime
 
         public static TimeSpan GetUnpausedTimeChecked(IntPtr world)
         {
-            return GetUnpausedTimeChecked(GetWorldChecked(world));
+            return GetUnpausedTime(GetWorldChecked(world));
         }
 
         public static TimeSpan GetUnpausedTime(IntPtr world)
@@ -163,7 +163,7 @@ namespace UnrealEngine.Runtime
 
         public static float GetUnpausedTimeSecondsChecked(IntPtr world)
         {
-            return GetUnpausedTimeSecondsChecked(GetWorldChecked(world));
+            return GetUnpausedTimeSeconds(GetWorldChecked(world));
         }
 
         public static float GetUnpausedTimeSeconds(IntPtr world)
