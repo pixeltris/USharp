@@ -23,7 +23,8 @@ namespace UnrealEngine.Runtime.Native
         public delegate IntPtr Del_GetTimerManager(IntPtr instance);
         public delegate csbool Del_IsPaused(IntPtr instance);
         public delegate IntPtr Del_SpawnActor(IntPtr instance, IntPtr unrealClass, ref FVector location, ref FRotator rotation, ref FActorSpawnParametersInterop parameters);
-        
+        public delegate IntPtr Del_GetFirstPlayerController(IntPtr instance);
+
         public static Del_Offset_TimeSeconds Offset_TimeSeconds;
         public static Del_Offset_UnpausedTimeSeconds Offset_UnpausedTimeSeconds;
         public static Del_Offset_RealTimeSeconds Offset_RealTimeSeconds;
@@ -36,6 +37,7 @@ namespace UnrealEngine.Runtime.Native
         public static Del_GetTimerManager GetTimerManager;
         public static Del_IsPaused IsPaused;
         public static Del_SpawnActor SpawnActor;
+        public static Del_GetFirstPlayerController GetFirstPlayerController;
     }
 
     /// <summary>

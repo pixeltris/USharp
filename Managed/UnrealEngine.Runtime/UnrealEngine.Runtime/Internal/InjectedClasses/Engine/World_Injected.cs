@@ -29,6 +29,11 @@ namespace UnrealEngine.Engine
             return UGameplayStatics.GetAllActorsOfClassList<T>(this);
         }
 
+        public APlayerController GetFirstPlayerController()
+        {
+            return GCHelper.Find<APlayerController>(Native_UWorld.GetFirstPlayerController(Address));
+        }
+
         public AActor SpawnActor(UClass unrealClass, ref FVector location, ref FRotator rotation, ref FActorSpawnParameters parameters)
         {
             FActorSpawnParametersInterop interopParams = new FActorSpawnParametersInterop()
