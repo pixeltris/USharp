@@ -41,6 +41,16 @@ CSEXPORT ULevel* CSCONV Export_AActor_GetLevel(AActor* instance)
 	return instance->GetLevel();
 }
 
+CSEXPORT void CSCONV Export_AActor_GetComponentsByClass(AActor* instance, UClass* ComponentClass, TArray<UActorComponent*>& result)
+{
+	result = instance->GetComponentsByClass(ComponentClass);
+}
+
+CSEXPORT void CSCONV Export_AActor_GetComponentsByTag(AActor* instance, UClass* ComponentClass, FName& Tag, TArray<UActorComponent*>& result)
+{
+	result = instance->GetComponentsByTag(ComponentClass, Tag);
+}
+
 CSEXPORT csbool CSCONV Export_AActor_SetActorLocation(AActor* instance, const FVector& NewLocation, csbool bSweep, int32 Teleport)
 {
 	return instance->SetActorLocation(NewLocation, (bool)bSweep, nullptr, (ETeleportType)Teleport);
@@ -122,6 +132,8 @@ CSEXPORT void CSCONV Export_AActor(RegisterFunc registerFunc)
 	REGISTER_FUNC(Export_AActor_GetWorld);
 	REGISTER_FUNC(Export_AActor_IsInLevel);
 	REGISTER_FUNC(Export_AActor_GetLevel);
+	REGISTER_FUNC(Export_AActor_GetComponentsByClass);
+	REGISTER_FUNC(Export_AActor_GetComponentsByTag);
 	REGISTER_FUNC(Export_AActor_SetActorLocation);
 	REGISTER_FUNC(Export_AActor_SetActorLocationAndRotation);
 	REGISTER_FUNC(Export_AActor_SetActorLocationAndRotationQuat);

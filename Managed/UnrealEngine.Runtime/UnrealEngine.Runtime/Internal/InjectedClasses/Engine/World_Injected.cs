@@ -8,7 +8,7 @@ namespace UnrealEngine.Engine
 {
     public partial class UWorld : UObject
     {
-        public static UWorld GetWorlds()
+        public static UWorld[] GetWorlds()
         {
             FWorldContext[] contexts = FWorldContext.GetWorldContexts();
             UWorld[] result = new UWorld[contexts.Length];

@@ -15,7 +15,31 @@ namespace UnrealEngine.Runtime
 
         public static bool HasBit<TEnum>(TEnum value, TEnum flag) where TEnum : struct, Enum, IConvertible
         {
-            return (value.ToInt32(null) & (1 << flag.ToInt32(null))) > 0;
+            return HasBit(value.ToInt32(null), flag.ToInt32(null));
+        }
+
+        public static bool HasAllBits<TEnum>(TEnum value, params TEnum[] flags) where TEnum : struct, Enum, IConvertible
+        {
+            foreach (TEnum flag in flags)
+            {
+                if (!HasBit(value, flag))
+                {
+                    return false;
+                }
+            }
+            return flags.Length > 0;
+        }
+
+        public static bool HasAnyBits<TEnum>(TEnum value, params TEnum[] flags) where TEnum : struct, Enum, IConvertible
+        {
+            foreach (TEnum flag in flags)
+            {
+                if (HasBit(value, flag))
+                {
+                    return true;
+                }
+            }
+            return false;
         }
 
         public static TEnum SetBit<TEnum>(TEnum value, TEnum flag) where TEnum : struct, Enum, IConvertible
@@ -23,9 +47,14 @@ namespace UnrealEngine.Runtime
             return (TEnum)(object)SetBit(value.ToInt32(null), flag.ToInt32(null));
         }
 
-        public static int SetBit(int value, int flag)
+        public static TEnum SetBits<TEnum>(TEnum value, params TEnum[] flags) where TEnum : struct, Enum, IConvertible
         {
-            return (value | (1 << flag));
+            int result = value.ToInt32(null);
+            foreach (TEnum flag in flags)
+            {
+                result = SetBit(result, flag.ToInt32(null));
+            }
+            return (TEnum)(object)result;
         }
 
         public static TEnum ClearBit<TEnum>(TEnum value, TEnum flag) where TEnum : struct, Enum, IConvertible
@@ -33,9 +62,73 @@ namespace UnrealEngine.Runtime
             return (TEnum)(object)ClearBit(value.ToInt32(null), flag.ToInt32(null));
         }
 
+        public static TEnum ClearBits<TEnum>(TEnum value, params TEnum[] flags) where TEnum : struct, Enum, IConvertible
+        {
+            int result = value.ToInt32(null);
+            foreach (TEnum flag in flags)
+            {
+                result = ClearBit(result, flag.ToInt32(null));
+            }
+            return (TEnum)(object)result;
+        }
+
+        public static bool HasBit(int value, int flag)
+        {
+            return (value & (1 << flag)) > 0;
+        }
+
+        public static bool HasAllBits(int value, params int[] flags)
+        {
+            foreach (int flag in flags)
+            {
+                if (!HasBit(value, flag))
+                {
+                    return false;
+                }
+            }
+            return flags.Length > 0;
+        }
+
+        public static bool HasAnyBits(int value, params int[] flags)
+        {
+            foreach (int flag in flags)
+            {
+                if (HasBit(value, flag))
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        public static int SetBits(int value, params int[] flags)
+        {
+            int result = value;
+            foreach (int flag in flags)
+            {
+                result = SetBit(result, flag);
+            }
+            return result;
+        }
+
+        public static int SetBit(int value, int flag)
+        {
+            return (value | (1 << flag));
+        }
+
         public static int ClearBit(int value, int flag)
         {
             return (value & ~(1 << flag));
+        }
+
+        public static int ClearBits(int value, params int[] flags)
+        {
+            int result = value;
+            foreach (int flag in flags)
+            {
+                result = ClearBit(result, flag);
+            }
+            return result;
         }
     }
 }

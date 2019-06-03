@@ -366,9 +366,9 @@ namespace UnrealEngine.Engine
     public delegate void FInputGestureHandler(float value);
 
     /// <summary>
-    /// Base for the different binding types.
+    /// Binds a delegate to an action.
     /// </summary>
-    public struct FInputBindingHandle
+    public struct FInputActionBindingHandle
     {
         public IntPtr Address;
 
@@ -388,34 +388,6 @@ namespace UnrealEngine.Engine
         {
             get { return Native_FInputBinding.Get_bExecuteWhenPaused(Address); }
             set { Native_FInputBinding.Set_bExecuteWhenPaused(Address, value); }
-        }
-
-        public FInputBindingHandle(IntPtr address)
-        {
-            Address = address;
-        }
-
-        public static implicit operator IntPtr(FInputBindingHandle handle)
-        {
-            return handle.Address;
-        }
-
-        public static explicit operator FInputBindingHandle(IntPtr address)
-        {
-            return new FInputBindingHandle(address);
-        }
-    }
-
-    /// <summary>
-    /// Binds a delegate to an action.
-    /// </summary>
-    public struct FInputActionBindingHandle
-    {
-        public IntPtr Address;
-
-        public FInputBindingHandle Base
-        {
-            get { return (FInputBindingHandle)Address; }
         }
 
         /// <summary>
@@ -473,9 +445,22 @@ namespace UnrealEngine.Engine
     {
         public IntPtr Address;
 
-        public FInputBindingHandle Base
+        /// <summary>
+        /// Whether the binding should consume the input or allow it to pass to another component
+        /// </summary>
+        public bool ConsumeInput
         {
-            get { return (FInputBindingHandle)Address; }
+            get { return Native_FInputBinding.Get_bConsumeInput(Address); }
+            set { Native_FInputBinding.Set_bConsumeInput(Address, value); }
+        }
+
+        /// <summary>
+        /// Whether the binding should execute while paused
+        /// </summary>
+        public bool ExecuteWhenPaused
+        {
+            get { return Native_FInputBinding.Get_bExecuteWhenPaused(Address); }
+            set { Native_FInputBinding.Set_bExecuteWhenPaused(Address, value); }
         }
 
         /// <summary>
@@ -538,9 +523,22 @@ namespace UnrealEngine.Engine
     {
         public IntPtr Address;
 
-        public FInputBindingHandle Base
+        /// <summary>
+        /// Whether the binding should consume the input or allow it to pass to another component
+        /// </summary>
+        public bool ConsumeInput
         {
-            get { return (FInputBindingHandle)Address; }
+            get { return Native_FInputBinding.Get_bConsumeInput(Address); }
+            set { Native_FInputBinding.Set_bConsumeInput(Address, value); }
+        }
+
+        /// <summary>
+        /// Whether the binding should execute while paused
+        /// </summary>
+        public bool ExecuteWhenPaused
+        {
+            get { return Native_FInputBinding.Get_bExecuteWhenPaused(Address); }
+            set { Native_FInputBinding.Set_bExecuteWhenPaused(Address, value); }
         }
 
         /// <summary>
@@ -611,9 +609,22 @@ namespace UnrealEngine.Engine
     {
         public IntPtr Address;
 
-        public FInputBindingHandle Base
+        /// <summary>
+        /// Whether the binding should consume the input or allow it to pass to another component
+        /// </summary>
+        public bool ConsumeInput
         {
-            get { return (FInputBindingHandle)Address; }
+            get { return Native_FInputBinding.Get_bConsumeInput(Address); }
+            set { Native_FInputBinding.Set_bConsumeInput(Address, value); }
+        }
+
+        /// <summary>
+        /// Whether the binding should execute while paused
+        /// </summary>
+        public bool ExecuteWhenPaused
+        {
+            get { return Native_FInputBinding.Get_bExecuteWhenPaused(Address); }
+            set { Native_FInputBinding.Set_bExecuteWhenPaused(Address, value); }
         }
 
         /// <summary>
@@ -676,9 +687,22 @@ namespace UnrealEngine.Engine
     {
         public IntPtr Address;
 
-        public FInputBindingHandle Base
+        /// <summary>
+        /// Whether the binding should consume the input or allow it to pass to another component
+        /// </summary>
+        public bool ConsumeInput
         {
-            get { return (FInputBindingHandle)Address; }
+            get { return Native_FInputBinding.Get_bConsumeInput(Address); }
+            set { Native_FInputBinding.Set_bConsumeInput(Address, value); }
+        }
+
+        /// <summary>
+        /// Whether the binding should execute while paused
+        /// </summary>
+        public bool ExecuteWhenPaused
+        {
+            get { return Native_FInputBinding.Get_bExecuteWhenPaused(Address); }
+            set { Native_FInputBinding.Set_bExecuteWhenPaused(Address, value); }
         }
 
         /// <summary>
@@ -746,9 +770,22 @@ namespace UnrealEngine.Engine
     {
         public IntPtr Address;
 
-        public FInputBindingHandle Base
+        /// <summary>
+        /// Whether the binding should consume the input or allow it to pass to another component
+        /// </summary>
+        public bool ConsumeInput
         {
-            get { return (FInputBindingHandle)Address; }
+            get { return Native_FInputBinding.Get_bConsumeInput(Address); }
+            set { Native_FInputBinding.Set_bConsumeInput(Address, value); }
+        }
+
+        /// <summary>
+        /// Whether the binding should execute while paused
+        /// </summary>
+        public bool ExecuteWhenPaused
+        {
+            get { return Native_FInputBinding.Get_bExecuteWhenPaused(Address); }
+            set { Native_FInputBinding.Set_bExecuteWhenPaused(Address, value); }
         }
 
         /// <summary>
@@ -788,9 +825,22 @@ namespace UnrealEngine.Engine
     {
         public IntPtr Address;
 
-        public FInputBindingHandle Base
+        /// <summary>
+        /// Whether the binding should consume the input or allow it to pass to another component
+        /// </summary>
+        public bool ConsumeInput
         {
-            get { return (FInputBindingHandle)Address; }
+            get { return Native_FInputBinding.Get_bConsumeInput(Address); }
+            set { Native_FInputBinding.Set_bConsumeInput(Address, value); }
+        }
+
+        /// <summary>
+        /// Whether the binding should execute while paused
+        /// </summary>
+        public bool ExecuteWhenPaused
+        {
+            get { return Native_FInputBinding.Get_bExecuteWhenPaused(Address); }
+            set { Native_FInputBinding.Set_bExecuteWhenPaused(Address, value); }
         }
 
         /// <summary>

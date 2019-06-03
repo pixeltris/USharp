@@ -291,6 +291,55 @@ namespace UnrealEngine.Runtime
             return Native_UProperty.ContainerVoidPtrToValuePtr(Address, container, arrayIndex);
         }
 
+        public IntPtr ContainerUObjectPtrToValuePtrForDefaults(UStruct containerClass, IntPtr container, int arrayIndex = 0)
+        {
+            return Native_UProperty.ContainerUObjectPtrToValuePtrForDefaults(Address, containerClass.Address, container, arrayIndex);
+        }
+
+        public IntPtr ContainerPtrToValuePtrForDefaults(UStruct containerClass, UObject container, int arrayIndex = 0)
+        {
+            return ContainerUObjectPtrToValuePtrForDefaults(containerClass, container.Address, 0);
+        }
+
+        public IntPtr ContainerPtrToValuePtrForDefaults(UStruct containerClass, IntPtr container, int arrayIndex = 0)
+        {
+            return Native_UProperty.ContainerVoidPtrToValuePtrForDefaults(Address, containerClass.Address, container, arrayIndex);
+        }
+
+        /// <summary>
+        /// See if the offset of this property is below the supplied container size
+        /// </summary>
+        /// <param name="containerSize"></param>
+        /// <returns></returns>
+        public bool IsInContainer(int containerSize)
+        {
+            return Native_UProperty.IsInContainer(Address, containerSize);
+        }
+
+        /// <summary>
+        /// See if the offset of this property is below the supplied container size
+        /// </summary>
+        /// <param name="containerClass"></param>
+        /// <returns></returns>
+        public bool IsInContainer(UStruct containerClass)
+        {
+            return Native_UProperty.IsInContainerStruct(Address, containerClass.Address);
+        }
+
+        /// <summary>
+        /// Copy the value for a single element of this property.
+        /// </summary>
+        /// <param name="dest">the address where the value should be copied to.  This should always correspond to the BASE + OFFSET + INDEX * SIZE, where
+        ///     BASE = (for member properties) the address of the UObject which contains this data, (for locals/parameters) the address of the space allocated for the function's locals
+        ///     OFFSET = the Offset of this UProperty
+        ///     INDEX = the index that you want to copy.  for properties which are not arrays, this should always be 0
+        ///     SIZE = the ElementSize of this UProperty</param>
+        /// <param name="src">the address of the value to copy from. should be evaluated the same way as Dest</param>
+        public void CopySingleValue(IntPtr dest, IntPtr src)
+        {
+            Native_UProperty.CopySingleValue(Address, dest, src);
+        }
+
         public uint GetValueTypeHash(IntPtr src)
         {
             return Native_UProperty.GetValueTypeHash(Address, src);

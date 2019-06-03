@@ -191,6 +191,9 @@ CSharpLoader::CSharpLoader()
 {
 	coreCLRHandle = NULL;
 	monoDomain = NULL;
+#if PLATFORM_LINUX
+	bHasFreedSignals = false;
+#endif
 #if PLATFORM_WINDOWS
 	metaHost = NULL;
 	runtimeHost = NULL;
@@ -504,25 +507,6 @@ bool CSharpLoader::LoadRuntimeMono()
 	}
 #endif
 
-#if PLATFORM_LINUX
-	// Free up a signals for mono (FUnixPlatformMisc::SetCrashHandler ignores all signals it doesn't use)
-	int32 freedSignals = 0;
-	const int32 requiredSignals = 3;// abort, suspend, restart
-	const int32 targetFlags = SA_SIGINFO | SA_RESTART | SA_ONSTACK;// Set by SetCrashHandler()
-	for (int i = SIGRTMAX - 1; i >= 0 && freedSignals < requiredSignals; --i)
-	{
-		struct sigaction sig;
-		sigaction(i, NULL, &sig);
-		if (sig.sa_handler == SIG_IGN && (sig.sa_flags & targetFlags) == targetFlags)
-		{
-			sig.sa_handler = SIG_DFL;
-			sigaction(i, &sig, NULL);
-			freedSignals++;
-		}
-	}
-	check(freedSignals == requiredSignals);
-#endif
-
 #ifdef MONO_VERBOSE_LOGGING
 	// mono_trace_init() doesn't seem to print anything on MacOS (regardless of environment variables)
 	//mono_trace_init();
@@ -651,6 +635,31 @@ bool CSharpLoader::LoadRuntimes(bool loaderEnabled)
 	{
 		return true;
 	}
+	
+#if PLATFORM_LINUX
+	// Free up a signals for mono (FUnixPlatformMisc::SetCrashHandler ignores all signals it doesn't use)
+	// We always want to do this even if not running mono as we invoke mono/msbuild from C# (which inherits
+	// the signals. UE4 frees the signals when starting mono processes (FUnixPlatformProcess::CreateProc)).
+	if (!bHasFreedSignals)
+	{
+		int32 freedSignals = 0;
+		const int32 requiredSignals = 3;// abort, suspend, restart
+		const int32 targetFlags = SA_SIGINFO | SA_RESTART | SA_ONSTACK;// Set by SetCrashHandler()
+		for (int i = SIGRTMAX - 1; i >= 0 && freedSignals < requiredSignals; --i)
+		{
+			struct sigaction sig;
+			sigaction(i, NULL, &sig);
+			if (sig.sa_handler == SIG_IGN && (sig.sa_flags & targetFlags) == targetFlags)
+			{
+				sig.sa_handler = SIG_DFL;
+				sigaction(i, &sig, NULL);
+				freedSignals++;
+			}
+		}
+		check(freedSignals == requiredSignals);
+		bHasFreedSignals = true;
+	}
+#endif
 
 #if PLATFORM_WINDOWS
 	if ((runtimeState.InitializedRuntimes == EDotNetRuntime::None || loaderEnabled) &&

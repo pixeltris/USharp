@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using UnrealEngine.Runtime;
 using UnrealEngine.Runtime.Native;
 
@@ -19,7 +20,35 @@ namespace UnrealEngine.Engine
 
         public T GetComponentByClass<T>() where T : UActorComponent
         {
-            return (T)GetComponentByClass(new TSubclassOf<UActorComponent>(UClass.GetClass<T>()));
+            return (T)GetComponentByClass(TSubclassOf<UActorComponent>.From<T>());
+        }
+
+        public T[] GetComponentsByClass<T>() where T : UActorComponent
+        {
+            UClass unrealClass = UClass.GetClass<T>();
+            if (unrealClass == null)
+            {
+                return null;
+            }
+            using (TArrayUnsafe<T> resultUnsafe = new TArrayUnsafe<T>())
+            {
+                Native_AActor.GetComponentsByClass(Address, unrealClass.Address, resultUnsafe.Address);
+                return resultUnsafe.ToArray();
+            }
+        }
+
+        public T[] GetComponentsByTag<T>(FName tag) where T : UActorComponent
+        {
+            UClass unrealClass = UClass.GetClass<T>();
+            if (unrealClass == null)
+            {
+                return null;
+            }
+            using (TArrayUnsafe<T> resultUnsafe = new TArrayUnsafe<T>())
+            {
+                Native_AActor.GetComponentsByTag(Address, unrealClass.Address, ref tag, resultUnsafe.Address);
+                return resultUnsafe.ToArray();
+            }
         }
 
         static int PrimaryActorTick_Offset;

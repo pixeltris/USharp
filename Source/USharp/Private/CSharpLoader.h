@@ -68,7 +68,10 @@ class CSharpLoader
 private:
 	SharedRuntimeState runtimeState;
 	void* coreCLRHandle;
-	void* monoDomain;	
+	void* monoDomain;
+#if PLATFORM_LINUX
+	bool bHasFreedSignals;
+#endif
 #if PLATFORM_WINDOWS
 	ICLRMetaHost* metaHost;
 	ICLRRuntimeHost* runtimeHost;

@@ -13,6 +13,8 @@ namespace UnrealEngine.Runtime.Native
         public delegate IntPtr Del_GetWorld(IntPtr instance);
         public delegate csbool Del_IsInLevel(IntPtr instance, IntPtr level);
         public delegate IntPtr Del_GetLevel(IntPtr instance);
+        public delegate void Del_GetComponentsByClass(IntPtr instance, IntPtr componentClass, IntPtr result);
+        public delegate void Del_GetComponentsByTag(IntPtr instance, IntPtr componentClass, ref FName tag, IntPtr result);
         public delegate csbool Del_SetActorLocation(IntPtr instance, ref FVector newLocation, csbool sweep, int teleport);
         public delegate csbool Del_SetActorLocationAndRotation(IntPtr instance, ref FVector newLocation, ref FRotator newRotation, csbool sweep, int teleport);
         public delegate csbool Del_SetActorLocationAndRotationQuat(IntPtr instance, ref FVector newLocation, ref FQuat newRotation, csbool sweep, int teleport);
@@ -33,6 +35,8 @@ namespace UnrealEngine.Runtime.Native
         public static Del_GetWorld GetWorld;
         public static Del_IsInLevel IsInLevel;
         public static Del_GetLevel GetLevel;
+        public static Del_GetComponentsByClass GetComponentsByClass;
+        public static Del_GetComponentsByTag GetComponentsByTag;
         public static Del_SetActorLocation SetActorLocation;
         public static Del_SetActorLocationAndRotation SetActorLocationAndRotation;
         public static Del_SetActorLocationAndRotationQuat SetActorLocationAndRotationQuat;
