@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -119,9 +119,10 @@ namespace UnrealEngine.Runtime
 
         protected KeyValuePair<TKey, TValue> GetAt(int index)
         {
-            if (index < 0 || index >= Count)
+            int count = MapHelper.GetMaxIndex();
+            if (index < 0 || index >= count)
             {
-                throw new IndexOutOfRangeException(string.Format("Index {0} out of bounds. Array is size {1}", index, Count));
+                throw new IndexOutOfRangeException(string.Format("Index {0} out of bounds. Array is size {1}", index, count));
             }
             IntPtr keyPtr, valuePtr;
             MapHelper.Update(property);
@@ -151,11 +152,11 @@ namespace UnrealEngine.Runtime
 
         public bool ContainsValue(TValue value)
         {
-            int count = Count;
+            int count = MapHelper.GetMaxIndex();
             EqualityComparer<TValue> comparer = EqualityComparer<TValue>.Default;
             for (int i = 0; i < count; ++i)
             {
-                if (comparer.Equals(GetAt(i).Value, value))
+                if (MapHelper.IsValidIndex(i) && comparer.Equals(GetAt(i).Value, value))
                 {
                     return true;
                 }
@@ -211,8 +212,8 @@ namespace UnrealEngine.Runtime
 
             public bool MoveNext()
             {
-                ++index;
-                return index < map.Count;
+                while (++index < map.MapHelper.GetMaxIndex() && !map.MapHelper.IsValidIndex(index)) ;
+                return index < map.MapHelper.GetMaxIndex();
             }
 
             public void Reset()
@@ -257,10 +258,14 @@ namespace UnrealEngine.Runtime
 
             public void CopyTo(TKey[] array, int arrayIndex)
             {
-                int count = Count;
+                int count = map.MapHelper.GetMaxIndex();
+                int index = 0;
                 for (int i = 0; i < count; ++i)
                 {
-                    array[i] = map.GetAt(i).Key;
+                    if (!map.MapHelper.IsValidIndex(i))
+                        continue;
+
+                    array[index++] = map.GetAt(i).Key;
                 }
             }
 
@@ -316,8 +321,8 @@ namespace UnrealEngine.Runtime
 
                 public bool MoveNext()
                 {
-                    ++index;
-                    return index < map.Count;
+                    while (++index < map.MapHelper.GetMaxIndex() && !map.MapHelper.IsValidIndex(index)) ;
+                    return index < map.MapHelper.GetMaxIndex();
                 }
 
                 public void Reset()
@@ -363,10 +368,14 @@ namespace UnrealEngine.Runtime
 
             public void CopyTo(TValue[] array, int arrayIndex)
             {
-                int count = Count;
+                int count = map.MapHelper.GetMaxIndex();
+                int index = 0;
                 for (int i = 0; i < count; ++i)
                 {
-                    array[i] = map.GetAt(i).Value;
+                    if (!map.MapHelper.IsValidIndex(i))
+                        continue;
+
+                    array[index++] = map.GetAt(i).Value;
                 }
             }
 
@@ -422,8 +431,8 @@ namespace UnrealEngine.Runtime
 
                 public bool MoveNext()
                 {
-                    ++index;
-                    return index < map.Count;
+                    while (++index < map.MapHelper.GetMaxIndex() && !map.MapHelper.IsValidIndex(index)) ;
+                    return index < map.MapHelper.GetMaxIndex();
                 }
 
                 public void Reset()
@@ -544,10 +553,14 @@ namespace UnrealEngine.Runtime
 
         public void CopyTo(KeyValuePair<TKey, TValue>[] array, int arrayIndex)
         {
-            int count = Count;
+            int count = MapHelper.GetMaxIndex();
+            int index = 0;
             for (int i = 0; i < count; ++i)
             {
-                array[i] = GetAt(i);
+                if (!MapHelper.IsValidIndex(i))
+                    continue;
+
+                array[index++] = GetAt(i);
             }
         }
 
@@ -744,9 +757,12 @@ namespace UnrealEngine.Runtime
             {
                 FScriptMap* map = (FScriptMap*)scriptMapAddress;
                 Dictionary<TKey, TValue> result = new Dictionary<TKey, TValue>();
-                int count = map->Count;
+                int count = map->GetMaxIndex();
                 for (int i = 0; i < count; ++i)
                 {
+                    if (!map->IsValidIndex(i))
+                        continue;
+
                     IntPtr keyPtr, valuePtr;
                     helper.GetPairPtr(i, out keyPtr, out valuePtr);
                     result.Add(
@@ -789,9 +805,12 @@ namespace UnrealEngine.Runtime
             {
                 FScriptMap* map = (FScriptMap*)scriptMapAddress;
                 Dictionary<TKey, TValue> result = new Dictionary<TKey, TValue>();
-                int count = map->Count;
+                int count = map->GetMaxIndex();
                 for (int i = 0; i < count; ++i)
                 {
+                    if (!map->IsValidIndex(i))
+                        continue;
+
                     IntPtr keyPtr, valuePtr;
                     helper.GetPairPtr(i, out keyPtr, out valuePtr);
                     result.Add(
