@@ -363,5 +363,136 @@ namespace UnrealEngine.Runtime
 
             return hasScriptFunctionName;
         }
+
+        /// <summary>
+        /// Dynamically invokes the function
+        /// </summary>
+        /// <param name="obj"></param>
+        /// <param name="parameters"></param>
+        /// <returns></returns>
+        public object DynamicInvoke(UObject obj, params object[] parameters)
+        {
+            if (parameters == null)
+            {
+                parameters = new object[0];
+            }
+
+            bool validParams = true;
+
+            Dictionary<UProperty, Delegate> fromNativeParams = new Dictionary<UProperty, Delegate>();
+            Dictionary<UProperty, Delegate> toNativeParams = new Dictionary<UProperty, Delegate>();
+
+            UProperty returnValueProp = null;
+            List<UProperty> paramProps = new List<UProperty>();
+
+            foreach (UProperty prop in GetProperties<UProperty>())
+            {
+                if (prop.HasAnyPropertyFlags(EPropertyFlags.Parm))
+                {
+                    if (prop.HasAnyPropertyFlags(EPropertyFlags.ReturnParm))
+                    {
+                        returnValueProp = prop;
+                    }
+                    else
+                    {
+                        paramProps.Add(prop);
+                    }
+
+                    Type paramType = UProperty.GetTypeFromProperty(prop);
+                    if (paramType == null)
+                    {
+                        validParams = false;
+                        break;
+                    }
+
+                    Delegate fromNative = MarshalingDelegateResolverSlow.GetFromNative(paramType);
+                    Delegate toNative = MarshalingDelegateResolverSlow.GetToNative(paramType);
+                    if (fromNative == null || toNative == null)
+                    {
+                        validParams = false;
+                        break;
+                    }
+
+                    fromNativeParams.Add(prop, fromNative);
+                    toNativeParams.Add(prop, toNative);
+                }
+            }
+
+            if (parameters.Length != paramProps.Count)
+            {
+                validParams = false;
+            }
+
+            if (!validParams)
+            {
+                return null;
+            }
+
+            // Sort the parameters by offset, this is assumingly the correct thing to do?
+            // - Otherwise we need to take the param names into this function. Or just not sort at all?
+            //paramProps.Sort((x, y) => x.GetOffset_ForUFunction().CompareTo(y.GetOffset_ForUFunction()));
+
+            object result = null;
+
+            unsafe
+            {
+                int paramsSize = ParmsSize;
+                byte* paramsBufferAllocation = stackalloc byte[ParmsSize];
+                IntPtr paramsBuffer = new IntPtr(paramsBufferAllocation);
+                FMemory.Memzero(paramsBuffer, paramsSize);
+
+                // Initialize default values for all parameters
+                foreach (UProperty prop in GetProperties<UProperty>())
+                {
+                    if (prop.HasAnyPropertyFlags(EPropertyFlags.Parm))
+                    {
+                        Native.Native_UProperty.InitializeValue_InContainer(prop.Address, paramsBuffer);
+                    }
+                }
+
+                // Copy the managed parameters to the buffer
+                for (int i = 0; i < parameters.Length; i++)
+                {
+                    UProperty paramProp = paramProps[i];
+                    object paramValue = parameters[i];
+                    if (paramValue != null && (!paramProp.HasAnyPropertyFlags(EPropertyFlags.OutParm) ||
+                        paramProp.HasAnyPropertyFlags(EPropertyFlags.ReferenceParm)))
+                    {
+                        toNativeParams[paramProp].DynamicInvoke(
+                            paramsBuffer + paramProp.GetOffset_ForUFunction(), (int)0, paramProp.Address, paramValue);
+                    }
+                }
+
+                // Invoke the function
+                NativeReflection.InvokeFunction(obj.Address, Address, paramsBuffer, paramsSize);
+
+                // Copy parameters / return value from the buffer
+                for (int i = 0; i < parameters.Length; i++)
+                {
+                    UProperty paramProp = paramProps[i];
+                    if (paramProp.HasAnyPropertyFlags(EPropertyFlags.OutParm))
+                    {
+                        parameters[i] = fromNativeParams[paramProp].DynamicInvoke(
+                            paramsBuffer + paramProp.GetOffset_ForUFunction(), (int)0, paramProp.Address);
+                    }
+                }
+                if (returnValueProp != null)
+                {
+                    result = fromNativeParams[returnValueProp].DynamicInvoke(
+                        paramsBuffer + returnValueProp.GetOffset_ForUFunction(), (int)0, returnValueProp.Address);
+                }
+
+                // Destroy the memory for all of the parameters
+                foreach (UProperty prop in GetProperties<UProperty>())
+                {
+                    if (prop.HasAnyPropertyFlags(EPropertyFlags.Parm))
+                    {
+                        Native.Native_UProperty.DestroyValue_InContainer(prop.Address, paramsBuffer);
+                    }
+                }
+            }
+
+            return result;
+        }
     }
 }
