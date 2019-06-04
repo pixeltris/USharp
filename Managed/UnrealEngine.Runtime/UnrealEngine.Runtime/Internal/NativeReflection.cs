@@ -1213,36 +1213,48 @@ namespace UnrealEngine.Runtime
                 }
             }
 
-            public static IntPtr FindFunctionFromClass(IntPtr unrealClass, MethodInfo methodInfo)
+            public static IntPtr FindFunctionFromClass(IntPtr unrealClass, MethodInfo methodInfo, bool searchHierarchy = true)
             {
                 if (methodInfo == null)
                 {
                     return IntPtr.Zero;
                 }
 
-                if (!FunctionsByClass.ContainsKey(unrealClass))
+                IntPtr targetClass = unrealClass;
+                while (targetClass != IntPtr.Zero)
                 {
-                    Load(unrealClass, methodInfo.DeclaringType);
+                    if (!FunctionsByClass.ContainsKey(targetClass))
+                    {
+                        Load(targetClass, methodInfo.DeclaringType);
+                    }
+
+                    Dictionary<MethodInfo, IntPtr> functions;
+                    IntPtr functionAddress;
+                    if (FunctionsByClass.TryGetValue(targetClass, out functions) &&
+                        functions.TryGetValue(methodInfo, out functionAddress))
+                    {
+                        return functionAddress;
+                    }
+
+                    if (!searchHierarchy)
+                    {
+                        break;
+                    }
+
+                    targetClass = Native_UClass.GetSuperClass(targetClass);
                 }
 
-                Dictionary<MethodInfo, IntPtr> functions;
-                if (FunctionsByClass.TryGetValue(unrealClass, out functions))
-                {
-                    IntPtr functionAddress;
-                    functions.TryGetValue(methodInfo, out functionAddress);
-                    return functionAddress;
-                }
                 return IntPtr.Zero;
             }
 
-            public static IntPtr FindFunction(IntPtr owner, MethodInfo methodInfo)
+            public static IntPtr FindFunction(IntPtr owner, MethodInfo methodInfo, bool searchHierarchy = true)
             {
-                return FindFunctionFromClass(Native_UObjectBase.GetClass(owner), methodInfo);
+                return FindFunctionFromClass(Native_UObjectBase.GetClass(owner), methodInfo, searchHierarchy);
             }
 
-            public static IntPtr FindFunction(UObject owner, MethodInfo methodInfo)
+            public static IntPtr FindFunction(UObject owner, MethodInfo methodInfo, bool searchHierarchy = true)
             {
-                return FindFunctionFromClass(Native_UObjectBase.GetClass(owner.Address), methodInfo);
+                return FindFunctionFromClass(Native_UObjectBase.GetClass(owner.Address), methodInfo, searchHierarchy);
             }
 
             private static void Load(IntPtr unrealClass, Type type)
@@ -1257,7 +1269,7 @@ namespace UnrealEngine.Runtime
                     return;
                 }
 
-                BindingFlags bindingFlags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.Instance;
+                BindingFlags bindingFlags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.Instance | BindingFlags.DeclaredOnly;
                 foreach (MethodInfo method in type.GetMethods(bindingFlags))
                 {
                     UUnrealTypePathAttribute pathAttribute = method.GetCustomAttribute<UUnrealTypePathAttribute>(false);
@@ -1277,22 +1289,22 @@ namespace UnrealEngine.Runtime
                 }
             }
             
-            public static IntPtr GetFunctionAddress(Delegate del)
+            public static IntPtr GetFunctionAddress(Delegate del, bool searchHierarchy = true)
             {
                 IntPtr functionAddress;
                 UObject target;
-                GetFunctionAddress(del, out functionAddress, out target);
+                GetFunctionAddress(del, out functionAddress, out target, searchHierarchy);
                 return functionAddress;
             }
 
-            public static bool GetFunctionAddress(Delegate del, out IntPtr functionAddress, out UObject target)
+            public static bool GetFunctionAddress(Delegate del, out IntPtr functionAddress, out UObject target, bool searchHierarchy = true)
             {
                 if (del != null)
                 {
                     target = del.Target as UObject;
                     if (target != null)
                     {
-                        functionAddress = NativeReflection.LookupTable.FindFunction(target, del.Method);
+                        functionAddress = NativeReflection.LookupTable.FindFunction(target, del.Method, searchHierarchy);
                         if (functionAddress != IntPtr.Zero)
                         {
                             return true;

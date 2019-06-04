@@ -107,7 +107,10 @@ void USharpClassFunctionInvoker(UObject* Context, FFrame& Stack, RESULT_DECL)
 	//   this would be much more efficient and we wouldn't need to do any dictionary lookups or hierarchy lookups.
 	//   (this could be accessed via Stack.CurrentNativeFunction). Based on the hierarchy there is only UFunction / UDelegateFunction to deal with.
 	//   - This may cause some issues where there are explicit checks for UFunction::StaticClass() / UDelegateFunction::StaticClass()
-	USharpClass* Class = GetUSharpClass(Context->GetClass());
+	
+	// We want the USharpClass for the target function (not the UObject) as the C# invoker is held based on the owner of the UFunction
+	check(Stack.CurrentNativeFunction);
+	USharpClass* Class = GetUSharpClass(Stack.CurrentNativeFunction->GetOwnerClass());//USharpClass* Class = Context->GetClass();
 	check(Class != nullptr);
 	if (Class->ManagedFunctionInvoker != nullptr)
 	{
