@@ -54,3 +54,5 @@ UnrealEd
 ViewportInteraction
 VREditor
 WidgetCarousel
+Paper2D
+ApexDestruction
