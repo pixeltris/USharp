@@ -182,6 +182,7 @@
     <None Include="Internal\InjectedClasses\Engine\EngineTypes_Injected.cs" />
     <None Include="Internal\InjectedClasses\Engine\SceneComponent_Injected.cs" />
     <None Include="Internal\InjectedClasses\Engine\MaterialInstanceDynamic_Injected.cs" />
+    <None Include="Internal\InjectedClasses\Engine\UserWidget_Injected.cs" />
     <Compile Include="Internal\ManagedUnrealTypeInfo.Exception.cs" />
     <Compile Include="Internal\ManagedUnrealTypeInfo.Validation.cs" />
     <Compile Include="Internal\ManagedUnrealTypes.Builder.cs" />
@@ -194,6 +195,7 @@
     <Compile Include="Internal\Native\Native_FPlatformMisc.cs" />
     <Compile Include="Internal\Native\Native_UMaterialInstanceDynamic.cs" />
     <Compile Include="Internal\Native\Native_USceneComponent.cs" />
+    <Compile Include="Internal\Native\Native_UUserWidget.cs" />
     <Compile Include="Internal\NonBlittableAttribute.cs" />
     <Compile Include="Internal\ScriptDisassembler.cs" />
     <Compile Include="Internal\StaticVar.cs" />

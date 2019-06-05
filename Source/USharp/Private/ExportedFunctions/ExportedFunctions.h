@@ -54,6 +54,7 @@
 #include "Export_UMaterialInstanceDynamic.h"
 #include "Export_UEditorEngine.h"
 #include "Export_FEditorDelegates.h"
+#include "Export_UUserWidget.h"
 
 #include "Export_FURL.h"
 #include "Export_FWorldContext.h"
@@ -198,6 +199,7 @@ CSEXPORT void CSCONV RegisterFunctions(RegisterFunc registerFunc)
 	Export_UMaterialInstanceDynamic(registerFunc);
 	Export_UEditorEngine(registerFunc);
 	Export_FEditorDelegates(registerFunc);
+	Export_UUserWidget(registerFunc);
 
 	Export_FURL(registerFunc);
 	Export_FWorldContext(registerFunc);

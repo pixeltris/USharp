@@ -22,6 +22,9 @@
 // For Export_ULevel
 #include "Engine/Level.h"
 
+// For Export_UUserWidget
+#include "Blueprint/UserWidget.h"
+
 // For Export_FARFilter
 #include "AssetRegistryModule.h"//AssetRegistry
 
