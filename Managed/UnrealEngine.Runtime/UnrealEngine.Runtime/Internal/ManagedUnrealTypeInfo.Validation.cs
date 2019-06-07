@@ -717,17 +717,21 @@ namespace UnrealEngine.Runtime
                 {
                     throw new ValidateUnrealPropertyFailedException(member, "Missing getter. All Unreal properties must have a default get method");
                 }
-                if (property.SetMethod == null)
+                // Collection are allowed to have a custom getter and no setter (to avoid assigning a collection in code, as setters are removed)
+                if (!propertyInfo.IsCollection)
                 {
-                    throw new ValidateUnrealPropertyFailedException(member, "Missing setter. All Unreal properties must have a default set method");
-                }
-                if (!IsMethodCompilerGenerated(property.GetMethod))
-                {
-                    throw new ValidateUnrealPropertyFailedException(member, "Getter cannot have a body for Unreal properties");
-                }
-                if (!IsMethodCompilerGenerated(property.SetMethod))
-                {
-                    throw new ValidateUnrealPropertyFailedException(member, "Setter cannot have a body for Unreal properties");
+                    if (property.SetMethod == null)
+                    {
+                        throw new ValidateUnrealPropertyFailedException(member, "Missing setter. All Unreal properties must have a default set method");
+                    }
+                    if (!IsMethodCompilerGenerated(property.GetMethod))
+                    {
+                        throw new ValidateUnrealPropertyFailedException(member, "Getter cannot have a body for Unreal properties");
+                    }
+                    if (!IsMethodCompilerGenerated(property.SetMethod))
+                    {
+                        throw new ValidateUnrealPropertyFailedException(member, "Setter cannot have a body for Unreal properties");
+                    }
                 }
 
                 if (propertyInfo.Type.TypeCode == EPropertyType.InternalManagedFixedSizeArray)

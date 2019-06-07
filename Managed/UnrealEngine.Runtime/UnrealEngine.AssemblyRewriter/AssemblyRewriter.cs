@@ -1069,9 +1069,12 @@ namespace UnrealEngine.Runtime
                 }
             }
 
-            VerifySingleResult(matchingFields, type, "backing field for property " + propertyInfo.Name);
+            if (matchingFields.Count > 0)
+            {
+                VerifySingleResult(matchingFields, type, "backing field for property " + propertyInfo.Name);
 
-            type.Fields.Remove(matchingFields[0]);
+                type.Fields.Remove(matchingFields[0]);
+            }
         }
 
         private MethodDefinition FindMethodByName(TypeDefinition type, string methodName)
