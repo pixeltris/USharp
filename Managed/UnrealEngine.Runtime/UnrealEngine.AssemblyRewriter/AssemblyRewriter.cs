@@ -643,7 +643,7 @@ namespace UnrealEngine.Runtime
         /// <summary>
         /// Creates LoadNativeType() which is used to load the native type info (class address/properties/functions/offsets)
         /// </summary>
-        private void CreateLoadNativeTypeMethod(TypeDefinition type, ManagedUnrealTypeInfo typeInfo, InjectedMembers injectedMembers)
+        private void CreateLoadNativeTypeMethod(TypeDefinition type, TypeDefinition interfaceType, ManagedUnrealTypeInfo typeInfo, InjectedMembers injectedMembers)
         {
             string methodName = codeSettings.VarNames.LoadNativeType;
 
@@ -901,13 +901,13 @@ namespace UnrealEngine.Runtime
 
             FinalizeMethod(method);
 
-            HookStaticConstructor(type, method);
+            HookStaticConstructor(type, interfaceType, method);
         }
 
         /// <summary>
         /// Modifies or creates a cctor to call to LoadNativeType() and adds a call to notify UnrealTypes that the cctor has been called
         /// </summary>
-        private void HookStaticConstructor(TypeDefinition type, MethodDefinition loadNativeTypeMethod)
+        private void HookStaticConstructor(TypeDefinition type, TypeDefinition interfaceType, MethodDefinition loadNativeTypeMethod)
         {
             MethodDefinition cctor = TypeDefinitionRocks.GetStaticConstructor(type);
             ILProcessor processor;
@@ -927,12 +927,15 @@ namespace UnrealEngine.Runtime
                 processor = cctor.Body.GetILProcessor();
             }
 
-            Instruction target = cctor.Body.Instructions[0];
+            // If this is an interface Impl class, then we want to target the underlying interface as the Impl class
+            // doesn't get added to the list of known unreal types (but the underlying interface does).
+            TypeReference targetType = interfaceType != null ? interfaceType : type;
 
-            Instruction branchTargetInstruction = processor.Create(OpCodes.Ldtoken, type);
+            Instruction target = cctor.Body.Instructions[0];
+            Instruction branchTargetInstruction = processor.Create(OpCodes.Ldtoken, targetType);
 
             // if (UnrealTypes.CanLazyLoadNativeType(typeof(XXXX))) { LoadNativeType(); }
-            processor.InsertBefore(target, processor.Create(OpCodes.Ldtoken, type));
+            processor.InsertBefore(target, processor.Create(OpCodes.Ldtoken, targetType));
             processor.InsertBefore(target, processor.Create(OpCodes.Call, typeGetTypeFromHandleMethod));
             processor.InsertBefore(target, processor.Create(OpCodes.Call, unrealTypesCanLazyLoadManagedTypeMethod));
             processor.InsertBefore(target, processor.Create(OpCodes.Brfalse, branchTargetInstruction));

@@ -207,7 +207,7 @@ namespace UnrealEngine.Runtime
 
             AddPathAttribute(type, classInfo);
 
-            CreateLoadNativeTypeMethod(type, classInfo, injectedMembers);
+            CreateLoadNativeTypeMethod(type, null, classInfo, injectedMembers);
         }
 
         private void WriteGetter(ManagedUnrealTypeInfo typeInfo, ManagedUnrealPropertyInfo propertyInfo, MethodDefinition getter, 

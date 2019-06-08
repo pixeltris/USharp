@@ -76,7 +76,7 @@ namespace UnrealEngine.Runtime
 
             AddPathAttribute(type, delegateInfo);
 
-            CreateLoadNativeTypeMethod(type, delegateInfo, injectedMembers);
+            CreateLoadNativeTypeMethod(type, null, delegateInfo, injectedMembers);
         }
 
         private MethodDefinition WriteDelegateInvoker(TypeDefinition type, MethodDefinition signature, ManagedUnrealTypeInfo typeInfo,

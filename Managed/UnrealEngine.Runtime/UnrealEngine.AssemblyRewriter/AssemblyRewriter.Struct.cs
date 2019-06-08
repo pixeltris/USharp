@@ -237,7 +237,7 @@ namespace UnrealEngine.Runtime
 
             AddPathAttribute(type, structInfo);
 
-            CreateLoadNativeTypeMethod(type, structInfo, injectedMembers);
+            CreateLoadNativeTypeMethod(type, null, structInfo, injectedMembers);
         }
 
         /// <summary>

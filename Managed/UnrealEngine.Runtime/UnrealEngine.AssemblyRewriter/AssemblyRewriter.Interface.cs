@@ -127,7 +127,7 @@ namespace UnrealEngine.Runtime
             resetInterfaceProcessor.Emit(OpCodes.Ret);
             FinalizeMethod(resetInterfaceOverride);
 
-            CreateLoadNativeTypeMethod(type, interfaceInfo, injectedMembers);
+            CreateLoadNativeTypeMethod(type, interfaceType, interfaceInfo, injectedMembers);
 
             return type;
         }
