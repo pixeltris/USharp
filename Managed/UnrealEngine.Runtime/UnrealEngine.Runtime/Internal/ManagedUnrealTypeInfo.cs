@@ -1906,6 +1906,7 @@ namespace UnrealEngine.Runtime
                     typeInfo.Flags = 0;
                     typeInfo.AdditionalFlags = 0;
                     typeInfo.ClassConfigName = null;
+                    typeInfo.TypeCode = ManagedUnrealTypeInfo.GetTypeCode(type);
                 }
                 if (typeInfo.IsInterface)
                 {
