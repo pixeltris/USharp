@@ -540,7 +540,10 @@ namespace UnrealEngine.Runtime
                 Native_UClass.Set_ClassFlags(sharpClass, classFlags);
 
                 // Create functions
-                Native_USharpClass.SetFunctionInvokerAddress(sharpClass, managedClass.FunctionInvokerAddress);
+                if (!managedClass.IsInterface)
+                {
+                    Native_USharpClass.SetFunctionInvokerAddress(sharpClass, managedClass.FunctionInvokerAddress);
+                }
                 foreach (ManagedUnrealFunctionInfo functionInfo in managedClass.TypeInfo.Functions.Reverse<ManagedUnrealFunctionInfo>())
                 {
                     IntPtr function = CreateFunction(sharpClass, parentClass, functionInfo);
@@ -608,7 +611,7 @@ namespace UnrealEngine.Runtime
                     managedClass.ResolveNativeParentClass();
                 }
 
-                if (managedClass.TypeInfo.Functions.Count > 0)
+                if (managedClass.TypeInfo.Functions.Count > 0 && !managedClass.IsInterface)
                 {
                     Native_USharpClass.SetFunctionInvokerAddress(managedClass.Address, managedClass.FunctionInvokerAddress);
                     foreach (ManagedUnrealFunctionInfo functionInfo in managedClass.TypeInfo.Functions)
