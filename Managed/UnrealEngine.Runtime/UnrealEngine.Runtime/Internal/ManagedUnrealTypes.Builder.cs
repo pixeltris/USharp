@@ -1807,6 +1807,15 @@ namespace UnrealEngine.Runtime
                     case EPropertyType.Struct:
                         Native_USharpStruct.CreateGuid(managedType.Address);
                         break;
+                    case EPropertyType.Interface:
+                        {
+                            // There is an assert in CreateProperty that requires the interface flag to be set. If one interface
+                            // which refers to another interface is built before that other interface, that assert will fire if
+                            // the interface flag isn't set.
+                            EClassFlags classFlags = Native_UClass.GetClassFlags(managedType.Address);
+                            Native_UClass.Set_ClassFlags(managedType.Address, classFlags | EClassFlags.Interface);
+                        }
+                        break;
                 }
             }
             else
