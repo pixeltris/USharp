@@ -108,9 +108,12 @@ void USharpClassFunctionInvoker(UObject* Context, FFrame& Stack, RESULT_DECL)
 	//   (this could be accessed via Stack.CurrentNativeFunction). Based on the hierarchy there is only UFunction / UDelegateFunction to deal with.
 	//   - This may cause some issues where there are explicit checks for UFunction::StaticClass() / UDelegateFunction::StaticClass()
 	
-	// We want the USharpClass for the target function (not the UObject) as the C# invoker is held based on the owner of the UFunction
+	// NOTE: When dealing with interfaces this could be pointing to a UClass rather than USharpClass. If we ever
+	// allow BlueprintCallable without being a blueprint event then this will definitely be a UClass. If this is 
+	// ever true we should check for Class->HasAnyClassFlags(CLASS_Interface) and call FallbackFunctionInvoker().
+	
 	check(Stack.CurrentNativeFunction);
-	USharpClass* Class = GetUSharpClass(Stack.CurrentNativeFunction->GetOwnerClass());//USharpClass* Class = Context->GetClass();
+	USharpClass* Class = GetUSharpClass(Stack.CurrentNativeFunction->GetOwnerClass());
 	check(Class != nullptr);
 	if (Class->ManagedFunctionInvoker != nullptr)
 	{

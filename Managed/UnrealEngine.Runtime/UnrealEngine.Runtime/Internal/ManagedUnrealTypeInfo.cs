@@ -1678,10 +1678,16 @@ namespace UnrealEngine.Runtime
                 {
                     originalName = baseFlags.OriginalName;
 
-                    additionalFlags = (baseFlags.AdditionalFlags & ManagedUnrealFunctionFlags.FuncInherit);
                     if (baseMethod.DeclaringType.IsInterface)
                     {
+                        // Maybe allow all flags to be inherited?
+                        additionalFlags = (baseFlags.AdditionalFlags &
+                            (ManagedUnrealFunctionFlags.FuncInherit | ManagedUnrealFunctionFlags.BlueprintImplementable));
                         additionalFlags |= ManagedUnrealFunctionFlags.InterfaceImplementation;
+                    }
+                    else
+                    {
+                        additionalFlags = (baseFlags.AdditionalFlags & ManagedUnrealFunctionFlags.FuncInherit);
                     }
 
                     // Allow SealedEvent to be set so that we can at least make the function sealed / final if needed.
@@ -1906,7 +1912,16 @@ namespace UnrealEngine.Runtime
                     typeInfo.Flags = 0;
                     typeInfo.AdditionalFlags = 0;
                     typeInfo.ClassConfigName = null;
-                    typeInfo.TypeCode = ManagedUnrealTypeInfo.GetTypeCode(type);
+                    // The type should either be an interface (IInterface) or UObject type
+                    if (type.IsInterface)
+                    {
+                        typeInfo.TypeCode = EPropertyType.Interface;
+                    }
+                    else
+                    {
+                        Debug.Assert(type.IsSameOrSubclassOf(typeof(UObject)));
+                        typeInfo.TypeCode = EPropertyType.Object;
+                    }
                 }
                 if (typeInfo.IsInterface)
                 {

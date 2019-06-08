@@ -493,7 +493,7 @@ namespace UnrealEngine.Runtime
                         IntPtr interfaceAddress = UClass.GetClassAddress(typeRef.Path);
 
                         // Is 0 the correct pointer offset to use for the vtable?
-                        implementedInterfaces.Add(new FImplementedInterface(interfaceAddress, 0, true));
+                        implementedInterfaces.Add(new FImplementedInterface(interfaceAddress, 0, false));
                     }
                     else
                     {
@@ -1124,7 +1124,8 @@ namespace UnrealEngine.Runtime
                 // we provide const it just shows the interface event (with the correct interface icon).
                 // - Does adding const mess up anything? Const states "function can be called from blueprint code, 
                 //   and only reads state (never writes)".
-                functionFlags |= EFunctionFlags.Const;
+                // NOTE: Const isn't really what we want... this will make the function const (obviously!)
+                //functionFlags |= EFunctionFlags.Const;
 
                 // Setting the super function here doesn't seem to be required.
                 // - C++ NEVER sets the super function for implemented interfaces.
