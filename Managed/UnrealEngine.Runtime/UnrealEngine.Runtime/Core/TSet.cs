@@ -54,6 +54,7 @@ namespace UnrealEngine.Runtime
             ContainerHashValidator.Validate(Native_USetProperty.Get_ElementProp(setProperty.Address));
         }
 
+        [Conditional("DEBUG")]
         protected void CheckOwner()
         {
             if (Owner != null && Owner.IsDestroyed)
@@ -79,15 +80,18 @@ namespace UnrealEngine.Runtime
         protected void RemoveAtInternal(int index)
         {
             CheckOwner();
-            SetHelper.Update(property);
-            SetHelper.RemoveAt(index);
+            if (SetHelper.IsValidIndex(index))
+            {
+                SetHelper.Update(property);
+                SetHelper.RemoveAt(index);
+            }
         }
 
         public T Get(int index)
         {
-            if (index < 0 || index >= Count)
+            if (!SetHelper.IsValidIndex(index))
             {
-                throw new IndexOutOfRangeException(string.Format("Index {0} out of bounds. Array is size {1}", index, Count));
+                throw new IndexOutOfRangeException(string.Format("Index {0} is invalid. Indicies aren't necessarily sequential.", index));
             }
             SetHelper.Update(property);
             return FromNative(SetHelper.GetElementPtr(index), 0, SetHelper.ElementPropertyAddress);
@@ -146,8 +150,9 @@ namespace UnrealEngine.Runtime
 
             public bool MoveNext()
             {
-                ++index;
-                return index < set.Count;
+                int maxIndex = set.SetHelper.GetMaxIndex();
+                while (++index < maxIndex && !set.SetHelper.IsValidIndex(index)) { }
+                return index < maxIndex;
             }
 
             public void Reset()
@@ -188,9 +193,14 @@ namespace UnrealEngine.Runtime
 
         public bool Add(T item)
         {
-            int oldCount = Count;
-            AddInternal(item);
-            return Count != oldCount;
+            // It would be better if AddInternal told us if the collection was modified when we add...
+            // It's best to make sure the ISet interface behaves correctly, so look for the element before adding it.
+            if (!Contains(item))
+            {
+                AddInternal(item);
+                return true;
+            }
+            return false;
         }
 
         public void Clear()
@@ -200,10 +210,14 @@ namespace UnrealEngine.Runtime
 
         public void CopyTo(T[] array, int arrayIndex)
         {
-            int numElements = Count;
-            for (int i = 0; i < numElements; ++i)
+            int maxIndex = SetHelper.GetMaxIndex();
+            int index = arrayIndex;
+            for (int i = 0; i < maxIndex; ++i)
             {
-                array[i + arrayIndex] = Get(i);
+                if (SetHelper.IsValidIndex(i))
+                {
+                    array[index++] = Get(i);
+                }
             }
         }
 
@@ -242,12 +256,16 @@ namespace UnrealEngine.Runtime
                     return;
                 }
 
-                for (int i = Count; i >= 0; --i)
+                int maxIndex = SetHelper.GetMaxIndex();
+                for (int i = maxIndex - 1; i >= 0; --i)
                 {
-                    T item = Get(i);
-                    if (!otherAsSet.Contains(item))
+                    if (SetHelper.IsValidIndex(i))
                     {
-                        RemoveAtInternal(i);
+                        T item = Get(i);
+                        if (!otherAsSet.Contains(item))
+                        {
+                            RemoveAtInternal(i);
+                        }
                     }
                 }
             }
@@ -261,12 +279,16 @@ namespace UnrealEngine.Runtime
                     return;
                 }
 
-                for (int i = Count; i >= 0; --i)
+                int maxIndex = SetHelper.GetMaxIndex();
+                for (int i = maxIndex - 1; i >= 0; --i)
                 {
-                    T item = Get(i);
-                    if (!set.Contains(item))
+                    if (SetHelper.IsValidIndex(i))
                     {
-                        RemoveAtInternal(i);
+                        T item = Get(i);
+                        if (!set.Contains(item))
+                        {
+                            RemoveAtInternal(i);
+                        }
                     }
                 }
             }
@@ -741,10 +763,13 @@ namespace UnrealEngine.Runtime
             {
                 FScriptSet* set = (FScriptSet*)scriptSetAddress;
                 HashSet<T> result = new HashSet<T>();
-                int count = set->Count;
-                for (int i = 0; i < count; ++i)
+                int maxIndex = set->GetMaxIndex();
+                for (int i = 0; i < maxIndex; ++i)
                 {
-                    result.Add(elementFromNative(helper.GetElementPtr(i), 0, helper.ElementPropertyAddress));
+                    if (set->IsValidIndex(i))
+                    {
+                        result.Add(elementFromNative(helper.GetElementPtr(i), 0, helper.ElementPropertyAddress));
+                    }
                 }
                 return result;
             }
@@ -780,10 +805,13 @@ namespace UnrealEngine.Runtime
             {
                 FScriptSet* set = (FScriptSet*)scriptSetAddress;
                 HashSet<T> result = new HashSet<T>();
-                int count = set->Count;
-                for (int i = 0; i < count; ++i)
+                int maxIndex = set->GetMaxIndex();
+                for (int i = 0; i < maxIndex; ++i)
                 {
-                    result.Add(elementFromNative(helper.GetElementPtr(i), 0, helper.ElementPropertyAddress));
+                    if (set->IsValidIndex(i))
+                    {
+                        result.Add(elementFromNative(helper.GetElementPtr(i), 0, helper.ElementPropertyAddress));
+                    }
                 }
                 return result;
             }
