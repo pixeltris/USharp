@@ -27,22 +27,34 @@ namespace UnrealEngine.Runtime
             actorComponentEndPlay = AddVTableRedirect(actorComponentClass, "DummyActorComponentEndPlay", new ActorComponentEndPlayDel(OnActorComponentEndPlay));
         }
 
+        private static void LogCallbackException(string functionName, Exception e)
+        {
+            FMessage.Log(ELogVerbosity.Error, "OnGetLifetimeReplicatedProps exception: " + e);
+        }
+
         private static FunctionRedirect repProps;
         delegate void GetLifetimeReplicatedPropsDel(IntPtr address, IntPtr arrayAddress);
         [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
         delegate void GetLifetimeReplicatedPropsDel_ThisCall(IntPtr address, IntPtr arrayAddress);
         private static void OnGetLifetimeReplicatedProps(IntPtr address, IntPtr arrayAddress)
         {
-            UObject obj = GCHelper.Find(address);
-
-            GetLifetimeReplicatedPropsDel_ThisCall original = repProps.GetOriginal<GetLifetimeReplicatedPropsDel_ThisCall>(obj);
-            original(address, arrayAddress);
-            //Native_VTableHacks.CallOriginal_GetLifetimeReplicatedProps(original, address, arrayAddress);
-
-            using (TArrayUnsafeRef<FLifetimeProperty> lifetimePropsUnsafe = new TArrayUnsafeRef<FLifetimeProperty>(arrayAddress))
+            try
             {
-                FLifetimePropertyCollection lifetimeProps = new FLifetimePropertyCollection(address, lifetimePropsUnsafe);
-                obj.GetLifetimeReplicatedProps(lifetimeProps);
+                UObject obj = GCHelper.Find(address);
+
+                GetLifetimeReplicatedPropsDel_ThisCall original = repProps.GetOriginal<GetLifetimeReplicatedPropsDel_ThisCall>(obj);
+                original(address, arrayAddress);
+                //Native_VTableHacks.CallOriginal_GetLifetimeReplicatedProps(original, address, arrayAddress);
+
+                using (TArrayUnsafeRef<FLifetimeProperty> lifetimePropsUnsafe = new TArrayUnsafeRef<FLifetimeProperty>(arrayAddress))
+                {
+                    FLifetimePropertyCollection lifetimeProps = new FLifetimePropertyCollection(address, lifetimePropsUnsafe);
+                    obj.GetLifetimeReplicatedProps(lifetimeProps);
+                }
+            }
+            catch (Exception e)
+            {
+                LogCallbackException(nameof(OnGetLifetimeReplicatedProps), e);
             }
         }
 
@@ -52,13 +64,20 @@ namespace UnrealEngine.Runtime
         delegate void SetupPlayerInputComponentDel_ThisCall(IntPtr address, IntPtr inputComponentAddress);
         private static void OnSetupPlayerInputComponent(IntPtr address, IntPtr inputComponentAddress)
         {
-            UObject obj = GCHelper.Find(address);
+            try
+            {
+                UObject obj = GCHelper.Find(address);
 
-            SetupPlayerInputComponentDel_ThisCall original = setupPlayerInput.GetOriginal<SetupPlayerInputComponentDel_ThisCall>(obj);
-            original(address, inputComponentAddress);
-            //Native_VTableHacks.CallOriginal_SetupPlayerInputComponent(original, address, inputComponentAddress);
+                SetupPlayerInputComponentDel_ThisCall original = setupPlayerInput.GetOriginal<SetupPlayerInputComponentDel_ThisCall>(obj);
+                original(address, inputComponentAddress);
+                //Native_VTableHacks.CallOriginal_SetupPlayerInputComponent(original, address, inputComponentAddress);
 
-            obj.SetupPlayerInputComponent(inputComponentAddress);
+                obj.SetupPlayerInputComponent(inputComponentAddress);
+            }
+            catch (Exception e)
+            {
+                LogCallbackException(nameof(OnSetupPlayerInputComponent), e);
+            }
         }
 
         private static FunctionRedirect actorBeginPlay;
@@ -67,13 +86,20 @@ namespace UnrealEngine.Runtime
         delegate void ActorBeginPlayDel_ThisCall(IntPtr address);
         private static void OnActorBeginPlay(IntPtr address)
         {
-            UObject obj = GCHelper.Find(address);
+            try
+            {
+                UObject obj = GCHelper.Find(address);
 
-            ActorBeginPlayDel_ThisCall original = actorBeginPlay.GetOriginal<ActorBeginPlayDel_ThisCall>(obj);
-            original(address);
-            //Native_VTableHacks.CallOriginal_ActorBeginPlay(original, address);
+                ActorBeginPlayDel_ThisCall original = actorBeginPlay.GetOriginal<ActorBeginPlayDel_ThisCall>(obj);
+                original(address);
+                //Native_VTableHacks.CallOriginal_ActorBeginPlay(original, address);
 
-            obj.BeginPlayInternal();
+                obj.BeginPlayInternal();
+            }
+            catch (Exception e)
+            {
+                LogCallbackException(nameof(OnActorBeginPlay), e);
+            }
         }
 
         private static FunctionRedirect actorEndPlay;
@@ -82,13 +108,20 @@ namespace UnrealEngine.Runtime
         delegate void ActorEndPlayDel_ThisCall(IntPtr address, byte endPlayReason);
         private static void OnActorEndPlay(IntPtr address, byte endPlayReason)
         {
-            UObject obj = GCHelper.Find(address);
+            try
+            {
+                UObject obj = GCHelper.Find(address);
 
-            ActorEndPlayDel_ThisCall original = actorEndPlay.GetOriginal<ActorEndPlayDel_ThisCall>(obj);
-            original(address, endPlayReason);
-            //Native_VTableHacks.CallOriginal_ActorEndPlay(original, address, endPlayReason);
+                ActorEndPlayDel_ThisCall original = actorEndPlay.GetOriginal<ActorEndPlayDel_ThisCall>(obj);
+                original(address, endPlayReason);
+                //Native_VTableHacks.CallOriginal_ActorEndPlay(original, address, endPlayReason);
 
-            obj.EndPlayInternal(endPlayReason);
+                obj.EndPlayInternal(endPlayReason);
+            }
+            catch (Exception e)
+            {
+                LogCallbackException(nameof(OnActorEndPlay), e);
+            }
         }
 
         private static FunctionRedirect actorComponentBeginPlay;
@@ -97,13 +130,20 @@ namespace UnrealEngine.Runtime
         delegate void ActorComponentBeginPlayDel_ThisCall(IntPtr address);
         private static void OnActorComponentBeginPlay(IntPtr address)
         {
-            UObject obj = GCHelper.Find(address);
+            try
+            {
+                UObject obj = GCHelper.Find(address);
 
-            ActorComponentBeginPlayDel_ThisCall original = actorComponentBeginPlay.GetOriginal<ActorComponentBeginPlayDel_ThisCall>(obj);
-            original(address);
-            //Native_VTableHacks.CallOriginal_ActorComponentBeginPlay(original, address);
+                ActorComponentBeginPlayDel_ThisCall original = actorComponentBeginPlay.GetOriginal<ActorComponentBeginPlayDel_ThisCall>(obj);
+                original(address);
+                //Native_VTableHacks.CallOriginal_ActorComponentBeginPlay(original, address);
 
-            obj.BeginPlayInternal();
+                obj.BeginPlayInternal();
+            }
+            catch (Exception e)
+            {
+                LogCallbackException(nameof(OnActorComponentBeginPlay), e);
+            }
         }
 
         private static FunctionRedirect actorComponentEndPlay;
@@ -112,13 +152,20 @@ namespace UnrealEngine.Runtime
         delegate void ActorComponentEndPlayDel_ThisCall(IntPtr address, byte endPlayReason);
         private static void OnActorComponentEndPlay(IntPtr address, byte endPlayReason)
         {
-            UObject obj = GCHelper.Find(address);
+            try
+            {
+                UObject obj = GCHelper.Find(address);
 
-            ActorComponentEndPlayDel_ThisCall original = actorComponentEndPlay.GetOriginal<ActorComponentEndPlayDel_ThisCall>(obj);
-            original(address, endPlayReason);
-            //Native_VTableHacks.CallOriginal_ActorComponentEndPlay(original, 
+                ActorComponentEndPlayDel_ThisCall original = actorComponentEndPlay.GetOriginal<ActorComponentEndPlayDel_ThisCall>(obj);
+                original(address, endPlayReason);
+                //Native_VTableHacks.CallOriginal_ActorComponentEndPlay(original, 
 
-            obj.EndPlayInternal(endPlayReason);
+                obj.EndPlayInternal(endPlayReason);
+            }
+            catch (Exception e)
+            {
+                LogCallbackException(nameof(OnActorComponentEndPlay), e);
+            }
         }
 
         ////////////////////////////////////////////////////////////////////////////////////////
