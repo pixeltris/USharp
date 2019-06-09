@@ -221,9 +221,9 @@ namespace UnrealEngine.Runtime
             GCHandle gcHandle = GCHandle.FromIntPtr(gcHandlePtr);
             UObjectRef objRef = (UObjectRef)gcHandle.Target;
             //FMessage.Log("GC " + (objRef.Managed == null ? "null" : objRef.Managed.GetType().ToString()) + " (GCHandle: " + gcHandlePtr.ToString("X16") + " ptr: " + objRef.Native.ToString("X16") + ")");
+            objRef.Managed.OnDestroyedInternal();
             Coroutine.RemoveObjectByGC(objRef.Managed);
             Invoker.RemoveObjectByGC(objRef.Managed);
-            objRef.Managed.ReleaseInjectedInterfaces();
             objRef.Managed.objRef = null;// This will make UObject.IsDestroyed true
             objRef.Managed.Address = IntPtr.Zero;// Reset the address
 #if ARRAY_GC

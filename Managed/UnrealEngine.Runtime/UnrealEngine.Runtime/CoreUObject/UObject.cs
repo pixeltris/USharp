@@ -874,7 +874,21 @@ namespace UnrealEngine.Runtime
         {
         }
 
-        internal void ReleaseInjectedInterfaces()
+        internal void OnDestroyedInternal()
+        {
+            ReleaseInjectedInterfaces();
+            OnDestroyed();
+        }
+
+        /// <summary>
+        /// Called when the C++ object has been completely destroyed. You can free C# related objects at this point, but you cannot access
+        /// any UE4 related properties / functions.
+        /// </summary>
+        protected virtual void OnDestroyed()
+        {
+        }
+
+        private void ReleaseInjectedInterfaces()
         {
             if (injectedInterfaces != null)
             {

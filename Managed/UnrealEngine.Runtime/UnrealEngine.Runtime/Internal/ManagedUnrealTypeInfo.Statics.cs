@@ -377,7 +377,10 @@ namespace UnrealEngine.Runtime
             {
                 for (int i = 0; i < prefixChars.Length; i++)
                 {
-                    if (typeName.Length > 2 && typeName[0] == prefixChars[i] && char.IsUpper(typeName[1]) && char.IsLower(typeName[2]))
+                    // 'TP_' check is a hack as we use this prefix for templates AFTER the typename prefix.
+                    // TODO: Always require prefixes, and create an error if no such prefix exists (to be consistent with C++)
+                    if (typeName.Length > 2 && typeName[0] == prefixChars[i] && char.IsUpper(typeName[1]) &&
+                        (char.IsLower(typeName[2]) || typeName.StartsWith(prefixChars[i] + "TP_")))
                     {
                         typeName = typeName.Substring(1);
                         break;

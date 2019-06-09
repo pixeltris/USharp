@@ -27,6 +27,31 @@ void USharpTemplateProjectDefs::RegisterTemplate()
 		FEditorStyle::GetBrush("GameProjectDialog.BlueprintImage"));*/
 }
 
+bool USharpTemplateProjectDefs::IsClassRename(const FString& DestFilename, const FString& SrcFilename, const FString& FileExtension) const
+{
+	if (FileExtension == TEXT("cs"))
+	{
+		// we shouldn't be getting this call if it's a file who's name didn't change
+		check(FPaths::GetBaseFilename(SrcFilename) != FPaths::GetBaseFilename(DestFilename));
+
+		FString FileContents;
+		if (ensure(FFileHelper::LoadFileToString(FileContents, *DestFilename)))
+		{
+			// Search for the [UClass] attribute (depends on ManagedUnrealVisibility.cs requiring the attribute)
+			// NOTE: This is limited to class redirects only. Other types of redirects aren't handled.
+			if (FileContents.Contains(TEXT("UClass")))
+			{
+				return true;
+			}
+		}
+		return false;
+	}
+	else
+	{
+		return Super::IsClassRename(DestFilename, SrcFilename, FileExtension);
+	}
+}
+
 void USharpTemplateProjectDefs::AddConfigValues(TArray<FTemplateConfigValue>& ConfigValuesToSet, const FString& TemplateName, const FString& ProjectName, bool bShouldGenerateCode) const
 {
 	Super::AddConfigValues(ConfigValuesToSet, TemplateName, ProjectName, bShouldGenerateCode);

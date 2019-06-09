@@ -183,6 +183,7 @@
     <None Include="Internal\InjectedClasses\Engine\SceneComponent_Injected.cs" />
     <None Include="Internal\InjectedClasses\Engine\MaterialInstanceDynamic_Injected.cs" />
     <None Include="Internal\InjectedClasses\Engine\UserWidget_Injected.cs" />
+    <None Include="Internal\InjectedClasses\Engine\SpringArmComponent_Injected.cs" />
     <Compile Include="Internal\ManagedUnrealTypeInfo.Exception.cs" />
     <Compile Include="Internal\ManagedUnrealTypeInfo.Validation.cs" />
     <Compile Include="Internal\ManagedUnrealTypes.Builder.cs" />
