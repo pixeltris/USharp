@@ -26,10 +26,17 @@ namespace UnrealEngine.Runtime
             public delegate void Signature(UObject objectBeingModified);
             private void NativeCallback(IntPtr objectBeingModified)
             {
-                var evnt = managed.Delegate;
-                if (evnt != null)
+                try
                 {
-                    evnt(GCHelper.Find(objectBeingModified));
+                    var evnt = managed.Delegate;
+                    if (evnt != null)
+                    {
+                        evnt(GCHelper.Find(objectBeingModified));
+                    }
+                }
+                catch (Exception e)
+                {
+                    FMessage.LogDelegateException(e);
                 }
             }
         }
@@ -44,10 +51,17 @@ namespace UnrealEngine.Runtime
             public delegate void Signature(UObject asset);
             private void NativeCallback(IntPtr asset)
             {
-                var evnt = managed.Delegate;
-                if (evnt != null)
+                try
                 {
-                    evnt(GCHelper.Find(asset));
+                    var evnt = managed.Delegate;
+                    if (evnt != null)
+                    {
+                        evnt(GCHelper.Find(asset));
+                    }
+                }
+                catch (Exception e)
+                {
+                    FMessage.LogDelegateException(e);
                 }
             }
         }
@@ -62,10 +76,17 @@ namespace UnrealEngine.Runtime
             public delegate void Signature(UObject savedObject);
             private void NativeCallback(IntPtr savedObject)
             {
-                var evnt = managed.Delegate;
-                if (evnt != null)
+                try
                 {
-                    evnt(GCHelper.Find(savedObject));
+                    var evnt = managed.Delegate;
+                    if (evnt != null)
+                    {
+                        evnt(GCHelper.Find(savedObject));
+                    }
+                }
+                catch (Exception e)
+                {
+                    FMessage.LogDelegateException(e);
                 }
             }
         }
@@ -79,11 +100,18 @@ namespace UnrealEngine.Runtime
             public delegate void Signature(string mapName);
             private void NativeCallback(ref FScriptArray mapName)
             {
-                string mapNameStr = FStringMarshaler.FromArray(mapName, false);
-                var evnt = managed.Delegate;
-                if (evnt != null)
+                try
                 {
-                    evnt(mapNameStr);
+                    string mapNameStr = FStringMarshaler.FromArray(mapName, false);
+                    var evnt = managed.Delegate;
+                    if (evnt != null)
+                    {
+                        evnt(mapNameStr);
+                    }
+                }
+                catch (Exception e)
+                {
+                    FMessage.LogDelegateException(e);
                 }
             }
         }
@@ -97,10 +125,17 @@ namespace UnrealEngine.Runtime
             public delegate void Signature(UObject loadedWorld);
             private void NativeCallback(IntPtr loadedWorld)
             {
-                var evnt = managed.Delegate;
-                if (evnt != null)
+                try
                 {
-                    evnt(GCHelper.Find(loadedWorld));
+                    var evnt = managed.Delegate;
+                    if (evnt != null)
+                    {
+                        evnt(GCHelper.Find(loadedWorld));
+                    }
+                }
+                catch (Exception e)
+                {
+                    FMessage.LogDelegateException(e);
                 }
             }
         }

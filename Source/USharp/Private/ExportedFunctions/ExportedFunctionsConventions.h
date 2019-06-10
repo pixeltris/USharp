@@ -51,6 +51,14 @@
 #endif
 
 #if WITH_EDITOR
+// For showing the "Output Log" tab ("OutputLog")
+#include "Framework/Docking/TabManager.h"
+#endif
+
+// For Export_USharpSettings
+#include "SharpSettings.h"
+
+#if WITH_EDITOR
 // For Export_SharpHotReloadUtils.h
 #include "Kismet2/EnumEditorUtils.h"
 #include "Kismet2/BlueprintEditorUtils.h"

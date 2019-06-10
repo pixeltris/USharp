@@ -22,10 +22,17 @@ namespace UnrealEngine.Runtime
             public delegate void Signature(csbool connected, int userId, int controllerIndex);
             private void NativeCallback(csbool connected, int userId, int controllerIndex)
             {
-                var evnt = managed.Delegate;
-                if (evnt != null)
+                try
                 {
-                    evnt(connected, userId, controllerIndex);
+                    var evnt = managed.Delegate;
+                    if (evnt != null)
+                    {
+                        evnt(connected, userId, controllerIndex);
+                    }
+                }
+                catch (Exception e)
+                {
+                    FMessage.LogDelegateException(e);
                 }
             }
         }

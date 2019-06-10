@@ -406,7 +406,7 @@ namespace UnrealEngine.Runtime
                             FMessage.OpenDialog(error);
                             lastInitializerException = DateTime.Now;
                         }
-                        FMessage.Log(ELogVerbosity.Error, error);
+                        FMessage.LogException(error);
                     }
                 }
             }

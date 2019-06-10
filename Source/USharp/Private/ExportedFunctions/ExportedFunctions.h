@@ -141,6 +141,7 @@
 #include "Export_SharpHotReloadUtils.h"
 #include "Export_USharpClass.h"
 #include "Export_USharpStruct.h"
+#include "Export_USharpSettings.h"
 #include "Export_Classes.h"
 #include "Export_VTableHacks.h"
 
@@ -286,6 +287,7 @@ CSEXPORT void CSCONV RegisterFunctions(RegisterFunc registerFunc)
 	Export_SharpHotReloadUtils(registerFunc);
 	Export_USharpClass(registerFunc);
 	Export_USharpStruct(registerFunc);
+	Export_USharpSettings(registerFunc);
 	Export_Classes(registerFunc);
 	Export_VTableHacks(registerFunc);
 }

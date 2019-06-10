@@ -196,6 +196,7 @@
     <Compile Include="Internal\Native\Native_FPlatformMisc.cs" />
     <Compile Include="Internal\Native\Native_UMaterialInstanceDynamic.cs" />
     <Compile Include="Internal\Native\Native_USceneComponent.cs" />
+    <Compile Include="Internal\Native\Internal\Native_USharpSettings.cs" />
     <Compile Include="Internal\Native\Native_UUserWidget.cs" />
     <Compile Include="Internal\NonBlittableAttribute.cs" />
     <Compile Include="Internal\ScriptDisassembler.cs" />

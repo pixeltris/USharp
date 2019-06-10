@@ -29,7 +29,7 @@ namespace UnrealEngine.Runtime
 
         private static void LogCallbackException(string functionName, Exception e)
         {
-            FMessage.Log(ELogVerbosity.Error, "OnGetLifetimeReplicatedProps exception: " + e);
+            FMessage.LogException(e, "vtable func");
         }
 
         private static FunctionRedirect repProps;

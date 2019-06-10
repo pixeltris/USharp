@@ -119,6 +119,48 @@ namespace UnrealEngine.Runtime
                 Native_FMessageDialog.Log(ref messageUnsafe.Array, ref categoryUnsafe.Array, ELogVerbosity.Fatal);
             }
         }
+
+        internal static void LogException(string exceptionMessage)
+        {
+            Log(ELogVerbosity.Error, "Unhandled exception: " + exceptionMessage);
+            FocusOutputLogTab();
+        }
+
+        internal static void LogException(Exception e, string message = null)
+        {
+            string additionalInfo = !string.IsNullOrEmpty(message) ? " (" + message + ")" : string.Empty;
+            Log(ELogVerbosity.Error, "Unhandled exception" + additionalInfo +": " + e);
+            FocusOutputLogTab();
+        }
+
+        internal static void LogDelegateException(Exception e)
+        {
+            LogException(e, "native delegate callback");
+            FocusOutputLogTab();
+        }
+
+        private static bool disableExceptionNotifier;
+        private static DateTime lastFocusOutputLogTab;
+        private static TimeSpan focusOutputLogTabDelay = TimeSpan.FromSeconds(20);
+        private static void FocusOutputLogTab()
+        {
+            if (disableExceptionNotifier)
+            {
+                return;
+            }
+
+            // Add a delay between each tab focus to avoid sitations where the user can't get way from the tab.
+            if (lastFocusOutputLogTab < DateTime.Now - focusOutputLogTabDelay)
+            {
+                lastFocusOutputLogTab = DateTime.Now;
+                Native_FMessageDialog.FocusOutputLogTab();
+            }
+        }
+
+        internal static void OnNativeFunctionsRegistered()
+        {
+            disableExceptionNotifier = Native_USharpSettings.Get_bDisableExceptionNotifier();
+        }
     }
 
     /// <summary>

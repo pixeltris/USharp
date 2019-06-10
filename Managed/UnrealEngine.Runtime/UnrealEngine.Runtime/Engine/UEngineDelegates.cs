@@ -31,10 +31,17 @@ namespace UnrealEngine.Engine
             public delegate void Signature(IntPtr world);
             private void NativeCallback(IntPtr world)
             {
-                var evnt = managed.Delegate;
-                if (evnt != null)
+                try
                 {
-                    evnt(world);
+                    var evnt = managed.Delegate;
+                    if (evnt != null)
+                    {
+                        evnt(world);
+                    }
+                }
+                catch (Exception e)
+                {
+                    FMessage.LogDelegateException(e);
                 }
             }
         }
@@ -48,10 +55,17 @@ namespace UnrealEngine.Engine
             public delegate void Signature(IntPtr world);
             private void NativeCallback(IntPtr world)
             {
-                var evnt = managed.Delegate;
-                if (evnt != null)
+                try
                 {
-                    evnt(world);
+                    var evnt = managed.Delegate;
+                    if (evnt != null)
+                    {
+                        evnt(world);
+                    }
+                }
+                catch (Exception e)
+                {
+                    FMessage.LogDelegateException(e);
                 }
             }
         }

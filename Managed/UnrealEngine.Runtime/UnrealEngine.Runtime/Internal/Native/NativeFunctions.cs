@@ -103,6 +103,7 @@ namespace UnrealEngine.Runtime.Native
 
                 // Highest
                 GCHelper.OnNativeFunctionsRegistered();
+                FMessage.OnNativeFunctionsRegistered();
                 Engine.FTimerManagerCache.OnNativeFunctionsRegistered();
                 WorldTimeHelper.OnNativeFunctionsRegistered();
                 if (FGlobals.GEngine != IntPtr.Zero)

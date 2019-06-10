@@ -28,10 +28,17 @@ namespace UnrealEngine.Engine
             public delegate void Signature(IntPtr world);
             private void NativeCallback(IntPtr world)
             {
-                var evnt = managed.Delegate;
-                if (evnt != null)
+                try
                 {
-                    evnt(world);
+                    var evnt = managed.Delegate;
+                    if (evnt != null)
+                    {
+                        evnt(world);
+                    }
+                }
+                catch (Exception e)
+                {
+                    FMessage.LogDelegateException(e);
                 }
             }
         }
@@ -45,10 +52,17 @@ namespace UnrealEngine.Engine
             public delegate void Signature(IntPtr world, IntPtr ivs);
             private void NativeCallback(IntPtr world, IntPtr ivs)
             {
-                var evnt = managed.Delegate;
-                if (evnt != null)
+                try
                 {
-                    evnt(world, ivs);
+                    var evnt = managed.Delegate;
+                    if (evnt != null)
+                    {
+                        evnt(world, ivs);
+                    }
+                }
+                catch (Exception e)
+                {
+                    FMessage.LogDelegateException(e);
                 }
             }
         }
@@ -62,10 +76,17 @@ namespace UnrealEngine.Engine
             public delegate void Signature(IntPtr world, IntPtr ivs);
             private void NativeCallback(IntPtr world, IntPtr ivs)
             {
-                var evnt = managed.Delegate;
-                if (evnt != null)
+                try
                 {
-                    evnt(world, ivs);
+                    var evnt = managed.Delegate;
+                    if (evnt != null)
+                    {
+                        evnt(world, ivs);
+                    }
+                }
+                catch (Exception e)
+                {
+                    FMessage.LogDelegateException(e);
                 }
             }
         }
@@ -79,10 +100,17 @@ namespace UnrealEngine.Engine
             public delegate void Signature(IntPtr world, bool duplicateForPIE, IntPtr replacementMap, IntPtr objectsToFixReferences);
             private void NativeCallback(IntPtr world, csbool duplicateForPIE, IntPtr replacementMap, IntPtr objectsToFixReferences)
             {
-                var evnt = managed.Delegate;
-                if (evnt != null)
+                try
                 {
-                    evnt(world, duplicateForPIE, replacementMap, objectsToFixReferences);
+                    var evnt = managed.Delegate;
+                    if (evnt != null)
+                    {
+                        evnt(world, duplicateForPIE, replacementMap, objectsToFixReferences);
+                    }
+                }
+                catch (Exception e)
+                {
+                    FMessage.LogDelegateException(e);
                 }
             }
         }
@@ -96,10 +124,17 @@ namespace UnrealEngine.Engine
             public delegate void Signature(IntPtr world, bool sessionEnded, bool cleanupResources);
             private void NativeCallback(IntPtr world, csbool sessionEnded, csbool cleanupResources)
             {
-                var evnt = managed.Delegate;
-                if (evnt != null)
+                try
                 {
-                    evnt(world, sessionEnded, cleanupResources);
+                    var evnt = managed.Delegate;
+                    if (evnt != null)
+                    {
+                        evnt(world, sessionEnded, cleanupResources);
+                    }
+                }
+                catch (Exception e)
+                {
+                    FMessage.LogDelegateException(e);
                 }
             }
         }
@@ -113,10 +148,17 @@ namespace UnrealEngine.Engine
             public delegate void Signature(IntPtr world, bool sessionEnded, bool cleanupResources);
             private void NativeCallback(IntPtr world, csbool sessionEnded, csbool cleanupResources)
             {
-                var evnt = managed.Delegate;
-                if (evnt != null)
+                try
                 {
-                    evnt(world, sessionEnded, cleanupResources);
+                    var evnt = managed.Delegate;
+                    if (evnt != null)
+                    {
+                        evnt(world, sessionEnded, cleanupResources);
+                    }
+                }
+                catch (Exception e)
+                {
+                    FMessage.LogDelegateException(e);
                 }
             }
         }
@@ -131,10 +173,17 @@ namespace UnrealEngine.Engine
             public delegate void Signature(IntPtr world);
             private void NativeCallback(IntPtr world)
             {
-                var evnt = managed.Delegate;
-                if (evnt != null)
+                try
                 {
-                    evnt(world);
+                    var evnt = managed.Delegate;
+                    if (evnt != null)
+                    {
+                        evnt(world);
+                    }
+                }
+                catch (Exception e)
+                {
+                    FMessage.LogDelegateException(e);
                 }
             }
         }

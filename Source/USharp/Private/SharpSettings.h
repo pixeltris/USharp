@@ -14,6 +14,10 @@ public:
 	UPROPERTY(config, EditAnywhere, Category = General)
 	bool bEnabled;
 	
+	// This will disable focusing of the Output Log tab when C# exceptions occur (restart required to take effect).
+	UPROPERTY(config, EditAnywhere, Category = General)
+	bool bDisableExceptionNotifier;
+	
 	// UObject interface
 #if WITH_EDITOR
 	virtual void PostEditChangeProperty(struct FPropertyChangedEvent& PropertyChangedEvent) override;

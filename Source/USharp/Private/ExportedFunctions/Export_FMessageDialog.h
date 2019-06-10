@@ -22,8 +22,16 @@ CSEXPORT void CSCONV Export_FMessageDialog_Log(const FString& Message, const FSt
 	FMsg::Logf(__FILE__, __LINE__, FName(*CategoryName), Verbosity, TEXT("%s"), *Message);
 }
 
+CSEXPORT void CSCONV Export_FMessageDialog_FocusOutputLogTab()
+{
+	// Engine/Source/Developer/OutputLog/Private/OutputLogModule.cpp
+	const FName OutputLogTab(TEXT("OutputLog"));
+	FGlobalTabmanager::Get()->InvokeTab(OutputLogTab);
+}
+
 CSEXPORT void CSCONV Export_FMessageDialog(RegisterFunc registerFunc)
 {
 	REGISTER_FUNC(Export_FMessageDialog_Open);
 	REGISTER_FUNC(Export_FMessageDialog_Log);
+	REGISTER_FUNC(Export_FMessageDialog_FocusOutputLogTab);
 }

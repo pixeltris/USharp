@@ -280,10 +280,17 @@ namespace UnrealEngine.Runtime
     {
         private void NativeCallback()
         {
-            var evnt = managed.Delegate;
-            if (evnt != null)
+            try
             {
-                evnt();
+                var evnt = managed.Delegate;
+                if (evnt != null)
+                {
+                    evnt();
+                }
+            }
+            catch (Exception e)
+            {
+                FMessage.LogDelegateException(e);
             }
         }
     }
@@ -294,10 +301,17 @@ namespace UnrealEngine.Runtime
     {
         private void NativeCallback()
         {
-            var evnt = managed.Delegate;
-            if (evnt != null)
+            try
             {
-                evnt();
+                var evnt = managed.Delegate;
+                if (evnt != null)
+                {
+                    evnt();
+                }
+            }
+            catch (Exception e)
+            {
+                FMessage.LogDelegateException(e);
             }
         }
     }

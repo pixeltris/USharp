@@ -463,7 +463,7 @@ namespace UnrealEngine.Runtime
                 }
                 catch (Exception e)
                 {
-                    FMessage.Log(ELogVerbosity.Error, "InvokeFunction failed: " + e);
+                    FMessage.LogException(e, nameof(InvokeFunction));
                 }
             }
 

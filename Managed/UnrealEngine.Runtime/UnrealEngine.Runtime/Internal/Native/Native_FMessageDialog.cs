@@ -12,8 +12,10 @@ namespace UnrealEngine.Runtime.Native
     {
         public delegate EAppReturnType Del_Open(EAppMsgType messageType, ref FScriptArray message, ref FScriptArray optTitle);
         public delegate void Del_Log(ref FScriptArray message, ref FScriptArray categoryName, ELogVerbosity verbosity);
+        public delegate void Del_FocusOutputLogTab();
 
         public static Del_Open Open;
         public static Del_Log Log;
+        public static Del_FocusOutputLogTab FocusOutputLogTab;
     }
 }

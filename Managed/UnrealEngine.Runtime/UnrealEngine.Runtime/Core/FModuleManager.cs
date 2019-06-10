@@ -282,10 +282,17 @@ namespace UnrealEngine.Runtime
             public delegate void Signature(FName moduleName, EModuleChangeReason reason);
             private void NativeCallback(ref FName moduleName, EModuleChangeReason reason)
             {
-                var evnt = managed.Delegate;
-                if (evnt != null)
+                try
                 {
-                    evnt(moduleName, reason);
+                    var evnt = managed.Delegate;
+                    if (evnt != null)
+                    {
+                        evnt(moduleName, reason);
+                    }
+                }
+                catch (Exception e)
+                {
+                    FMessage.LogDelegateException(e);
                 }
             }
         }

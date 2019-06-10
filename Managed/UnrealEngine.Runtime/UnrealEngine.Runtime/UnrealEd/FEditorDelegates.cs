@@ -29,10 +29,17 @@ namespace UnrealEngine.UnrealEd
             public delegate void Signature(bool simulating);
             private void NativeCallback(csbool simulating)
             {
-                var evnt = managed.Delegate;
-                if (evnt != null)
+                try
                 {
-                    evnt(simulating);
+                    var evnt = managed.Delegate;
+                    if (evnt != null)
+                    {
+                        evnt(simulating);
+                    }
+                }
+                catch (Exception e)
+                {
+                    FMessage.LogDelegateException(e);
                 }
             }
         }
@@ -46,10 +53,17 @@ namespace UnrealEngine.UnrealEd
             public delegate void Signature(bool simulating);
             private void NativeCallback(csbool simulating)
             {
-                var evnt = managed.Delegate;
-                if (evnt != null)
+                try
                 {
-                    evnt(simulating);
+                    var evnt = managed.Delegate;
+                    if (evnt != null)
+                    {
+                        evnt(simulating);
+                    }
+                }
+                catch (Exception e)
+                {
+                    FMessage.LogDelegateException(e);
                 }
             }
         }
@@ -63,10 +77,17 @@ namespace UnrealEngine.UnrealEd
             public delegate void Signature(bool simulating);
             private void NativeCallback(csbool simulating)
             {
-                var evnt = managed.Delegate;
-                if (evnt != null)
+                try
                 {
-                    evnt(simulating);
+                    var evnt = managed.Delegate;
+                    if (evnt != null)
+                    {
+                        evnt(simulating);
+                    }
+                }
+                catch (Exception e)
+                {
+                    FMessage.LogDelegateException(e);
                 }
             }
         }
@@ -80,10 +101,17 @@ namespace UnrealEngine.UnrealEd
             public delegate void Signature(bool simulating);
             private void NativeCallback(csbool simulating)
             {
-                var evnt = managed.Delegate;
-                if (evnt != null)
+                try
                 {
-                    evnt(simulating);
+                    var evnt = managed.Delegate;
+                    if (evnt != null)
+                    {
+                        evnt(simulating);
+                    }
+                }
+                catch (Exception e)
+                {
+                    FMessage.LogDelegateException(e);
                 }
             }
         }
@@ -97,10 +125,17 @@ namespace UnrealEngine.UnrealEd
             public delegate void Signature(bool simulating);
             private void NativeCallback(csbool simulating)
             {
-                var evnt = managed.Delegate;
-                if (evnt != null)
+                try
                 {
-                    evnt(simulating);
+                    var evnt = managed.Delegate;
+                    if (evnt != null)
+                    {
+                        evnt(simulating);
+                    }
+                }
+                catch (Exception e)
+                {
+                    FMessage.LogDelegateException(e);
                 }
             }
         }
@@ -114,10 +149,17 @@ namespace UnrealEngine.UnrealEd
             public delegate void Signature(bool simulating);
             private void NativeCallback(csbool simulating)
             {
-                var evnt = managed.Delegate;
-                if (evnt != null)
+                try
                 {
-                    evnt(simulating);
+                    var evnt = managed.Delegate;
+                    if (evnt != null)
+                    {
+                        evnt(simulating);
+                    }
+                }
+                catch (Exception e)
+                {
+                    FMessage.LogDelegateException(e);
                 }
             }
         }
@@ -131,10 +173,17 @@ namespace UnrealEngine.UnrealEd
             public delegate void Signature(bool simulating);
             private void NativeCallback(csbool simulating)
             {
-                var evnt = managed.Delegate;
-                if (evnt != null)
+                try
                 {
-                    evnt(simulating);
+                    var evnt = managed.Delegate;
+                    if (evnt != null)
+                    {
+                        evnt(simulating);
+                    }
+                }
+                catch (Exception e)
+                {
+                    FMessage.LogDelegateException(e);
                 }
             }
         }
@@ -148,10 +197,17 @@ namespace UnrealEngine.UnrealEd
             public delegate void Signature(bool simulating);
             private void NativeCallback(csbool simulating)
             {
-                var evnt = managed.Delegate;
-                if (evnt != null)
+                try
                 {
-                    evnt(simulating);
+                    var evnt = managed.Delegate;
+                    if (evnt != null)
+                    {
+                        evnt(simulating);
+                    }
+                }
+                catch (Exception e)
+                {
+                    FMessage.LogDelegateException(e);
                 }
             }
         }
@@ -165,10 +221,17 @@ namespace UnrealEngine.UnrealEd
             public delegate void Signature(bool simulating);
             private void NativeCallback(csbool simulating)
             {
-                var evnt = managed.Delegate;
-                if (evnt != null)
+                try
                 {
-                    evnt(simulating);
+                    var evnt = managed.Delegate;
+                    if (evnt != null)
+                    {
+                        evnt(simulating);
+                    }
+                }
+                catch (Exception e)
+                {
+                    FMessage.LogDelegateException(e);
                 }
             }
         }
@@ -182,10 +245,17 @@ namespace UnrealEngine.UnrealEd
             public delegate void Signature(bool simulating);
             private void NativeCallback(csbool simulating)
             {
-                var evnt = managed.Delegate;
-                if (evnt != null)
+                try
                 {
-                    evnt(simulating);
+                    var evnt = managed.Delegate;
+                    if (evnt != null)
+                    {
+                        evnt(simulating);
+                    }
+                }
+                catch (Exception e)
+                {
+                    FMessage.LogDelegateException(e);
                 }
             }
         }
