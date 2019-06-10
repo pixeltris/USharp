@@ -1,6 +1,7 @@
 #include "CSharpLoader.h"
 #include "USharpPCH.h"
 #include "ExportedFunctions/ExportedFunctions.h"
+#include "DotNetRuntimeFinder.h"
 
 #if PLATFORM_LINUX
 #include <signal.h>
@@ -271,9 +272,19 @@ void CSharpLoader::SetupPaths()
 	
 	// Mono should be under "/Binaries/Managed/Runtimes/Mono/[PLATFORM]/bin/"
 	monoLibPaths.Add(FPaths::Combine(*ManagedBinDir, TEXT("Runtimes"), TEXT("Mono"), *GetPlatformString(), TEXT("bin")));
-
+	FString MonoInstallPath = FindMonoInstallPath();
+	if (!MonoInstallPath.IsEmpty() && FPaths::DirectoryExists(MonoInstallPath))
+	{
+		monoLibPaths.Add(MonoInstallPath);
+	}
+	
 	// CoreCLR should be under "/Binaries/Managed/Runtimes/CoreCLR/[PLATFORM]/"
 	coreCLRLibPaths.Add(FPaths::Combine(*ManagedBinDir, TEXT("Runtimes"), TEXT("CoreCLR"), *GetPlatformString()));
+	FString CoreCLRInstallPath = FindCoreCLRInstallPath();
+	if (!CoreCLRInstallPath.IsEmpty() && FPaths::DirectoryExists(CoreCLRInstallPath))
+	{
+		coreCLRLibPaths.Add(CoreCLRInstallPath);
+	}
 }
 
 FString CSharpLoader::GetPlatformString()
@@ -525,6 +536,13 @@ bool CSharpLoader::LoadRuntimeMono()
 
 	FString assemblyDir = FPaths::Combine(*monoDirectory, TEXT(".."), TEXT("lib"));
 	FString configDir = FPaths::Combine(*monoDirectory, TEXT(".."), TEXT("etc"));
+#if PLATFORM_LINUX
+	// If this is from the install path then etc will be under the root /etc/ directory
+	if (!FPaths::FileExists(FPaths::Combine(*configDir, TEXT("mono"), TEXT("config"))))
+	{
+		configDir = FPaths::Combine(*monoDirectory, TEXT(".."), TEXT(".."), TEXT("etc"));
+	}
+#endif
 	mono_set_dirs(TCHAR_TO_ANSI(*assemblyDir), TCHAR_TO_ANSI(*configDir));
 #if UE_BUILD_DEBUG || UE_BUILD_DEVELOPMENT
 	mono_debug_init(MONO_DEBUG_FORMAT_MONO);
