@@ -37,13 +37,19 @@
   </Target>
 
   <Target Name="AssemblyProcessing" AfterTargets="PostBuildEvent" Condition="$(IsGameProject)">
+    <!-- There are issues with finding mono using the regular 'mono' command on OSX when invoking msbuild from C#. Use the full path instead. -->
     <Exec
-      Condition="'$(OS)' != 'Windows_NT'"
+      Condition="$([MSBuild]::IsOsPlatform('OSX'))"
+      Command="&quot;/Library/Frameworks/Mono.framework/versions/Current/Commands/mono&quot; &quot;$(USharpAssemblyRewriterPath)&quot; &quot;$(OutDir)$(AssemblyName).dll&quot;"
+      IgnoreExitCode="false"
+    />
+    <Exec
+      Condition="$([MSBuild]::IsOsPlatform('Linux'))"
       Command="mono &quot;$(USharpAssemblyRewriterPath)&quot; &quot;$(OutDir)$(AssemblyName).dll&quot;"
       IgnoreExitCode="false"
     />
     <Exec
-      Condition="'$(OS)' == 'Windows_NT'"
+      Condition="$([MSBuild]::IsOsPlatform('Windows'))"
       Command="&quot;$(USharpAssemblyRewriterPath)&quot; &quot;$(OutDir)$(AssemblyName).dll&quot;"
       IgnoreExitCode="false"
     />

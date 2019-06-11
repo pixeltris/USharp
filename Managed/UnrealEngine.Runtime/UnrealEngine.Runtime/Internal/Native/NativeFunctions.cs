@@ -531,12 +531,13 @@ namespace UnrealEngine.Runtime.Native
                 FMessage.OpenDialog(EAppMsgType.YesNo, "C# game project code isn't compiled. Compile it now?", dialogTitle) == EAppReturnType.Yes)
             {
                 codeGenContext.BeginSlowTask("Compiling C# game project code (this might take a while...)", true);
+                gameSlnPath = Path.GetFullPath(gameSlnPath);
                 bool compiled = CodeGenerator.CompileCode(gameSlnPath, null);
                 codeGenContext.EndSlowTask();
 
                 if (!compiled)
                 {
-                    WarnCompileFailed(settings, null, dialogTitle);
+                    WarnCompileFailed(settings, gameSlnPath, dialogTitle);
                 }
             }
 
