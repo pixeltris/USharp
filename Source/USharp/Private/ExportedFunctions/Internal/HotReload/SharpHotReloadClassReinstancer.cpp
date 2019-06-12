@@ -590,6 +590,11 @@ void FSharpHotReloadClassReinstancer::UpdateDefaultProperties()
 		AActor* Actor = Cast<AActor>(ObjectPtr);
 		if (Actor != nullptr)
 		{
+			// Also check UBlueprint::IsBlueprintHierarchyErrorFree(Actor->GetClass())?
+			if (!Actor->HasAnyFlags(RF_ClassDefaultObject))
+			{
+				Actor->RerunConstructionScripts();
+			}
 			Actor->MarkComponentsRenderStateDirty();
 		}
 		else
