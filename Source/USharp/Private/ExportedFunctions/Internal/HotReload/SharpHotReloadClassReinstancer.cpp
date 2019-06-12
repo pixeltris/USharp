@@ -5,6 +5,7 @@
 #include "UObject/UObjectHash.h"
 #include "UObject/UObjectIterator.h"
 #include "UObject/Package.h"
+#include "UObject/TextProperty.h"
 #include "Serialization/ArchiveReplaceObjectRef.h"
 #include "BlueprintCompilationManager.h"
 #if WITH_ENGINE
