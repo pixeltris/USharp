@@ -94,6 +94,14 @@ namespace UnrealEngine.Runtime.ManagedUnrealTypeInfoExceptions
     // Misc
     //////////////////////////////////////////////////////////////////
 
+    public class UnrealTypePrefixNotFoundException : ManagedUnrealTypeInfoException
+    {
+        public UnrealTypePrefixNotFoundException(Type type, char prefixChar)
+            : base("Type '" + type.FullName + "' is missing a valid Unreal prefix, expecting '" + prefixChar + "'")
+        {
+        }
+    }
+
     public class UnrealTypeNotFoundException : ManagedUnrealTypeInfoException
     {
         public UnrealTypeNotFoundException(EPropertyType typeCode, string typePath)

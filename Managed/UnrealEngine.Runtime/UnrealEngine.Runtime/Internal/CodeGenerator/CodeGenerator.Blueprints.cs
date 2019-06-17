@@ -26,6 +26,7 @@ namespace UnrealEngine.Runtime
             string projectPath = FPaths.ProjectFilePath;
             string projectName = FPaths.GetBaseFilename(projectPath);
             UnrealModuleInfo module = new UnrealModuleInfo(null, projectName, projectPath);
+            module.IsBlueprint = true;
             BeginGenerateModule(module);
             
             UClass worldClass = GCHelper.Find<UClass>(Classes.UWorld);
@@ -77,14 +78,38 @@ namespace UnrealEngine.Runtime
                         continue;
                     }
 
-                    bool isEngineAsset = FPaths.IsSameOrSubDirectory(FPaths.EngineContentDir, FPaths.GetPath(assetFileName));
-                    if (loadMode != AssetLoadMode.All)
+                    string assetFileDir = FPaths.GetPath(assetFileName);
+                    if (FPaths.IsSameOrSubDirectory(FPaths.EngineContentDir, assetFileDir))
                     {
-                        if ((isEngineAsset && loadMode != AssetLoadMode.Engine) ||
-                            (!isEngineAsset && loadMode != AssetLoadMode.Game))
+                        if (!loadMode.HasFlag(AssetLoadMode.Engine))
                         {
                             continue;
                         }
+                    }
+                    else if (FPaths.IsSameOrSubDirectory(FPaths.EnginePluginsDir, assetFileDir))
+                    {
+                        if (!loadMode.HasFlag(AssetLoadMode.EnginePlugins))
+                        {
+                            continue;
+                        }
+                    }
+                    else if (FPaths.IsSameOrSubDirectory(FPaths.ProjectPluginsDir, assetFileDir))
+                    {
+                        if (!loadMode.HasFlag(AssetLoadMode.GamePlugins))
+                        {
+                            continue;
+                        }
+                    }
+                    else if (FPaths.IsSameOrSubDirectory(FPaths.ProjectContentDir, assetFileDir))
+                    {
+                        if (!loadMode.HasFlag(AssetLoadMode.Game))
+                        {
+                            continue;
+                        }
+                    }
+                    else
+                    {
+                        continue;
                     }
 
                     if (!assetCache.HasAssetChanged(asset, assetFileName))
@@ -324,11 +349,15 @@ namespace UnrealEngine.Runtime
             }
         }
 
+        [Flags]
         public enum AssetLoadMode
         {
-            All,
-            Engine,
-            Game
+            None = 0x00000000,
+            Game = 0x00000001,
+            GamePlugins = 0x00000002,
+            Engine = 0x00000004,
+            EnginePlugins = 0x00000008,
+            All = Game | GamePlugins | Engine | EnginePlugins
         }
     }
 }

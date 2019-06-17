@@ -120,12 +120,12 @@ namespace TP_2DSideScroller
             base.SetupPlayerInputComponent(playerInputComponent);
 
             // Note: the 'Jump' action and the 'MoveRight' axis are bound to actual keys/buttons/sticks in DefaultInput.ini (editable from Project Settings..Input)
-            playerInputComponent.BindAction("Jump", EInputEventType.Pressed, Jump);
-            playerInputComponent.BindAction("Jump", EInputEventType.Released, StopJumping);
+            playerInputComponent.BindAction("Jump", EInputEvent.Pressed, Jump);
+            playerInputComponent.BindAction("Jump", EInputEvent.Released, StopJumping);
             playerInputComponent.BindAxis("MoveRight", MoveRight);
 
-            playerInputComponent.BindTouch(EInputEventType.Pressed, TouchStart);
-            playerInputComponent.BindTouch(EInputEventType.Released, TouchStopped);
+            playerInputComponent.BindTouch(EInputEvent.Pressed, TouchStart);
+            playerInputComponent.BindTouch(EInputEvent.Released, TouchStopped);
         }
 
         [UFunction]

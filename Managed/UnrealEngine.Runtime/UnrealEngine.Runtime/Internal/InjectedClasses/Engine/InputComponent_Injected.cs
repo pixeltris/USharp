@@ -167,7 +167,7 @@ namespace UnrealEngine.Engine
         /// Binds a delegate function to an Action defined in the project settings.
         /// Returned reference is only guaranteed to be valid until another action is bound.
         /// </summary>
-        public FInputActionBindingHandle BindAction(string actionName, EInputEventType keyEvent, FInputActionHandler handler)
+        public FInputActionBindingHandle BindAction(string actionName, EInputEvent keyEvent, FInputActionHandler handler)
         {
             IntPtr functionAddress;
             UObject obj;
@@ -250,7 +250,7 @@ namespace UnrealEngine.Engine
         /// Binds a key event to a delegate function.
         /// Returned reference is only guaranteed to be valid until another input key is bound.
         /// </summary>
-        public FInputKeyBindingHandle BindKey(FKey key, EInputEventType keyEvent, FInputActionHandler handler)
+        public FInputKeyBindingHandle BindKey(FKey key, EInputEvent keyEvent, FInputActionHandler handler)
         {
             IntPtr functionAddress;
             UObject obj;
@@ -270,7 +270,7 @@ namespace UnrealEngine.Engine
         /// Binds a chord event to a delegate function.
         /// Returned reference is only guaranteed to be valid until another input key is bound.
         /// </summary>
-        public FInputKeyBindingHandle BindKey(FInputChord inputChord, EInputEventType keyEvent, FInputActionHandler handler)
+        public FInputKeyBindingHandle BindKey(FInputChord inputChord, EInputEvent keyEvent, FInputActionHandler handler)
         {
             IntPtr functionAddress;
             UObject obj;
@@ -288,7 +288,7 @@ namespace UnrealEngine.Engine
             return default(FInputKeyBindingHandle);
         }
 
-        public FInputTouchBindingHandle BindTouch(EInputEventType keyEvent, FInputTouchHandler handler)
+        public FInputTouchBindingHandle BindTouch(EInputEvent keyEvent, FInputTouchHandler handler)
         {
             IntPtr functionAddress;
             UObject obj;
@@ -393,9 +393,9 @@ namespace UnrealEngine.Engine
         /// <summary>
         /// Key event to bind it to, e.g. pressed, released, double click
         /// </summary>
-        public EInputEventType KeyEvent
+        public EInputEvent KeyEvent
         {
-            get { return (EInputEventType)Native_FInputActionBinding.Get_KeyEvent(Address); }
+            get { return (EInputEvent)Native_FInputActionBinding.Get_KeyEvent(Address); }
             set { Native_FInputActionBinding.Set_KeyEvent(Address, (byte)value); }
         }
 
@@ -708,9 +708,9 @@ namespace UnrealEngine.Engine
         /// <summary>
         /// Key event to bind it to (e.g. pressed, released, double click)
         /// </summary>
-        public EInputEventType KeyEvent
+        public EInputEvent KeyEvent
         {
-            get { return (EInputEventType)Native_FInputKeyBinding.Get_KeyEvent(Address); }
+            get { return (EInputEvent)Native_FInputKeyBinding.Get_KeyEvent(Address); }
             set { Native_FInputKeyBinding.Set_KeyEvent(Address, (byte)value); }
         }
 
@@ -791,9 +791,9 @@ namespace UnrealEngine.Engine
         /// <summary>
         /// Key event to bind it to (e.g. pressed, released, double click)
         /// </summary>
-        public EInputEventType KeyEvent
+        public EInputEvent KeyEvent
         {
-            get { return (EInputEventType)Native_FInputTouchBinding.Get_KeyEvent(Address); }
+            get { return (EInputEvent)Native_FInputTouchBinding.Get_KeyEvent(Address); }
             set { Native_FInputTouchBinding.Set_KeyEvent(Address, (byte)value); }
         }
 

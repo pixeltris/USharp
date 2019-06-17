@@ -354,38 +354,56 @@ namespace UnrealEngine.Runtime
         {
             string typeName = type.Name;
 
-            char[] prefixChars = null;
+            char prefixChar = default(char);
             switch (typeCode)
             {
                 case EPropertyType.Object:
-                    prefixChars = new char[] { 'A', 'U' };
+                    {
+                        bool isActor = false;
+                        Type baseType = type.BaseType;
+                        while (baseType != null && baseType.BaseType != typeof(UObject))
+                        {
+                            baseType = baseType.BaseType;
+                        }
+                        if (baseType != null)
+                        {
+                            UMetaPathAttribute pathAttribute = baseType.GetCustomAttribute<UMetaPathAttribute>(false);
+                            if (pathAttribute != null && pathAttribute.Path == "/Script/Engine.Actor")
+                            {
+                                isActor = true;
+                            }
+                        }
+                        if (isActor)
+                        {
+                            prefixChar = 'A';
+                        }
+                        else
+                        {
+                            prefixChar = 'U';
+                        }
+                    }
                     break;
                 case EPropertyType.Struct:
                 case EPropertyType.Delegate:
                 case EPropertyType.MulticastDelegate:
-                    prefixChars = new char[] { 'F' };
+                    prefixChar = 'F';
                     break;
                 case EPropertyType.Enum:
-                    prefixChars = new char[] { 'E' };
+                    // Unreal doesn't strip the enum prefix
+                    //prefixChars = new char[] { 'E' };
                     break;
                 case EPropertyType.Interface:
-                    prefixChars = new char[] { 'I' };
+                    prefixChar = 'I';
                     break;
             }
 
-            if (prefixChars != null)
+            if (prefixChar != default(char))
             {
-                for (int i = 0; i < prefixChars.Length; i++)
+                if (!typeName.StartsWith(prefixChar.ToString()))
                 {
-                    // 'TP_' check is a hack as we use this prefix for templates AFTER the typename prefix.
-                    // TODO: Always require prefixes, and create an error if no such prefix exists (to be consistent with C++)
-                    if (typeName.Length > 2 && typeName[0] == prefixChars[i] && char.IsUpper(typeName[1]) &&
-                        (char.IsLower(typeName[2]) || typeName.StartsWith(prefixChars[i] + "TP_")))
-                    {
-                        typeName = typeName.Substring(1);
-                        break;
-                    }
+                    throw new UnrealTypePrefixNotFoundException(type, prefixChar);
                 }
+                typeName = typeName.Substring(1);
             }
 
             return typeName;

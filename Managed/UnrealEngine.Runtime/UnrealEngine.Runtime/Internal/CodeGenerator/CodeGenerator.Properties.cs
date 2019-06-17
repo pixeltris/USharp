@@ -97,6 +97,8 @@ namespace UnrealEngine.Runtime
             catch
             {
             }
+            // There is a ScriptName specifier on this to rename it to "InputEventType". There isn't anything wrong with the original name.
+            renamedTypes["/Script/Engine.EInputEvent"] = "EInputEvent";
 
             selectiveMemberCategories.Clear();
             string selectiveMemberCategoriesFile = FPaths.Combine(Settings.GetManagedProjectSettingsDir(),
@@ -756,28 +758,10 @@ namespace UnrealEngine.Runtime
         private string GetTypeNameDelegate(UFunction function, bool withNamespace, bool fullyQualifiedName, List<string> namespaces)
         {
             string functionName = GetFunctionName(function);
-            functionName = functionName.RemoveFromEnd("__DelegateSignature");
-
-            string prefix = "F";
-            if (Settings.Prefixes.Struct.Mode == CodeGeneratorSettings.TypePrefixMode.Strip)
-            {
-                // We want some kind of a prefix for delegates to avoid conflicts and to be more explicit
-                prefix = "Del";
-            }
-
-            if (!functionName.StartsWith(prefix) ||
-                (functionName.Length > 1 && char.IsUpper(functionName[0]) && char.IsLower(functionName[1])))
-            {
-                if (HasTypeNamePrefix(Settings.Prefixes.Struct, functionName))
-                {
-                    // Already has the 'F' prefix. Remove it in and add the desired prefix.
-                    functionName = functionName.Substring(1);
-                }
-                functionName = prefix + functionName;
-            }
+            functionName = UnrealTypePrefix.Struct + functionName.RemoveFromEnd("__DelegateSignature");
 
             if (withNamespace)
-            {                
+            {
                 UClass unrealClass = function.GetOuter() as UClass;
                 if (unrealClass != null)
                 {
@@ -871,11 +855,11 @@ namespace UnrealEngine.Runtime
                 if (field.IsA<UClass>())
                 {
                     // The actual type is UEnum (as opposed to being an enum)
-                    return UpdateTypeNamePrefix(Settings.Prefixes.Object, name, fullyQualifiedName, namespaces, namespaceName);
+                    return UpdateTypeNamePrefix(UnrealTypePrefix.Object, name, fullyQualifiedName, namespaces, namespaceName);
                 }
                 else
                 {
-                    return UpdateTypeNamePrefix(Settings.Prefixes.Enum, name, fullyQualifiedName, namespaces, namespaceName);
+                    return UpdateTypeNamePrefix(UnrealTypePrefix.Enum, name, fullyQualifiedName, namespaces, namespaceName);
                 }
             }
 
@@ -890,10 +874,10 @@ namespace UnrealEngine.Runtime
                 // Use System.Guid instead of recreating the UE4 FGuid struct (the layout should be identical)
                 if (field.OwnerStruct == guidStruct)
                 {
-                    return "Guid";
+                    return nameof(Guid);
                 }
 
-                return UpdateTypeNamePrefix(Settings.Prefixes.Struct, name, fullyQualifiedName, namespaces, namespaceName);
+                return UpdateTypeNamePrefix(UnrealTypePrefix.Struct, name, fullyQualifiedName, namespaces, namespaceName);
             }
 
             string basicTypeName;
@@ -987,7 +971,7 @@ namespace UnrealEngine.Runtime
                         UEnum unrealEnum = enumProperty.GetEnum();
                         if (unrealEnum != null)
                         {
-                            return UpdateTypeNamePrefix(Settings.Prefixes.Enum, GetRenamedTypeName(unrealEnum),
+                            return UpdateTypeNamePrefix(UnrealTypePrefix.Enum, GetRenamedTypeName(unrealEnum),
                                 fullyQualifiedName, namespaces, GetModuleNamespace(unrealEnum));
                         }
                         else
@@ -1003,7 +987,7 @@ namespace UnrealEngine.Runtime
                     {
                         string subclassOfTypeName = classProperty.MetaClass.ClassFlags.HasFlag(EClassFlags.Interface) ?
                             Names.TSubclassOfInterface : Names.TSubclassOf;
-                        return UpdateTypeNamePrefix(Settings.Prefixes.Generics, string.Format("{0}<{1}>", subclassOfTypeName,
+                        return UpdateTypeNamePrefix(UnrealTypePrefix.Generics, string.Format("{0}<{1}>", subclassOfTypeName,
                             GetTypeNameClass(classProperty.MetaClass, fullyQualifiedName, namespaces)),
                             fullyQualifiedName, namespaces, GetEngineObjectNamespace());
                     }
@@ -1062,7 +1046,7 @@ namespace UnrealEngine.Runtime
                     USoftClassProperty softClassProperty = property as USoftClassProperty;
                     if (softClassProperty != null && softClassProperty.MetaClass != null)
                     {
-                        return UpdateTypeNamePrefix(Settings.Prefixes.Generics, string.Format("{0}<{1}>", Names.TSoftClass,
+                        return UpdateTypeNamePrefix(UnrealTypePrefix.Generics, string.Format("{0}<{1}>", Names.TSoftClass,
                             GetTypeNameClass(softClassProperty.MetaClass, fullyQualifiedName, namespaces)),
                             fullyQualifiedName, namespaces, GetEngineObjectNamespace());
                     }
@@ -1076,7 +1060,7 @@ namespace UnrealEngine.Runtime
                     USoftObjectProperty softObjectProperty = property as USoftObjectProperty;
                     if (softObjectProperty != null && softObjectProperty.PropertyClass != null)
                     {
-                        return UpdateTypeNamePrefix(Settings.Prefixes.Generics, string.Format("{0}<{1}>", Names.TSoftObject,
+                        return UpdateTypeNamePrefix(UnrealTypePrefix.Generics, string.Format("{0}<{1}>", Names.TSoftObject,
                             GetTypeNameClass(softObjectProperty.PropertyClass, fullyQualifiedName, namespaces)),
                             fullyQualifiedName, namespaces, GetEngineObjectNamespace());
                     }
@@ -1090,7 +1074,7 @@ namespace UnrealEngine.Runtime
                     UWeakObjectProperty weakObjectProperty = property as UWeakObjectProperty;
                     if (weakObjectProperty != null && weakObjectProperty.PropertyClass != null)
                     {
-                        return UpdateTypeNamePrefix(Settings.Prefixes.Generics, string.Format("{0}<{1}>", Names.TWeakObject,
+                        return UpdateTypeNamePrefix(UnrealTypePrefix.Generics, string.Format("{0}<{1}>", Names.TWeakObject,
                             GetTypeNameClass(weakObjectProperty.PropertyClass, fullyQualifiedName, namespaces)),
                             fullyQualifiedName, namespaces, GetEngineObjectNamespace());
                     }
@@ -1104,7 +1088,7 @@ namespace UnrealEngine.Runtime
                     ULazyObjectProperty lazyObjectProperty = property as ULazyObjectProperty;
                     if (lazyObjectProperty != null && lazyObjectProperty.PropertyClass != null)
                     {
-                        return UpdateTypeNamePrefix(Settings.Prefixes.Generics, string.Format("{0}<{1}>", Names.TLazyObject,
+                        return UpdateTypeNamePrefix(UnrealTypePrefix.Generics, string.Format("{0}<{1}>", Names.TLazyObject,
                             GetTypeNameClass(lazyObjectProperty.PropertyClass, fullyQualifiedName, namespaces)),
                             fullyQualifiedName, namespaces, GetEngineObjectNamespace());
                     }
@@ -1120,7 +1104,7 @@ namespace UnrealEngine.Runtime
                         UEnum unrealEnum = numericProperty.GetIntPropertyEnum();
                         if (unrealEnum != null)
                         {
-                            return UpdateTypeNamePrefix(Settings.Prefixes.Enum, GetRenamedTypeName(unrealEnum),
+                            return UpdateTypeNamePrefix(UnrealTypePrefix.Enum, GetRenamedTypeName(unrealEnum),
                                 fullyQualifiedName, namespaces, GetModuleNamespace(unrealEnum));
                         }
                         else
@@ -1242,7 +1226,7 @@ namespace UnrealEngine.Runtime
 
             if (updateTypePrefix)
             {
-                return UpdateTypeNamePrefix(Settings.Prefixes.Generics, typeName, fullyQualifiedName, namespaces, collectionNamespace);
+                return UpdateTypeNamePrefix(UnrealTypePrefix.Generics, typeName, fullyQualifiedName, namespaces, collectionNamespace);
             }
             else
             {
@@ -1307,18 +1291,18 @@ namespace UnrealEngine.Runtime
                 {
                     if (unrealClass == UClass.GetClass<UStructProperty>())
                     {
-                        return UpdateTypeNamePrefix(Settings.Prefixes.Struct, str, fullyQualifiedName, namespaces, namespaceName);
+                        return UpdateTypeNamePrefix(UnrealTypePrefix.Struct, str, fullyQualifiedName, namespaces, namespaceName);
                     }
                     else if (//unrealClass == UClass.GetClass<UStrProperty>() ||
                              unrealClass == UClass.GetClass<UNameProperty>() ||
                              unrealClass == UClass.GetClass<UTextProperty>())
                     {
-                        return UpdateTypeNamePrefix(Settings.Prefixes.Struct, str, fullyQualifiedName, namespaces, namespaceName);
+                        return UpdateTypeNameNamespace(str, fullyQualifiedName, namespaces, namespaceName);
                     }
                 }
                 else if (unrealClass.IsChildOf(actorClass))
                 {
-                    return UpdateTypeNamePrefix(Settings.Prefixes.Actor, str, fullyQualifiedName, namespaces, namespaceName);
+                    return UpdateTypeNamePrefix(UnrealTypePrefix.Actor, str, fullyQualifiedName, namespaces, namespaceName);
                 }
                 else if (unrealClass.IsChildOf<UInterface>())
                 {
@@ -1326,44 +1310,33 @@ namespace UnrealEngine.Runtime
                     {
                         FMessage.Log(ELogVerbosity.Error, "TODO: Support interface inheritance chains (" + unrealClass.GetName() + ")");
                     }
-                    return UpdateTypeNamePrefix(Settings.Prefixes.Interface, str, fullyQualifiedName, namespaces, namespaceName);
+                    return UpdateTypeNamePrefix(UnrealTypePrefix.Interface, str, fullyQualifiedName, namespaces, namespaceName);
                 }
                 else if (unrealClass.IsChildOf<UObject>())
                 {
-                    return UpdateTypeNamePrefix(Settings.Prefixes.Object, str, fullyQualifiedName, namespaces, namespaceName);
+                    return UpdateTypeNamePrefix(UnrealTypePrefix.Object, str, fullyQualifiedName, namespaces, namespaceName);
                 }
             }
             return UpdateTypeNameNamespace(str, fullyQualifiedName, namespaces);
         }
 
-        private string UpdateTypeNamePrefix(CodeGeneratorSettings.TypePrefix typePrefix, string str, bool fullyQualifiedName,
+        private string UpdateTypeNamePrefix(string typePrefix, string str, bool fullyQualifiedName,
             List<string> namespaces, string namespaceName = null)
         {
-            switch (typePrefix.Mode)
+            switch (typePrefix)
             {
-                case CodeGeneratorSettings.TypePrefixMode.Strip:
-                    if (str.Length > 1 && str[0] == typePrefix.Char && char.IsUpper(str[1]))
-                    {
-                        str = str.Remove(0, 1);
-                    }
+                case UnrealTypePrefix.Enum:
+                    // Enums should already have the prefix in the name
                     break;
-                case CodeGeneratorSettings.TypePrefixMode.Enforce:
-                    if (str.Length > 0)
-                    {
-                        if (str[0] != typePrefix.Char ||
-                            (str.Length > 1 && char.IsUpper(str[0]) && char.IsLower(str[1])))
-                        {
-                            str = typePrefix.Char + str;
-                        }
-                    }
+                case UnrealTypePrefix.Generics:
+                    // Generics should be classes already defined in C#, their names will be coming in with whatever
+                    // is defined in C# code. Leave the prefix as it is.
+                    break;
+                default:
+                    str = typePrefix + str;
                     break;
             }
             return UpdateTypeNameNamespace(str, fullyQualifiedName, namespaces, namespaceName);
-        }
-
-        private bool HasTypeNamePrefix(CodeGeneratorSettings.TypePrefix typePrefix, string str)
-        {
-            return str.Length > 2 && str[0] == typePrefix.Char && char.IsUpper(str[1]) && char.IsLower(str[2]);
         }
 
         private string UpdateTypeNameNamespace(string str, string namespaceName, List<string> namespaces)

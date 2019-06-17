@@ -65,7 +65,7 @@ namespace TP_Puzzle
             base.SetupPlayerInputComponent(playerInputComponent);
 
             // Use R Controller Trigger to process click events
-            playerInputComponent.BindAction("TriggerClick", EInputEventType.Pressed, OnTriggerClick);
+            playerInputComponent.BindAction("TriggerClick", EInputEvent.Pressed, OnTriggerClick);
         }
 
         protected override void ReceiveTick_Implementation(float DeltaSeconds)

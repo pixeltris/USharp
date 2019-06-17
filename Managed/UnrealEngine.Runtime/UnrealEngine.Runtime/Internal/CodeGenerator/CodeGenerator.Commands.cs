@@ -162,7 +162,7 @@ namespace UnrealEngine.Runtime
 
                     switch (args[0])
                     {
-                        case "blueprints":
+                        /*case "blueprints":
                             AssetLoadMode loadMode = AssetLoadMode.Game;
                             bool clearAssetCache = false;
                             bool skipLevels = false;
@@ -173,8 +173,14 @@ namespace UnrealEngine.Runtime
                                     case "game":
                                         loadMode = CodeGenerator.AssetLoadMode.Game;
                                         break;
+                                    case "gameplugins":
+                                        loadMode = CodeGenerator.AssetLoadMode.GamePlugins;
+                                        break;
                                     case "engine":
                                         loadMode = CodeGenerator.AssetLoadMode.Engine;
+                                        break;
+                                    case "engineplugins":
+                                        loadMode = CodeGenerator.AssetLoadMode.EnginePlugins;
                                         break;
                                     case "all":
                                         loadMode = CodeGenerator.AssetLoadMode.All;
@@ -191,7 +197,7 @@ namespace UnrealEngine.Runtime
                             }
                             codeGenerator = new CodeGenerator();
                             codeGenerator.GenerateCodeForBlueprints(loadMode, clearAssetCache, skipLevels);
-                            break;
+                            break;*/
 
                         case "game":
                             codeGenerator = new CodeGenerator();

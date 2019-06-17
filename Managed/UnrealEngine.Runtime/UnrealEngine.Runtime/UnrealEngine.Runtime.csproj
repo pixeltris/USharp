@@ -329,6 +329,7 @@
     <Compile Include="Internal\GCHelper.cs" />
     <Compile Include="Internal\UnrealBinaryHeap.cs" />
     <Compile Include="Internal\UnrealBinaryHeapEx.cs" />
+    <Compile Include="Internal\UnrealTypePrefix.cs" />
     <Compile Include="Internal\UnrealTypes.cs" />
     <Compile Include="Internal\UObjectDestroyedException.cs" />
     <Compile Include="Internal\USharpClass.cs" />
