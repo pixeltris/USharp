@@ -105,17 +105,22 @@ namespace UnrealEngine.Runtime
                         {
                             relativeSourceFilePath = name + ".cs";
                         }
+                        string baseCodeDir = Settings.GetGeneratedCodeDir(false);
+                        if (module.IsBlueprint)
+                        {
+                            baseCodeDir = Path.Combine(Settings.GetManagedDir(), Settings.GetProjectName() + ".Managed", "Blueprint", "Generated");
+                        }
                         if (moduleAssetType == UnrealModuleType.Unknown)
                         {
                             // Don't use root folders for native game code wrappers as root folders don't make much sense for them
-                            sourceFilePath = Path.Combine(Settings.GetGeneratedCodeDir(false), relativeSourceFilePath);
+                            sourceFilePath = Path.Combine(baseCodeDir, relativeSourceFilePath);
                         }
                         else
                         {
-                            sourceFilePath = Path.Combine(Settings.GetGeneratedCodeDir(false), rootFolderName, relativeSourceFilePath);
+                            sourceFilePath = Path.Combine(baseCodeDir, rootFolderName, relativeSourceFilePath);
                         }
                         slnPath = GameSlnPath;
-                        projPath = GameNativeGenerationProjPath;
+                        projPath = module.IsBlueprint ? GameProjPath : GameNativeGenerationProjPath;
                     }
                     break;
 

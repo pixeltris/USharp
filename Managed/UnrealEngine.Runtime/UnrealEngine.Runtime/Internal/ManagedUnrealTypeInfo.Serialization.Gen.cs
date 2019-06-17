@@ -41,6 +41,7 @@ namespace UnrealEngine.Runtime
             WriteEnum(writer, AdditionalFlags);
             WriteTypeReferences(writer, BaseTypes);
             WriteEnum(writer, BlittableKind);
+            WriteString(writer, BlueprintClassPath);
             WriteString(writer, ClassConfigName);
             writer.Write(Flags);
             WriteString(writer, FullName);
@@ -55,6 +56,7 @@ namespace UnrealEngine.Runtime
             AdditionalFlags = ReadEnum<ManagedUnrealTypeInfoFlags>(reader);
             BaseTypes = ReadTypeReferences(reader);
             BlittableKind = ReadEnum<ManagedUnrealBlittableKind>(reader);
+            BlueprintClassPath = ReadString(reader);
             ClassConfigName = ReadString(reader);
             Flags = reader.ReadUInt32();
             FullName = ReadString(reader);

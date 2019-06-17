@@ -519,6 +519,16 @@ namespace UnrealEngine.Runtime
                 TypeInfosByPath.Add(typeInfo.Path, typeInfo);
             }
 
+            // Map Blueprint types to their extension class counterparts
+            Dictionary<string, string> blueprintExtensions = new Dictionary<string, string>();
+            foreach (ManagedUnrealTypeInfo typeInfo in Classes)
+            {
+                if (typeInfo.IsBlueprintDefined && !string.IsNullOrEmpty(typeInfo.BlueprintClassPath))
+                {
+                    blueprintExtensions[typeInfo.BlueprintClassPath] = typeInfo.Path;
+                }
+            }
+
             List<Type> unrealTypes;
             if (UnrealTypes.Assemblies.TryGetValue(assembly, out unrealTypes))
             {
@@ -530,6 +540,20 @@ namespace UnrealEngine.Runtime
                         ManagedUnrealTypeInfo typeInfo = TypeInfosByPath[pathAttribute.Path];
                         TypeInfosByType.Add(type, typeInfo);
                         TypesByTypeInfo.Add(typeInfo, type);
+                    }
+
+                    // This is for Blueprint defined types, where we define additional functions in C#
+                    UMetaPathAttribute metaPathAttribute;
+                    if (UnrealTypes.Native.TryGetValue(type, out metaPathAttribute))
+                    {
+                        string blueprintExtensionPath;
+                        ManagedUnrealTypeInfo typeInfo;
+                        if (blueprintExtensions.TryGetValue(metaPathAttribute.Path, out blueprintExtensionPath) &&
+                            TypeInfosByPath.TryGetValue(blueprintExtensionPath, out typeInfo))
+                        {
+                            TypeInfosByType.Add(type, typeInfo);
+                            TypesByTypeInfo.Add(typeInfo, type);
+                        }
                     }
                 }
             }
@@ -750,8 +774,33 @@ namespace UnrealEngine.Runtime
                 case EPropertyType.Delegate:
                 case EPropertyType.MulticastDelegate:
                     typeInfo.FullName = type.FullName;
-                    typeInfo.Name = GetUniqueTypeName(typeInfo, type);
-                    typeInfo.Path = "/Script/" + ModuleName + "." + typeInfo.Name;
+                    UMetaPathAttribute pathAttribute = type.GetCustomAttribute<UMetaPathAttribute>(false);
+                    if (pathAttribute != null && !string.IsNullOrEmpty(pathAttribute.Path))
+                    {
+                        typeInfo.Path = pathAttribute.Path;
+
+                        string root, directory, moduleName, objectName, memberName;
+                        FPackageName.GetPathInfo(typeInfo.Path, out root, out directory, out moduleName, out objectName, out memberName);
+                        Debug.Assert(!string.IsNullOrEmpty(objectName));
+
+                        if (ManagedUnrealTypeInfo.IsBlueprintDefinedClass(type))
+                        {
+                            // TODO: Create an alternative implementation of GetUniqueTypeName(), taking in string rather than type
+                            typeInfo.Name = objectName + CodeGenerator.Names.BlueprintExtensionSuffix;
+                            typeInfo.Path = "/Script/" + ModuleName + "." + typeInfo.Name;
+                            typeInfo.BlueprintClassPath = pathAttribute.Path;
+                        }
+                        else
+                        {
+                            typeInfo.Name = objectName;
+                        }
+                    }
+                    else
+                    {
+                        Debug.Assert(!typeInfo.IsBlueprintDefined);
+                        typeInfo.Name = GetUniqueTypeName(typeInfo, type);
+                        typeInfo.Path = "/Script/" + ModuleName + "." + typeInfo.Name;
+                    }
                     break;
             }
 
@@ -819,7 +868,10 @@ namespace UnrealEngine.Runtime
             {
                 case EPropertyType.Object:
                     UpdateBaseType(typeInfo, type);
-                    ProcessProperties(typeInfo, type);
+                    if (!typeInfo.IsBlueprintDefined)
+                    {
+                        ProcessProperties(typeInfo, type);
+                    }
                     ProcessFunctions(typeInfo, type);
                     typeInfo.BlittableKind = codeSettings.UObjectAsBlittableType ?
                         ManagedUnrealBlittableKind.Blittable : ManagedUnrealBlittableKind.NotBlittable;
@@ -1168,7 +1220,7 @@ namespace UnrealEngine.Runtime
                         }
                         else if (AllTypesByPath.TryGetValue(typePath, out classType))
                         {
-                            UClassAttribute classAttribute = classType.GetCustomAttribute<UClassAttribute>();
+                            UClassAttribute classAttribute = classType.GetCustomAttribute<UClassAttribute>(false);
                             if (classAttribute != null)
                             {
                                 classFlags = (EClassFlags)classAttribute.Flags;
@@ -1492,6 +1544,15 @@ namespace UnrealEngine.Runtime
                     continue;
                 }
 
+                if (typeInfo.IsBlueprintDefined)
+                {
+                    // For Blueprint defined types skip all functions which werent defined by the user
+                    if (method.HasCustomAttribute<UMetaPathAttribute>(false))
+                    {
+                        continue;
+                    }
+                }
+
                 if (method.Name.EndsWith(codeSettings.VarNames.RPCValidate) &&
                     type.GetMethod(method.Name.Substring(0,
                     method.Name.Length - codeSettings.VarNames.RPCValidate.Length), baseBindingFlags) != null)
@@ -1532,6 +1593,15 @@ namespace UnrealEngine.Runtime
 
                     functionInfo.Name = GetUniqueMemberName(typeInfo, functionInfo, method);
                     functionInfo.Path = typeInfo.Path + ":" + functionInfo.Name;
+                    // Now we know the path of the function, we can set the path of the parameters
+                    foreach (ManagedUnrealPropertyInfo paramInfo in functionInfo.Params)
+                    {
+                        paramInfo.Path = functionInfo.Path + "." + paramInfo.Name;
+                    }
+                    if (functionInfo.ReturnProp != null)
+                    {
+                        functionInfo.ReturnProp.Path = functionInfo.Path + "." + functionInfo.ReturnProp.Name;
+                    }
                     typeInfo.Functions.Add(functionInfo);
                 }
             }
@@ -2133,10 +2203,36 @@ namespace UnrealEngine.Runtime
             functionInfo.AdditionalFlags |= flags.AdditionalFlags;
             functionInfo.OriginalName = flags.OriginalName;
 
-            // non-static functions in a const class must be const themselves
-            if (!functionInfo.IsStatic && typeInfo.ClassFlags.HasFlag(EClassFlags.Const))
+            if (functionInfo.IsStatic)
             {
-                functionInfo.Flags |= EFunctionFlags.Const;
+                if (typeInfo.IsBlueprintDefined)
+                {
+                    functionInfo.IsStatic = true;
+                    functionInfo.AdditionalFlags |= ManagedUnrealFunctionFlags.BlueprintExtensionStatic;
+                }
+            }
+            else
+            {
+                // non-static functions in a const class must be const themselves
+                if (typeInfo.ClassFlags.HasFlag(EClassFlags.Const))
+                {
+                    functionInfo.Flags |= EFunctionFlags.Const;
+                }
+
+                if (typeInfo.IsBlueprintDefined)
+                {
+                    functionInfo.IsStatic = true;
+                    functionInfo.AdditionalFlags |= ManagedUnrealFunctionFlags.BlueprintExtension;
+                    ManagedUnrealPropertyInfo paramInfo = CreateProperty(type);
+                    if (paramInfo == null)
+                    {
+                        throw new InvalidUnrealFunctionException(method, "Failed to insert 'self' into Blueprint extension function");
+                    }
+                    paramInfo.AdditionalFlags |= ManagedUnrealPropertyFlags.BlueprintExtensionSelfParam;
+                    paramInfo.IsFunctionParam = true;
+                    paramInfo.Name = CodeGenerator.Names.BlueprintExtensionSelfParamName;
+                    functionInfo.Params.Add(paramInfo);
+                }
             }
 
             if (!typeInfo.IsDelegate)
@@ -2370,6 +2466,11 @@ namespace UnrealEngine.Runtime
         public string FullName { get; set; }
 
         /// <summary>
+        /// The path of the Blueprint class (used when extending Blueprint defined types)
+        /// </summary>
+        public string BlueprintClassPath { get; set; }
+
+        /// <summary>
         /// The type code for this type (valid values: Object, Struct, Enum, Interface, Delegate, MulticastDelegate)
         /// </summary>
         public EPropertyType TypeCode { get; set; }
@@ -2411,6 +2512,15 @@ namespace UnrealEngine.Runtime
         public bool IsBlittable
         {
             get { return BlittableKind == ManagedUnrealBlittableKind.Blittable; }
+        }
+
+        /// <summary>
+        /// If true this class is defined by Blueprint (and should only have its non-generated functions processed)
+        /// </summary>
+        [ManagedUnrealReflectIgnore]
+        public bool IsBlueprintDefined
+        {
+            get { return ClassFlags.HasFlag(EClassFlags.CompiledFromBlueprint); }
         }
 
         /// <summary>
@@ -2876,7 +2986,12 @@ namespace UnrealEngine.Runtime
         /// <summary>
         /// This has an associated setter method
         /// </summary>
-        BlueprintSetter = 0x00000100
+        BlueprintSetter = 0x00000100,
+
+        /// <summary>
+        /// Param is 'self'. This is a special flag for Blueprint extension functions.
+        /// </summary>
+        BlueprintExtensionSelfParam = 0x00000200,
     }
 
     /// <summary>
@@ -2927,6 +3042,17 @@ namespace UnrealEngine.Runtime
         /// (this is talking about regular interface implementation functions, not "_Implementation" functions).
         /// </summary>
         InterfaceImplementation = 0x00000080,
+
+        /// <summary>
+        /// This is an extension function for a Blueprint
+        /// </summary>
+        BlueprintExtension = 0x00000100,
+
+        /// <summary>
+        /// This is an extension for function for Blueprint, and the function is static.
+        /// (This needs to be a distinct flag as all extension functions are declared as static).
+        /// </summary>
+        BlueprintExtensionStatic = 0x00000200,
 
         /// <summary>
         /// The flags applicable to inherit from the base function flags

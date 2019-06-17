@@ -75,6 +75,14 @@ namespace UnrealEngine.Runtime
             EFunctionFlags flags = functionInfo.Flags;
             ManagedUnrealFunctionFlags additionalFlags = functionInfo.AdditionalFlags;
 
+            if (typeInfo.IsBlueprintDefined)
+            {
+                if (flags.HasFlag(EFunctionFlags.Event) || flags.HasFlag(EFunctionFlags.BlueprintEvent) || flags.HasFlag(EFunctionFlags.Net))
+                {
+                    throw new ValidateUnrealFunctionFailedException(method, "Blueprint extension functions cannot be declared as events (or RPCs)");
+                }
+            }
+
             if (typeInfo.IsInterface)
             {
                 if (flags.HasFlag(EFunctionFlags.BlueprintPure))
@@ -226,6 +234,16 @@ namespace UnrealEngine.Runtime
             if (SkipValidation)
             {
                 return;
+            }
+
+            if (functionInfo.AdditionalFlags.HasFlag(ManagedUnrealFunctionFlags.BlueprintExtension))
+            {
+                if (propertyInfo.Name.Equals(CodeGenerator.Names.BlueprintExtensionSelfParamName, StringComparison.OrdinalIgnoreCase) && 
+                    !propertyInfo.AdditionalFlags.HasFlag(ManagedUnrealPropertyFlags.BlueprintExtensionSelfParam))
+                {
+                    throw new ValidateUnrealFunctionFailedException(method, "'" + CodeGenerator.Names.BlueprintExtensionSelfParamName +
+                        "' param is name is reserved for Blueprint extension functions as the 'self' pin");
+                }
             }
 
             if (functionInfo.Flags.HasFlag(EFunctionFlags.Net))

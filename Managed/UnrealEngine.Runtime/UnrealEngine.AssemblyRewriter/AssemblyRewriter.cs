@@ -150,9 +150,12 @@ namespace UnrealEngine.Runtime
         CodeGeneratorSettings codeSettings;
 
         AssemblyDefinition assembly;
+        ManagedUnrealModuleInfo currentModuleInfo;
 
         public void RewriteModule(ManagedUnrealModuleInfo moduleInfo, string assemblyPath)
         {
+            currentModuleInfo = moduleInfo;
+
             System.Diagnostics.Stopwatch sw2 = new System.Diagnostics.Stopwatch();
             sw2.Start();
             string pdbFile = Path.ChangeExtension(assemblyPath, ".pdb");
@@ -646,8 +649,10 @@ namespace UnrealEngine.Runtime
         private void CreateLoadNativeTypeMethod(TypeDefinition type, TypeDefinition interfaceType, ManagedUnrealTypeInfo typeInfo, InjectedMembers injectedMembers)
         {
             string methodName = codeSettings.VarNames.LoadNativeType;
+            MethodDefinition method = null;
+            bool isExistingMethod = false;
 
-            List<MethodDefinition> methodDefinitions = new List<MethodDefinition>();
+            List <MethodDefinition> methodDefinitions = new List<MethodDefinition>();
             foreach (MethodDefinition methodDef in type.Methods)
             {
                 if (methodDef.Name == methodName)
@@ -655,19 +660,37 @@ namespace UnrealEngine.Runtime
                     methodDefinitions.Add(methodDef);
                 }
             }
-            VerifyNoResults(methodDefinitions, type, "method " + methodName);
+            if (typeInfo.IsBlueprintDefined && methodDefinitions.Count == 1)
+            {
+                method = methodDefinitions[0];
+                isExistingMethod = true;
+            }
+            else
+            {
+                VerifyNoResults(methodDefinitions, type, "method " + methodName);
+            }
 
-            MethodAttributes methodAttributes = MethodAttributes.Private | MethodAttributes.Static;
-            MethodDefinition method = new MethodDefinition(methodName, methodAttributes, assembly.MainModule.ImportEx(typeof(void)));
-            type.Methods.Add(method);
+            if (method == null)
+            {
+                MethodAttributes methodAttributes = MethodAttributes.Private | MethodAttributes.Static;
+                method = new MethodDefinition(methodName, methodAttributes, assembly.MainModule.ImportEx(typeof(void)));
+                type.Methods.Add(method);
+            }
 
             ILProcessor processor = method.Body.GetILProcessor();
 
-            // This was originally a hook of the cctor which inserts all instructions before the last existing instruction.
-            // Emit a "Ret" so that the code below still functions as before.
-            processor.Emit(OpCodes.Ret);
+            if (!isExistingMethod)
+            {
+                // This was originally a hook of the cctor which inserts all instructions before the last existing instruction.
+                // Emit a "Ret" so that the code below still functions as before.
+                processor.Emit(OpCodes.Ret);
+            }
 
-            Instruction target = method.Body.Instructions[0];
+            Instruction target = method.Body.Instructions.Last();
+            if (target.OpCode != OpCodes.Ret)
+            {
+                throw new RewriteException(type, "'" + nameof(OpCodes.Ret) + "' isn't the last instruction in '" + methodName + "'");
+            }
 
             Instruction loadNativeClassPtr = null;
 
@@ -901,7 +924,10 @@ namespace UnrealEngine.Runtime
 
             FinalizeMethod(method);
 
-            HookStaticConstructor(type, interfaceType, method);
+            if (!isExistingMethod)
+            {
+                HookStaticConstructor(type, interfaceType, method);
+            }
         }
 
         /// <summary>

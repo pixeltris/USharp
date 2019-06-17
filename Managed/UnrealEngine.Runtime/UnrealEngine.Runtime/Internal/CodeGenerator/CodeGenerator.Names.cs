@@ -501,6 +501,16 @@ namespace UnrealEngine.Runtime
                 get { return NameOf<EFunctionFlags>(); }
             }
 
+            public static string BlueprintExtensionSelfParamName
+            {
+                get { return "target"; }
+            }
+
+            public static string BlueprintExtensionSuffix
+            {
+                get { return "_bpcs"; }
+            }
+
             private static string NameOf(Type type)
             {
                 string name;

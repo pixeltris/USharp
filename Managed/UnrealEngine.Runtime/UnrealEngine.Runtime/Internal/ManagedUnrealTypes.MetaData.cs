@@ -186,6 +186,21 @@ namespace UnrealEngine.Runtime
             }
         }
 
+        private static void LateAddMetaData(ManagedUnrealReflectionBase field, string key, string value, bool overwrite)
+        {
+            LateAddMetaData(field.Path, (FName)key, value, overwrite);
+        }
+
+        private static void LateAddMetaData(ManagedUnrealReflectionBase field, FName key, string value, bool overwrite)
+        {
+            LateAddMetaData(field.Path, key, value, overwrite);
+        }
+
+        private static void LateAddMetaData(string path, string key, string value, bool overwrite)
+        {
+            LateAddMetaData(path, (FName)key, value, overwrite);
+        }
+
         private static void LateAddMetaData(string path, FName key, string value, bool overwrite)
         {
             path = path.ToLower();
@@ -202,6 +217,17 @@ namespace UnrealEngine.Runtime
             {
                 values.Add(key, value);
             }
+        }
+
+        private static bool TryGetMetaData(string path, FName key, out string result)
+        {
+            path = path.ToLower();
+            Dictionary<FName, string> values;
+            if (!metaDataMap.TryGetValue(path, out values))
+            {
+                metaDataMap.Add(path, values = new Dictionary<FName, string>());
+            }
+            return values.TryGetValue(key, out result);
         }
 
         private static void MetaDataMergeClassCategories(IntPtr metadata, IntPtr obj, Dictionary<FName, string> values)

@@ -173,8 +173,14 @@ namespace UnrealEngine.Runtime
                                     case "game":
                                         loadMode = CodeGenerator.AssetLoadMode.Game;
                                         break;
+                                    case "gameplugins":
+                                        loadMode = CodeGenerator.AssetLoadMode.GamePlugins;
+                                        break;
                                     case "engine":
                                         loadMode = CodeGenerator.AssetLoadMode.Engine;
+                                        break;
+                                    case "engineplugins":
+                                        loadMode = CodeGenerator.AssetLoadMode.EnginePlugins;
                                         break;
                                     case "all":
                                         loadMode = CodeGenerator.AssetLoadMode.All;

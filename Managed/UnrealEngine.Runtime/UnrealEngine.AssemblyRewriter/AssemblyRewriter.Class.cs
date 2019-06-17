@@ -14,6 +14,12 @@ namespace UnrealEngine.Runtime
     {
         private void RewriteClass(TypeDefinition type, ManagedUnrealTypeInfo classInfo)
         {
+            if (classInfo.IsBlueprintDefined && classInfo.Functions.Count == 0)
+            {
+                // Don't modify Blueprint classes if there are no Blueprint extension functions defined
+                return;
+            }
+
             InjectedMembers injectedMembers = new InjectedMembers(classInfo);
 
             if (classInfo.IsStructAsClass)
@@ -205,7 +211,10 @@ namespace UnrealEngine.Runtime
                 }
             }
 
-            AddPathAttribute(type, classInfo);
+            if (!classInfo.IsBlueprintDefined)
+            {
+                AddPathAttribute(type, classInfo);
+            }
 
             CreateLoadNativeTypeMethod(type, null, classInfo, injectedMembers);
         }

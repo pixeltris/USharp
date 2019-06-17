@@ -28,6 +28,8 @@ namespace UnrealEngine.Runtime
         public static Dictionary<Type, ManagedDelegateSignature> DelegateSignatures { get; private set; }
         public static Dictionary<IntPtr, ManagedDelegateSignature> DelegateSignaturesByAddress { get; private set; }
 
+        public static Dictionary<Type, ManagedClass> BlueprintExtensionClasses { get; private set; }
+
         static ManagedUnrealTypes()
         {
             Classes = new Dictionary<Type, ManagedClass>();
@@ -44,6 +46,8 @@ namespace UnrealEngine.Runtime
 
             DelegateSignatures = new Dictionary<Type, ManagedDelegateSignature>();
             DelegateSignaturesByAddress = new Dictionary<IntPtr, ManagedDelegateSignature>();
+
+            BlueprintExtensionClasses = new Dictionary<Type, ManagedClass>();
         }
 
         /// <summary>

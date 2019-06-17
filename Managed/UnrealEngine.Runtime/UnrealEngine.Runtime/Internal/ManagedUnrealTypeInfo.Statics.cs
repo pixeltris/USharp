@@ -168,6 +168,10 @@ namespace UnrealEngine.Runtime
 
             if (UnrealTypes.IsNativeUnrealType(type))
             {
+                if (IsBlueprintDefinedClass(type))
+                {
+                    return true;
+                }
                 // Skip types defined by generated code
                 return false;
             }
@@ -178,6 +182,19 @@ namespace UnrealEngine.Runtime
             }
 
             return true;
+        }
+
+        public static bool IsBlueprintDefinedClass(Type type)
+        {
+            if (type.IsClass)
+            {
+                UClassAttribute classAttribute = type.GetCustomAttribute<UClassAttribute>();
+                if (classAttribute != null && ((EClassFlags)classAttribute.Flags).HasFlag(EClassFlags.CompiledFromBlueprint))
+                {
+                    return true;
+                }
+            }
+            return false;
         }
 
         public static EPropertyType GetTypeCode(Type type)

@@ -356,6 +356,8 @@ namespace UnrealEngine.Runtime
                 processor.Emit(OpCodes.Ldloc, objVar);
             }
 
+            // For Blueprint extension functions, 'this'/'self' param should always come first as this will be used
+            // as the target for the OpCodes.Call instruction.
             for (int i = 0; i < parameters.Count; i++)
             {
                 ManagedUnrealPropertyInfo paramInfo = parameters[i];
@@ -758,7 +760,15 @@ namespace UnrealEngine.Runtime
                         break;
                     }
                 }
-                VerifySingleResult(foundParams, type, "Param count mismatch " + param.Name + " in delegate");
+                if (param.AdditionalFlags.HasFlag(ManagedUnrealPropertyFlags.BlueprintExtensionSelfParam))
+                {
+                    parameters.Add(param, null);
+                }
+                else
+                {
+                    VerifySingleResult(foundParams, type, "Param count mismatch " + param.Name + " in delegate");
+                    parameters.Add(param, foundParams[0]);
+                }
 
                 if (addFields)
                 {
@@ -769,8 +779,6 @@ namespace UnrealEngine.Runtime
                     injectedMembers.SetFunctionParamOffset(functionInfo, param, offsetField);
                     injectedMembers.SetFunctionParamPropertyAddress(functionInfo, param, nativePropertyField);
                 }
-
-                parameters.Add(param, foundParams[0]);
             }
 
             if (addFields && functionInfo.ReturnProp != null)

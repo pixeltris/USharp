@@ -66,6 +66,7 @@ namespace UnrealEngine.Runtime
                 InitType(type.Key, type.Value);
             }
             BuildTypes();
+            BuildBlueprintExtensions();
         }
 
         public static void OnUnload()
@@ -78,6 +79,13 @@ namespace UnrealEngine.Runtime
                 if (managedClass.Address != IntPtr.Zero)
                 {
                     Native_USharpClass.Set_ManagedConstructor(managedClass.Address, IntPtr.Zero);
+                    managedClass.SetFallbackInvokers();
+                }
+            }
+            foreach (ManagedClass managedClass in BlueprintExtensionClasses.Values)
+            {
+                if (managedClass.Address != IntPtr.Zero)
+                {
                     managedClass.SetFallbackInvokers();
                 }
             }
@@ -854,7 +862,7 @@ namespace UnrealEngine.Runtime
                         hotReloadedClasses[oldAddress] = managedType.Address;
                     }
 
-                    AddCachedType(managedType.TypeInfo.Path, managedType.TypeInfo.Hash, managedType.Address);
+                    AddCachedType(managedType.Path, managedType.TypeInfo.Hash, managedType.Address);
                 }
 
                 if (managedType.Address != IntPtr.Zero &&
@@ -1311,12 +1319,18 @@ namespace UnrealEngine.Runtime
                 EPropertyFlags inlinePropFlags = EPropertyFlags.InstancedReference | EPropertyFlags.ExportObject;
                 if ((propertyFlags & inlinePropFlags) == inlinePropFlags)
                 {
-                    LateAddMetaData(propertyInfo.Path, (FName)MDProp.EditInline.ToString(), "true", false);
+                    LateAddMetaData(propertyInfo, MDProp.EditInline.ToString(), "true", false);
                 }
 
                 Native_UProperty.Set_PropertyFlags(property, propertyFlags);
             }
 
+            if (propertyInfo.AdditionalFlags.HasFlag(ManagedUnrealPropertyFlags.BlueprintExtensionSelfParam))
+            {
+                // There doesn't seem to be a way to display the real '[self]' UI element. For now just change the display name.
+                LateAddMetaData(propertyInfo, MDProp.DisplayName.ToString(), 
+                    CodeGenerator.Names.BlueprintExtensionSelfParamName + " [self]", true);
+            }
             SetAllMetaData(property, propertyInfo, UMeta.Target.Property);
 
             return property;
@@ -1494,7 +1508,7 @@ namespace UnrealEngine.Runtime
             if (defaultToInstanced)
             {
                 Native_UProperty.SetPropertyFlags(property, EPropertyFlags.InstancedReference | EPropertyFlags.ExportObject);
-                LateAddMetaData(propertyInfo.Path, (FName)MDProp.EditInline.ToString(), "true", false);
+                LateAddMetaData(propertyInfo, MDProp.EditInline.ToString(), "true", false);
             }
         }
 
@@ -1652,69 +1666,43 @@ namespace UnrealEngine.Runtime
         {
             if (type.IsSubclassOf(typeof(UObject)))
             {
-                InitType<ManagedClass, USharpClass>(type, Classes, pathAttribute);
+                InitType<ManagedClass, USharpClass>(type, Classes, pathAttribute.Path);
             }
             else if (type.IsEnum)
             {
-                InitType<ManagedEnum, UEnum>(type, Enums, pathAttribute);
+                InitType<ManagedEnum, UEnum>(type, Enums, pathAttribute.Path);
             }
             else if (typeof(IDelegateBase).IsAssignableFrom(type))
             {
-                InitType<ManagedDelegateSignature, UDelegateFunction>(type, DelegateSignatures, pathAttribute);
+                InitType<ManagedDelegateSignature, UDelegateFunction>(type, DelegateSignatures, pathAttribute.Path);
             }
             else if (type.IsValueType)
             {
-                InitType<ManagedStruct, USharpStruct>(type, Structs, pathAttribute);
+                InitType<ManagedStruct, USharpStruct>(type, Structs, pathAttribute.Path);
             }
             else if (type.IsInterface)
             {
-                InitType<ManagedInterface, UClass>(type, Interfaces, pathAttribute);
+                InitType<ManagedInterface, UClass>(type, Interfaces, pathAttribute.Path);
             }
 
             InitTypeMetaData(type);
         }
 
-        private static void InitType<TManagedType, TNativeType>(Type type, Dictionary<Type, TManagedType> types, USharpPathAttribute pathAttribute)
+        private static void InitType<TManagedType, TNativeType>(Type type, Dictionary<Type, TManagedType> types, string path)
             where TManagedType : ManagedTypeBase, new()
             where TNativeType : UObject
         {
             string root, directory, moduleName, objectName, memberName;
-            FPackageName.GetPathInfo(pathAttribute.Path, out root, out directory, out moduleName, out objectName, out memberName);
-
-            string packageName = "/" + root + "/" + directory;
+            FPackageName.GetPathInfo(path, out root, out directory, out moduleName, out objectName, out memberName);
 
             if (string.IsNullOrEmpty(moduleName) || string.IsNullOrEmpty(objectName))
             {
                 return;
             }
 
-            IntPtr package = NativeReflection.FindObject(Runtime.Classes.UPackage, IntPtr.Zero, packageName, true);
+            string packageName = "/" + root + "/" + directory;
+            IntPtr package = GetOrCreatePackage(packageName);
             if (package == IntPtr.Zero)
-            {
-                package = NativeReflection.CreatePackage(IntPtr.Zero, packageName);
-                if (package == IntPtr.Zero)
-                {
-                    return;
-                }
-                Native_UPackage.SetPackageFlags(package, EPackageFlags.CompiledIn);
-
-                // TODO: Find how to create a proper guid for a package (UHT CodeGenerator.cpp seems to use a crc of generated code)
-                // NOTE: SHA256 seems to crash under CoreCLR (.NET Core) on Linux (access violation reading at address 0).
-                //using (SHA256 sha256 = SHA256.Create())
-                {
-                    //byte[] hash = sha256.ComputeHash(Encoding.ASCII.GetBytes(packageName));
-                    byte[] hash = BitConverter.GetBytes(packageName.GetHashCode());
-
-                    // Truncate the hash
-                    byte[] buffer = new byte[16];
-                    Buffer.BlockCopy(hash, 0, buffer, 0, Math.Min(buffer.Length, hash.Length));
-
-                    Guid guid = new Guid(buffer);
-                    Native_UPackage.SetGuid(package, ref guid);
-                }
-            }
-
-            if (package == IntPtr.Zero || string.IsNullOrEmpty(packageName) || string.IsNullOrEmpty(objectName))
             {
                 return;
             }
@@ -1746,7 +1734,7 @@ namespace UnrealEngine.Runtime
 
             string cachedTypeInfoHash;
             IntPtr cachedObjAddress;
-            bool hasCachedType = GetCachedType(pathAttribute.Path, out cachedTypeInfoHash, out cachedObjAddress);
+            bool hasCachedType = GetCachedType(path, out cachedTypeInfoHash, out cachedObjAddress);
 
             if (managedType == null)
             {
@@ -1774,7 +1762,7 @@ namespace UnrealEngine.Runtime
             if (managedType.Address == IntPtr.Zero)
             {
                 // Attempt to find the existing object by the path if the cache failed
-                managedType.Address = NativeReflection.FindObject(Runtime.Classes.UObject, IntPtr.Zero, typeInfo.Path, false);
+                managedType.Address = NativeReflection.FindObject(Runtime.Classes.UObject, IntPtr.Zero, path, false);
             }
 
             if (managedType.Address != IntPtr.Zero)
@@ -1836,7 +1824,153 @@ namespace UnrealEngine.Runtime
             if (managedType.Address != IntPtr.Zero && 
                 (!hasCachedType || cachedObjAddress != managedType.Address || cachedTypeInfoHash != managedType.TypeInfo.Hash))
             {
-                AddCachedType(typeInfo.Path, typeInfo.Hash, managedType.Address);
+                AddCachedType(path, typeInfo.Hash, managedType.Address);
+            }
+        }
+
+        private static IntPtr GetOrCreatePackage(string packageName)
+        {
+            IntPtr package = NativeReflection.FindObject(Runtime.Classes.UPackage, IntPtr.Zero, packageName, true);
+            if (package == IntPtr.Zero)
+            {
+                package = NativeReflection.CreatePackage(IntPtr.Zero, packageName);
+                if (package == IntPtr.Zero)
+                {
+                    return IntPtr.Zero;
+                }
+                Native_UPackage.SetPackageFlags(package, EPackageFlags.CompiledIn);
+
+                // TODO: Find how to create a proper guid for a package (UHT CodeGenerator.cpp seems to use a crc of generated code)
+                // NOTE: SHA256 seems to crash under CoreCLR (.NET Core) on Linux (access violation reading at address 0).
+                //using (SHA256 sha256 = SHA256.Create())
+                {
+                    //byte[] hash = sha256.ComputeHash(Encoding.ASCII.GetBytes(packageName));
+                    byte[] hash = BitConverter.GetBytes(packageName.GetHashCode());
+
+                    // Truncate the hash
+                    byte[] buffer = new byte[16];
+                    Buffer.BlockCopy(hash, 0, buffer, 0, Math.Min(buffer.Length, hash.Length));
+
+                    Guid guid = new Guid(buffer);
+                    Native_UPackage.SetGuid(package, ref guid);
+                }
+            }
+            return package;
+        }
+
+        /// <summary>
+        /// Builds a UBlueprintFunctionLibrary for each Blueprint with defined extension functions
+        /// </summary>
+        private static void BuildBlueprintExtensions()
+        {
+            foreach (ManagedUnrealModuleInfo moduleInfo in ManagedUnrealModuleInfo.Modules)
+            {
+                foreach (ManagedUnrealTypeInfo typeInfo in moduleInfo.Classes)
+                {
+                    if (typeInfo.IsBlueprintDefined && !string.IsNullOrEmpty(typeInfo.BlueprintClassPath) && typeInfo.Functions.Count > 0)
+                    {
+                        IntPtr unrealClass = NativeReflection.GetClass(typeInfo.BlueprintClassPath);
+                        if (unrealClass != IntPtr.Zero)
+                        {
+                            Type type;
+                            if (!moduleInfo.TypesByTypeInfo.TryGetValue(typeInfo, out type))
+                            {
+                                continue;
+                            }
+
+                            string root, directory, moduleName, objectName, memberName;
+                            FPackageName.GetPathInfo(typeInfo.Path, out root, out directory, out moduleName, out objectName, out memberName);
+
+                            if (string.IsNullOrEmpty(moduleName) || string.IsNullOrEmpty(objectName))
+                            {
+                                continue;
+                            }
+
+                            string packageName = "/" + root + "/" + directory;
+                            IntPtr package = GetOrCreatePackage(packageName);
+                            if (package == IntPtr.Zero)
+                            {
+                                continue;
+                            }
+
+                            string cachedTypeInfoHash;
+                            IntPtr cachedObjAddress;
+                            bool hasCachedType = GetCachedType(typeInfo.Path, out cachedTypeInfoHash, out cachedObjAddress);
+
+                            ManagedClass managedType = new ManagedClass();
+                            managedType.ModuleInfo = moduleInfo;
+                            managedType.TypeInfo = typeInfo;
+                            managedType.Type = type;
+                            managedType.PackageName = packageName;
+                            managedType.Package = package;
+                            managedType.Name = typeInfo.Name;
+                            if (hasCachedType)
+                            {
+                                managedType.Address = cachedObjAddress;
+                                managedType.Changed = cachedTypeInfoHash != managedType.TypeInfo.Hash;
+                            }
+                            else
+                            {
+                                managedType.Address = IntPtr.Zero;
+                                managedType.Changed = true;
+                            }
+
+                            if (managedType.Address == IntPtr.Zero)
+                            {
+                                EObjectFlags flags = EObjectFlags.Public | EObjectFlags.Standalone;
+                                managedType.Address = NativeReflection.NewObject(package, UClass.GetClassAddress<USharpClass>(),
+                                    new FName(typeInfo.Name), flags);
+                            }
+
+                            if (managedType.Address != IntPtr.Zero &&
+                                (!hasCachedType || cachedObjAddress != managedType.Address || cachedTypeInfoHash != managedType.TypeInfo.Hash))
+                            {
+                                AddCachedType(typeInfo.Path, typeInfo.Hash, managedType.Address);
+                            }
+
+                            if (managedType.HasChanged && cachedObjAddress != IntPtr.Zero)
+                            {
+                                // TODO: Trash all of the old functions (build a list of functions we need to update)
+                                // See FKismetCompilerContext::CleanAndSanitizeClass()
+                            }
+
+                            IntPtr sharpClass = managedType.Address;
+                            IntPtr parentClass = Runtime.Classes.UBlueprintFunctionLibrary;
+                            SetClassParent(sharpClass, parentClass);
+
+                            EClassFlags classFlags = (Native_UClass.GetClassFlags(parentClass) & EClassFlags.ScriptInherit);
+                            classFlags |= EClassFlags.Native;
+                            Native_UClass.Set_ClassFlags(sharpClass, classFlags);
+
+                            // Create functions
+                            Native_USharpClass.SetFunctionInvokerAddress(sharpClass, managedType.FunctionInvokerAddress);
+                            foreach (ManagedUnrealFunctionInfo functionInfo in managedType.TypeInfo.Functions.Reverse<ManagedUnrealFunctionInfo>())
+                            {
+                                IntPtr function = CreateFunction(sharpClass, parentClass, functionInfo);
+                                if (function != IntPtr.Zero)
+                                {
+                                    managedType.AddInvoker(functionInfo, function);
+                                    if (functionInfo.AdditionalFlags.HasFlag(ManagedUnrealFunctionFlags.BlueprintExtension))
+                                    {
+                                        LateAddMetaData(functionInfo, "DefaultToSelf", CodeGenerator.Names.BlueprintExtensionSelfParamName, true);
+                                    }
+                                    SetAllMetaData(function, functionInfo, UMeta.Target.Function);
+                                }
+                            }
+
+                            SetAllMetaData(sharpClass, typeInfo, UMeta.Target.Class);
+
+                            Native_UField.Bind(sharpClass);
+                            Native_UStruct.StaticLink(sharpClass, true);
+                            Native_UClass.AssembleReferenceTokenStream(sharpClass, true);
+                            managedType.Linked = true;
+
+                            CreateCDO(managedType);
+
+                            BlueprintExtensionClasses[managedType.Type] = managedType;
+                        }
+                    }
+                }
             }
         }
     }

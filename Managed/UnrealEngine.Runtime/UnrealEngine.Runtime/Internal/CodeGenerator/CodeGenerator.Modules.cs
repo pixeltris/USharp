@@ -37,6 +37,9 @@ namespace UnrealEngine.Runtime
                 modulesByName[modulePath.Key] = UnrealModuleInfo.GetModuleType(modulePath.Key.ToString(), modulePath.Value, plugins);
             }
 
+            // Add the C# game code package name to the module list
+            modulesByName[(FName)(Settings.GetProjectName() + "-Managed")] = UnrealModuleType.Game;
+
             IPlugin.Dispose(plugins);
         }
 
@@ -695,6 +698,7 @@ namespace UnrealEngine.Runtime
             public string Name { get; set; }
             public string Path { get; set; }
             public UnrealModuleType Type { get; set; }
+            public bool IsBlueprint { get; set; }
 
             public UnrealModuleInfo(UPackage package, string name, string path)
                 : this(package, name, path, UnrealModuleType.Unknown)
