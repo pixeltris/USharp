@@ -118,6 +118,10 @@
 #include "Export_FSlowTask.h"
 #include "Export_FFeedbackContext.h"
 
+#include "Export_FLatentActionManager.h"
+#include "Export_FLatentResponse.h"
+#include "Export_FUSharpLatentAction.h"
+
 #include "Export_FKey.h"
 #include "Export_FInputBinding.h"
 #include "Export_FInputActionBinding.h"
@@ -263,6 +267,10 @@ CSEXPORT void CSCONV RegisterFunctions(RegisterFunc registerFunc)
 	Export_FParse(registerFunc);
 	Export_FSlowTask(registerFunc);
 	Export_FFeedbackContext(registerFunc);
+	
+	Export_FLatentActionManager(registerFunc);
+	Export_FLatentResponse(registerFunc);
+	Export_FUSharpLatentAction(registerFunc);
 	
 	Export_FKey(registerFunc);
 	Export_FInputBinding(registerFunc);

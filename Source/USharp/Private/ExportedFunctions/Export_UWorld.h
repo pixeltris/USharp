@@ -63,6 +63,11 @@ CSEXPORT APlayerController* CSCONV Export_UWorld_GetFirstPlayerController(UWorld
 	return instance->GetFirstPlayerController();
 }
 
+CSEXPORT FLatentActionManager& CSCONV Export_UWorld_GetLatentActionManager(UWorld* instance)
+{
+	return instance->GetLatentActionManager();
+}
+
 CSEXPORT void CSCONV Export_UWorld(RegisterFunc registerFunc)
 {
 	REGISTER_FUNC(Export_UWorld_Offset_TimeSeconds);
@@ -78,4 +83,5 @@ CSEXPORT void CSCONV Export_UWorld(RegisterFunc registerFunc)
 	REGISTER_FUNC(Export_UWorld_IsPaused);
 	REGISTER_FUNC(Export_UWorld_SpawnActor);
 	REGISTER_FUNC(Export_UWorld_GetFirstPlayerController);
+	REGISTER_FUNC(Export_UWorld_GetLatentActionManager);
 }

@@ -1,5 +1,33 @@
 #pragma once
 
+#if PLATFORM_WINDOWS && PLATFORM_32BITS
+#define CSCONV __stdcall
+#elif PLATFORM_WINDOWS && PLATFORM_64BITS
+#define CSCONV __cdecl
+#else
+#define CSCONV
+#endif
+
+#if PLATFORM_MAC
+// On MacOS CSEXPORT is already defined in /System/Library/Frameworks/ColorSync.framework/Headers/ColorSyncBase.h
+// Undef it and hope for the best?
+#undef CSEXPORT
+#endif
+
+#define CSEXPORT
+
+//#ifdef __cplusplus
+//#define CSEXPORT_FULL extern "C" __declspec (dllexport)
+//#else
+//#define CSEXPORT_FULL __declspec (dllexport)
+//#endif
+
+// Don't pass TEnumAsByte<> directly between C# / C++ (different layout depending on compiler)
+
+// Use a fixed sized bool size for marshalling due to sizeof(bool) being implementation defined
+// Note: This requires the use of wrappers for native structs / function callbacks using bool
+typedef int32 csbool;
+
 // For UEngine / GEngine access (Export_AActor / Export_FEngineGlobals)
 // Note: This slows down compile time around 1.5x-2x
 #define SUPPRESS_MONOLITHIC_HEADER_WARNINGS // Suppress warning added in 4.20 for now
@@ -58,6 +86,9 @@
 // For Export_USharpSettings
 #include "SharpSettings.h"
 
+// For latent related exports
+#include "USharpLatentAction.h"
+
 #if WITH_EDITOR
 // For Export_SharpHotReloadUtils.h
 #include "Kismet2/EnumEditorUtils.h"
@@ -84,34 +115,6 @@
 // For Export_FFeedbackContext
 #include "DesktopPlatformModule.h"
 #endif
-
-#if PLATFORM_WINDOWS && PLATFORM_32BITS
-#define CSCONV __stdcall
-#elif PLATFORM_WINDOWS && PLATFORM_64BITS
-#define CSCONV __cdecl
-#else
-#define CSCONV
-#endif
-
-#if PLATFORM_MAC
-// On MacOS CSEXPORT is already defined in /System/Library/Frameworks/ColorSync.framework/Headers/ColorSyncBase.h
-// Undef it and hope for the best?
-#undef CSEXPORT
-#endif
-
-#define CSEXPORT
-
-//#ifdef __cplusplus
-//#define CSEXPORT_FULL extern "C" __declspec (dllexport)
-//#else
-//#define CSEXPORT_FULL __declspec (dllexport)
-//#endif
-
-// Don't pass TEnumAsByte<> directly between C# / C++ (different layout depending on compiler)
-
-// Use a fixed sized bool size for marshalling due to sizeof(bool) being implementation defined
-// Note: This requires the use of wrappers for native structs / function callbacks using bool
-typedef int32 csbool;
 
 template<typename T, typename U> constexpr int32 OffsetOf(U T::*member)
 {

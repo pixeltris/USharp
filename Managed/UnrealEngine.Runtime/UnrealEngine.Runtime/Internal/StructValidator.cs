@@ -47,6 +47,7 @@ namespace UnrealEngine.Runtime
             ValidateStructSize<FTickPrerequisite>(Native_SizeOfStruct.SizeOf_FTickPrerequisite);
             ValidateStructSize<FKey>(Native_SizeOfStruct.SizeOf_FKey);
             ValidateStructSize<FLifetimeProperty>(Native_SizeOfStruct.SizeOf_FLifetimeProperty);
+            ValidateStructSize<FLatentActionInfo>(Native_SizeOfStruct.SizeOf_FLatentActionInfo);
             // Math structs
             ValidateStructSize<FInterpCurvePointFloat>(Native_SizeOfStruct.SizeOf_FInterpCurvePointFloat);
             ValidateStructSize<FInterpCurvePointLinearColor>(Native_SizeOfStruct.SizeOf_FInterpCurvePointLinearColor);

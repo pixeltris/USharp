@@ -238,13 +238,11 @@ namespace UnrealEngine.Runtime
         /// <returns></returns>
         public bool GetBoolMetaDataHierarchical(FName key)
         {
-            // WITH_EDITOR
-            if (Native_UStruct.GetBoolMetaDataHierarchical == null)
-            {
-                return false;
-            }
-
+#if WITH_EDITOR
             return Native_UStruct.GetBoolMetaDataHierarchical(Address, ref key);
+#else
+            return false;
+#endif
         }
 
         /// <summary>
@@ -255,19 +253,17 @@ namespace UnrealEngine.Runtime
         /// <returns></returns>
         public bool GetStringMetaDataHierarchical(FName key, out string outValue)
         {
-            // WITH_EDITOR
-            if (Native_UStruct.GetStringMetaDataHierarchical == null)
-            {
-                outValue = null;
-                return false;
-            }
-
+#if WITH_EDITOR
             using (FStringUnsafe outValueUnsafe = new FStringUnsafe())
             {
                 bool result = Native_UStruct.GetStringMetaDataHierarchical(Address, ref key, ref outValueUnsafe.Array);
                 outValue = outValueUnsafe.Value;
                 return result;
             }
+#else
+            outValue = null;
+            return false;
+#endif
         }
 
         //public T GetProperty<T>(string name) where T : UProperty

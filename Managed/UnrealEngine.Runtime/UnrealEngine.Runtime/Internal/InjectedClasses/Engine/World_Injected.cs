@@ -19,6 +19,11 @@ namespace UnrealEngine.Engine
             return result;
         }
 
+        public FLatentActionManager GetLatentActionManager()
+        {
+            return new FLatentActionManager(Native_UWorld.GetLatentActionManager(Address));
+        }
+
         public T[] GetAllActorsOfClass<T>() where T : AActor
         {
             return UGameplayStatics.GetAllActorsOfClass<T>(this);

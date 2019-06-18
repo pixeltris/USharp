@@ -160,4 +160,26 @@ namespace UnrealEngine.Runtime
         {
         }
     }
+
+    /// <summary>
+    /// Indicates a latent action. Latent actions have one parameter of type FLatentActionInfo, and this parameter is named by the LatentInfo specifier.
+    /// </summary>
+    [AttributeUsage(AttributeTargets.Method)]
+    public class LatentAttribute : UMetaAttribute
+    {
+        public LatentAttribute() : base(MDFunc.Latent, true)
+        {
+        }
+    }
+
+    /// <summary>
+    /// For Latent BlueprintCallable functions indicates which parameter is the LatentInfo parameter.
+    /// </summary>
+    [AttributeUsage(AttributeTargets.Method)]
+    public class LatentInfoAttribute : UMetaAttribute
+    {
+        public LatentInfoAttribute(string paramName) : base(MDFunc.LatentInfo, paramName)
+        {
+        }
+    }
 }

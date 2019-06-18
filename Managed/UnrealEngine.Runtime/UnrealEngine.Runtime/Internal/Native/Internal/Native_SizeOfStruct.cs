@@ -45,6 +45,7 @@ namespace UnrealEngine.Runtime.Native
         public static Del_SizeOf SizeOf_FTickPrerequisite;
         public static Del_SizeOf SizeOf_FKey;
         public static Del_SizeOf SizeOf_FLifetimeProperty;
+        public static Del_SizeOf SizeOf_FLatentActionInfo;
 
         // Math structs
         public static Del_SizeOf SizeOf_FInterpCurvePointFloat;

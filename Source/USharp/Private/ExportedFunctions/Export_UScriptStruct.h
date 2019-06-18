@@ -63,12 +63,10 @@ CSEXPORT void CSCONV Export_UScriptStruct_GetCustomGuid(UScriptStruct* instance,
 	result = instance->GetCustomGuid();
 }
 
-#if WITH_EDITOR
 CSEXPORT void CSCONV Export_UScriptStruct_InitializeDefaultValue(UScriptStruct* instance, uint8* InStructData)
 {
 	instance->InitializeDefaultValue(InStructData);
 }
-#endif
 
 CSEXPORT void CSCONV Export_UScriptStruct(RegisterFunc registerFunc)
 {
@@ -85,7 +83,5 @@ CSEXPORT void CSCONV Export_UScriptStruct(RegisterFunc registerFunc)
 	REGISTER_FUNC(Export_UScriptStruct_ClearScriptStruct);
 	REGISTER_FUNC(Export_UScriptStruct_RecursivelyPreload);
 	REGISTER_FUNC(Export_UScriptStruct_GetCustomGuid);
-#if WITH_EDITOR
 	REGISTER_FUNC(Export_UScriptStruct_InitializeDefaultValue);
-#endif
 }

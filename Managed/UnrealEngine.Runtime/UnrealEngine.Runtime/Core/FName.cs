@@ -19,7 +19,7 @@ namespace UnrealEngine.Runtime
     {
         /** Index into the Names array (used to find String portion of the string/number pair used for comparison) */
         public int ComparisonIndex;
-#if WITH_EDITORONLY_DATA
+#if WITH_EDITOR
         /** Index into the Names array (used to find String portion of the string/number pair used for display) */
         public int DisplayIndex;
 #endif
@@ -64,7 +64,7 @@ namespace UnrealEngine.Runtime
         internal FName(int index, int number)
         {
             ComparisonIndex = index;
-#if WITH_EDITORONLY_DATA
+#if WITH_EDITOR
             DisplayIndex = index;
 #endif
             Number = number;
@@ -73,7 +73,7 @@ namespace UnrealEngine.Runtime
         internal FName(int comparisonIndex, int displayIndex, int number)
         {
             ComparisonIndex = comparisonIndex;
-#if WITH_EDITORONLY_DATA
+#if WITH_EDITOR
             DisplayIndex = displayIndex;
 #endif
             Number = number;
@@ -224,7 +224,7 @@ namespace UnrealEngine.Runtime
         {
             return new FScriptName(
                 name.ComparisonIndex,
-#if WITH_EDITORONLY_DATA
+#if WITH_EDITOR
                 name.DisplayIndex,
 #else
                 name.ComparisonIndex,

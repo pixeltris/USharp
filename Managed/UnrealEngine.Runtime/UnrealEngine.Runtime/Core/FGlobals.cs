@@ -160,13 +160,11 @@ namespace UnrealEngine.Runtime
         {
             get
             {
-                // WITH_EDITORONLY_DATA
-                if (Native_FGlobals.Get_GIsTransacting == null)
-                {
-                    return false;
-                }
-
+#if WITH_EDITOR
                 return Native_FGlobals.Get_GIsTransacting();
+#else
+                return false;
+#endif
             }
         }
 
@@ -908,7 +906,7 @@ namespace UnrealEngine.Runtime
         {
             get
             {
-#if WITH_EDITORONLY_DATA
+#if WITH_EDITOR
                 return Native_FGlobals.Get_GEditor();
 #else
                 return IntPtr.Zero;

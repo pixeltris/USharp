@@ -154,6 +154,11 @@ CSEXPORT int32 CSCONV Export_SizeOfStruct_SizeOf_FLifetimeProperty()
 	return sizeof(FLifetimeProperty);
 }
 
+CSEXPORT int32 CSCONV Export_SizeOfStruct_SizeOf_FLatentActionInfo()
+{
+	return sizeof(FLatentActionInfo);
+}
+
 // Math structs
 
 CSEXPORT int32 CSCONV Export_SizeOfStruct_SizeOf_FInterpCurvePointFloat()
@@ -404,6 +409,8 @@ CSEXPORT void CSCONV Export_SizeOfStruct(RegisterFunc registerFunc)
 	REGISTER_FUNC(Export_SizeOfStruct_SizeOf_TStatId);
 	REGISTER_FUNC(Export_SizeOfStruct_SizeOf_FActorSpawnParameters);
 	REGISTER_FUNC(Export_SizeOfStruct_SizeOf_FKey);
+	REGISTER_FUNC(Export_SizeOfStruct_SizeOf_FLifetimeProperty);
+	REGISTER_FUNC(Export_SizeOfStruct_SizeOf_FLatentActionInfo);
 	
 	// Math structs
 	REGISTER_FUNC(Export_SizeOfStruct_SizeOf_FInterpCurvePointFloat);

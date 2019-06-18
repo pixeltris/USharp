@@ -13,13 +13,6 @@ namespace UnrealEngine.Runtime
 
     public partial class CodeGenerator
     {
-        public string TestMe(bool rename, string str)
-        {
-            CSharpTextBuilder builder = new CSharpTextBuilder();
-            AppendDocComment(builder, str, rename);
-            return builder.ToString();
-        }
-
         private void AppendDocComment(CSharpTextBuilder builder, UField field, bool isBlueprintType)
         {
             if (field == null || Settings.SkipDocumentation || string.IsNullOrEmpty(field.GetMetaData("Tooltip")))

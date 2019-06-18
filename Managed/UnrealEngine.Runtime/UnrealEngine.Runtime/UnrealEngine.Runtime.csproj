@@ -18,7 +18,7 @@
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
     <OutputPath>..\..\..\Binaries\Managed\</OutputPath>
-    <DefineConstants>TRACE;DEBUG;WITH_EDITORONLY_DATA</DefineConstants>
+    <DefineConstants>TRACE;DEBUG;WITH_EDITOR</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
@@ -53,6 +53,10 @@
     <Compile Include="Core\FFeedbackContext.cs" />
     <Compile Include="Core\IPluginManager.cs" />
     <None Include="Internal\InjectedClasses\Engine\Pawn_Injected.cs" />
+    <Compile Include="Engine\Latent\FLatentActionInfo.cs" />
+    <Compile Include="Engine\Latent\FLatentActionManager.cs" />
+    <Compile Include="Engine\Latent\FLatentResponse.cs" />
+    <Compile Include="Engine\Latent\FUSharpLatentAction.cs" />
     <Compile Include="InputCore\EKeys.cs" />
     <Compile Include="InputCore\FKey.cs" />
     <None Include="Internal\InjectedClasses\Engine\ActorComponent_Injected.cs" />
@@ -194,6 +198,9 @@
     <Compile Include="Internal\ManagedUnrealVisibility.cs" />
     <Compile Include="Internal\NativeReflectionCached.cs" />
     <Compile Include="Internal\Native\Native_FFeedbackContext.cs" />
+    <Compile Include="Internal\Native\Native_FLatentActionManager.cs" />
+    <Compile Include="Internal\Native\Native_FLatentResponse.cs" />
+    <Compile Include="Internal\Native\Native_FUSharpLatentAction.cs" />
     <Compile Include="Internal\Native\Native_UActorComponent.cs" />
     <Compile Include="Internal\Native\Native_UEngineTypes.cs" />
     <Compile Include="Internal\Native\Native_FPlatformMisc.cs" />

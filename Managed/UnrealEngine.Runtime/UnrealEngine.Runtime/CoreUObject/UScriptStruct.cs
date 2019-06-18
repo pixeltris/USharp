@@ -51,12 +51,6 @@ namespace UnrealEngine.Runtime
         /// <param name="inStructData">The memory location to initialize</param>
         public void InitializeDefaultValue(byte[] inStructData)
         {
-            // WITH_EDITOR
-            if (Native_UScriptStruct.InitializeDefaultValue == null)
-            {
-                return;
-            }
-
             Native_UScriptStruct.InitializeDefaultValue(Address, inStructData);
         }
 

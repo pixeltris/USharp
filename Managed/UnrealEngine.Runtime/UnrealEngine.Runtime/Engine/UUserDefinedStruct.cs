@@ -14,23 +14,17 @@ namespace UnrealEngine.Engine
         {
             get
             {
-                // WITH_EDITORONLY_DATA
-                if (Native_UUserDefinedStruct.Get_Status == null)
-                {
-                    return default(EUserDefinedStructureStatus);
-                }
-
+#if WITH_EDITOR
                 return Native_UUserDefinedStruct.Get_Status(Address);
+#else
+                return default(EUserDefinedStructureStatus);
+#endif
             }
             set
             {
-                // WITH_EDITORONLY_DATA
-                if (Native_UUserDefinedStruct.Set_Status == null)
-                {
-                    return;
-                }
-
+#if WITH_EDITOR
                 Native_UUserDefinedStruct.Set_Status(Address, value);
+#endif
             }
         }
 
@@ -38,30 +32,24 @@ namespace UnrealEngine.Engine
         {
             get
             {
-                // WITH_EDITORONLY_DATA
-                if (Native_UUserDefinedStruct.Get_ErrorMessage == null)
-                {
-                    return null;
-                }
-
+#if WITH_EDITOR
                 using (FStringUnsafe resultUnsafe = new FStringUnsafe())
                 {
                     Native_UUserDefinedStruct.Get_ErrorMessage(Address, ref resultUnsafe.Array);
                     return resultUnsafe.Value;
                 }
+#else
+                return null;
+#endif
             }
             set
             {
-                // WITH_EDITORONLY_DATA
-                if (Native_UUserDefinedStruct.Set_ErrorMessage == null)
-                {
-                    return;
-                }
-
+#if WITH_EDITOR
                 using (FStringUnsafe errorMessageUnsafe = new FStringUnsafe(value))
                 {
                     Native_UUserDefinedStruct.Set_ErrorMessage(Address, ref errorMessageUnsafe.Array);
                 }
+#endif
             }
         }
 
@@ -69,23 +57,17 @@ namespace UnrealEngine.Engine
         {
             get
             {
-                // WITH_EDITORONLY_DATA
-                if (Native_UUserDefinedStruct.Get_EditorData == null)
-                {
-                    return null;
-                }
-
+#if WITH_EDITOR
                 return GCHelper.Find<UObject>(Native_UUserDefinedStruct.Get_EditorData(Address));
+#else
+                return null;
+#endif
             }
             set
             {
-                // WITH_EDITORONLY_DATA
-                if (Native_UUserDefinedStruct.Set_EditorData == null)
-                {
-                    return;
-                }
-
+#if WITH_EDITOR
                 Native_UUserDefinedStruct.Set_EditorData(Address, value == null ? IntPtr.Zero : value.Address);
+#endif
             }
         }
 

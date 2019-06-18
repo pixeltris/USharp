@@ -218,7 +218,7 @@ namespace UnrealEngine.Runtime
             GetDefaultValue = getDefaultValue;
             if (GetDefaultValue != null)
             {
-#if WITH_EDITORONLY_DATA
+#if WITH_EDITOR
                 IntPtr pieWorldContext = Native_UEditorEngine.GetPIEWorldContext(FGlobals.GEditor);
                 if (pieWorldContext != IntPtr.Zero)
                 {
@@ -271,7 +271,7 @@ namespace UnrealEngine.Runtime
 
         private IntPtr GetDefaultWorld()
         {
-#if WITH_EDITORONLY_DATA
+#if WITH_EDITOR
             FWorldContext worldContext = new FWorldContext(Native_UEditorEngine.GetPIEWorldContext(FGlobals.GEditor));
             return worldContext.IsNull ? IntPtr.Zero : worldContext.CurrentWorld;
 #else
