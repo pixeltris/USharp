@@ -6,7 +6,7 @@ using System.Text;
 namespace UnrealEngine.Runtime
 {
     // Custom UScriptStruct type for GetStructTypeHash (otherwise we could just use UScriptStruct directly)
-    [UMetaPath("/Script/USharp.SharpStruct", "USharp", UnrealModuleType.EnginePlugin)]
+    [UClass(Flags = (ClassFlags)0x305000A0), UMetaPath("/Script/USharp.SharpStruct")]
     public class USharpStruct : UScriptStruct
     {
     }

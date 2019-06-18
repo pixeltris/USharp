@@ -187,7 +187,7 @@ namespace UnrealEngine.Runtime
     /// This is stored internally as an FName pointing to the top level asset (/package/path.assetname) and an option a string subobject path.
     /// If the MetaClass metadata is applied to a UProperty with this the UI will restrict to that type of asset.
     /// </summary>
-    [UStruct(Flags = 0x000B980A), BlueprintType, UMetaPath("/Script/CoreUObject.SoftObjectPath", "CoreUObject", UnrealModuleType.Engine)]
+    [UStruct(Flags = 0x000B980A), BlueprintType, UMetaPath("/Script/CoreUObject.SoftObjectPath")]
     public struct FSoftObjectPath : IEquatable<FSoftObjectPath>
     {
         /// <summary>
@@ -431,7 +431,7 @@ namespace UnrealEngine.Runtime
     /// <summary>
     /// A struct that contains a string reference to a class, can be used to make soft references to classes
     /// </summary>
-    [UStruct(Flags = 0x000B980A), BlueprintType, UMetaPath("/Script/CoreUObject.SoftClassPath", "CoreUObject", UnrealModuleType.Engine)]
+    [UStruct(Flags = 0x000B980A), BlueprintType, UMetaPath("/Script/CoreUObject.SoftClassPath")]
     public struct FSoftClassPath : IEquatable<FSoftClassPath>
     {
         public FSoftObjectPath ObjectPath;

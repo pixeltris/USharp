@@ -11,7 +11,7 @@ namespace UnrealEngine.Runtime
     // If updating a XXXXRangeBound class remember to generate code to update the others
 
     /// <summary>A int range bound</summary>
-    [UStruct(Flags = 0x0000E008), BlueprintType, UMetaPath("/Script/CoreUObject.Int32RangeBound", "CoreUObject", UnrealModuleType.Engine)]
+    [UStruct(Flags = 0x0000E008), BlueprintType, UMetaPath("/Script/CoreUObject.Int32RangeBound")]
     [StructLayout(LayoutKind.Sequential)]
     public struct FInt32RangeBound : IEquatable<FInt32RangeBound>
     {

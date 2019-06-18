@@ -11,7 +11,7 @@ namespace UnrealEngine.Runtime
     /// <summary>
     /// The base class of all objects.
     /// </summary>
-    [UMetaPath("/Script/CoreUObject.Object", "CoreUObject", UnrealModuleType.Engine)]
+    [UClass(Flags = (ClassFlags)0x304001A1), UMetaPath("/Script/CoreUObject.Object")]
     public partial class UObject : IEquatable<UObject>, IInterface
     {
         /// <summary>

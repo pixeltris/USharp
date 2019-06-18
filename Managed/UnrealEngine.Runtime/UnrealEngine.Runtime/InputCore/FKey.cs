@@ -13,7 +13,7 @@ namespace UnrealEngine.InputCore
     // It might be better to remove the keyDetails field as we mostly don't use it from C# (just validate that they FName is in the map)
     // This will make moving FKey between C# function slightly faster due to having to copy less (2xIntPtr in FSharedPtr)
 
-    [UStruct(Flags = 0x000F1201), BlueprintType, UMetaPath("/Script/InputCore.Key", "InputCore", UnrealModuleType.Engine)]
+    [UStruct(Flags = 0x002F1201), BlueprintType, UMetaPath("/Script/InputCore.Key")]
     [StructLayout(LayoutKind.Sequential)]
     [NonBlittable]// This class is blittable, but we have our own FromNative/ToNative functions with some validation
     public struct FKey : IEquatable<FKey>, IComparable<FKey>

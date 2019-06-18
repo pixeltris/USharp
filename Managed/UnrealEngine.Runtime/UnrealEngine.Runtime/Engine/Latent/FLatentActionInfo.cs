@@ -13,7 +13,7 @@ namespace UnrealEngine.Engine
     /// <summary>
     /// Latent action info
     /// </summary>
-    [UStruct(Flags = 0x00001201), BlueprintType, UMetaPath("/Script/Engine.LatentActionInfo", "Engine", UnrealModuleType.Engine)]
+    [UStruct(Flags = 0x00001201), BlueprintType, UMetaPath("/Script/Engine.LatentActionInfo")]
     [StructLayout(LayoutKind.Sequential)]
     public struct FLatentActionInfo
     {
@@ -74,8 +74,9 @@ namespace UnrealEngine.Engine
 
         public FLatentActionInfo(string functionName, IntPtr callbackTarget, int linkage = 0)
         {
-            // 'Linkage' gets passed to the target function as a parameter. This lets use a single function with a multi-phase
+            // 'Linkage' gets passed to the target function as a parameter. This lets us use a single function with a multi-phase
             // latent action handler by using a switch/case block on linkage, and starting a new latent action depending on the linkage value.
+            // - Blueprint uses 'Linkage' as a return point in the node graph for the next thing to execute?
             Linkage = linkage;
             UUID = Native_FLatentActionManager.GetNextUUID(callbackTarget);
             ExecutionFunction = (FName)functionName;

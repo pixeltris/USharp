@@ -8,7 +8,7 @@ namespace UnrealEngine.Runtime
     /// <summary>
     /// Describes a 32-bit unsigned integer variable.
     /// </summary>
-    [UMetaPath("/Script/CoreUObject.UInt32Property", "CoreUObject", UnrealModuleType.Engine)]
+    [UClass(Flags = (ClassFlags)0x10400080), UMetaPath("/Script/CoreUObject.UInt32Property")]
     public class UUInt32Property : UNumericProperty
     {
         public override EPropertyType PropertyType

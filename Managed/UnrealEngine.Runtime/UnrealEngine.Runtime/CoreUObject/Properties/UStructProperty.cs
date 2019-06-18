@@ -9,7 +9,7 @@ namespace UnrealEngine.Runtime
     /// <summary>
     /// Describes a structure variable embedded in (as opposed to referenced by) an object.
     /// </summary>
-    [UMetaPath("/Script/CoreUObject.StructProperty", "CoreUObject", UnrealModuleType.Engine)]
+    [UClass(Flags = (ClassFlags)0x10400080), UMetaPath("/Script/CoreUObject.StructProperty")]
     public class UStructProperty : UProperty
     {
         public override EPropertyType PropertyType

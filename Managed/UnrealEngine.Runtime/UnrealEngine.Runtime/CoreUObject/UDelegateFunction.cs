@@ -8,7 +8,7 @@ namespace UnrealEngine.Runtime
     /// <summary>
     /// Function definition used by dynamic delegate declarations
     /// </summary>
-    [UMetaPath("/Script/CoreUObject.DelegateFunction", "CoreUObject", UnrealModuleType.Engine)]
+    [UClass(Flags = (ClassFlags)0x10400080), UMetaPath("/Script/CoreUObject.DelegateFunction")]
     public class UDelegateFunction : UFunction
     {
     }

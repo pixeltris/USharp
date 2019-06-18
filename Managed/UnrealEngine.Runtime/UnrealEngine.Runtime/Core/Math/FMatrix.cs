@@ -16,7 +16,7 @@ namespace UnrealEngine.Runtime
     /// opposed to Res = Mat1 * Mat2.
     /// Matrix elements are accessed with M[RowIndex][ColumnIndex].
     /// </summary>
-    [UStruct(Flags = 0x0000E838), BlueprintType, UMetaPath("/Script/CoreUObject.Matrix", "CoreUObject", UnrealModuleType.Engine)]
+    [UStruct(Flags = 0x0000E838), BlueprintType, UMetaPath("/Script/CoreUObject.Matrix")]
     [StructLayout(LayoutKind.Sequential)]
     public struct FMatrix : IEquatable<FMatrix>
     {

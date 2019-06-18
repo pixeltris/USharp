@@ -8,7 +8,7 @@ namespace UnrealEngine.Runtime
     // Engine\Source\Runtime\Core\Public\Math\RangeBound.h
 
     /// <summary>Enumerates the valid types of range bounds.</summary>
-    [UEnum, BlueprintType, UMetaPath("/Script/CoreUObject.ERangeBoundTypes", "CoreUObject", UnrealModuleType.Engine)]
+    [UEnum, BlueprintType, UMetaPath("/Script/CoreUObject.ERangeBoundTypes")]
     public enum ERangeBoundTypes : byte
     {
         /// <summary>The range excludes the bound.</summary>

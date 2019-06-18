@@ -6,7 +6,7 @@ using System.Text;
 
 namespace UnrealEngine.Runtime
 {
-    [UMetaPath("/Script/CoreUObject.ObjectProperty", "CoreUObject", UnrealModuleType.Engine)]
+    [UClass(Flags = (ClassFlags)0x10400080), UMetaPath("/Script/CoreUObject.ObjectProperty")]
     public class UObjectProperty : UObjectPropertyBase, IPropertyAccessor<UObject>
     {
         public override EPropertyType PropertyType

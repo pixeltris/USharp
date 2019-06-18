@@ -136,12 +136,7 @@ namespace UnrealEngine.Runtime
                     attributes.Add(UMeta.GetKey(MDClass.Blueprintable));
                 }
 
-                if (isInterface)
-                {
-                }
-
-                attributes.Add("UMetaPath(\"" + field.GetPathName() + "\", \"" + moduleName +
-                    "\", UnrealModuleType." + GetUnrealModuleTypeString(moduleType, moduleAssetType) + 
+                attributes.Add("UMetaPath(\"" + field.GetPathName() + "\"" +
                     (isInterface ? ", InterfaceImpl=typeof(" + GetTypeName(unrealClass, null) + "Impl" + ")" : string.Empty) + ")");
 
             }

@@ -14,7 +14,7 @@ namespace UnrealEngine.Runtime
     /// 
     /// Interpolation points are used for describing the shape of interpolation curves.
     /// </summary>
-    [UStruct(Flags = 0x00006008), BlueprintType, UMetaPath("/Script/CoreUObject.InterpCurvePointQuat", "CoreUObject", UnrealModuleType.Engine)]
+    [UStruct(Flags = 0x00006008), BlueprintType, UMetaPath("/Script/CoreUObject.InterpCurvePointQuat")]
     [StructLayout(LayoutKind.Sequential)]
     public struct FInterpCurvePointQuat : IEquatable<FInterpCurvePointQuat>
     {

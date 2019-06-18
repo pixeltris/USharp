@@ -7,7 +7,7 @@ using UnrealEngine.Runtime.Native;
 
 namespace UnrealEngine.Engine
 {
-    [UMetaPath("/Script/Engine.BlueprintCore", "Engine", UnrealModuleType.Engine)]
+    [UClass(Flags = (ClassFlags)0x305000A0), UMetaPath("/Script/Engine.BlueprintCore")]
     public class UBlueprintCore : UObject
     {
         /// <summary>

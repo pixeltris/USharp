@@ -12,7 +12,7 @@ namespace UnrealEngine.Runtime
     /// <summary>
     /// Reflection data for a replicated or Kismet callable function.
     /// </summary>
-    [UMetaPath("/Script/CoreUObject.Function", "CoreUObject", UnrealModuleType.Engine)]
+    [UClass(Flags = (ClassFlags)0x10400080), UMetaPath("/Script/CoreUObject.Function")]
     public partial class UFunction : UStruct
     {
         /// <summary>

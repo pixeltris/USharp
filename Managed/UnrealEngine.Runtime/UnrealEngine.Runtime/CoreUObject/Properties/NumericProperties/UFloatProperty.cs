@@ -8,7 +8,7 @@ namespace UnrealEngine.Runtime
     /// <summary>
     /// Describes an IEEE 32-bit floating point variable.
     /// </summary>
-    [UMetaPath("/Script/CoreUObject.FloatProperty", "CoreUObject", UnrealModuleType.Engine)]
+    [UClass(Flags = (ClassFlags)0x10400080), UMetaPath("/Script/CoreUObject.FloatProperty")]
     public class UFloatProperty : UNumericProperty
     {
         public override EPropertyType PropertyType

@@ -10,7 +10,7 @@ namespace UnrealEngine.Runtime
     /// A point or direction FVector in 2d space.
     /// The full C++ class is located here: Engine\Source\Runtime\Core\Public\Math\Vector2D.h
     /// </summary>
-    [UStruct(Flags = 0x0040EC38), BlueprintType, UMetaPath("/Script/CoreUObject.Vector2D", "CoreUObject", UnrealModuleType.Engine)]
+    [UStruct(Flags = 0x0040EC38), BlueprintType, UMetaPath("/Script/CoreUObject.Vector2D")]
     [System.Runtime.InteropServices.StructLayout(System.Runtime.InteropServices.LayoutKind.Sequential)]
     public struct FVector2D : IEquatable<FVector2D>
     {

@@ -6,7 +6,7 @@ using UnrealEngine.Runtime.Native;
 
 namespace UnrealEngine.Runtime
 {
-    [UMetaPath("/Script/CoreUObject.ObjectPropertyBase", "CoreUObject", UnrealModuleType.Engine)]
+    [UClass(Flags = (ClassFlags)0x10400081), UMetaPath("/Script/CoreUObject.ObjectPropertyBase")]
     public class UObjectPropertyBase : UProperty
     {
         private CachedUObject<UClass> propertyClass;

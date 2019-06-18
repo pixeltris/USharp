@@ -10,7 +10,7 @@ namespace UnrealEngine.Runtime
     /// This variable type provides safe access to a native interface pointer.  The data class for this variable is FScriptInterface, and is exported to auto-generated
     /// script header files as a TScriptInterface.
     /// </summary>
-    [UMetaPath("/Script/CoreUObject.InterfaceProperty", "CoreUObject", UnrealModuleType.Engine)]
+    [UClass(Flags = (ClassFlags)0x10400080), UMetaPath("/Script/CoreUObject.InterfaceProperty")]
     public class UInterfaceProperty : UProperty
     {
         public override EPropertyType PropertyType

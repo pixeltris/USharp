@@ -13,7 +13,7 @@ namespace UnrealEngine.Runtime
     /// 
     /// Very bad quality in the lower bits. Don't use the modulus (%) operator.
     /// </summary>
-    [UStruct(Flags = 0x00019008), BlueprintType, UMetaPath("/Script/CoreUObject.RandomStream", "CoreUObject", UnrealModuleType.Engine)]
+    [UStruct(Flags = 0x00019008), BlueprintType, UMetaPath("/Script/CoreUObject.RandomStream")]
     [StructLayout(LayoutKind.Sequential)]
     public struct FRandomStream
     {

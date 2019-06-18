@@ -30,7 +30,7 @@ namespace UnrealEngine.Engine
     /// <para/>FSkeletalMeshComponentEndPhysicsTickFunction - Tick function that does post physics work on skeletal mesh component. This executes in EndPhysics (after physics is done)
     /// <para/>FStartPhysicsTickFunction - Tick function that starts the physics tick
     /// </summary>
-    [UStruct(Flags = 0x00000001), UMetaPath("/Script/Engine.TickFunction", "Engine", UnrealModuleType.Engine)]
+    [UStruct(Flags = 0x00000201), UMetaPath("/Script/Engine.TickFunction")]
     public struct FTickFunction
     {
         static UFieldAddress TickGroup_PropertyAddress;

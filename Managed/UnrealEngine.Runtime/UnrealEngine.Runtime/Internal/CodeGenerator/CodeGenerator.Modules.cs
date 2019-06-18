@@ -598,15 +598,6 @@ namespace UnrealEngine.Runtime
             return null;
         }
 
-        private string GetUnrealModuleTypeString(UnrealModuleType moduleType, UnrealModuleType assetModuleType)
-        {
-            if (assetModuleType != UnrealModuleType.Unknown)
-            {
-                return assetModuleType.ToString();
-            }
-            return moduleType.ToString();
-        }
-
         /// <summary>
         /// Namespace of the C# Unreal Engine runtime (UnrealEngine.Runtime)
         /// </summary>

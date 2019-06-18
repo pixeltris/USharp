@@ -12,6 +12,7 @@ namespace UnrealEngine.Engine
     public class FUSharpLatentAction
     {
         public IntPtr Address { get; internal set; }
+        public bool Destroyed { get; private set; }
 
         // Hold onto a handle (so that we can get the managed object from the native object)
         internal GCHandle Handle;
@@ -50,6 +51,7 @@ namespace UnrealEngine.Engine
                 action.Handle.Free();
                 action.Handle = default(GCHandle);
                 action.index = -1;
+                action.Destroyed = true;
             }
             latentActions.Clear();
         }
@@ -70,6 +72,7 @@ namespace UnrealEngine.Engine
                 latentActions[index].index = index;
             }
             index = -1;
+            Destroyed = true;
         }
 
         protected virtual void OnDestroyed()

@@ -5,7 +5,7 @@ using System.Text;
 
 namespace UnrealEngine.Runtime
 {
-    [UMetaPath("/Script/CoreUObject.WeakObjectProperty", "CoreUObject", UnrealModuleType.Engine)]
+    [UClass(Flags = (ClassFlags)0x10400080), UMetaPath("/Script/CoreUObject.WeakObjectProperty")]
     public class UWeakObjectProperty : UObjectPropertyBase
     {
         public override EPropertyType PropertyType

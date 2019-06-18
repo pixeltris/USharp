@@ -12,7 +12,7 @@ namespace UnrealEngine.Engine
     /// <summary>
     /// This is small structure to hold prerequisite tick functions
     /// </summary>
-    [UStruct(Flags = 0x00001001), UMetaPath("/Script/Engine.TickPrerequisite", "Engine", UnrealModuleType.Engine)]
+    [UStruct(Flags = 0x00001001), UMetaPath("/Script/Engine.TickPrerequisite")]
     [StructLayout(LayoutKind.Sequential)]
     public struct FTickPrerequisite
     {

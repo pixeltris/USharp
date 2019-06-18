@@ -16,7 +16,7 @@ namespace UnrealEngine.Runtime
     /// Stores the coeffecients as Xx+Yy+Zz=W.
     /// Note that this is different from many other Plane classes that use Xx+Yy+Zz+W=0.
     /// </summary>
-    [UStruct(Flags = 0x0040EC38), BlueprintType, UMetaPath("/Script/CoreUObject.Plane", "CoreUObject", UnrealModuleType.Engine)]
+    [UStruct(Flags = 0x0040EC38), BlueprintType, UMetaPath("/Script/CoreUObject.Plane")]
     [StructLayout(LayoutKind.Sequential)]
     public struct FPlane : IEquatable<FPlane>
     {

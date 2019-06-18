@@ -6,7 +6,7 @@ using System.Text;
 
 namespace UnrealEngine.Runtime
 {
-    [UMetaPath("/Script/CoreUObject.SoftObjectProperty", "CoreUObject", UnrealModuleType.Engine)]
+    [UClass(Flags = (ClassFlags)0x10400080), UMetaPath("/Script/CoreUObject.SoftObjectProperty")]
     public class USoftObjectProperty : UObjectPropertyBase, IPropertyAccessor<FSoftObjectPtr>
     {
         private FSoftObjectPtr softObject;

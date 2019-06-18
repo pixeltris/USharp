@@ -11,7 +11,7 @@ namespace UnrealEngine.Runtime
     /// <summary>
     /// Structure for arbitrarily oriented boxes (not necessarily axis-aligned).
     /// </summary>
-    [UStruct(Flags = 0x00006038), UMetaPath("/Script/CoreUObject.OrientedBox", "CoreUObject", UnrealModuleType.Engine)]
+    [UStruct(Flags = 0x00006038), UMetaPath("/Script/CoreUObject.OrientedBox")]
     [StructLayout(LayoutKind.Sequential)]
     public struct FOrientedBox : IEquatable<FOrientedBox>
     {

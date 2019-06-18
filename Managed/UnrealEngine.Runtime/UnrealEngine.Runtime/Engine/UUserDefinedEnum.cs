@@ -9,7 +9,7 @@ namespace UnrealEngine.Engine
     /// <summary>
     /// An Enumeration is a list of named values.
     /// </summary>
-    [UMetaPath("/Script/Engine.UserDefinedEnum", "CoreUObject", UnrealModuleType.Engine)]
+    [UClass(Flags=(ClassFlags)0x305000A0), UMetaPath("/Script/Engine.UserDefinedEnum")]
     public class UUserDefinedEnum : UEnum
     {
     }

@@ -12,7 +12,7 @@ namespace UnrealEngine.Runtime
     /// <summary>
     /// Structure for a combined axis aligned bounding box and bounding sphere with the same origin. (28 bytes).
     /// </summary>
-    [UStruct(Flags = 0x0000E008), BlueprintType, UMetaPath("/Script/CoreUObject.BoxSphereBounds", "CoreUObject", UnrealModuleType.Engine)]
+    [UStruct(Flags = 0x0000E008), BlueprintType, UMetaPath("/Script/CoreUObject.BoxSphereBounds")]
     [StructLayout(LayoutKind.Sequential)]
     public struct FBoxSphereBounds : IEquatable<FBoxSphereBounds>
     {

@@ -9,7 +9,7 @@ namespace UnrealEngine.Runtime
     /// <summary>
     /// Describes a dynamic string variable.
     /// </summary>
-    [UMetaPath("/Script/CoreUObject.StrProperty", "CoreUObject", UnrealModuleType.Engine)]
+    [UClass(Flags = (ClassFlags)0x10400080), UMetaPath("/Script/CoreUObject.StrProperty")]
     public class UStrProperty : UProperty, IPropertyAccessor<string>
     {
         public override EPropertyType PropertyType

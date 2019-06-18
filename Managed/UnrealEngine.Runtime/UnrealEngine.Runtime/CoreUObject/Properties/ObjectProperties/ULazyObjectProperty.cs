@@ -6,7 +6,7 @@ using System.Text;
 
 namespace UnrealEngine.Runtime
 {
-    [UMetaPath("/Script/CoreUObject.LazyObjectProperty", "CoreUObject", UnrealModuleType.Engine)]
+    [UClass(Flags = (ClassFlags)0x10400080), UMetaPath("/Script/CoreUObject.LazyObjectProperty")]
     public class ULazyObjectProperty : UObjectPropertyBase, IPropertyAccessor<FLazyObjectPtr>
     {
         public override EPropertyType PropertyType

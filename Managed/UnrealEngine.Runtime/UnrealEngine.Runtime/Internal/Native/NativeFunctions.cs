@@ -498,7 +498,36 @@ namespace UnrealEngine.Runtime.Native
                     codeGenContext.BeginSlowTask("Generating C# engine wrapper code (this might take a while...)", true);
                     CodeGenerator.GenerateCode(new string[] { "modules" });
                     codeGenContext.EndSlowTask();
+                    settings.CopyCodeGeneratorVersionFile();
                     compileEngineWrapperCode = true;
+                }
+            }
+            else
+            {
+                int latestVersion = settings.GetCodeGeneratorVersion(false);
+                int version = settings.GetCodeGeneratorVersion(true);
+                if (latestVersion > 0 && (version <= 0 || latestVersion > version))
+                {
+                    if (FMessage.OpenDialog(EAppMsgType.YesNo, "C# engine wrapper code is outdated. Regenerate it?", dialogTitle) == EAppReturnType.Yes)
+                    {
+                        try
+                        {
+                            string dir = settings.GetManagedModulesDir();
+                            if (Directory.Exists(dir))
+                            {
+                                Directory.Delete(dir, true);
+                            }
+                        }
+                        catch
+                        {
+                        }
+
+                        codeGenContext.BeginSlowTask("Generating C# engine wrapper code (this might take a while...)", true);
+                        CodeGenerator.GenerateCode(new string[] { "modules" });
+                        codeGenContext.EndSlowTask();
+                        settings.CopyCodeGeneratorVersionFile();
+                        compileEngineWrapperCode = true;
+                    }
                 }
             }
             if (compileEngineWrapperCode || (!File.Exists(engineWrapperDllPath) && File.Exists(engineWrapperSlnPath)))

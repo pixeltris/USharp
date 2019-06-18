@@ -9,7 +9,7 @@ namespace UnrealEngine.Runtime
     /// <summary>
     /// An object that holds a map of key/value pairs.
     /// </summary>
-    [UMetaPath("/Script/CoreUObject.MetaData", "CoreUObject", UnrealModuleType.Engine)]
+    [UClass(Flags = (ClassFlags)0x104000A0), UMetaPath("/Script/CoreUObject.MetaData")]
     public class UMetaData : UObject
     {
         /// <summary>

@@ -9,7 +9,7 @@ namespace UnrealEngine.Runtime
     /// <summary>
     /// Describes a pointer to a function bound to an Object.
     /// </summary>
-    [UMetaPath("/Script/CoreUObject.MulticastDelegateProperty", "CoreUObject", UnrealModuleType.Engine)]
+    [UClass(Flags = (ClassFlags)0x10400080), UMetaPath("/Script/CoreUObject.MulticastDelegateProperty")]
     public class UMulticastDelegateProperty : UProperty
     {
         public override EPropertyType PropertyType

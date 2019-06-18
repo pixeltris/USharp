@@ -5,7 +5,7 @@ using System.Text;
 
 namespace UnrealEngine.Runtime
 {
-    [UMetaPath("/Script/CoreUObject.TextProperty", "CoreUObject", UnrealModuleType.Engine)]
+    [UClass(Flags = (ClassFlags)0x10400080), UMetaPath("/Script/CoreUObject.TextProperty")]
     public class UTextProperty : UProperty, IPropertyAccessor<FText>
     {
         public override EPropertyType PropertyType

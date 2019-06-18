@@ -12,7 +12,7 @@ namespace UnrealEngine.Runtime
     /// <summary>
     /// A 4D homogeneous vector, 4x1 FLOATs, 16-byte aligned.
     /// </summary>
-    [UStruct(Flags = 0x0000E838), BlueprintType, UMetaPath("/Script/CoreUObject.Vector4", "CoreUObject", UnrealModuleType.Engine)]
+    [UStruct(Flags = 0x0000E838), BlueprintType, UMetaPath("/Script/CoreUObject.Vector4")]
     [StructLayout(LayoutKind.Sequential)]
     public struct FVector4 : IEquatable<FVector4>
     {

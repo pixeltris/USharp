@@ -253,19 +253,105 @@ namespace UnrealEngine.Runtime
                         case "module":
                             if (args.Length > 1)
                             {
+                                bool forceExport = false;
+                                if (args.Length > 2)
+                                {
+                                    bool.TryParse(args[2], out forceExport);
+                                }
+
                                 codeGenerator = new CodeGenerator();
                                 // Tests / using these for types for use in this lib
                                 //codeGenerator.Settings.CheckUObjectDestroyed = false;
                                 //codeGenerator.Settings.GenerateIsValidSafeguards = false;
-                                //codeGenerator.Settings.ExportMode = CodeGeneratorSettings.CodeExportMode.All;
-                                //codeGenerator.Settings.ExportAllFunctions = true;
-                                //codeGenerator.Settings.ExportAllProperties = true;
                                 //codeGenerator.Settings.MergeEnumFiles = false;
+                                if (forceExport)
+                                {
+                                    codeGenerator.Settings.ExportMode = CodeGeneratorSettings.CodeExportMode.All;
+                                    codeGenerator.Settings.ExportAllFunctions = true;
+                                    codeGenerator.Settings.ExportAllProperties = true;
+                                }
                                 codeGenerator.GenerateCodeForModule(args[1], true);
                             }
                             else
                             {
                                 invalidArgs = true;
+                            }
+                            break;
+
+                        case "check_flags":
+                            {
+                                // This checks the flags for manually wrapped types
+                                Assembly[] assemblies = new Assembly[2];
+                                assemblies[0] = Assembly.GetExecutingAssembly();
+                                UClass engineClass = UClass.GetClass("/Script/Engine.Engine");
+                                if (engineClass != null)
+                                {
+                                    Type type = UClass.GetType(engineClass);
+                                    if (type == null)
+                                    {
+                                        FMessage.Log(ELogVerbosity.Warning, "Failed to fine UEngine type");
+                                    }
+                                    else
+                                    {
+                                        assemblies[1] = type.Assembly;
+                                    }
+                                }
+                                else
+                                {
+                                    FMessage.Log(ELogVerbosity.Warning, "Failed to fine UEngine class");
+                                }
+                                foreach (Assembly assembly in assemblies)
+                                {
+                                    if (assembly == null)
+                                    {
+                                        continue;
+                                    }
+                                    foreach (Type type in assembly.GetTypes())
+                                    {
+                                        UMetaPathAttribute pathAttribute = type.GetCustomAttribute<UMetaPathAttribute>(false);
+                                        if (pathAttribute != null && !string.IsNullOrEmpty(pathAttribute.Path))
+                                        {
+                                            uint oldFlags = 0;
+                                            if (type.IsSameOrSubclassOf(typeof(UObject)))
+                                            {
+                                                UClassAttribute classAttribute = type.GetCustomAttribute<UClassAttribute>(false);
+                                                if (classAttribute != null)
+                                                {
+                                                    oldFlags = (uint)classAttribute.Flags;
+                                                }
+
+                                                UClass unrealClass = UClass.GetClass(pathAttribute.Path);
+                                                if (unrealClass != null)
+                                                {
+                                                    if (oldFlags != (uint)unrealClass.ClassFlags)
+                                                    {
+                                                        FMessage.Log("old: 0x" + oldFlags.ToString("X8") + " new: 0x" +
+                                                            ((uint)unrealClass.ClassFlags).ToString("X8") + " path: " + unrealClass.GetPathName());
+                                                    }
+                                                }
+                                            }
+                                            else
+                                            {
+                                                UStructAttribute structAttribute = type.GetCustomAttribute<UStructAttribute>(false);
+                                                if (structAttribute != null)
+                                                {
+                                                    oldFlags = (uint)structAttribute.Flags;
+                                                }
+
+                                                UScriptStruct unrealStruct = UScriptStruct.GetStruct(pathAttribute.Path);
+                                                if (unrealStruct != null)
+                                                {
+                                                    if (oldFlags != (uint)unrealStruct.StructFlags)
+                                                    {
+                                                        FMessage.Log("old: 0x" + oldFlags.ToString("X8") + " new: 0x" +
+                                                            ((uint)unrealStruct.StructFlags).ToString("X8") + " path: " + unrealStruct.GetPathName());
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                    FMessage.Log("--------");
+                                }
                             }
                             break;
 

@@ -11,7 +11,7 @@ namespace UnrealEngine.Engine
     /// <summary>
     /// Determines which ticking group a tick function belongs to.
     /// </summary>
-    [UEnum, BlueprintType, UMetaPath("/Script/Engine.ETickingGroup", "Engine", UnrealModuleType.Engine)]
+    [UEnum, BlueprintType, UMetaPath("/Script/Engine.ETickingGroup")]
     public enum ETickingGroup : byte
     {
         /// <summary>Any item that needs to be executed before physics simulation starts.</summary>

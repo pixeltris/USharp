@@ -15,7 +15,7 @@ namespace UnrealEngine.Runtime
     /// <summary>
     /// Implements a rectangular 2D Box.
     /// </summary>
-    [UStruct(Flags = 0x00009038), BlueprintType, UMetaPath("/Script/CoreUObject.Box2D", "CoreUObject", UnrealModuleType.Engine)]
+    [UStruct(Flags = 0x00009038), BlueprintType, UMetaPath("/Script/CoreUObject.Box2D")]
     [StructLayout(LayoutKind.Sequential)]
     public struct FBox2D : IEquatable<FBox2D>
     {

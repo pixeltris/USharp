@@ -16,7 +16,7 @@ namespace UnrealEngine.Runtime
     /// Note: Linear color values should always be converted to gamma space before stored in an FColor, as 8 bits of precision is not enough to store linear space colors!
     /// This can be done with FLinearColor::ToFColor(true)
     /// </summary>
-    [UStruct(Flags = 0x0000E838), BlueprintType, UMetaPath("/Script/CoreUObject.Color", "CoreUObject", UnrealModuleType.Engine)]
+    [UStruct(Flags = 0x0000E838), BlueprintType, UMetaPath("/Script/CoreUObject.Color")]
     [StructLayout(LayoutKind.Sequential)]
     public struct FColor : IEquatable<FColor>
     {

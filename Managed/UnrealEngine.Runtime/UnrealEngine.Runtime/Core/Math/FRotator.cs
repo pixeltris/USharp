@@ -14,7 +14,7 @@ namespace UnrealEngine.Runtime
     /// 
     /// All rotation values are stored in degrees.
     /// </summary>
-    [UStruct(Flags = 0x0040EC38), BlueprintType, UMetaPath("/Script/CoreUObject.Rotator", "CoreUObject", UnrealModuleType.Engine)]
+    [UStruct(Flags = 0x0040EC38), BlueprintType, UMetaPath("/Script/CoreUObject.Rotator")]
     [StructLayout(LayoutKind.Sequential)]
     public struct FRotator : IEquatable<FRotator>
     {

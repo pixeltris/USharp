@@ -9,7 +9,7 @@ namespace UnrealEngine.Runtime
     /// <summary>
     /// Base class for all UObject types that contain fields.
     /// </summary>
-    [UMetaPath("/Script/CoreUObject.Struct", "CoreUObject", UnrealModuleType.Engine)]
+    [UClass(Flags = (ClassFlags)0x104000A0), UMetaPath("/Script/CoreUObject.Struct")]
     public class UStruct : UField
     {
         private CachedUObject<UField> children;

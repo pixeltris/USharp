@@ -543,10 +543,16 @@ namespace PluginInstaller
 
                                                     foreach (string version in supportedVersions.Keys)
                                                     {
-                                                        string versionPath = Path.Combine(sharedInstallationPath, version, "Community");
-                                                        if (Directory.Exists(versionPath))
+                                                        // "Preview" is used for preview builds, "Community" is used for regular releases
+                                                        string[] rootFolderNames = { "Community", "Preview" };
+                                                        foreach (string rootFolderName in rootFolderNames)
                                                         {
-                                                            vsPaths[version] = Path.GetFullPath(versionPath);
+                                                            string versionPath = Path.Combine(sharedInstallationPath, version, rootFolderName);
+                                                            if (Directory.Exists(versionPath))
+                                                            {
+                                                                vsPaths[version] = Path.GetFullPath(versionPath);
+                                                                break;
+                                                            }
                                                         }
                                                     }
                                                 }

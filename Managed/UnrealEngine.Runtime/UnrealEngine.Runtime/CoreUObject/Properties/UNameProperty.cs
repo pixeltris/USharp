@@ -8,7 +8,7 @@ namespace UnrealEngine.Runtime
     /// <summary>
     /// Describes a name variable pointing into the global name table.
     /// </summary>
-    [UMetaPath("/Script/CoreUObject.NameProperty", "CoreUObject", UnrealModuleType.Engine)]
+    [UClass(Flags = (ClassFlags)0x10400080), UMetaPath("/Script/CoreUObject.NameProperty")]
     public class UNameProperty : UProperty
     {
         public override EPropertyType PropertyType

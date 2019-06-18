@@ -9,7 +9,7 @@ namespace UnrealEngine.Runtime
     /// <summary>
     /// Describes an unsigned byte value or 255-value enumeration variable.
     /// </summary>
-    [UMetaPath("/Script/CoreUObject.ByteProperty", "CoreUObject", UnrealModuleType.Engine)]
+    [UClass(Flags = (ClassFlags)0x10400080), UMetaPath("/Script/CoreUObject.ByteProperty")]
     public class UByteProperty : UNumericProperty
     {
         public override EPropertyType PropertyType

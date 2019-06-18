@@ -11,7 +11,7 @@ namespace UnrealEngine.Runtime
     // If updating a XXXXRange class remember to generate code to update the others
 
     /// <summary>A float range</summary>
-    [UStruct(Flags = 0x00000008), BlueprintType, UMetaPath("/Script/CoreUObject.FloatRange", "CoreUObject", UnrealModuleType.Engine)]
+    [UStruct(Flags = 0x0000E008), BlueprintType, UMetaPath("/Script/CoreUObject.FloatRange")]
     [StructLayout(LayoutKind.Sequential)]
     public struct FFloatRange : IEquatable<FFloatRange>
     {

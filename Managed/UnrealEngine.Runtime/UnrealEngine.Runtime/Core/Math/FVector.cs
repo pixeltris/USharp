@@ -12,7 +12,7 @@ namespace UnrealEngine.Runtime
     /// <summary>
     /// A vector in 3-D space composed of components (X, Y, Z) with floating point precision.
     /// </summary>
-    [UStruct(Flags = 0x0040EC38), BlueprintType, UMetaPath("/Script/CoreUObject.Vector", "CoreUObject", UnrealModuleType.Engine)]
+    [UStruct(Flags = 0x0040EC38), BlueprintType, UMetaPath("/Script/CoreUObject.Vector")]
     [StructLayout(System.Runtime.InteropServices.LayoutKind.Sequential)]
     public struct FVector : IEquatable<FVector>
     {

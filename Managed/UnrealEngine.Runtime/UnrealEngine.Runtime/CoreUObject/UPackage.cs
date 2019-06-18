@@ -9,7 +9,7 @@ namespace UnrealEngine.Runtime
     /// <summary>
     /// A package.
     /// </summary>
-    [UMetaPath("/Script/CoreUObject.Package", "CoreUObject", UnrealModuleType.Engine)]
+    [UClass(Flags = (ClassFlags)0x10400080), UMetaPath("/Script/CoreUObject.Package")]
     public class UPackage : UObject
     {
         /// <summary>

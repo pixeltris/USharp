@@ -8,7 +8,7 @@ namespace UnrealEngine.Runtime
     /// <summary>
     /// Describes a 64-bit unsigned integer variable.
     /// </summary>
-    [UMetaPath("/Script/CoreUObject.UInt64Property", "CoreUObject", UnrealModuleType.Engine)]
+    [UClass(Flags = (ClassFlags)0x10400080), UMetaPath("/Script/CoreUObject.UInt64Property")]
     public class UUInt64Property : UNumericProperty
     {
         public override EPropertyType PropertyType

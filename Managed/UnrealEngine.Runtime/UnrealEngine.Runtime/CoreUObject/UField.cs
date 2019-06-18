@@ -9,7 +9,7 @@ namespace UnrealEngine.Runtime
     /// <summary>
     /// Base class of reflection data objects.
     /// </summary>
-    [UMetaPath("/Script/CoreUObject.Field", "CoreUObject", UnrealModuleType.Engine)]
+    [UClass(Flags = (ClassFlags)0x10400081), UMetaPath("/Script/CoreUObject.Field")]
     public class UField : UObject
     {
         private CachedUObject<UField> next;

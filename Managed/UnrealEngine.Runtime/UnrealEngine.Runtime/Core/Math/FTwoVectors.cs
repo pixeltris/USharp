@@ -11,7 +11,7 @@ namespace UnrealEngine.Runtime
     /// <summary>
     /// A pair of 3D vectors.
     /// </summary>
-    [UStruct(Flags = 0x0000E838), BlueprintType, UMetaPath("/Script/CoreUObject.TwoVectors", "CoreUObject", UnrealModuleType.Engine)]
+    [UStruct(Flags = 0x0000E838), BlueprintType, UMetaPath("/Script/CoreUObject.TwoVectors")]
     [StructLayout(LayoutKind.Sequential)]
     public struct FTwoVectors : IEquatable<FTwoVectors>
     {

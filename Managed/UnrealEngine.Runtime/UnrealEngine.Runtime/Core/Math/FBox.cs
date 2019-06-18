@@ -14,7 +14,7 @@ namespace UnrealEngine.Runtime
     /// Boxes describe an axis-aligned extent in three dimensions. They are used for many different things in the
     /// Engine and in games, such as bounding volumes, collision detection and visibility calculation.
     /// </summary>
-    [UStruct(Flags = 0x0000E838), BlueprintType, UMetaPath("/Script/CoreUObject.Box", "CoreUObject", UnrealModuleType.Engine)]
+    [UStruct(Flags = 0x0000E838), BlueprintType, UMetaPath("/Script/CoreUObject.Box")]
     [StructLayout(LayoutKind.Sequential)]
     public struct FBox : IEquatable<FBox>
     {

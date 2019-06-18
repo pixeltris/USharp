@@ -26,11 +26,6 @@ namespace UnrealEngine.Runtime
             // The original function in the class hierarchy (searched obtained by function name)
             // - This can be different to SupermostFunction where the function chain is broken
             UFunction OriginalFunction { get; set; }
-        
-            void callme()
-            {
-                Function.GetSuperFunction();
-            }
         }
 
         // Holds onto structure info (UClass, UScriptStruct) and info on if blittable and collapsed functions

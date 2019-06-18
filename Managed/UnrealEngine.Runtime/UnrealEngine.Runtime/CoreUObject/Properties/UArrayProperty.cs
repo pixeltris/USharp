@@ -9,7 +9,7 @@ namespace UnrealEngine.Runtime
     /// <summary>
     /// Describes a dynamic array.
     /// </summary>
-    [UMetaPath("/Script/CoreUObject.ArrayProperty", "CoreUObject", UnrealModuleType.Engine)]
+    [UClass(Flags = (ClassFlags)0x10400080), UMetaPath("/Script/CoreUObject.ArrayProperty")]
     public class UArrayProperty : UProperty
     {
         public override EPropertyType PropertyType

@@ -6,7 +6,7 @@ using UnrealEngine.Runtime.Native;
 
 namespace UnrealEngine.Runtime
 {
-    [UMetaPath("/Script/CoreUObject.ClassProperty", "CoreUObject", UnrealModuleType.Engine)]
+    [UClass(Flags = (ClassFlags)0x10400080), UMetaPath("/Script/CoreUObject.ClassProperty")]
     public class UClassProperty : UObjectProperty
     {
         public override EPropertyType PropertyType

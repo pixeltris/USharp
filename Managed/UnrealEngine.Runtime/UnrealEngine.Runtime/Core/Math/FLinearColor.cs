@@ -12,7 +12,7 @@ namespace UnrealEngine.Runtime
     /// <summary>
     /// A linear, 32-bit/component floating point RGBA color.
     /// </summary>
-    [UStruct(Flags = 0x0040EC38), BlueprintType, UMetaPath("/Script/CoreUObject.LinearColor", "CoreUObject", UnrealModuleType.Engine)]
+    [UStruct(Flags = 0x0000E838), BlueprintType, UMetaPath("/Script/CoreUObject.LinearColor")]
     [StructLayout(LayoutKind.Sequential)]
     public struct FLinearColor : IEquatable<FLinearColor>
     {

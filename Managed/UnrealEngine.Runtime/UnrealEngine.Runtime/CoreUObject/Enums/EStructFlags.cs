@@ -96,6 +96,18 @@ namespace UnrealEngine.Runtime
         NetDeltaSerializeNative = 0x00100000,
 
         /// <summary>
+        /// If set, this struct will be have PostScriptConstruct called on it after a temporary object is constructed in a running blueprint
+        /// </summary>
+        PostScriptConstruct = 0x00200000,
+
+        /// <summary>
+        /// If set, this struct can share net serialization state across connections
+        /// </summary>
+        NetSharedSerialization = 0x00400000,
+
+        SerializeNativeStructured = 0x00800000,
+
+        /// <summary>
         /// Struct flags that are automatically inherited
         /// </summary>
         Inherit = HasInstancedReference | Atomic,
@@ -103,6 +115,6 @@ namespace UnrealEngine.Runtime
         /// <summary>
         /// Flags that are always computed, never loaded or done with code generation
         /// </summary>
-        ComputedFlags = NetDeltaSerializeNative | NetSerializeNative | SerializeNative | PostSerializeNative | CopyNative | IsPlainOldData | NoDestructor | ZeroConstructor | IdenticalNative | AddStructReferencedObjects | ExportTextItemNative | ImportTextItemNative | SerializeFromMismatchedTag
+        ComputedFlags = NetDeltaSerializeNative | NetSerializeNative | SerializeNative | SerializeNativeStructured | PostSerializeNative | CopyNative | IsPlainOldData | NoDestructor | ZeroConstructor | IdenticalNative | AddStructReferencedObjects | ExportTextItemNative | ImportTextItemNative | SerializeFromMismatchedTag | PostScriptConstruct | NetSharedSerialization
     }
 }

@@ -10,7 +10,7 @@ namespace UnrealEngine.Runtime
     // If updating a XXXXInterval class remember to generate code to update the others
 
     /// <summary>A float interval</summary>
-    [UStruct(Flags = 0x0000E008), UMetaPath("/Script/CoreUObject.FloatInterval", "CoreUObject", UnrealModuleType.Engine)]
+    [UStruct(Flags = 0x0000E008), UMetaPath("/Script/CoreUObject.FloatInterval")]
     [StructLayout(LayoutKind.Sequential)]
     public struct FFloatInterval : IEquatable<FFloatInterval>
     {

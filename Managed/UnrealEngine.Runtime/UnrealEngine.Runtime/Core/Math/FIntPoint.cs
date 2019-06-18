@@ -10,7 +10,7 @@ namespace UnrealEngine.Runtime
     /// <summary>
     /// Structure for integer points in 2-d space.
     /// </summary>
-    [UStruct(Flags = 0x0000E838), BlueprintType, UMetaPath("/Script/CoreUObject.IntPoint", "CoreUObject", UnrealModuleType.Engine)]
+    [UStruct(Flags = 0x0000E838), BlueprintType, UMetaPath("/Script/CoreUObject.IntPoint")]
     [System.Runtime.InteropServices.StructLayout(System.Runtime.InteropServices.LayoutKind.Sequential)]
     public struct FIntPoint : IEquatable<FIntPoint>
     {

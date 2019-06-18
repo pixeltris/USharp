@@ -12,7 +12,7 @@ namespace UnrealEngine.Runtime
     /// <summary>
     /// An object class.
     /// </summary>
-    [UMetaPath("/Script/CoreUObject.Class", "CoreUObject", UnrealModuleType.Engine)]
+    [UClass(Flags = (ClassFlags)0x10400080), UMetaPath("/Script/CoreUObject.Class")]
     public class UClass : UStruct
     {
         internal class VTableOriginalFunc

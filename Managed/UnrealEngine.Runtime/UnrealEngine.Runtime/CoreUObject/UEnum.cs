@@ -10,7 +10,7 @@ namespace UnrealEngine.Runtime
     /// <summary>
     /// Reflection data for an enumeration.
     /// </summary>
-    [UMetaPath("/Script/CoreUObject.Enum", "CoreUObject", UnrealModuleType.Engine)]
+    [UClass(Flags = (ClassFlags)0x10400080), UMetaPath("/Script/CoreUObject.Enum")]
     public partial class UEnum : UField
     {
         /// <summary>

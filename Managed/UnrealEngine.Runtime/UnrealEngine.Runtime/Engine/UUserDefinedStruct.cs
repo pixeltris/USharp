@@ -7,7 +7,7 @@ using UnrealEngine.Runtime.Native;
 
 namespace UnrealEngine.Engine
 {
-    [UMetaPath("/Script/Engine.UserDefinedStruct", "CoreUObject", UnrealModuleType.Engine)]
+    [UClass(Flags=(ClassFlags)0x305000A0), UMetaPath("/Script/Engine.UserDefinedStruct")]
     public class UUserDefinedStruct : UScriptStruct
     {
         public EUserDefinedStructureStatus Status

@@ -7,7 +7,7 @@ using UnrealEngine.Runtime.Native;
 
 namespace UnrealEngine.Runtime
 {
-    [UMetaPath("/Script/CoreUObject.MapProperty", "CoreUObject", UnrealModuleType.Engine)]
+    [UClass(Flags = (ClassFlags)0x10400080), UMetaPath("/Script/CoreUObject.MapProperty")]
     public class UMapProperty : UProperty
     {
         public override EPropertyType PropertyType

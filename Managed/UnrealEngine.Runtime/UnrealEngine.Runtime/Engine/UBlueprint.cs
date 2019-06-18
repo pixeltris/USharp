@@ -12,7 +12,7 @@ namespace UnrealEngine.Engine
     /// and script level events; giving designers and gameplay programmers the tools to quickly create and iterate gameplay from
     /// within Unreal Editor without ever needing to write a line of code.
     /// </summary>
-    [UMetaPath("/Script/Engine.Blueprint", "Engine", UnrealModuleType.Engine)]
+    [UClass(Flags = (ClassFlags)0x30D000A4), UMetaPath("/Script/Engine.Blueprint")]
     public class UBlueprint : UBlueprintCore
     {
         /// <summary>

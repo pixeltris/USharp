@@ -10,7 +10,7 @@ namespace UnrealEngine.Runtime
     /// <summary>
     /// Structure for integer vectors in 3-d space.
     /// </summary>
-    [UStruct(Flags = 0x0000E838), BlueprintType, UMetaPath("/Script/CoreUObject.IntVector", "CoreUObject", UnrealModuleType.Engine)]
+    [UStruct(Flags = 0x0000E838), BlueprintType, UMetaPath("/Script/CoreUObject.IntVector")]
     [System.Runtime.InteropServices.StructLayout(System.Runtime.InteropServices.LayoutKind.Sequential)]
     public struct FIntVector : IEquatable<FIntVector>
     {

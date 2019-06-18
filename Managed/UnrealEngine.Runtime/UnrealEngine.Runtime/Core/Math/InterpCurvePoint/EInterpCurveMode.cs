@@ -9,7 +9,7 @@ namespace UnrealEngine.Runtime
     // NOTE: This isn't exported with a specific size but it seems to be used everywhere with TEnumAsByte<>
 
     /// <summary>Interpolation data types.</summary>
-    [UEnum, UMetaPath("/Script/CoreUObject.EInterpCurveMode", "CoreUObject", UnrealModuleType.Engine)]
+    [UEnum, UMetaPath("/Script/CoreUObject.EInterpCurveMode")]
     public enum EInterpCurveMode : byte
     {
         /// <summary>

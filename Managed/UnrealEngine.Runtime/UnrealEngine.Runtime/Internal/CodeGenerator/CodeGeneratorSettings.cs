@@ -549,6 +549,53 @@ namespace UnrealEngine.Runtime
             return Path.GetFileNameWithoutExtension(FPaths.ProjectFilePath);
         }
 
+        private string GetCodegenVersionFilePath(bool codeGenDir)
+        {
+            string codegenVersionFileName = "CodeGenerator.version";
+            if (codeGenDir)
+            {
+                return Path.Combine(GetManagedModulesDir(), codegenVersionFileName);
+            }
+            else
+            {
+                return Path.Combine(GetUSharpBaseDir(), "Managed", codegenVersionFileName);
+            }
+        }
+
+        public int GetCodeGeneratorVersion(bool codeGenDir)
+        {
+            string path = GetCodegenVersionFilePath(codeGenDir);
+            try
+            {
+                if (File.Exists(path))
+                {
+                    string[] lines = File.ReadAllLines(path);
+                    int version;
+                    if (lines.Length > 0 && int.TryParse(lines[0].Trim(), out version) && version > 0)
+                    {
+                        return version;
+                    }
+                }
+            }
+            catch
+            {
+            }
+            return -1;
+        }
+
+        public void CopyCodeGeneratorVersionFile()
+        {
+            try
+            {
+                string src = GetCodegenVersionFilePath(false);
+                string dst = GetCodegenVersionFilePath(true);
+                File.Copy(src, dst, true);
+            }
+            catch
+            {
+            }
+        }
+
         /*public CollapsedFunctionSettings FindCollapsedFunctionSettings(string name)
         {
             foreach (CollapsedFunctionSettings collapsedFunctions in CollapsedFunctions)

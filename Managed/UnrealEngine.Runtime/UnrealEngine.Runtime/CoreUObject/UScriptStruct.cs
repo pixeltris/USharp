@@ -10,7 +10,7 @@ namespace UnrealEngine.Runtime
     /// <summary>
     /// Reflection data for a structure.
     /// </summary>
-    [UMetaPath("/Script/CoreUObject.ScriptStruct", "CoreUObject", UnrealModuleType.Engine)]
+    [UClass(Flags = (ClassFlags)0x104000A0), UMetaPath("/Script/CoreUObject.ScriptStruct")]
     public partial class UScriptStruct : UStruct
     {
         public EStructFlags StructFlags

@@ -32,7 +32,7 @@ namespace UnrealEngine.Runtime
     /// Example: LocalToWorld = (DeltaRotation * LocalToWorld) will change rotation in local space by DeltaRotation.
     /// Example: LocalToWorld = (LocalToWorld * DeltaRotation) will change rotation in world space by DeltaRotation.
     /// </summary>
-    [UStruct(Flags = 0x00006008), BlueprintType, UMetaPath("/Script/CoreUObject.Transform", "CoreUObject", UnrealModuleType.Engine)]
+    [UStruct(Flags = 0x00006008), BlueprintType, UMetaPath("/Script/CoreUObject.Transform")]
     [StructLayout(LayoutKind.Sequential)]
     public struct FTransform : IEquatable<FTransform>
     {

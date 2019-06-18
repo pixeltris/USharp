@@ -10,7 +10,7 @@ namespace UnrealEngine.Runtime
     // If updating a XXXXInterval class remember to generate code to update the others
 
     /// <summary>An int32 interval</summary>
-    [UStruct(Flags = 0x0000E008), UMetaPath("/Script/CoreUObject.Int32Interval", "CoreUObject", UnrealModuleType.Engine)]
+    [UStruct(Flags = 0x0000E008), UMetaPath("/Script/CoreUObject.Int32Interval")]
     [StructLayout(LayoutKind.Sequential)]
     public struct FInt32Interval : IEquatable<FInt32Interval>
     {

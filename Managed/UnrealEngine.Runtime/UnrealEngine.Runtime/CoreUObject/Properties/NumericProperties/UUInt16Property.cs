@@ -8,7 +8,7 @@ namespace UnrealEngine.Runtime
     /// <summary>
     /// Describes a 16-bit unsigned integer variable.
     /// </summary>
-    [UMetaPath("/Script/CoreUObject.UInt16Property", "CoreUObject", UnrealModuleType.Engine)]
+    [UClass(Flags = (ClassFlags)0x10400080), UMetaPath("/Script/CoreUObject.UInt16Property")]
     public class UUInt16Property : UNumericProperty
     {
         public override EPropertyType PropertyType

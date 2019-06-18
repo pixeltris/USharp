@@ -10,7 +10,7 @@ namespace UnrealEngine.Engine
     /// <summary>
     /// Defines available strategies for handling the case where an actor is spawned in such a way that it penetrates blocking collision.
     /// </summary>
-    [UEnum, BlueprintType, UMetaPath("/Script/Engine.ESpawnActorCollisionHandlingMethod", "Engine", UnrealModuleType.Engine)]
+    [UEnum, BlueprintType, UMetaPath("/Script/Engine.ESpawnActorCollisionHandlingMethod")]
     public enum ESpawnActorCollisionHandlingMethod : byte
     {
         /// <summary>

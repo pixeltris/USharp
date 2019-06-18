@@ -9,7 +9,7 @@ namespace UnrealEngine.Runtime
     /// <summary>
     /// An UnrealScript variable.
     /// </summary>
-    [UMetaPath("/Script/CoreUObject.Property", "CoreUObject", UnrealModuleType.Engine)]
+    [UClass(Flags = (ClassFlags)0x10400081), UMetaPath("/Script/CoreUObject.Property")]
     public class UProperty : UField
     {
         /// <summary>

@@ -6,7 +6,7 @@ using UnrealEngine.Runtime.Native;
 
 namespace UnrealEngine.Runtime
 {
-    [UMetaPath("/Script/CoreUObject.NumericProperty", "CoreUObject", UnrealModuleType.Engine)]
+    [UClass(Flags = (ClassFlags)0x10400081), UMetaPath("/Script/CoreUObject.NumericProperty")]
     public class UNumericProperty : UProperty
     {
         public override bool IsBlittableType

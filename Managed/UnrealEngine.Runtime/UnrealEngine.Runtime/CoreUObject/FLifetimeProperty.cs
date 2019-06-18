@@ -78,7 +78,7 @@ namespace UnrealEngine.Runtime
     /// <summary>
     /// Secondary condition to check before considering the replication of a lifetime property.
     /// </summary>
-    [UEnum, BlueprintType, UMetaPath("/Script/CoreUObject.ELifetimeCondition", "CoreUObject", UnrealModuleType.Engine)]
+    [UEnum, BlueprintType, UMetaPath("/Script/CoreUObject.ELifetimeCondition")]
     public enum ELifetimeCondition : int
     {
         /// <summary>
