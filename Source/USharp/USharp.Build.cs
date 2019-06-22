@@ -44,7 +44,8 @@ namespace UnrealBuildTool.Rules
                     "InputCore",
                     "Slate",
                     "Projects",
-                    "UMG"
+                    "UMG",
+                    "GameplayTasks"
                     // ... add other public dependencies that you statically link with here ...
                 }
                 );

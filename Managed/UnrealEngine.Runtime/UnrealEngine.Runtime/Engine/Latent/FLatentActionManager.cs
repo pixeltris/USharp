@@ -89,9 +89,8 @@ namespace UnrealEngine.Engine
         public void AddNewAction(UObject actionObject, int uuid, FUSharpLatentAction newAction)
         {
             GCHandle handle = GCHandle.Alloc(newAction, GCHandleType.Normal);
-            IntPtr address = Native_FLatentActionManager.AddNewAction(Address, actionObject.Address, uuid, GCHandle.ToIntPtr(handle),
-                newAction.UpdateOperationFunc, newAction.NotifyObjectDestroyedFunc, newAction.NotifyActionAbortedFunc,
-                newAction.GetDescriptionFunc, newAction.DestructorFunc);
+            IntPtr address = Native_FLatentActionManager.AddNewAction(Address, actionObject.Address, uuid,
+                GCHandle.ToIntPtr(handle), newAction.CallbackFunc);
             Debug.Assert(address != IntPtr.Zero);
             newAction.Address = address;
             newAction.Handle = handle;

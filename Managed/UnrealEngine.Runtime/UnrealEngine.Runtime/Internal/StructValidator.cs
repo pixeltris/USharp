@@ -48,6 +48,7 @@ namespace UnrealEngine.Runtime
             ValidateStructSize<FKey>(Native_SizeOfStruct.SizeOf_FKey);
             ValidateStructSize<FLifetimeProperty>(Native_SizeOfStruct.SizeOf_FLifetimeProperty);
             ValidateStructSize<FLatentActionInfo>(Native_SizeOfStruct.SizeOf_FLatentActionInfo);
+            ValidateStructSize<ushort>(Native_SizeOfStruct.SizeOf_FGameplayResourceSet);
             // Math structs
             ValidateStructSize<FInterpCurvePointFloat>(Native_SizeOfStruct.SizeOf_FInterpCurvePointFloat);
             ValidateStructSize<FInterpCurvePointLinearColor>(Native_SizeOfStruct.SizeOf_FInterpCurvePointLinearColor);
@@ -136,7 +137,8 @@ namespace UnrealEngine.Runtime
             int nativeSize = func();
             if (managedSize != nativeSize)
             {
-                string error = string.Format("Struct size mismatch on '{0}' managed:{1} native:{2}", typeof(T), managedSize, nativeSize);
+                string error = string.Format("Struct size mismatch on '{0}' ({1}) managed:{1} native:{2}",
+                    typeof(T), func, managedSize, nativeSize);
                 FMessage.Log(ELogVerbosity.Error, error);
 #if DEBUG
                 System.Diagnostics.Debug.WriteLine(error);

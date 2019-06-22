@@ -128,5 +128,10 @@ namespace UnrealEngine.Runtime
                 }
             }
         }
+
+        public static IntPtr GetInterfaceAddress<T>(this T unrealInterface) where T : class, IInterface
+        {
+            return new TScriptInterface<T>(unrealInterface).Base.InterfacePointer;
+        }
     }
 }

@@ -121,6 +121,14 @@
 #include "Export_FLatentActionManager.h"
 #include "Export_FLatentResponse.h"
 #include "Export_FUSharpLatentAction.h"
+#include "Export_UUSharpAsyncActionBase.h"
+#include "Export_UUSharpOnlineBlueprintCallProxyBase.h"
+#include "Export_UBlueprintAsyncActionBase.h"
+#include "Export_UOnlineBlueprintCallProxyBase.h"
+#include "Export_FGameplayResourceSet.h"
+#include "Export_UGameplayTask.h"
+#include "Export_UUSharpGameplayTask.h"
+#include "Export_IGameplayTaskOwnerInterface.h"
 
 #include "Export_FKey.h"
 #include "Export_FInputBinding.h"
@@ -271,6 +279,14 @@ CSEXPORT void CSCONV RegisterFunctions(RegisterFunc registerFunc)
 	Export_FLatentActionManager(registerFunc);
 	Export_FLatentResponse(registerFunc);
 	Export_FUSharpLatentAction(registerFunc);
+	Export_UUSharpAsyncActionBase(registerFunc);
+	Export_UUSharpOnlineBlueprintCallProxyBase(registerFunc);
+	Export_UBlueprintAsyncActionBase(registerFunc);
+	Export_UOnlineBlueprintCallProxyBase(registerFunc);
+	Export_FGameplayResourceSet(registerFunc);
+	Export_UGameplayTask(registerFunc);
+	Export_UUSharpGameplayTask(registerFunc);
+	Export_IGameplayTaskOwnerInterface(registerFunc);
 	
 	Export_FKey(registerFunc);
 	Export_FInputBinding(registerFunc);

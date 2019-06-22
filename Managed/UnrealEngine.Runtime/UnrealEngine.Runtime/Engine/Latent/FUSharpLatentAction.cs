@@ -9,7 +9,12 @@ using UnrealEngine.Runtime.Native;
 
 namespace UnrealEngine.Engine
 {
-    public class FUSharpLatentAction
+    // K2_NodeCallFunction handles latent functions
+    // Engine\Source\Editor\BlueprintGraph\Private\K2Node_CallFunction.cpp
+
+    // Engine\Source\Runtime\Engine\Classes\Engine\LatentActionManager.h
+
+    public unsafe class FUSharpLatentAction
     {
         public IntPtr Address { get; internal set; }
         public bool Destroyed { get; private set; }
@@ -20,27 +25,46 @@ namespace UnrealEngine.Engine
         private int index;
         internal static List<FUSharpLatentAction> latentActions = new List<FUSharpLatentAction>();
 
-        public delegate void UpdateOperationDel(FLatentResponse response);
-        public delegate void NotifyDel();
-        public delegate void GetDescriptionDel(ref FScriptArray str);
-
-        // Cache the delegate as otherwise they will get GCed
-        internal UpdateOperationDel UpdateOperationFunc;
-        internal NotifyDel NotifyObjectDestroyedFunc;
-        internal NotifyDel NotifyActionAbortedFunc;
-        internal GetDescriptionDel GetDescriptionFunc;
-        internal NotifyDel DestructorFunc;
+        // Cache the delegate as otherwise it will get GCed
+        internal ManagedLatentCallbackDel CallbackFunc;
 
         public FUSharpLatentAction()
         {
-            UpdateOperationFunc = UpdateOperation;
-            NotifyObjectDestroyedFunc = NotifyObjectDestroyed;
-            NotifyActionAbortedFunc = NotifyActionAborted;
-            GetDescriptionFunc = GetDescriptionInternal;
-            DestructorFunc = Destructor;
+            CallbackFunc = Callback;
 
             latentActions.Add(this);
             index = latentActions.Count - 1;
+        }
+
+        private void Callback(ManagedLatentCallbackType callbackType, IntPtr thisPtr, IntPtr data)
+        {
+            try
+            {
+                switch (callbackType)
+                {
+                    case ManagedLatentCallbackType.FUSharpLatentAction_UpdateOperation:
+                        UpdateOperation(new FLatentResponse(data));
+                        break;
+                    case ManagedLatentCallbackType.FUSharpLatentAction_NotifyObjectDestroyed:
+                        NotifyObjectDestroyed();
+                        break;
+                    case ManagedLatentCallbackType.FUSharpLatentAction_NotifyActionAborted:
+                        NotifyActionAborted();
+                        break;
+                    case ManagedLatentCallbackType.FUSharpLatentAction_GetDescription:
+                        GetDescriptionInternal(data);
+                        break;
+                    case ManagedLatentCallbackType.FUSharpLatentAction_Destructor:
+                        Destructor();
+                        break;
+                    default:
+                        throw new NotImplementedException();
+                }
+            }
+            catch (Exception e)
+            {
+                FMessage.LogException(e);
+            }
         }
 
         internal static void OnUnload()
@@ -99,11 +123,9 @@ namespace UnrealEngine.Engine
         {
         }
 
-        private void GetDescriptionInternal(ref FScriptArray str)
+        private void GetDescriptionInternal(IntPtr str)
         {
-            FStringUnsafe stringUnsafe = new FStringUnsafe(str);
-            stringUnsafe.Value = GetDescription();
-            str = stringUnsafe.Array;
+            FStringMarshaler.ToNative(str, GetDescription());
         }
 
         public virtual string GetDescription()

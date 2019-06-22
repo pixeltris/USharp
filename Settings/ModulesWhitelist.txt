@@ -56,3 +56,6 @@ VREditor
 WidgetCarousel
 Paper2D
 ApexDestruction
+AIModule
+OnlineSubsystem
+OnlineSubsystemUtils

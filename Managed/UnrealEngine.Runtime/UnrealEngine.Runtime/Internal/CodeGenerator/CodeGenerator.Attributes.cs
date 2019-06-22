@@ -97,16 +97,7 @@ namespace UnrealEngine.Runtime
                 }
                 else
                 {
-                    // Should we skip "inherit" config name?
-                    string configNameStr = string.Empty;
-                    if (unrealClass.ClassConfigName != FName.None &&
-                        !unrealClass.ClassConfigName.ToString().Equals("inherit", StringComparison.InvariantCultureIgnoreCase))
-                    {
-                        configNameStr = ", Config=\"" + unrealClass.ClassConfigName + "\"";
-                    }
-
-                    attributes.Add("UClass(Flags=(ClassFlags)0x" + ((uint)unrealClass.ClassFlags).ToString("X8") +
-                        configNameStr + ")");
+                    attributes.Add("UClass(Flags=(ClassFlags)0x" + ((uint)unrealClass.ClassFlags).ToString("X8") + ")");
                 }
             }
 

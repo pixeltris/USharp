@@ -110,6 +110,7 @@ namespace UnrealEngine.Runtime
             }
 
             Engine.FUSharpLatentAction.OnUnload();
+            Engine.ManagedLatentCallbackHelper.UnregisterCallbacks();
             StaticVarManager.OnUnload();
             EngineLoop.OnUnload();
             FThreading.OnUnload();

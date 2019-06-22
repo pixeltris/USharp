@@ -43,6 +43,10 @@ namespace UnrealEngine.Runtime
         // call rather than having obscure errors due to the ctor being called too early.
         private static bool ctorsAvailable = false;
 
+        // Loaded = ctorsAvailable, FullyLoaded = ctors recreated and everything reinstanced
+        public static bool Loaded { get; private set; }
+        public static bool FullyLoaded { get; private set; }
+
         private static int numChangedTypes = 0;
         public static bool SkipReinstance { get; private set; }
         public static bool SkipBroadcastHotReload { get; private set; }
@@ -511,7 +515,7 @@ namespace UnrealEngine.Runtime
                         parentClass = Runtime.Classes.UObject;
                     }
                 }
-                SetClassParent(sharpClass, parentClass);
+                SetClassParent(classInfo, sharpClass, parentClass);
 
                 // Resolve the native parent class now that the parent class is set up
                 managedClass.ResolveNativeParentClass();
@@ -528,16 +532,6 @@ namespace UnrealEngine.Runtime
                     implementedInterfaces.Dispose();
                     implementedInterfaces = null;
                 }
-
-                // Inherit the parent class flags if they aren't already set from TypeInfo.ClassFlags
-                EClassFlags classFlags = (Native_UClass.GetClassFlags(parentClass) & EClassFlags.ScriptInherit);
-                classFlags |= managedClass.TypeInfo.ClassFlags;
-
-                // If using UClass EClassFlags.Native is required (otherwise functions are broken on interfaces and runtime errors on classes)
-                // If using UBlueprintGeneratedClass no special EClassFlags are required.
-                classFlags |= EClassFlags.Native;
-
-                Native_UClass.Set_ClassFlags(sharpClass, classFlags);
 
                 // Create functions
                 if (!managedClass.IsInterface)
@@ -738,6 +732,8 @@ namespace UnrealEngine.Runtime
             hotReloadedClasses.Clear();
             classesToReinstance.Clear();
             ctorsAvailable = false;
+            Loaded = false;
+            FullyLoaded = false;
 
             Dictionary<Type, ManagedTypeBase> allTypes = new Dictionary<Type, ManagedTypeBase>();
             Dictionary<Type, ManagedTypeBase> changedTypes = new Dictionary<Type, ManagedTypeBase>();
@@ -914,6 +910,9 @@ namespace UnrealEngine.Runtime
             }
 
             ctorsAvailable = true;
+            Loaded = true;
+            // Register latent callbacks now that C# classes are available
+            Engine.ManagedLatentCallbackHelper.RegisterCallbacks();
 
             // Create the CDO for classes after all classes have been initialized as classes may reference other classes.
             foreach (ManagedClass managedClass in Classes.Values)
@@ -959,6 +958,8 @@ namespace UnrealEngine.Runtime
 
             // Clear any temporary metadata which was created which isn't needed anymore
             ClearTypeMetaData();
+
+            FullyLoaded = true;
         }
 
         private static void CreateCDO(ManagedClass managedClass)
@@ -1058,7 +1059,7 @@ namespace UnrealEngine.Runtime
             }
         }
 
-        private static void SetClassParent(IntPtr sharpClass, IntPtr parentClass)
+        private static void SetClassParent(ManagedUnrealTypeInfo sharpClassInfo, IntPtr sharpClass, IntPtr parentClass)
         {
             IntPtr classWithin = Native_UClass.Get_ClassWithin(parentClass);
             if (classWithin == IntPtr.Zero)
@@ -1066,16 +1067,29 @@ namespace UnrealEngine.Runtime
                 classWithin = Runtime.Classes.UObject;
             }
 
+            // Inherit the parent class flags if they aren't already set from TypeInfo.ClassFlags
+            // If using UClass EClassFlags.Native is required (otherwise functions are broken on interfaces and runtime errors on classes)
+            // If using UBlueprintGeneratedClass no special EClassFlags are required.
+            EClassFlags classFlags = (Native_UClass.GetClassFlags(parentClass) & EClassFlags.ScriptInherit);
+            classFlags |= sharpClassInfo.ClassFlags;
+            classFlags |= EClassFlags.Native;
+            Native_UClass.Set_ClassFlags(sharpClass, classFlags);
+
             FName classConfigName;
-            if (Native_UObjectBaseUtility.IsNative(sharpClass))
+            if (!string.IsNullOrEmpty(sharpClassInfo.ClassConfigName) &&
+                !sharpClassInfo.ClassConfigName.Equals("inherit", StringComparison.OrdinalIgnoreCase))
             {
-                // C++ uses ClassToClean->StaticConfigName() which due to being a static method should
-                // return UObject::StaticConfigName() which doesn't seem too useful
-                Native_UClass.Get_ClassConfigName(sharpClass, out classConfigName);
+                classConfigName = (FName)sharpClassInfo.ClassConfigName;
             }
             else
             {
                 Native_UClass.Get_ClassConfigName(parentClass, out classConfigName);
+            }
+
+            if ((classFlags & EClassFlags.Config) == EClassFlags.Config && classConfigName == FName.None)
+            {
+                FMessage.Log(ELogVerbosity.Warning, "Missing config name for C# class '" + sharpClassInfo.Name + 
+                    "'. Assign it such as: [UClass(Config=\"YourConfigName\")]");
             }
 
             // Set properties we need to regenerate the class with
@@ -1255,6 +1269,10 @@ namespace UnrealEngine.Runtime
             if (property == IntPtr.Zero)
             {
                 return IntPtr.Zero;
+            }
+            if (!string.IsNullOrEmpty(paramInfo.DefaultValue))
+            {
+                LateAddMetaData(functionInfo.Path, (FName)("CPP_Default_" + paramInfo.Name), paramInfo.DefaultValue, true);
             }
             ValidateFunctionParamFlags(paramInfo, property, functionFlags);
             return property;

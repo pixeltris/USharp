@@ -93,6 +93,7 @@ namespace UnrealEngine.Runtime
             if (!string.IsNullOrEmpty(Config))
             {
                 typeInfo.ClassConfigName = Config;
+                typeInfo.ClassFlags |= EClassFlags.Config;
             }
         }
     }
@@ -106,6 +107,34 @@ namespace UnrealEngine.Runtime
         public UClassIgnoreAttribute()
         {
             InvalidTarget = true;
+        }
+    }
+
+    // UCLASS(defaultconfig)
+    /// <summary>
+    /// Save object config only to Default INIs, never to local INIs.
+    /// </summary>
+    [AttributeUsage(AttributeTargets.Class)]
+    public class DefaultConfig : ManagedUnrealAttributeBase
+    {
+        public override void ProcessClass(ManagedUnrealTypeInfo typeInfo)
+        {
+            typeInfo.ClassFlags |= EClassFlags.DefaultConfig;
+            base.ProcessClass(typeInfo);
+        }
+    }
+
+    // UCLASS(globaluserconfig)
+    /// <summary>
+    /// Save object config only to global user overrides, never to local INIs
+    /// </summary>
+    [AttributeUsage(AttributeTargets.Class)]
+    public class GlobalUserConfig : ManagedUnrealAttributeBase
+    {
+        public override void ProcessClass(ManagedUnrealTypeInfo typeInfo)
+        {
+            typeInfo.ClassFlags |= EClassFlags.GlobalUserConfig;
+            base.ProcessClass(typeInfo);
         }
     }
 

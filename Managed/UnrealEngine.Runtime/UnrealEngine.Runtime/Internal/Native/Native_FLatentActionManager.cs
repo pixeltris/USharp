@@ -15,7 +15,7 @@ namespace UnrealEngine.Runtime.Native
         public delegate IntPtr Del_FindExistingActionUSharp(IntPtr instance, IntPtr actionObject, int uuid);
         public delegate IntPtr Del_FindExistingAction(IntPtr instance, IntPtr actionObject, int uuid);
         public delegate void Del_RemoveActionsForObject(IntPtr instance, ref FWeakObjectPtr obj);
-        public delegate IntPtr Del_AddNewAction(IntPtr instance, IntPtr actionObject, int uuid, IntPtr managedObject, FUSharpLatentAction.UpdateOperationDel updateOperation, FUSharpLatentAction.NotifyDel notifyObjectDestroyed, FUSharpLatentAction.NotifyDel notifyActionAborted, FUSharpLatentAction.GetDescriptionDel getDescription, FUSharpLatentAction.NotifyDel destructor);
+        internal delegate IntPtr Del_AddNewAction(IntPtr instance, IntPtr actionObject, int uuid, IntPtr managedObject, ManagedLatentCallbackDel callback);
         public delegate void Del_BeginFrame(IntPtr instance);
         public delegate int Del_GetNumActionsForObject(IntPtr instance, ref FWeakObjectPtr obj);
         public delegate void Del_GetActiveUUIDs(IntPtr instance, IntPtr obj, IntPtr result);
@@ -26,7 +26,7 @@ namespace UnrealEngine.Runtime.Native
         public static Del_FindExistingActionUSharp FindExistingActionUSharp;
         public static Del_FindExistingAction FindExistingAction;
         public static Del_RemoveActionsForObject RemoveActionsForObject;
-        public static Del_AddNewAction AddNewAction;
+        internal static Del_AddNewAction AddNewAction;
         public static Del_BeginFrame BeginFrame;
         public static Del_GetNumActionsForObject GetNumActionsForObject;
         public static Del_GetActiveUUIDs GetActiveUUIDs;

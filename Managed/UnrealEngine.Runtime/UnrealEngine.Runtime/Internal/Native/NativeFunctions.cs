@@ -491,6 +491,7 @@ namespace UnrealEngine.Runtime.Native
             string engineWrapperDllPath = Path.Combine(settings.GetManagedModulesDir(), "bin", "Debug", "UnrealEngine.dll");
             string engineWrapperSlnPath = Path.Combine(settings.GetManagedModulesDir(), "UnrealEngine.sln");
             bool compileEngineWrapperCode = false;
+            bool hasCompiledEngineWrapperCode = false;
             if (!File.Exists(engineWrapperSlnPath))
             {
                 if (FMessage.OpenDialog(EAppMsgType.YesNo, "C# engine wrapper code not found. Generate it now?", dialogTitle) == EAppReturnType.Yes)
@@ -539,7 +540,11 @@ namespace UnrealEngine.Runtime.Native
                     bool compiled = CodeGenerator.CompileGeneratedCode();
                     codeGenContext.EndSlowTask();
 
-                    if (!compiled)
+                    if (compiled)
+                    {
+                        hasCompiledEngineWrapperCode = true;
+                    }
+                    else
                     {
                         WarnCompileFailed(settings, null, dialogTitle);
                     }
@@ -549,6 +554,19 @@ namespace UnrealEngine.Runtime.Native
             string projectName = Path.GetFileNameWithoutExtension(projectFileName);
             string gameSlnPath = Path.Combine(settings.GetManagedDir(), projectName + ".Managed.sln");
             string gameDllPath = Path.Combine(FPaths.ProjectDir, "Binaries", "Managed", projectName + ".Managed.dll");
+
+            try
+            {
+                // Delete the stale C# game code dll if we created new engine wrappers (this should prompt for a compile)
+                if (hasCompiledEngineWrapperCode && File.Exists(gameDllPath))
+                {
+                    File.Delete(gameDllPath);
+
+                }
+            }
+            catch
+            {
+            }
 
             if (!File.Exists(gameSlnPath) &&
                 FMessage.OpenDialog(EAppMsgType.YesNo, "USharp is enabled but the C# game project files weren't found. Generate them now?", dialogTitle) == EAppReturnType.Yes)

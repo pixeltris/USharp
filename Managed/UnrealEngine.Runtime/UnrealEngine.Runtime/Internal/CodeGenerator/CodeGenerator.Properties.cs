@@ -33,10 +33,33 @@ namespace UnrealEngine.Runtime
         // Cache FGuid struct from the path (used to redirect FGuid to System.Guid)
         private UStruct guidStruct = null;
 
+        // Classes which can be used as actions (UGameplayTask, UBlueprintAsyncActionBase, etc)
+        private HashSet<UClass> actionFactoryClasses = new HashSet<UClass>();
+
         private void BeginGenerateModules_Properties()
         {
             actorClass = UClass.GetClass("/Script/Engine.Actor");
             guidStruct = UScriptStruct.GetStruct("/Script/CoreUObject.Guid");
+
+            string[] actionFactoryClassNames =
+            {
+                "/Script/Engine.BlueprintAsyncActionBase",
+                "/Script/Engine.OnlineBlueprintCallProxyBase",
+                "/Script/GameplayTasks.GameplayTask"
+            };
+            actionFactoryClasses.Clear();
+            foreach (string classPath in actionFactoryClassNames)
+            {
+                UClass unrealClass = UClass.GetClass(classPath);
+                if (unrealClass != null)
+                {
+                    actionFactoryClasses.Add(unrealClass);
+                }
+                else
+                {
+                    FMessage.Log(ELogVerbosity.Error, "Failed to find action class '" + classPath + "'");
+                }
+            }
 
             basicTypeNameMap.Clear();
 

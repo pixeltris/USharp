@@ -1159,11 +1159,6 @@ namespace UnrealEngine.Runtime
             }
         }
 
-        public static string FromArray(FScriptArray array)
-        {
-            return FromArray(array, false);
-        }
-
         public static string FromArray(FScriptArray array, bool destroy)
         {
             return FromArray(ref array, destroy);
@@ -1183,13 +1178,6 @@ namespace UnrealEngine.Runtime
                 Native_FScriptArray.Destroy(ref array);
             }
             return result;
-        }
-
-        public static FScriptArray ToArray(string value)
-        {
-            FScriptArray array = new FScriptArray();
-            ToArray(ref array, value);
-            return array;
         }
 
         public static FScriptArray ToArray(ref FScriptArray array, string value)
@@ -1217,11 +1205,11 @@ namespace UnrealEngine.Runtime
             return array;
         }
 
-        public static FScriptArray ToArray(IntPtr arrayAddress, string value)
+        public static unsafe FScriptArray ToArray(IntPtr arrayAddress, string value)
         {
-            FScriptArray array = Marshal.PtrToStructure<FScriptArray>(arrayAddress);
+            FScriptArray array = *(FScriptArray*)arrayAddress;
             ToArray(ref array, value);
-            Marshal.StructureToPtr(array, arrayAddress, false);
+            *(FScriptArray*)arrayAddress = array;
             return array;
         }
 

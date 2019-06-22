@@ -16,6 +16,11 @@ namespace UnrealEngine.Engine
     {
         public IntPtr Address;
 
+        internal FLatentResponse(IntPtr address)
+        {
+            Address = address;
+        }
+
         public FLatentResponse DoneIf(bool condition)
         {
             Native_FLatentResponse.DoneIf(Address, condition);

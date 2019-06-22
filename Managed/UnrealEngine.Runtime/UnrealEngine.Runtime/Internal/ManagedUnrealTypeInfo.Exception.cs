@@ -42,6 +42,14 @@ namespace UnrealEngine.Runtime.ManagedUnrealTypeInfoExceptions
         }
     }
 
+    public class InvalidUnrealPropertyException : ManagedUnrealTypeInfoException
+    {
+        public InvalidUnrealPropertyException(ManagedUnrealPropertyInfo property, string innerMessage)
+            : base("Invalid property. '" + (!string.IsNullOrEmpty(property.Path) ? property.Path : property.Name) + "' Error: " + innerMessage)
+        {
+        }
+    }
+
     //////////////////////////////////////////////////////////////////
     // Functions
     //////////////////////////////////////////////////////////////////

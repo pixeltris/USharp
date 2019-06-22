@@ -633,11 +633,11 @@ namespace UnrealEngine.Runtime
             // CodeGenerator.Modules.cs
             UpdateModulesByName();
 
-            // CodeGenerator.AvailableTypes.cs
-            UpdateAvailableTypes();
-
             // CodeGenerator.Properties.cs
             BeginGenerateModules_Properties();
+
+            // CodeGenerator.AvailableTypes.cs
+            UpdateAvailableTypes();
 
             OnBeginGenerateModules();
         }

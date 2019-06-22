@@ -23,9 +23,9 @@ CSEXPORT void CSCONV Export_FLatentActionManager_RemoveActionsForObject(FLatentA
 	instance->RemoveActionsForObject(InObject);
 }
 
-CSEXPORT FUSharpLatentAction* CSCONV Export_FLatentActionManager_AddNewAction(FLatentActionManager* instance, UObject* InActionObject, int32 UUID, void* ManagedObject, UpdateOperationDel InUpdateOperationFunc, NotifyDel InNotifyObjectDestroyedFunc, NotifyDel InNotifyActionAbortedFunc, GetDescriptionDel InGetDescriptionFunc, NotifyDel InDestructorFunc)
+CSEXPORT FUSharpLatentAction* CSCONV Export_FLatentActionManager_AddNewAction(FLatentActionManager* instance, UObject* InActionObject, int32 UUID, void* ManagedObject, ManagedLatentCallbackDel InCallbackFunc)
 {
-	FUSharpLatentAction* Action = new FUSharpLatentAction(ManagedObject, InUpdateOperationFunc, InNotifyObjectDestroyedFunc, InNotifyActionAbortedFunc, InGetDescriptionFunc, InDestructorFunc);
+	FUSharpLatentAction* Action = new FUSharpLatentAction(ManagedObject, InCallbackFunc);
 	check(Action);
 	// Make sure this UUID doesn't already exist (as this AddNewAction will just wipe over any existing action with this UUID, leaking memory)
 	FPendingLatentAction* ExistingAction = instance->FindExistingAction<FPendingLatentAction>(InActionObject, UUID);

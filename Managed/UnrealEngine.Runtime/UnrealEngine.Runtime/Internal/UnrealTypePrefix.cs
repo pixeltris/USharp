@@ -37,6 +37,4 @@ namespace UnrealEngine.Runtime
         /// </summary>
         public const string Interface = "I";
     }
-
-
 }

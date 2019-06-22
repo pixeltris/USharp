@@ -1,4 +1,4 @@
-using UnrealEngine.Runtime;
+﻿using UnrealEngine.Runtime;
 using UnrealEngine.Runtime.Native;
 
 namespace UnrealEngine.Engine

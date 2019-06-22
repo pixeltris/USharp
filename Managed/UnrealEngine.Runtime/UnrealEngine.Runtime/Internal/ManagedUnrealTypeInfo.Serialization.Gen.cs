@@ -100,6 +100,7 @@ namespace UnrealEngine.Runtime
         {
             base.Serialize(writer);
             WriteEnum(writer, AdditionalFlags);
+            WriteString(writer, DefaultValue);
             writer.Write(FixedSizeArrayDim);
             WriteEnum(writer, Flags);
             WriteTypeReferences(writer, GenericArgs);
@@ -111,6 +112,7 @@ namespace UnrealEngine.Runtime
         {
             base.Deserialize(reader);
             AdditionalFlags = ReadEnum<ManagedUnrealPropertyFlags>(reader);
+            DefaultValue = ReadString(reader);
             FixedSizeArrayDim = reader.ReadInt32();
             Flags = ReadEnum<EPropertyFlags>(reader);
             GenericArgs = ReadTypeReferences(reader);

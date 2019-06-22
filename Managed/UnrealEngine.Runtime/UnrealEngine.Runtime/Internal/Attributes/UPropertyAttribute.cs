@@ -194,6 +194,51 @@ namespace UnrealEngine.Runtime
     }
 
     /// <summary>
+    /// This property will be made configurable. The current value can be saved to the .ini file associated with the class and will be loaded when created. 
+    /// Cannot be given a value in default properties.
+    /// </summary>
+    [AttributeUsage(AttributeTargets.Property | AttributeTargets.Field)]
+    public class ConfigAttribute : ManagedUnrealAttributeBase
+    {
+        public override void ProcessProperty(ManagedUnrealPropertyInfo propertyInfo)
+        {
+            propertyInfo.Flags |= EPropertyFlags.Config;
+            base.ProcessProperty(propertyInfo);
+        }
+    }
+
+    /// <summary>
+    /// Works just like Config except that you cannot override it in a subclass. Cannot be given a value in default properties.
+    /// </summary>
+    [AttributeUsage(AttributeTargets.Property | AttributeTargets.Field)]
+    public class GlobalConfigAttribute : ManagedUnrealAttributeBase
+    {
+        public override void ProcessProperty(ManagedUnrealPropertyInfo propertyInfo)
+        {
+            propertyInfo.Flags |= EPropertyFlags.GlobalConfig | EPropertyFlags.Config;
+            base.ProcessProperty(propertyInfo);
+        }
+    }
+
+    /// <summary>
+    /// Usable with Multicast Delegates only. Exposes the property for assigning in Blueprints.
+    /// </summary>
+    [AttributeUsage(AttributeTargets.Property | AttributeTargets.Field)]
+    public class BlueprintAssignableAttribute : ManagedUnrealAttributeBase
+    {
+        public override void ProcessProperty(ManagedUnrealPropertyInfo propertyInfo)
+        {
+            if (propertyInfo.Type.TypeCode != EPropertyType.MulticastDelegate)
+            {
+                throw new InvalidUnrealPropertyException(propertyInfo, nameof(BlueprintAssignableAttribute) +
+                    " can only be used on properties which are of type FMulticastDelegate");
+            }
+            propertyInfo.Flags |= EPropertyFlags.BlueprintAssignable;
+            base.ProcessProperty(propertyInfo);
+        }
+    }
+
+    /// <summary>
     /// Defines the restrictions of which objects an editor visible property can be accessed on
     /// </summary>
     public enum EditorVisible

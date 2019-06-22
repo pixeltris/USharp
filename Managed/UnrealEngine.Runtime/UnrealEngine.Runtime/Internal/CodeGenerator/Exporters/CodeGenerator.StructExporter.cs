@@ -40,6 +40,10 @@ namespace UnrealEngine.Runtime
                 { "/Script/Engine.ETickingGroup", ProjectDefinedType.Enum },
                 { "/Script/Engine.TickFunction", ProjectDefinedType.Struct },
                 { "/Script/Engine.TickPrerequisite", ProjectDefinedType.BlittableStruct },
+
+                { "/Script/GameplayTasks.EGameplayTaskState", ProjectDefinedType.Enum },
+                { "/Script/GameplayTasks.ETaskResourceOverlapPolicy", ProjectDefinedType.Enum },
+                { "/Script/GameplayTasks.GameplayResourceSet", ProjectDefinedType.BlittableStruct },
             };
 
             foreach (Type type in System.Reflection.Assembly.GetExecutingAssembly().GetTypes())
@@ -106,10 +110,19 @@ namespace UnrealEngine.Runtime
                 {
                     return false;
                 }
-                // EClassFlags.Transient - should we be checking this
             }
 
             return true;
+        }
+
+        private UClass GetActionFactoryClass(UClass unrealClass)
+        {
+            UClass actionFactoryClass = unrealClass;
+            while (actionFactoryClass != null && !actionFactoryClasses.Contains(actionFactoryClass))
+            {
+                actionFactoryClass = actionFactoryClass.GetSuperClass();
+            }
+            return actionFactoryClass;
         }
 
         /// <summary>
@@ -208,6 +221,13 @@ namespace UnrealEngine.Runtime
 
             // All UBlueprintFunctionLibrary classes are visible in blueprint even if marked as not visible
             if (unrealStruct.IsChildOf<UBlueprintFunctionLibrary>())
+            {
+                return true;
+            }
+
+            // Action classes are exposed to Blueprint as special nodes. We want the entire class.
+            UClass unrealClass = unrealStruct as UClass;
+            if (unrealClass != null && GetActionFactoryClass(unrealClass) != null)
             {
                 return true;
             }

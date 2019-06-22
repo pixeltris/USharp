@@ -8,6 +8,11 @@ namespace UnrealEngine.Runtime
 {
     public partial class CodeGenerator
     {
+        private static HashSet<string> forceExportEnums = new HashSet<string>()
+        {
+            "/Script/AIModule.EAIOptionFlag",// Required by UAITask_MoveTo (AIModule)
+        };
+
         private bool CanExportEnum(UEnum unrealEnum)
         {
             // Skip enums which are already defined in this project
@@ -21,6 +26,10 @@ namespace UnrealEngine.Runtime
 
         private bool IsBlueprintVisibleEnum(UEnum unrealEnum)
         {
+            if (forceExportEnums.Contains(unrealEnum.GetPathName()))
+            {
+                return true;
+            }
             return unrealEnum.GetBoolMetaData(MDEnum.BlueprintType);
         }
 

@@ -1,0 +1,9 @@
+CSEXPORT void CSCONV Export_UUSharpOnlineBlueprintCallProxyBase_Set_Callback(ManagedLatentCallbackDel Callback)
+{
+	UUSharpOnlineBlueprintCallProxyBaseCallback = Callback;
+}
+
+CSEXPORT void CSCONV Export_UUSharpOnlineBlueprintCallProxyBase(RegisterFunc registerFunc)
+{
+	REGISTER_FUNC(Export_UUSharpOnlineBlueprintCallProxyBase_Set_Callback);
+}

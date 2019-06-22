@@ -142,7 +142,13 @@ namespace UnrealEngine.Runtime
         /// <returns>The enum names and values</returns>
         public static Dictionary<string, ulong> GetEnumNamesValues(this Type type, out byte calculatedEnumByteSize)
         {
-            if (!type.IsEnum)
+            Type enumType = type;
+            if (type.IsByRef && type.HasElementType)
+            {
+                enumType = type.GetElementType();
+            }
+
+            if (!enumType.IsEnum)
             {
                 throw new Exception("Attempting to get the enum byte size from a non-enum type");
             }
@@ -155,14 +161,14 @@ namespace UnrealEngine.Runtime
             switch (Type.GetTypeCode(type.GetEnumUnderlyingType()))
             {
                 case TypeCode.SByte:
-                    foreach (object enumValue in Enum.GetValues(type))
+                    foreach (object enumValue in Enum.GetValues(enumType))
                     {
                         byte value = (byte)(sbyte)enumValue;
                         values[enumValue.ToString()] = value;
                     }
                     break;
                 case TypeCode.Int16:
-                    foreach (object enumValue in Enum.GetValues(type))
+                    foreach (object enumValue in Enum.GetValues(enumType))
                     {
                         ushort value = (ushort)(short)enumValue;
                         values[enumValue.ToString()] = value;
@@ -173,7 +179,7 @@ namespace UnrealEngine.Runtime
                     }
                     break;
                 case TypeCode.Int32:
-                    foreach (object enumValue in Enum.GetValues(type))
+                    foreach (object enumValue in Enum.GetValues(enumType))
                     {
                         uint value = (uint)(int)enumValue;
                         values[enumValue.ToString()] = value;
@@ -188,7 +194,7 @@ namespace UnrealEngine.Runtime
                     }
                     break;
                 case TypeCode.Int64:
-                    foreach (object enumValue in Enum.GetValues(type))
+                    foreach (object enumValue in Enum.GetValues(enumType))
                     {
                         ulong value = (ulong)(long)enumValue;
                         values[enumValue.ToString()] = value;
@@ -207,14 +213,14 @@ namespace UnrealEngine.Runtime
                     }
                     break;
                 case TypeCode.Byte:
-                    foreach (object enumValue in Enum.GetValues(type))
+                    foreach (object enumValue in Enum.GetValues(enumType))
                     {
                         byte value = (byte)enumValue;
                         values[enumValue.ToString()] = value;
                     }
                     break;
                 case TypeCode.UInt16:
-                    foreach (object enumValue in Enum.GetValues(type))
+                    foreach (object enumValue in Enum.GetValues(enumType))
                     {
                         ushort value = (ushort)enumValue;
                         values[enumValue.ToString()] = value;
@@ -225,7 +231,7 @@ namespace UnrealEngine.Runtime
                     }
                     break;
                 case TypeCode.UInt32:
-                    foreach (object enumValue in Enum.GetValues(type))
+                    foreach (object enumValue in Enum.GetValues(enumType))
                     {
                         uint value = (uint)enumValue;
                         values[enumValue.ToString()] = value;
@@ -240,7 +246,7 @@ namespace UnrealEngine.Runtime
                     }
                     break;
                 case TypeCode.UInt64:
-                    foreach (object enumValue in Enum.GetValues(type))
+                    foreach (object enumValue in Enum.GetValues(enumType))
                     {
                         ulong value = (ulong)enumValue;
                         values[enumValue.ToString()] = value;
@@ -272,7 +278,13 @@ namespace UnrealEngine.Runtime
         /// <returns>The calculated size of the enum in bytes</returns>
         public static byte GetEnumByteSize(this Type type)
         {
-            if (!type.IsEnum)
+            Type enumType = type;
+            if (type.IsByRef && type.HasElementType)
+            {
+                enumType = type.GetElementType();
+            }
+
+            if (!enumType.IsEnum)
             {
                 throw new Exception("Attempting to get the enum byte size from a non-enum type");
             }
@@ -280,7 +292,7 @@ namespace UnrealEngine.Runtime
             // Is there a better way to do this without the duplicate code? (and without crashing
             // due to type mismatch when converting the enum value type)
             byte enumSize = 1;
-            switch (Type.GetTypeCode(type.GetEnumUnderlyingType()))
+            switch (Type.GetTypeCode(enumType.GetEnumUnderlyingType()))
             {
                 case TypeCode.SByte:
                 case TypeCode.Byte:
@@ -288,7 +300,7 @@ namespace UnrealEngine.Runtime
                     break;
 
                 case TypeCode.Int16:
-                    foreach (short signedValue in Enum.GetValues(type))
+                    foreach (short signedValue in Enum.GetValues(enumType))
                     {
                         ushort value = (ushort)signedValue;
                         if (value > byte.MaxValue)
@@ -299,7 +311,7 @@ namespace UnrealEngine.Runtime
                     }
                     break;
                 case TypeCode.Int32:
-                    foreach (int signedValue in Enum.GetValues(type))
+                    foreach (int signedValue in Enum.GetValues(enumType))
                     {
                         uint value = (uint)signedValue;
                         if (value > ushort.MaxValue)
@@ -314,7 +326,7 @@ namespace UnrealEngine.Runtime
                     }
                     break;
                 case TypeCode.Int64:
-                    foreach (long signedValue in Enum.GetValues(type))
+                    foreach (long signedValue in Enum.GetValues(enumType))
                     {
                         ulong value = (ulong)signedValue;
                         if (value > uint.MaxValue)
@@ -333,7 +345,7 @@ namespace UnrealEngine.Runtime
                     }
                     break;
                 case TypeCode.UInt16:
-                    foreach (ushort value in Enum.GetValues(type))
+                    foreach (ushort value in Enum.GetValues(enumType))
                     {
                         if (value > byte.MaxValue)
                         {
@@ -343,7 +355,7 @@ namespace UnrealEngine.Runtime
                     }
                     break;
                 case TypeCode.UInt32:
-                    foreach (uint value in Enum.GetValues(type))
+                    foreach (uint value in Enum.GetValues(enumType))
                     {
                         if (value > ushort.MaxValue)
                         {
@@ -357,7 +369,7 @@ namespace UnrealEngine.Runtime
                     }
                     break;
                 case TypeCode.UInt64:
-                    foreach (ulong value in Enum.GetValues(type))
+                    foreach (ulong value in Enum.GetValues(enumType))
                     {
                         if (value > uint.MaxValue)
                         {
