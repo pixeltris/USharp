@@ -38,9 +38,9 @@ enum class ManagedLatentCallbackType : int32
 };
 
 typedef void(CSCONV *ManagedLatentCallbackDel)(ManagedLatentCallbackType CallbackType, const void* ThisPtr, const void* Data);
-ManagedLatentCallbackDel UUSharpAsyncActionBaseCallback = nullptr;
-ManagedLatentCallbackDel UUSharpOnlineBlueprintCallProxyBaseCallback = nullptr;
-ManagedLatentCallbackDel UUSharpGameplayTaskCallback = nullptr;
+extern ManagedLatentCallbackDel UUSharpAsyncActionBaseCallback;
+extern ManagedLatentCallbackDel UUSharpOnlineBlueprintCallProxyBaseCallback;
+extern ManagedLatentCallbackDel UUSharpGameplayTaskCallback;
 
 class FUSharpLatentAction : public FPendingLatentAction
 {
