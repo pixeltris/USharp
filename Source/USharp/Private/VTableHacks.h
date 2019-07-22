@@ -3,6 +3,7 @@
 #include "Engine/EngineBaseTypes.h"
 #include "GameFramework/Actor.h"
 #include "GameFramework/Pawn.h"
+#include "GameFramework/PlayerController.h"
 #include "Components/ActorComponent.h"
 #include "ExportedFunctions/ExportedFunctionsConventions.h"
 #include "VTableHacks.generated.h"
@@ -308,5 +309,45 @@ public:
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override
 	{
 		FMsg::Logf("", 0, FName(TEXT("USharp")), ELogVerbosity::Log, TEXT("ADummyActorComponentEndPlay3-EndPlay"));
+	}
+};
+
+/////////////////////////////////////////////////////////////////////////////
+// APlayerController::SetupInputComponent
+/////////////////////////////////////////////////////////////////////////////
+
+typedef void(CSCONV *PlayerControllerSetupInputComponentCallbackSig)(APlayerController* Obj);
+extern PlayerControllerSetupInputComponentCallbackSig PlayerControllerSetupInputComponentCallback;
+
+UCLASS(NotBlueprintable, NotBlueprintType)
+class USHARP_API ADummyPlayerControllerSetupInputComponent1 : public APlayerController
+{
+	GENERATED_BODY()
+
+protected:
+	virtual void SetupInputComponent() override
+	{
+		if (PlayerControllerSetupInputComponentCallback != nullptr)
+		{
+            PlayerControllerSetupInputComponentCallback(this);
+		}
+	}
+};
+
+UCLASS(NotBlueprintable, NotBlueprintType)
+class USHARP_API ADummyPlayerControllerSetupInputComponent2 : public ADummyPlayerControllerSetupInputComponent1
+{
+	GENERATED_BODY()
+};
+
+UCLASS(NotBlueprintable, NotBlueprintType)
+class USHARP_API ADummyPlayerControllerSetupInputComponent3 : public ADummyPlayerControllerSetupInputComponent2
+{
+	GENERATED_BODY()
+
+protected:
+	virtual void SetupInputComponent() override
+	{
+		FMsg::Logf("", 0, FName(TEXT("USharp")), ELogVerbosity::Log, TEXT("ADummyPlayerControllerSetupInputComponent3-SetupInputComponent"));
 	}
 };

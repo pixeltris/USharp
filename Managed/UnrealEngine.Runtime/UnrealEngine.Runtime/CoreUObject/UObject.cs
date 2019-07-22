@@ -666,6 +666,11 @@ namespace UnrealEngine.Runtime
             // This is eventually implemented in injected classes
         }
 
+        internal virtual void SetupInputComponentInternal()
+        {
+            // This is eventually implemented in injected classes
+        }
+
         /// <summary>
         /// Looks for a given function name
         /// </summary>

@@ -273,6 +273,11 @@ CSEXPORT UClass* CSCONV Export_Classes_UActorComponent()
     return UActorComponent::StaticClass();
 }
 
+CSEXPORT UClass* CSCONV Export_Classes_APlayerController()
+{
+    return APlayerController::StaticClass();
+}
+
 CSEXPORT UClass* CSCONV Export_Classes_USharpClass()
 {
 	return USharpClass::StaticClass();
@@ -343,6 +348,7 @@ CSEXPORT void CSCONV Export_Classes(RegisterFunc registerFunc)
 	REGISTER_FUNC(Export_Classes_AActor);
 	REGISTER_FUNC(Export_Classes_APawn);
 	REGISTER_FUNC(Export_Classes_UActorComponent);
+	REGISTER_FUNC(Export_Classes_APlayerController);
 
 
 	// USharp
