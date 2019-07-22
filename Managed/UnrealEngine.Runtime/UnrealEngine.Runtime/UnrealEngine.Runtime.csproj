@@ -69,6 +69,7 @@
     <None Include="Internal\InjectedClasses\Engine\Actor_Injected.cs" />
     <None Include="Internal\InjectedClasses\Engine\Engine_Injected.cs" />
     <None Include="Internal\InjectedClasses\Engine\GameplayStatics_Injected.cs" />
+    <None Include="Internal\InjectedClasses\Engine\PlayerController_Injected.cs" />
     <None Include="Internal\InjectedClasses\Engine\WorldContext_Extensions.cs" />
     <None Include="Internal\InjectedClasses\Engine\World_Injected.cs" />
     <None Include="Internal\InjectedClasses\Engine\InputComponent_Injected.cs" />

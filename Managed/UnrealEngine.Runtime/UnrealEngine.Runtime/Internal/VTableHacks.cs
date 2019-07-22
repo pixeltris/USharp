@@ -18,6 +18,7 @@ namespace UnrealEngine.Runtime
             IntPtr pawnClass = Runtime.Classes.APawn;
             IntPtr actorClass = Runtime.Classes.AActor;
             IntPtr actorComponentClass = Runtime.Classes.UActorComponent;
+            IntPtr playerControllerClass = Runtime.Classes.APlayerController;
 
             repProps = AddVTableRedirect(objectClass, "DummyRepProps", new GetLifetimeReplicatedPropsDel(OnGetLifetimeReplicatedProps));
             setupPlayerInput = AddVTableRedirect(pawnClass, "DummySetupPlayerInput", new SetupPlayerInputComponentDel(OnSetupPlayerInputComponent));
@@ -25,6 +26,7 @@ namespace UnrealEngine.Runtime
             actorEndPlay = AddVTableRedirect(actorClass, "DummyActorEndPlay", new ActorEndPlayDel(OnActorEndPlay));
             actorComponentBeginPlay = AddVTableRedirect(actorComponentClass, "DummyActorComponentBeginPlay", new ActorComponentBeginPlayDel(OnActorComponentBeginPlay));
             actorComponentEndPlay = AddVTableRedirect(actorComponentClass, "DummyActorComponentEndPlay", new ActorComponentEndPlayDel(OnActorComponentEndPlay));
+            playerControllerSetupInputComponent = AddVTableRedirect(playerControllerClass, "DummyPlayerControllerSetupInputComponent", new PlayerControllerSetupInputComponentDel(OnPlayerControllerSetupInputComponent));
         }
 
         private static void LogCallbackException(string functionName, Exception e)
@@ -165,6 +167,28 @@ namespace UnrealEngine.Runtime
             catch (Exception e)
             {
                 LogCallbackException(nameof(OnActorComponentEndPlay), e);
+            }
+        }
+
+        private static FunctionRedirect playerControllerSetupInputComponent;
+        delegate void PlayerControllerSetupInputComponentDel(IntPtr address);
+        [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
+        delegate void PlayerControllerSetupInputComponentDel_ThisCall(IntPtr address);
+        private static void OnPlayerControllerSetupInputComponent(IntPtr address)
+        {
+            try
+            {
+                UObject obj = GCHelper.Find(address);
+
+                PlayerControllerSetupInputComponentDel_ThisCall original = playerControllerSetupInputComponent.GetOriginal<PlayerControllerSetupInputComponentDel_ThisCall>(obj);
+                original(address);
+                //Native_VTableHacks.CallOriginal_PlayerControllerSetupInputComponent(original)
+
+                obj.SetupInputComponentInternal();
+            }
+            catch (Exception e)
+            {
+                LogCallbackException(nameof(OnPlayerControllerSetupInputComponent), e);
             }
         }
 
