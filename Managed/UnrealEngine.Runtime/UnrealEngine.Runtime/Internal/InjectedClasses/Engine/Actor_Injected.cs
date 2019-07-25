@@ -71,14 +71,16 @@ namespace UnrealEngine.Engine
             PrimaryActorTick_Offset = NativeReflectionCached.GetPropertyOffset(classAddress, "PrimaryActorTick");
         }
 
+        private VTableHacks.CachedFunctionRedirect<VTableHacks.BeginPlayDel_ThisCall> beginPlayRedirect;
         internal override void BeginPlayInternal()
         {
             BeginPlay();
         }
 
+        private VTableHacks.CachedFunctionRedirect<VTableHacks.EndPlayDel_ThisCall> endPlayRedirect;
         internal override void EndPlayInternal(byte endPlayReason)
         {
-            EndPlay((EEndPlayReason)endPlayReason);
+            EndPlay((EEndPlayReason) endPlayReason);
         }
 
         /// <summary>
@@ -86,6 +88,9 @@ namespace UnrealEngine.Engine
         /// </summary>
         protected virtual void BeginPlay()
         {
+            beginPlayRedirect
+                .Resolve(VTableHacks.ActorBeginPlay, this)
+                .Invoke(Address);
         }
 
         /// <summary>
@@ -94,6 +99,9 @@ namespace UnrealEngine.Engine
         /// <param name="endPlayReason"></param>
         public virtual void EndPlay(EEndPlayReason endPlayReason)
         {
+            endPlayRedirect
+                .Resolve(VTableHacks.ActorEndPlay, this)
+                .Invoke(Address, (byte) endPlayReason);
         }
 
         /// <summary>

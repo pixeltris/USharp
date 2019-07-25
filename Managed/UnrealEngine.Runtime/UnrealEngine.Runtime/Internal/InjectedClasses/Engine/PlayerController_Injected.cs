@@ -7,6 +7,7 @@ namespace UnrealEngine.Engine
 {
     public partial class APlayerController : AController
     {
+        private VTableHacks.CachedFunctionRedirect<VTableHacks.PlayerControllerSetupInputComponentDel_ThisCall> setupInputComponentRedirect;
         internal override void SetupInputComponentInternal()
         {
             SetupInputComponent();
@@ -17,6 +18,9 @@ namespace UnrealEngine.Engine
         /// </summary>
         protected virtual void SetupInputComponent()
         {
+            setupInputComponentRedirect
+                .Resolve(VTableHacks.PlayerControllerSetupInputComponent, this)
+                .Invoke(Address);
         }
     }
 }

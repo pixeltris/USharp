@@ -644,16 +644,29 @@ namespace UnrealEngine.Runtime
             return Native_UObjectBaseUtility.IsDefaultSubobject(Address);
         }
 
+        private VTableHacks.CachedFunctionRedirect<VTableHacks.GetLifetimeReplicatedPropsDel_ThisCall> getLifetimeReplicatedPropsRedirect;
+        internal virtual void GetLifetimeReplicatedPropsInternal(IntPtr arrayAddress)
+        {
+            using (TArrayUnsafeRef<FLifetimeProperty> lifetimePropsUnsafe = new TArrayUnsafeRef<FLifetimeProperty>(arrayAddress))
+            {
+                FLifetimePropertyCollection lifetimeProps = new FLifetimePropertyCollection(Address, lifetimePropsUnsafe);
+                GetLifetimeReplicatedProps(lifetimeProps);
+            }
+        }
+
         /// <summary>
         /// Returns properties that are replicated for the lifetime of the actor channel
         /// </summary>
         public virtual void GetLifetimeReplicatedProps(FLifetimePropertyCollection lifetimeProps)
         {
+            getLifetimeReplicatedPropsRedirect
+                .Resolve(VTableHacks.GetLifetimeReplicatedProps, this)
+                .Invoke(Address, lifetimeProps.Address);
         }
 
-        internal virtual void SetupPlayerInputComponent(IntPtr playerInputComponent)
+        internal virtual void SetupPlayerInputComponentInternal(IntPtr playerInputComponent)
         {
-            // This is eventually implemented in APawn
+            // This is eventually implemented in injected classes
         }
 
         internal virtual void BeginPlayInternal()
