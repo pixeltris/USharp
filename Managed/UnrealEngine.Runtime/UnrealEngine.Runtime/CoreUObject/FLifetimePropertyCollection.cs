@@ -11,6 +11,11 @@ namespace UnrealEngine.Runtime
         private IntPtr nativeClass;
         private TArrayUnsafeRef<FLifetimeProperty> dest;
 
+        internal IntPtr Address
+        {
+            get { return dest.Address; }
+        }
+
         internal FLifetimePropertyCollection(IntPtr obj, TArrayUnsafeRef<FLifetimeProperty> dest)
         {
             this.dest = dest;

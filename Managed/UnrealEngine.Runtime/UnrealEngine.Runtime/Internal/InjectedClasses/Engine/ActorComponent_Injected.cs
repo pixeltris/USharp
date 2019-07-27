@@ -41,11 +41,13 @@ namespace UnrealEngine.Engine
             Native_UActorComponent.UnregisterComponent(this.Address);
         }
 
+        private VTableHacks.CachedFunctionRedirect<VTableHacks.BeginPlayDel_ThisCall> beginPlayRedirect;
         internal override void BeginPlayInternal()
         {
             BeginPlay();
         }
 
+        private VTableHacks.CachedFunctionRedirect<VTableHacks.EndPlayDel_ThisCall> endPlayRedirect;
         internal override void EndPlayInternal(byte endPlayReason)
         {
             EndPlay((EEndPlayReason) endPlayReason);
@@ -58,6 +60,9 @@ namespace UnrealEngine.Engine
         /// </summary>
         public virtual void BeginPlay()
         {
+            beginPlayRedirect
+                .Resolve(VTableHacks.ActorComponentBeginPlay, this)
+                .Invoke(Address);
         }
 
         /// <summary>
@@ -67,6 +72,9 @@ namespace UnrealEngine.Engine
         /// <param name="endPlayReason"></param>
         public virtual void EndPlay(EEndPlayReason endPlayReason)
         {
+            endPlayRedirect
+                .Resolve(VTableHacks.ActorComponentEndPlay, this)
+                .Invoke(Address, (byte) endPlayReason);
         }
     }
 }
