@@ -11,6 +11,10 @@ namespace UnrealEngine.Runtime
     public unsafe struct WorldTimeHelper
     {
         public IntPtr WorldAddress;
+        public bool IsValid
+        {
+            get { return WorldAddress != IntPtr.Zero; }
+        }
 
         public WorldTimeHelper(IntPtr worldAddress)
         {
@@ -55,7 +59,17 @@ namespace UnrealEngine.Runtime
         /// </summary>
         public float TimeSeconds
         {
-            get { return *(float*)(WorldAddress + timeSecondsOffset); }
+            get
+            {
+                if (IsValid)
+                {
+                    return *(float*)(WorldAddress + timeSecondsOffset);
+                }
+                else
+                {
+                    return 0;
+                }
+            }
         }
 
         private static int unpausedTimeSecondsOffset;
@@ -64,7 +78,17 @@ namespace UnrealEngine.Runtime
         /// </summary>
         public float UnpausedTimeSeconds
         {
-            get { return *(float*)(WorldAddress + unpausedTimeSecondsOffset); }
+            get
+            {
+                if (IsValid)
+                {
+                    return *(float*)(WorldAddress + unpausedTimeSecondsOffset);
+                }
+                else
+                {
+                    return 0;
+                }
+            }
         }
 
         private static int realTimeSecondsOffset;
@@ -73,7 +97,17 @@ namespace UnrealEngine.Runtime
         /// </summary>
         public float RealTimeSeconds
         {
-            get { return *(float*)(WorldAddress + realTimeSecondsOffset); }
+            get
+            {
+                if (IsValid)
+                {
+                    return *(float*)(WorldAddress + realTimeSecondsOffset);
+                }
+                else
+                {
+                    return 0;
+                }
+            }
         }
 
         private static int deltaTimeSecondsOffset;
@@ -82,7 +116,17 @@ namespace UnrealEngine.Runtime
         /// </summary>
         public float DeltaTimeSeconds
         {
-            get { return *(float*)(WorldAddress + deltaTimeSecondsOffset); }
+            get
+            {
+                if (IsValid)
+                {
+                    return *(float*)(WorldAddress + deltaTimeSecondsOffset);
+                }
+                else
+                {
+                    return 0;
+                }
+            }
         }
 
         private static int pauseDelayOffset;
@@ -91,7 +135,17 @@ namespace UnrealEngine.Runtime
         /// </summary>
         public float PauseDelay
         {
-            get { return *(float*)(WorldAddress + pauseDelayOffset); }
+            get
+            {
+                if (IsValid)
+                {
+                    return *(float*)(WorldAddress + pauseDelayOffset);
+                }
+                else
+                {
+                    return 0;
+                }
+            }
         }
 
         /// <summary>
@@ -99,7 +153,17 @@ namespace UnrealEngine.Runtime
         /// </summary>
         public bool DebugPauseExecution
         {
-            get { return Native_UWorld.Get_bDebugPauseExecution(WorldAddress); }
+            get
+            {
+                if (IsValid)
+                {
+                    return Native_UWorld.Get_bDebugPauseExecution(WorldAddress);
+                }
+                else
+                {
+                    return false;
+                }
+            }
         }
 
         /// <summary>
@@ -107,7 +171,18 @@ namespace UnrealEngine.Runtime
         /// </summary>
         public bool IsPaused
         {
-            get { return Native_UWorld.IsPaused(WorldAddress); }
+            get
+            {
+                if (IsValid)
+                {
+                    return Native_UWorld.IsPaused(WorldAddress);
+                }
+                else
+                {
+                    // What's best to return in this case?
+                    return true;
+                }
+            }
         }
 
         internal static void OnNativeFunctionsRegistered()

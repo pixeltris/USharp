@@ -118,7 +118,7 @@ namespace UnrealEngine.Runtime
             FrameNumberRenderThread = lastFrameNumberRenderThread = frameNumberRenderThread;
 
             WorldTime.WorldAddress = FGlobals.GWorld;
-            if (!WorldTime.IsPaused)
+            if (WorldTime.IsValid && !WorldTime.IsPaused)
             {
                 WorldTickCounter += tickCounterDifference;
                 WorldFrameNumber += frameNumberDifference;

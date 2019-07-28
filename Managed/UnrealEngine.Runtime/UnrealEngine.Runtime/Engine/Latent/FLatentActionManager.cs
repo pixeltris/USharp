@@ -61,6 +61,20 @@ namespace UnrealEngine.Engine
         /// <summary>
         /// Finds the action instance for the supplied UUID, or will return NULL if one does not already exist.
         /// </summary>
+        /// <typeparam name="T">The type of the action</typeparam>
+        /// <param name="actionObject">Object to check for pending actions.</param>
+        /// <param name="uuid">UUID of the action we are looking for.</param>
+        /// <returns>The found action (or <see cref="null"/> if not found).</returns>
+        public T FindExistingAction<T>(UObject actionObject, int uuid) where T : FUSharpLatentAction
+        {
+            T result;
+            FindExistingAction(actionObject, uuid, out result);
+            return result;
+        }
+
+        /// <summary>
+        /// Finds the action instance for the supplied UUID, or will return NULL if one does not already exist.
+        /// </summary>
         /// <param name="actionObject">Object to check for pending actions.</param>
         /// <param name="uuid">UUID of the action we are looking for.</param>
         /// <returns>The found action (or <see cref="IntPtr.Zero"/> if not found).</returns>
