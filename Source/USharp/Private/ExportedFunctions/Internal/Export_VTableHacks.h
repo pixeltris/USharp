@@ -7,6 +7,7 @@ ActorEndPlayCallbackSig ActorEndPlayCallback = nullptr;
 ActorComponentBeginPlayCallbackSig ActorComponentBeginPlayCallback = nullptr;
 ActorComponentEndPlayCallbackSig ActorComponentEndPlayCallback = nullptr;
 PlayerControllerSetupInputComponentCallbackSig PlayerControllerSetupInputComponentCallback = nullptr;
+PlayerControllerUpdateRotationCallbackSig PlayerControllerUpdateRotationCallback = nullptr;
 
 TMap<FString, void**> DummyNames;
 CSEXPORT void CSCONV Export_VTableHacks_Set_VTableCallback(const FString& DummyName, void* Callback)
@@ -21,6 +22,7 @@ CSEXPORT void CSCONV Export_VTableHacks_Set_VTableCallback(const FString& DummyN
 		DummyNames.Add(TEXT("DummyActorComponentBeginPlay"), (void**)&ActorComponentBeginPlayCallback);
 		DummyNames.Add(TEXT("DummyActorComponentEndPlay"), (void**)&ActorComponentEndPlayCallback);
 		DummyNames.Add(TEXT("DummyPlayerControllerSetupInputComponent"), (void**)&PlayerControllerSetupInputComponentCallback);
+		DummyNames.Add(TEXT("DummyPlayerControllerUpdateRotation"), (void**)&PlayerControllerUpdateRotationCallback);
 	}
 	
 	void*** Element = DummyNames.Find(DummyName);
@@ -73,6 +75,12 @@ CSEXPORT void CSCONV Export_VTableHacks_CallOriginal_PlayerControllerSetupInputC
 	(Obj->*Func)();
 }
 
+typedef void (UObject::*PlayerControllerUpdateRotationFunc)(float DeltaTime);
+CSEXPORT void CSCONV Export_VTableHacks_CallOriginal_PlayerControllerUpdateRotation(PlayerControllerUpdateRotationFunc Func, UObject* Obj, float DeltaTime)
+{
+	(Obj->*Func)(DeltaTime);
+}
+
 CSEXPORT void CSCONV Export_VTableHacks(RegisterFunc registerFunc)
 {
 	REGISTER_FUNC(Export_VTableHacks_Set_VTableCallback);
@@ -83,4 +91,5 @@ CSEXPORT void CSCONV Export_VTableHacks(RegisterFunc registerFunc)
 	REGISTER_FUNC(Export_VTableHacks_CallOriginal_ActorComponentBeginPlay);
 	REGISTER_FUNC(Export_VTableHacks_CallOriginal_ActorComponentEndPlay);
 	REGISTER_FUNC(Export_VTableHacks_CallOriginal_PlayerControllerSetupInputComponent);
+	REGISTER_FUNC(Export_VTableHacks_CallOriginal_PlayerControllerUpdateRotation);
 }

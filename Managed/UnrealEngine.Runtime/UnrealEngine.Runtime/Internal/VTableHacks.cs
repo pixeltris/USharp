@@ -27,6 +27,7 @@ namespace UnrealEngine.Runtime
             ActorComponentBeginPlay = AddVTableRedirect(actorComponentClass, "DummyActorComponentBeginPlay", new BeginPlayDel(OnActorComponentBeginPlay));
             ActorComponentEndPlay = AddVTableRedirect(actorComponentClass, "DummyActorComponentEndPlay", new EndPlayDel(OnActorComponentEndPlay));
             PlayerControllerSetupInputComponent = AddVTableRedirect(playerControllerClass, "DummyPlayerControllerSetupInputComponent", new PlayerControllerSetupInputComponentDel(OnPlayerControllerSetupInputComponent));
+            PlayerControllerUpdateRotation = AddVTableRedirect(playerControllerClass, "DummyPlayerControllerUpdateRotation", new PlayerControllerUpdateRotationDel(OnPlayerControllerUpdateRotation));
         }
 
         private static void LogCallbackException(string functionName, Exception e)
@@ -144,6 +145,23 @@ namespace UnrealEngine.Runtime
             catch (Exception e)
             {
                 LogCallbackException(nameof(OnPlayerControllerSetupInputComponent), e);
+            }
+        }
+
+        public static FunctionRedirect PlayerControllerUpdateRotation { get; private set; }
+        delegate void PlayerControllerUpdateRotationDel(IntPtr address, float deltaTime);
+        [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
+        public delegate void PlayerControllerUpdateRotationDel_ThisCall(IntPtr address, float deltaTime);
+        private static void OnPlayerControllerUpdateRotation(IntPtr address, float deltaTime)
+        {
+            try
+            {
+                UObject obj = GCHelper.Find(address);
+                obj.UpdateRotationInternal(deltaTime);
+            }
+            catch (Exception e)
+            {
+                LogCallbackException(nameof(OnPlayerControllerUpdateRotation), e);
             }
         }
 

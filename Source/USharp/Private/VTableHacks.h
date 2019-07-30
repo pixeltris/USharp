@@ -351,3 +351,43 @@ protected:
 		FMsg::Logf("", 0, FName(TEXT("USharp")), ELogVerbosity::Log, TEXT("ADummyPlayerControllerSetupInputComponent3-SetupInputComponent"));
 	}
 };
+
+/////////////////////////////////////////////////////////////////////////////
+// APlayerController::UpdateRotation
+/////////////////////////////////////////////////////////////////////////////
+
+typedef void(CSCONV *PlayerControllerUpdateRotationCallbackSig)(APlayerController* Obj, float DeltaTime);
+extern PlayerControllerUpdateRotationCallbackSig PlayerControllerUpdateRotationCallback;
+
+UCLASS(NotBlueprintable, NotBlueprintType)
+class USHARP_API ADummyPlayerControllerUpdateRotation1 : public APlayerController
+{
+	GENERATED_BODY()
+
+protected:
+	virtual void UpdateRotation(float DeltaTime) override
+	{
+		if (PlayerControllerUpdateRotationCallback != nullptr)
+		{
+            PlayerControllerUpdateRotationCallback(this, DeltaTime);
+		}
+	}
+};
+
+UCLASS(NotBlueprintable, NotBlueprintType)
+class USHARP_API ADummyPlayerControllerUpdateRotation2 : public ADummyPlayerControllerUpdateRotation1
+{
+	GENERATED_BODY()
+};
+
+UCLASS(NotBlueprintable, NotBlueprintType)
+class USHARP_API ADummyPlayerControllerUpdateRotation3 : public ADummyPlayerControllerUpdateRotation2
+{
+	GENERATED_BODY()
+
+protected:
+	virtual void UpdateRotation(float DeltaTime) override
+	{
+		FMsg::Logf("", 0, FName(TEXT("USharp")), ELogVerbosity::Log, TEXT("ADummyPlayerControllerUpdateRotation3-UpdateRotation"));
+	}
+};

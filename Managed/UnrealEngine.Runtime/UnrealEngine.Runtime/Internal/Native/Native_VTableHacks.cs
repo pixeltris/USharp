@@ -18,6 +18,7 @@ namespace UnrealEngine.Runtime.Native
         public delegate void Del_CallOriginal_ActorComponentBeginPlay(IntPtr originalFunc, IntPtr obj);
         public delegate void Del_CallOriginal_ActorComponentEndPlay(IntPtr originalFunc, IntPtr obj, byte endPlayReason);
         public delegate void Del_CallOriginal_PlayerControllerSetupInputComponent(IntPtr originalFunc, IntPtr obj);
+        public delegate void Del_CallOriginal_PlayerControllerUpdateRotation(IntPtr originalFunc, IntPtr obj, float deltaTime);
 
         public static Del_Set_VTableCallback Set_VTableCallback;
         public static Del_CallOriginal_GetLifetimeReplicatedProps CallOriginal_GetLifetimeReplicatedProps;
