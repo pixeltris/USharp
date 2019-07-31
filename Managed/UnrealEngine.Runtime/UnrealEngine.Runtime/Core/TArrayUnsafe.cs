@@ -40,7 +40,7 @@ namespace UnrealEngine.Runtime
 
         public IntPtr Address
         {
-            get { return address; }
+            get { return (IntPtr)nativeArray; }//address; }
         }
 
         public FScriptArray ScriptArray
