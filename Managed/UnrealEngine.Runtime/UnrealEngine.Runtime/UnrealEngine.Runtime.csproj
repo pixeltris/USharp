@@ -210,6 +210,7 @@
     <Compile Include="Internal\NativeReflectionCached.cs" />
     <Compile Include="Internal\Native\Internal\Native_UUSharpGameplayTask.cs" />
     <Compile Include="Internal\Native\Internal\Native_UUSharpOnlineBlueprintCallProxyBase.cs" />
+    <Compile Include="Internal\Native\Native_APlayerController.cs" />
     <Compile Include="Internal\Native\Native_FFeedbackContext.cs" />
     <Compile Include="Internal\Native\Native_FGameplayResourceSet.cs" />
     <Compile Include="Internal\Native\Native_FLatentActionManager.cs" />

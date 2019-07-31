@@ -684,6 +684,11 @@ namespace UnrealEngine.Runtime
             // This is eventually implemented in injected classes
         }
 
+        internal virtual void UpdateRotationInternal(float DeltaTime)
+        {
+            // This is eventually implemented in injected classes
+        }
+
         /// <summary>
         /// Looks for a given function name
         /// </summary>

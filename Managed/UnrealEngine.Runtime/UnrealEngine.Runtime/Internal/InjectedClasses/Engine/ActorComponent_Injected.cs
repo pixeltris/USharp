@@ -7,6 +7,12 @@ namespace UnrealEngine.Engine
 {
     public partial class UActorComponent : UObject
     {
+        private CachedUObject<UWorld> worldCached;
+        public UWorld World
+        {
+            get { return worldCached.Update(Native_UActorComponent.GetWorld(Address)); }
+        }
+
         static int PrimaryComponentTick_Offset;
         /// <summary>
         /// Main tick function for the Actor
