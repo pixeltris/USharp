@@ -287,6 +287,16 @@ void CSharpLoader::SetupPaths()
 	}
 }
 
+// This is similar to FPaths::NormalizeFilename, but it normalizes based on the platform slash char
+void NormalizePlatformPath(FString& InPath)
+{
+#if PLATFORM_WINDOWS
+	InPath.ReplaceInline(TEXT("/"), TEXT("\\"), ESearchCase::CaseSensitive);
+#else
+	InPath.ReplaceInline(TEXT("\\"), TEXT("/"), ESearchCase::CaseSensitive);
+#endif
+}
+
 FString CSharpLoader::GetPlatformString()
 {
 #if PLATFORM_WINDOWS
@@ -823,16 +833,19 @@ bool CSharpLoader::Load(FString assemblyPath, FString customArgs, FString loader
 		// Use both the CoreCLR directory and the target assembly directory for APP_PATHS so that
 		// it can resolve CoreCLR system assemblies
 		FString appPaths = coreCLRDir + fileSplitter + assemblyDir;
+		NormalizePlatformPath(appPaths);
 		auto appPathsCStr = StringCast<ANSICHAR>(*appPaths);
 
-		// I'm not sure if this should be the path of the target assembly or the path of the running exe
-		// It doesn't seem to matter what you use here.
-		FString exePath = fullAssemblyPath;
+		// Get the full path of the current exe
+		FString exePath = FString(FPlatformProcess::BaseDir()) / FString(FPlatformProcess::ExecutableName(false));
+		//FString exePath = FPlatformProcess::ExecutablePath();// For UE_4.23
+		NormalizePlatformPath(exePath);
 		auto exePathCStr = StringCast<ANSICHAR>(*exePath);
 
 		// We may need to trust more assemblies, for now just add our target assembly
 		FString trustedAssemblies = fullAssemblyPath;
-		auto trustedAssembliesCtr = StringCast<ANSICHAR>(*trustedAssemblies);
+		NormalizePlatformPath(trustedAssemblies);
+		auto trustedAssembliesCStr = StringCast<ANSICHAR>(*trustedAssemblies);
 
 		// FString dllPath = GetCoreCLRDllPath();
 		const char* propertyKeys[] =
@@ -843,7 +856,7 @@ bool CSharpLoader::Load(FString assemblyPath, FString customArgs, FString loader
 		const char* propertyValues[] =
 		{
 			// TRUSTED_PLATFORM_ASSEMBLIES
-			trustedAssembliesCtr.Get(),
+			trustedAssembliesCStr.Get(),
 			// APP_PATHS
 			appPathsCStr.Get()
 		};
@@ -861,7 +874,9 @@ bool CSharpLoader::Load(FString assemblyPath, FString customArgs, FString loader
 
 		if (FAILED(hr))
 		{
-			LogLoaderError(FString::Printf(TEXT("coreclr_initialize failed. ErrorCode: 0x%08x (%u)"), hr, hr));
+			LogLoaderError(FString::Printf(TEXT("coreclr_initialize failed. ErrorCode: 0x%08x (%u)\n\n"
+				"TRUSTED_PLATFORM_ASSEMBLIES: %s\n\nAPP_PATHS: %s\n\nExe path: %s"),
+				hr, hr, *trustedAssemblies, *appPaths, *exePath));
 		}
 		else
 		{

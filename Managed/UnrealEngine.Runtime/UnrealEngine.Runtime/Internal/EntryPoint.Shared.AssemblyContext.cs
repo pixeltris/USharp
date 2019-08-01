@@ -336,8 +336,11 @@ namespace UnrealEngine.Runtime
             Stopwatch stopwatch = new Stopwatch();
             stopwatch.Start();
 
+            // .NET Core preview 3 is going under changes to the following events. Add these checks back in when the
+            // becomes more fixed / stable.
+
             // NOTE: Under .NET Core AppDomain.CurrentDomain.GetType() will point to System.Runtime.Extensions.AppDomain
-            object currentDomain = Type.GetType("System.AppDomain").GetProperty("CurrentDomain").GetValue(null);
+            /*object currentDomain = Type.GetType("System.AppDomain").GetProperty("CurrentDomain").GetValue(null);
             EnsureUnsubscribed(currentDomain, "AssemblyLoad", "AssemblyLoad");
             EnsureUnsubscribed(currentDomain, "AssemblyResolve", "_AssemblyResolve");
             EnsureUnsubscribed(currentDomain, "DomainUnload", "_domainUnload");
@@ -346,7 +349,7 @@ namespace UnrealEngine.Runtime
             //EnsureUnsubscribed(currentDomain, "ReflectionOnlyAssemblyResolve", ???);
             EnsureUnsubscribed(currentDomain, "ResourceResolve", "_ResourceResolve");
             EnsureUnsubscribed(currentDomain, "TypeResolve", "_TypeResolve");
-            EnsureUnsubscribed(currentDomain, "UnhandledException", "_unhandledException");
+            EnsureUnsubscribed(currentDomain, "UnhandledException", "_unhandledException");*/
 
             stopwatch.Stop();
             SharedRuntimeState.Log("EnsureUnsubscribed took: " + stopwatch.Elapsed);
@@ -401,7 +404,16 @@ namespace UnrealEngine.Runtime
         {
             BindingFlags bindingFlags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.Instance;
             EventInfo eventInfo = type.GetEvent(eventName, bindingFlags);
+            if (eventInfo == null)
+            {
+                fieldInfo = null;
+                return null;
+            }
             fieldInfo = type.GetField(fieldName, bindingFlags);
+            if (fieldInfo == null)
+            {
+                return null;
+            }
             return fieldInfo.GetValue(obj) as Delegate;
         }
 
