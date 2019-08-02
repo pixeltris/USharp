@@ -689,6 +689,14 @@ namespace UnrealEngine.Runtime
             // This is eventually implemented in injected classes
         }
 
+        internal virtual void GetActorEyesViewPointInternal(out FVector OutLocation, out FRotator OutRotation)
+        {
+            // This is eventually implemented in injected classes
+
+            OutLocation = default(FVector);
+            OutRotation = default(FRotator);
+        }
+
         /// <summary>
         /// Looks for a given function name
         /// </summary>

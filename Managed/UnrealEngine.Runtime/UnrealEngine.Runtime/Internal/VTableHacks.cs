@@ -24,6 +24,7 @@ namespace UnrealEngine.Runtime
             PawnSetupPlayerInputComponent = AddVTableRedirect(pawnClass, "DummySetupPlayerInput", new PawnSetupPlayerInputComponentDel(OnPawnSetupPlayerInputComponent));
             ActorBeginPlay = AddVTableRedirect(actorClass, "DummyActorBeginPlay", new BeginPlayDel(OnActorBeginPlay));
             ActorEndPlay = AddVTableRedirect(actorClass, "DummyActorEndPlay", new EndPlayDel(OnActorEndPlay));
+            ActorGetActorEyesViewPoint = AddVTableRedirect(actorClass, "DummyActorGetActorEyesViewPoint", new ActorGetActorEyesViewPointDel(OnActorGetActorEyesViewPoint));
             ActorComponentBeginPlay = AddVTableRedirect(actorComponentClass, "DummyActorComponentBeginPlay", new BeginPlayDel(OnActorComponentBeginPlay));
             ActorComponentEndPlay = AddVTableRedirect(actorComponentClass, "DummyActorComponentEndPlay", new EndPlayDel(OnActorComponentEndPlay));
             PlayerControllerSetupInputComponent = AddVTableRedirect(playerControllerClass, "DummyPlayerControllerSetupInputComponent", new PlayerControllerSetupInputComponentDel(OnPlayerControllerSetupInputComponent));
@@ -100,6 +101,26 @@ namespace UnrealEngine.Runtime
             catch (Exception e)
             {
                 LogCallbackException(nameof(OnActorEndPlay), e);
+            }
+        }
+
+        public static FunctionRedirect ActorGetActorEyesViewPoint { get; private set; }
+        delegate void ActorGetActorEyesViewPointDel(IntPtr address, out FVector OutLocation, out FRotator OutRotation);
+        [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
+        public delegate void ActorGetActorEyesViewPointDel_ThisCall(IntPtr address, out FVector OutLocation, out FRotator OutRotation);
+        private static void OnActorGetActorEyesViewPoint(IntPtr address, out FVector OutLocation, out FRotator OutRotation)
+        {
+            try
+            {
+                UObject obj = GCHelper.Find(address);
+                obj.GetActorEyesViewPointInternal(out OutLocation, out OutRotation);
+            }
+            catch (Exception e)
+            {
+                OutLocation = default(FVector);
+                OutRotation = default(FRotator);
+
+                LogCallbackException(nameof(OnActorGetActorEyesViewPoint), e);
             }
         }
 

@@ -190,10 +190,8 @@ protected:
 	}
 };
 
-
-
 /////////////////////////////////////////////////////////////////////////////
-// AActor::BeginPlay
+// AActor::EndPlay
 /////////////////////////////////////////////////////////////////////////////
 
 typedef void(CSCONV *ActorEndPlayCallbackSig)(AActor* Obj, const EEndPlayReason::Type EndPlayReason);
@@ -229,6 +227,46 @@ public:
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override
 	{
 		FMsg::Logf("", 0, FName(TEXT("USharp")), ELogVerbosity::Log, TEXT("ADummyActorEndPlay3-EndPlay"));
+	}
+};
+
+/////////////////////////////////////////////////////////////////////////////
+// AActor::EndPlay
+/////////////////////////////////////////////////////////////////////////////
+
+typedef void(CSCONV *ActorGetActorEyesViewPointCallbackSig)(const AActor* Obj, FVector& OutLocation, FRotator& OutRotation);
+extern ActorGetActorEyesViewPointCallbackSig ActorGetActorEyesViewPointCallback;
+
+UCLASS(NotBlueprintable, NotBlueprintType)
+class USHARP_API ADummyActorGetActorEyesViewPoint1 : public AActor
+{
+	GENERATED_BODY()
+
+public:
+	virtual void GetActorEyesViewPoint(FVector& OutLocation, FRotator& OutRotation) const override
+	{
+        if (ActorGetActorEyesViewPointCallback != nullptr)
+		{
+			ActorGetActorEyesViewPointCallback(this, OutLocation, OutRotation);
+		}
+	}
+};
+
+UCLASS(NotBlueprintable, NotBlueprintType)
+class USHARP_API ADummyActorGetActorEyesViewPoint2 : public ADummyActorGetActorEyesViewPoint1
+{
+	GENERATED_BODY()
+};
+
+UCLASS(NotBlueprintable, NotBlueprintType)
+class USHARP_API ADummyActorGetActorEyesViewPoint3 : public ADummyActorGetActorEyesViewPoint2
+{
+	GENERATED_BODY()
+
+public:
+    virtual void GetActorEyesViewPoint(FVector& OutLocation, FRotator& OutRotation) const override
+	{
+		FMsg::Logf("", 0, FName(TEXT("USharp")), ELogVerbosity::Log, TEXT("ADummyActorGetActorEyesViewPoint3-GetActorEyesViewPoint"));
 	}
 };
 

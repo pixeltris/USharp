@@ -4,6 +4,7 @@ GetLifetimeReplicatedPropsCallbackSig GetLifetimeReplicatedPropsCallback = nullp
 SetupPlayerInputComponentCallbackSig SetupPlayerInputComponentCallback = nullptr;
 ActorBeginPlayCallbackSig ActorBeginPlayCallback = nullptr;
 ActorEndPlayCallbackSig ActorEndPlayCallback = nullptr;
+ActorGetActorEyesViewPointCallbackSig ActorGetActorEyesViewPointCallback = nullptr;
 ActorComponentBeginPlayCallbackSig ActorComponentBeginPlayCallback = nullptr;
 ActorComponentEndPlayCallbackSig ActorComponentEndPlayCallback = nullptr;
 PlayerControllerSetupInputComponentCallbackSig PlayerControllerSetupInputComponentCallback = nullptr;
@@ -19,6 +20,7 @@ CSEXPORT void CSCONV Export_VTableHacks_Set_VTableCallback(const FString& DummyN
 		DummyNames.Add(TEXT("DummySetupPlayerInput"), (void**)&SetupPlayerInputComponentCallback);
 		DummyNames.Add(TEXT("DummyActorBeginPlay"), (void**)&ActorBeginPlayCallback);
 		DummyNames.Add(TEXT("DummyActorEndPlay"), (void**)&ActorEndPlayCallback);
+		DummyNames.Add(TEXT("DummyActorGetActorEyesViewPoint"), (void**)&ActorGetActorEyesViewPointCallback);
 		DummyNames.Add(TEXT("DummyActorComponentBeginPlay"), (void**)&ActorComponentBeginPlayCallback);
 		DummyNames.Add(TEXT("DummyActorComponentEndPlay"), (void**)&ActorComponentEndPlayCallback);
 		DummyNames.Add(TEXT("DummyPlayerControllerSetupInputComponent"), (void**)&PlayerControllerSetupInputComponentCallback);
