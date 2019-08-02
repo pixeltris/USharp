@@ -697,6 +697,11 @@ namespace UnrealEngine.Runtime
             OutRotation = default(FRotator);
         }
 
+        internal virtual void InitInternal()
+        {
+            // This is eventually implemented in injected classes
+        }
+
         /// <summary>
         /// Looks for a given function name
         /// </summary>

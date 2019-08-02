@@ -429,3 +429,43 @@ protected:
 		FMsg::Logf("", 0, FName(TEXT("USharp")), ELogVerbosity::Log, TEXT("ADummyPlayerControllerUpdateRotation3-UpdateRotation"));
 	}
 };
+
+/////////////////////////////////////////////////////////////////////////////
+// UGameInstance::Init
+/////////////////////////////////////////////////////////////////////////////
+
+typedef void(CSCONV *GameInstanceInitCallbackSig)(UGameInstance* Obj);
+extern GameInstanceInitCallbackSig GameInstanceInitCallback;
+
+UCLASS(NotBlueprintable, NotBlueprintType)
+class USHARP_API UDummyGameInstanceInit1 : public UGameInstance
+{
+	GENERATED_BODY()
+
+public:
+	virtual void Init() override
+	{
+		if (GameInstanceInitCallback != nullptr)
+		{
+            GameInstanceInitCallback(this);
+		}
+	}
+};
+
+UCLASS(NotBlueprintable, NotBlueprintType)
+class USHARP_API UDummyGameInstanceInit2 : public UDummyGameInstanceInit1
+{
+	GENERATED_BODY()
+};
+
+UCLASS(NotBlueprintable, NotBlueprintType)
+class USHARP_API UDummyGameInstanceInit3 : public UDummyGameInstanceInit2
+{
+	GENERATED_BODY()
+
+public:
+	virtual void Init() override
+	{
+		FMsg::Logf("", 0, FName(TEXT("USharp")), ELogVerbosity::Log, TEXT("UDummyGameInstanceInit3-Init"));
+	}
+};

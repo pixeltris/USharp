@@ -19,6 +19,7 @@ namespace UnrealEngine.Runtime
             IntPtr actorClass = Runtime.Classes.AActor;
             IntPtr actorComponentClass = Runtime.Classes.UActorComponent;
             IntPtr playerControllerClass = Runtime.Classes.APlayerController;
+            IntPtr gameInstanceClass = Runtime.Classes.UGameInstance;
 
             GetLifetimeReplicatedProps = AddVTableRedirect(objectClass, "DummyRepProps", new GetLifetimeReplicatedPropsDel(OnGetLifetimeReplicatedProps));
             PawnSetupPlayerInputComponent = AddVTableRedirect(pawnClass, "DummySetupPlayerInput", new PawnSetupPlayerInputComponentDel(OnPawnSetupPlayerInputComponent));
@@ -29,6 +30,7 @@ namespace UnrealEngine.Runtime
             ActorComponentEndPlay = AddVTableRedirect(actorComponentClass, "DummyActorComponentEndPlay", new EndPlayDel(OnActorComponentEndPlay));
             PlayerControllerSetupInputComponent = AddVTableRedirect(playerControllerClass, "DummyPlayerControllerSetupInputComponent", new PlayerControllerSetupInputComponentDel(OnPlayerControllerSetupInputComponent));
             PlayerControllerUpdateRotation = AddVTableRedirect(playerControllerClass, "DummyPlayerControllerUpdateRotation", new PlayerControllerUpdateRotationDel(OnPlayerControllerUpdateRotation));
+            GameInstanceInit = AddVTableRedirect(gameInstanceClass, "DummyGameInstanceInit", new GameInstanceInitDel(OnGameInstanceInit));
         }
 
         private static void LogCallbackException(string functionName, Exception e)
@@ -183,6 +185,23 @@ namespace UnrealEngine.Runtime
             catch (Exception e)
             {
                 LogCallbackException(nameof(OnPlayerControllerUpdateRotation), e);
+            }
+        }
+
+        public static FunctionRedirect GameInstanceInit { get; private set; }
+        delegate void GameInstanceInitDel(IntPtr address);
+        [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
+        public delegate void GameInstanceInitDel_ThisCall(IntPtr address);
+        private static void OnGameInstanceInit(IntPtr address)
+        {
+            try
+            {
+                UObject obj = GCHelper.Find(address);
+                obj.InitInternal();
+            }
+            catch (Exception e)
+            {
+                LogCallbackException(nameof(OnGameInstanceInit), e);
             }
         }
 

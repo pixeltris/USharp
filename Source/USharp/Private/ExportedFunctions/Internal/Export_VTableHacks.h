@@ -9,6 +9,7 @@ ActorComponentBeginPlayCallbackSig ActorComponentBeginPlayCallback = nullptr;
 ActorComponentEndPlayCallbackSig ActorComponentEndPlayCallback = nullptr;
 PlayerControllerSetupInputComponentCallbackSig PlayerControllerSetupInputComponentCallback = nullptr;
 PlayerControllerUpdateRotationCallbackSig PlayerControllerUpdateRotationCallback = nullptr;
+GameInstanceInitCallbackSig GameInstanceInitCallback = nullptr;
 
 TMap<FString, void**> DummyNames;
 CSEXPORT void CSCONV Export_VTableHacks_Set_VTableCallback(const FString& DummyName, void* Callback)
@@ -25,6 +26,7 @@ CSEXPORT void CSCONV Export_VTableHacks_Set_VTableCallback(const FString& DummyN
 		DummyNames.Add(TEXT("DummyActorComponentEndPlay"), (void**)&ActorComponentEndPlayCallback);
 		DummyNames.Add(TEXT("DummyPlayerControllerSetupInputComponent"), (void**)&PlayerControllerSetupInputComponentCallback);
 		DummyNames.Add(TEXT("DummyPlayerControllerUpdateRotation"), (void**)&PlayerControllerUpdateRotationCallback);
+		DummyNames.Add(TEXT("DummyGameInstanceInit"), (void**)&GameInstanceInitCallback);
 	}
 	
 	void*** Element = DummyNames.Find(DummyName);
