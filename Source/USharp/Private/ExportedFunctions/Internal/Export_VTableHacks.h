@@ -10,6 +10,10 @@ ActorComponentEndPlayCallbackSig ActorComponentEndPlayCallback = nullptr;
 PlayerControllerSetupInputComponentCallbackSig PlayerControllerSetupInputComponentCallback = nullptr;
 PlayerControllerUpdateRotationCallbackSig PlayerControllerUpdateRotationCallback = nullptr;
 GameInstanceInitCallbackSig GameInstanceInitCallback = nullptr;
+SubsystemInitializeCallbackSig SubsystemInitializeCallback = nullptr;
+SubsystemInitializeCallbackSig EngineSubsystemInitializeCallback = nullptr;
+SubsystemDeinitializeCallbackSig SubsystemDeinitializeCallback = nullptr;
+SubsystemShouldCreateSubsystemCallbackSig SubsystemShouldCreateSubsystemCallback = nullptr;
 
 TMap<FString, void**> DummyNames;
 CSEXPORT void CSCONV Export_VTableHacks_Set_VTableCallback(const FString& DummyName, void* Callback)
@@ -27,6 +31,9 @@ CSEXPORT void CSCONV Export_VTableHacks_Set_VTableCallback(const FString& DummyN
 		DummyNames.Add(TEXT("DummyPlayerControllerSetupInputComponent"), (void**)&PlayerControllerSetupInputComponentCallback);
 		DummyNames.Add(TEXT("DummyPlayerControllerUpdateRotation"), (void**)&PlayerControllerUpdateRotationCallback);
 		DummyNames.Add(TEXT("DummyGameInstanceInit"), (void**)&GameInstanceInitCallback);
+		DummyNames.Add(TEXT("DummySubsystemInitialize"), (void**)&SubsystemInitializeCallback);
+		DummyNames.Add(TEXT("DummySubsystemDeinitialize"), (void**)&SubsystemDeinitializeCallback);
+		DummyNames.Add(TEXT("DummySubsystemShouldCreateSubsystem"), (void**)&SubsystemShouldCreateSubsystemCallback);
 	}
 	
 	void*** Element = DummyNames.Find(DummyName);

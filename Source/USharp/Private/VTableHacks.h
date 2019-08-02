@@ -469,3 +469,127 @@ public:
 		FMsg::Logf("", 0, FName(TEXT("USharp")), ELogVerbosity::Log, TEXT("UDummyGameInstanceInit3-Init"));
 	}
 };
+
+/////////////////////////////////////////////////////////////////////////////
+// USubsystem::Initialize
+/////////////////////////////////////////////////////////////////////////////
+
+typedef void(CSCONV *SubsystemInitializeCallbackSig)(USubsystem* Obj, FSubsystemCollectionBase& Collection);
+extern SubsystemInitializeCallbackSig SubsystemInitializeCallback;
+
+UCLASS(NotBlueprintable, NotBlueprintType)
+class USHARP_API UDummySubsystemInitialize1 : public USubsystem
+{
+	GENERATED_BODY()
+
+public:
+	virtual void Initialize(FSubsystemCollectionBase& Collection) override
+	{
+		if (SubsystemInitializeCallback != nullptr)
+		{
+            SubsystemInitializeCallback(this, Collection);
+		}
+	}
+};
+
+UCLASS(NotBlueprintable, NotBlueprintType)
+class USHARP_API UDummySubsystemInitialize2 : public UDummySubsystemInitialize1
+{
+	GENERATED_BODY()
+};
+
+UCLASS(NotBlueprintable, NotBlueprintType)
+class USHARP_API UDummySubsystemInitialize3 : public UDummySubsystemInitialize2
+{
+	GENERATED_BODY()
+
+public:
+	virtual void Initialize(FSubsystemCollectionBase& Collection) override
+	{
+		FMsg::Logf("", 0, FName(TEXT("USharp")), ELogVerbosity::Log, TEXT("UDummySubsystemInitialize3-Initialize"));
+	}
+};
+
+/////////////////////////////////////////////////////////////////////////////
+// USubsystem::Deinitialize
+/////////////////////////////////////////////////////////////////////////////
+
+typedef void(CSCONV *SubsystemDeinitializeCallbackSig)(USubsystem* Obj);
+extern SubsystemDeinitializeCallbackSig SubsystemDeinitializeCallback;
+
+UCLASS(NotBlueprintable, NotBlueprintType)
+class USHARP_API UDummySubsystemDeinitialize1 : public USubsystem
+{
+	GENERATED_BODY()
+
+public:
+	virtual void Deinitialize() override
+	{
+		if (SubsystemDeinitializeCallback != nullptr)
+		{
+            SubsystemDeinitializeCallback(this);
+		}
+	}
+};
+
+UCLASS(NotBlueprintable, NotBlueprintType)
+class USHARP_API UDummySubsystemDeinitialize2 : public UDummySubsystemDeinitialize1
+{
+	GENERATED_BODY()
+};
+
+UCLASS(NotBlueprintable, NotBlueprintType)
+class USHARP_API UDummySubsystemDeinitialize3 : public UDummySubsystemDeinitialize2
+{
+	GENERATED_BODY()
+
+public:
+	virtual void Deinitialize() override
+	{
+		FMsg::Logf("", 0, FName(TEXT("USharp")), ELogVerbosity::Log, TEXT("UDummySubsystemDeinitialize3-Deinitialize"));
+	}
+};
+
+/////////////////////////////////////////////////////////////////////////////
+// USubsystem::ShouldCreateSubsystem
+/////////////////////////////////////////////////////////////////////////////
+
+typedef bool(CSCONV *SubsystemShouldCreateSubsystemCallbackSig)(const USubsystem* Obj, UObject* Other);
+extern SubsystemShouldCreateSubsystemCallbackSig SubsystemShouldCreateSubsystemCallback;
+
+UCLASS(NotBlueprintable, NotBlueprintType)
+class USHARP_API UDummySubsystemShouldCreateSubsystem1 : public USubsystem
+{
+	GENERATED_BODY()
+
+public:
+	virtual bool ShouldCreateSubsystem(UObject* Other) const override
+	{
+		if (SubsystemShouldCreateSubsystemCallback != nullptr)
+		{
+            return SubsystemShouldCreateSubsystemCallback(this, Other);
+		}
+
+		return false;
+	}
+};
+
+UCLASS(NotBlueprintable, NotBlueprintType)
+class USHARP_API UDummySubsystemShouldCreateSubsystem2 : public UDummySubsystemShouldCreateSubsystem1
+{
+	GENERATED_BODY()
+};
+
+UCLASS(NotBlueprintable, NotBlueprintType)
+class USHARP_API UDummySubsystemShouldCreateSubsystem3 : public UDummySubsystemShouldCreateSubsystem2
+{
+	GENERATED_BODY()
+
+public:
+	virtual bool ShouldCreateSubsystem(UObject* Other) const override
+	{
+		FMsg::Logf("", 0, FName(TEXT("USharp")), ELogVerbosity::Log, TEXT("UDummySubsystemShouldCreateSubsystem3-ShouldCreateSubsystem"));
+
+		return false;
+	}
+};

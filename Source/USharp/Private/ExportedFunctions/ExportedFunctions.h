@@ -131,6 +131,9 @@
 #include "Export_UUSharpGameplayTask.h"
 #include "Export_IGameplayTaskOwnerInterface.h"
 
+#include "Export_UGameInstanceSubsystem.h"
+#include "Export_ULocalPlayerSubsystem.h"
+
 #include "Export_FKey.h"
 #include "Export_FInputBinding.h"
 #include "Export_FInputActionBinding.h"
@@ -289,7 +292,10 @@ CSEXPORT void CSCONV RegisterFunctions(RegisterFunc registerFunc)
 	Export_UGameplayTask(registerFunc);
 	Export_UUSharpGameplayTask(registerFunc);
 	Export_IGameplayTaskOwnerInterface(registerFunc);
-	
+
+	Export_UGameInstanceSubsystem(registerFunc);
+	Export_ULocalPlayerSubsystem(registerFunc);
+
 	Export_FKey(registerFunc);
 	Export_FInputBinding(registerFunc);
 	Export_FInputActionBinding(registerFunc);
