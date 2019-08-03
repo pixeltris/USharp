@@ -19,15 +19,22 @@ namespace UnrealEngine.Runtime
             IntPtr actorClass = Runtime.Classes.AActor;
             IntPtr actorComponentClass = Runtime.Classes.UActorComponent;
             IntPtr playerControllerClass = Runtime.Classes.APlayerController;
+            IntPtr gameInstanceClass = Runtime.Classes.UGameInstance;
+            IntPtr subsystemClass = Runtime.Classes.USubsystem;
 
             GetLifetimeReplicatedProps = AddVTableRedirect(objectClass, "DummyRepProps", new GetLifetimeReplicatedPropsDel(OnGetLifetimeReplicatedProps));
             PawnSetupPlayerInputComponent = AddVTableRedirect(pawnClass, "DummySetupPlayerInput", new PawnSetupPlayerInputComponentDel(OnPawnSetupPlayerInputComponent));
             ActorBeginPlay = AddVTableRedirect(actorClass, "DummyActorBeginPlay", new BeginPlayDel(OnActorBeginPlay));
             ActorEndPlay = AddVTableRedirect(actorClass, "DummyActorEndPlay", new EndPlayDel(OnActorEndPlay));
+            ActorGetActorEyesViewPoint = AddVTableRedirect(actorClass, "DummyActorGetActorEyesViewPoint", new ActorGetActorEyesViewPointDel(OnActorGetActorEyesViewPoint));
             ActorComponentBeginPlay = AddVTableRedirect(actorComponentClass, "DummyActorComponentBeginPlay", new BeginPlayDel(OnActorComponentBeginPlay));
             ActorComponentEndPlay = AddVTableRedirect(actorComponentClass, "DummyActorComponentEndPlay", new EndPlayDel(OnActorComponentEndPlay));
             PlayerControllerSetupInputComponent = AddVTableRedirect(playerControllerClass, "DummyPlayerControllerSetupInputComponent", new PlayerControllerSetupInputComponentDel(OnPlayerControllerSetupInputComponent));
             PlayerControllerUpdateRotation = AddVTableRedirect(playerControllerClass, "DummyPlayerControllerUpdateRotation", new PlayerControllerUpdateRotationDel(OnPlayerControllerUpdateRotation));
+            GameInstanceInit = AddVTableRedirect(gameInstanceClass, "DummyGameInstanceInit", new GameInstanceInitDel(OnGameInstanceInit));
+            SubsystemInitialize = AddVTableRedirect(subsystemClass, "DummySubsystemInitialize", new SubsystemInitializeDel(OnSubsystemInitialize));
+            SubsystemDeinitialize = AddVTableRedirect(subsystemClass, "DummySubsystemDeinitialize", new SubsystemDeinitializeDel(OnSubsystemDeinitialize));
+            SubsystemShouldCreateSubsystem = AddVTableRedirect(subsystemClass, "DummySubsystemShouldCreateSubsystem", new SubsystemShouldCreateSubsystemDel(OnSubsystemShouldCreateSubsystem));
         }
 
         private static void LogCallbackException(string functionName, Exception e)
@@ -103,6 +110,26 @@ namespace UnrealEngine.Runtime
             }
         }
 
+        public static FunctionRedirect ActorGetActorEyesViewPoint { get; private set; }
+        delegate void ActorGetActorEyesViewPointDel(IntPtr address, out FVector OutLocation, out FRotator OutRotation);
+        [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
+        public delegate void ActorGetActorEyesViewPointDel_ThisCall(IntPtr address, out FVector OutLocation, out FRotator OutRotation);
+        private static void OnActorGetActorEyesViewPoint(IntPtr address, out FVector OutLocation, out FRotator OutRotation)
+        {
+            try
+            {
+                UObject obj = GCHelper.Find(address);
+                obj.GetActorEyesViewPointInternal(out OutLocation, out OutRotation);
+            }
+            catch (Exception e)
+            {
+                OutLocation = default(FVector);
+                OutRotation = default(FRotator);
+
+                LogCallbackException(nameof(OnActorGetActorEyesViewPoint), e);
+            }
+        }
+
         public static FunctionRedirect ActorComponentBeginPlay { get; private set; }
         private static void OnActorComponentBeginPlay(IntPtr address)
         {
@@ -163,6 +190,81 @@ namespace UnrealEngine.Runtime
             {
                 LogCallbackException(nameof(OnPlayerControllerUpdateRotation), e);
             }
+        }
+
+        public static FunctionRedirect GameInstanceInit { get; private set; }
+        delegate void GameInstanceInitDel(IntPtr address);
+        [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
+        public delegate void GameInstanceInitDel_ThisCall(IntPtr address);
+        private static void OnGameInstanceInit(IntPtr address)
+        {
+            try
+            {
+                UObject obj = GCHelper.Find(address);
+                obj.InitInternal();
+            }
+            catch (Exception e)
+            {
+                LogCallbackException(nameof(OnGameInstanceInit), e);
+            }
+        }
+
+        public static FunctionRedirect SubsystemInitialize { get; private set; }
+        delegate void SubsystemInitializeDel(IntPtr address, IntPtr collectionAddress);
+        [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
+        public delegate void SubsystemInitializeDel_ThisCall(IntPtr address, IntPtr collectionAddress);
+        private static void OnSubsystemInitialize(IntPtr address, IntPtr collectionAddress)
+        {
+            try
+            {
+                USubsystem obj = GCHelper.Find<USubsystem>(address);
+                obj?.Initialize(collectionAddress);
+            }
+            catch (Exception e)
+            {
+                LogCallbackException(nameof(OnSubsystemInitialize), e);
+            }
+        }
+
+        public static FunctionRedirect SubsystemDeinitialize { get; private set; }
+        delegate void SubsystemDeinitializeDel(IntPtr address);
+        [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
+        public delegate void SubsystemDeinitializeDel_ThisCall(IntPtr address);
+        private static void OnSubsystemDeinitialize(IntPtr address)
+        {
+            try
+            {
+                USubsystem obj = GCHelper.Find<USubsystem>(address);
+                obj?.Deinitialize();
+            }
+            catch (Exception e)
+            {
+                LogCallbackException(nameof(OnSubsystemDeinitialize), e);
+            }
+        }
+
+        public static FunctionRedirect SubsystemShouldCreateSubsystem { get; private set; }
+        delegate bool SubsystemShouldCreateSubsystemDel(IntPtr address, IntPtr collectionAddress);
+        [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
+        public delegate bool SubsystemShouldCreateSubsystemDel_ThisCall(IntPtr address, IntPtr otherAddress);
+        private static bool OnSubsystemShouldCreateSubsystem(IntPtr address, IntPtr otherAddress)
+        {
+            try
+            {
+                USubsystem obj = GCHelper.Find<USubsystem>(address);
+                UObject otherObj = GCHelper.Find<UObject>(otherAddress);
+
+                if (obj != null)
+                {
+                    return obj.ShouldCreateSubsystem(otherObj);
+                }
+            }
+            catch (Exception e)
+            {
+                LogCallbackException(nameof(OnSubsystemShouldCreateSubsystem), e);
+            }
+
+            return false;
         }
 
         ////////////////////////////////////////////////////////////////////////////////////////

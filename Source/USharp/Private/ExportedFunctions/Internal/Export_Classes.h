@@ -278,6 +278,26 @@ CSEXPORT UClass* CSCONV Export_Classes_APlayerController()
     return APlayerController::StaticClass();
 }
 
+CSEXPORT UClass* CSCONV Export_Classes_UGameInstanceSubsystem()
+{
+    return UGameInstanceSubsystem::StaticClass();
+}
+
+CSEXPORT UClass* CSCONV Export_Classes_UEngineSubsystem()
+{
+    return UEngineSubsystem::StaticClass();
+}
+
+CSEXPORT UClass* CSCONV Export_Classes_ULocalPlayerSubsystem()
+{
+    return ULocalPlayerSubsystem::StaticClass();
+}
+
+CSEXPORT UClass* CSCONV Export_Classes_USubsystem()
+{
+    return USubsystem::StaticClass();
+}
+
 CSEXPORT UClass* CSCONV Export_Classes_USharpClass()
 {
 	return USharpClass::StaticClass();
@@ -350,6 +370,10 @@ CSEXPORT void CSCONV Export_Classes(RegisterFunc registerFunc)
 	REGISTER_FUNC(Export_Classes_UActorComponent);
 	REGISTER_FUNC(Export_Classes_APlayerController);
 
+	REGISTER_FUNC(Export_Classes_UGameInstanceSubsystem);
+    REGISTER_FUNC(Export_Classes_UEngineSubsystem);
+    REGISTER_FUNC(Export_Classes_ULocalPlayerSubsystem);
+    REGISTER_FUNC(Export_Classes_USubsystem);
 
 	// USharp
 	REGISTER_FUNC(Export_Classes_USharpClass);

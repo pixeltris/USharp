@@ -62,6 +62,9 @@
     <None Include="Internal\InjectedClasses\Engine\Latent\OnlineBlueprintCallProxyBase_Injected.cs" />
     <None Include="Internal\InjectedClasses\Engine\Latent\UUSharpOnlineBlueprintCallProxyBase.cs" />
     <None Include="Internal\InjectedClasses\Engine\Latent\BlueprintAsyncActionBase_Injected.cs" />
+    <Compile Include="Engine\Subsystems\UGameInstanceSubsystem.cs" />
+    <Compile Include="Engine\Subsystems\ULocalPlayerSubsystem.cs" />
+    <Compile Include="Engine\Subsystems\USubsystem.cs" />
     <Compile Include="GameplayTasks\FGameplayResourceSet.cs" />
     <Compile Include="InputCore\EKeys.cs" />
     <Compile Include="InputCore\FKey.cs" />
@@ -70,6 +73,7 @@
     <None Include="Internal\InjectedClasses\Engine\Engine_Injected.cs" />
     <None Include="Internal\InjectedClasses\Engine\GameplayStatics_Injected.cs" />
     <None Include="Internal\InjectedClasses\Engine\PlayerController_Injected.cs" />
+    <None Include="Internal\InjectedClasses\Engine\Subsystems\ULocalPlayerSubsystem_Extensions.cs" />
     <None Include="Internal\InjectedClasses\Engine\WorldContext_Extensions.cs" />
     <None Include="Internal\InjectedClasses\Engine\World_Injected.cs" />
     <None Include="Internal\InjectedClasses\Engine\InputComponent_Injected.cs" />
@@ -202,6 +206,7 @@
     <None Include="Internal\InjectedClasses\GameplayTasks\UUSharpGameplayTask.cs" />
     <None Include="Internal\InjectedClasses\GameplayTasks\GameplayTaskOwnerInterface_Extensions.cs" />
     <None Include="Internal\InjectedClasses\GameplayTasks\GameplayTasksEnums_Injected.cs" />
+    <None Include="Internal\InjectedClasses\Engine\Subsystems\UGameInstanceSubsystem_Extensions.cs" />
     <Compile Include="Internal\ManagedUnrealTypeInfo.Exception.cs" />
     <Compile Include="Internal\ManagedUnrealTypeInfo.Validation.cs" />
     <Compile Include="Internal\ManagedUnrealTypes.Builder.cs" />
@@ -221,7 +226,9 @@
     <Compile Include="Internal\Native\Native_UBlueprintAsyncActionBase.cs" />
     <Compile Include="Internal\Native\Native_UEngineTypes.cs" />
     <Compile Include="Internal\Native\Native_FPlatformMisc.cs" />
+    <Compile Include="Internal\Native\Native_UGameInstanceSubsystem.cs" />
     <Compile Include="Internal\Native\Native_UGameplayTask.cs" />
+    <Compile Include="Internal\Native\Native_ULocalPlayerSubsystem.cs" />
     <Compile Include="Internal\Native\Native_UMaterialInstanceDynamic.cs" />
     <Compile Include="Internal\Native\Native_UOnlineBlueprintCallProxyBase.cs" />
     <Compile Include="Internal\Native\Native_USceneComponent.cs" />

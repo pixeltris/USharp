@@ -13,6 +13,7 @@ namespace UnrealEngine.Runtime
         {
              "/Script/Engine.Actor:ReceiveBeginPlay",
              "/Script/Engine.Actor:ReceiveEndPlay",
+             "/Script/Engine.Actor:GetActorEyesViewPoint",
              "/Script/Engine.ActorComponent:ReceiveBeginPlay",
              "/Script/Engine.ActorComponent:ReceiveEndPlay",
 

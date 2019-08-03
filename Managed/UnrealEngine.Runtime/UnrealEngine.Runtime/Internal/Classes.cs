@@ -77,6 +77,11 @@ namespace UnrealEngine.Runtime
         public static IntPtr UActorComponent;
         public static IntPtr APlayerController;
 
+        public static IntPtr UGameInstanceSubsystem;
+        public static IntPtr UEngineSubsystem;
+        public static IntPtr ULocalPlayerSubsystem;
+        public static IntPtr USubsystem;
+
         // USharp
         public static IntPtr USharpClass;
         public static IntPtr USharpStruct;
@@ -160,6 +165,11 @@ namespace UnrealEngine.Runtime
             APawn = Native_Classes.APawn();
             UActorComponent = Native_Classes.UActorComponent();
             APlayerController = Native_Classes.APlayerController();
+
+            UGameInstanceSubsystem = Native_Classes.UGameInstanceSubsystem();
+            UEngineSubsystem = Native_Classes.UEngineSubsystem();
+            ULocalPlayerSubsystem = Native_Classes.ULocalPlayerSubsystem();
+            USubsystem = Native_Classes.USubsystem();
 
             // USharp
             USharpClass = Native_Classes.USharpClass();
