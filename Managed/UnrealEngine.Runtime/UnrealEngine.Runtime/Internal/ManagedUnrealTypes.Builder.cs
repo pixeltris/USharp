@@ -774,7 +774,7 @@ namespace UnrealEngine.Runtime
                             unrealClass = Runtime.Classes.USharpStruct;
                             break;
                         case EPropertyType.Interface:
-                            unrealClass = Runtime.Classes.UInterface;
+                            unrealClass = Runtime.Classes.UClass;
                             break;
                         case EPropertyType.Object:
                             unrealClass = Runtime.Classes.USharpClass;
