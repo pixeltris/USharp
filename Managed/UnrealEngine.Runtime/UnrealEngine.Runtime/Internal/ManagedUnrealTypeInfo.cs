@@ -1636,6 +1636,7 @@ namespace UnrealEngine.Runtime
                 functionInfo = cachedDummyFunctionInfo;
                 functionInfo.Flags = 0;
                 functionInfo.AdditionalFlags = 0;
+                functionInfo.OriginalName = null;
             }
 
             var attributes = originalMethod.GetCustomAttributes<ManagedUnrealAttributeBase>(false);
