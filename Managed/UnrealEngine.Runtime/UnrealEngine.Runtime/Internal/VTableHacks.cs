@@ -218,7 +218,12 @@ namespace UnrealEngine.Runtime
             try
             {
                 USubsystem obj = GCHelper.Find<USubsystem>(address);
-                obj?.Initialize(collectionAddress);
+
+                if (obj != null)
+                {
+                    FSubsystemCollection subsystemCollection = new FSubsystemCollection(collectionAddress);
+                    obj.Initialize(subsystemCollection);
+                }
             }
             catch (Exception e)
             {
