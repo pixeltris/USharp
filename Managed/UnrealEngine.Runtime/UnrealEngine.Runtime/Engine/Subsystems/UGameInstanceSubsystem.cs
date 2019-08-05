@@ -10,5 +10,6 @@ namespace UnrealEngine.Engine
     [UClass, UMetaPath("/Script/Engine.GameInstanceSubsystem")]
     public partial class UGameInstanceSubsystem : USubsystem
     {
+
     }
 }

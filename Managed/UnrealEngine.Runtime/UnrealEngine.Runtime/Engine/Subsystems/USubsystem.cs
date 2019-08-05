@@ -3,7 +3,7 @@ using UnrealEngine.Runtime;
 
 namespace UnrealEngine.Engine
 {
-    [UClass, UMetaPath("/Script/Engine.Subsystem")]
+    [UClass, Abstract, UMetaPath("/Script/Engine.Subsystem")]
     public partial class USubsystem : UObject
     {
         private VTableHacks.CachedFunctionRedirect<VTableHacks.SubsystemInitializeDel_ThisCall> subsystemInitializeRedirect;
@@ -29,11 +29,11 @@ namespace UnrealEngine.Engine
         /// <summary>
         /// Implement this for initialization of instances of the system.
         /// </summary>
-        public virtual void Initialize(IntPtr Collection/*FSubsystemCollectionBase& Collection*/)
+        public virtual void Initialize(FSubsystemCollection Collection)
         {
             subsystemInitializeRedirect
                 .Resolve(VTableHacks.SubsystemInitialize, this)
-                .Invoke(Address, Collection);
+                .Invoke(Address, Collection.Address);
         }
 
         /// <summary>

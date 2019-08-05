@@ -131,6 +131,7 @@
 #include "Export_UUSharpGameplayTask.h"
 #include "Export_IGameplayTaskOwnerInterface.h"
 
+#include "Export_FSubsystemCollection.h"
 #include "Export_UGameInstanceSubsystem.h"
 #include "Export_ULocalPlayerSubsystem.h"
 
@@ -293,6 +294,7 @@ CSEXPORT void CSCONV RegisterFunctions(RegisterFunc registerFunc)
 	Export_UUSharpGameplayTask(registerFunc);
 	Export_IGameplayTaskOwnerInterface(registerFunc);
 
+	Export_FSubsystemCollection(registerFunc);
 	Export_UGameInstanceSubsystem(registerFunc);
 	Export_ULocalPlayerSubsystem(registerFunc);
 

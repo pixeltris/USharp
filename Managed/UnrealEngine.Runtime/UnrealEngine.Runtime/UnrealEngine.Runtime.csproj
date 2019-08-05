@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>
@@ -62,6 +62,7 @@
     <None Include="Internal\InjectedClasses\Engine\Latent\OnlineBlueprintCallProxyBase_Injected.cs" />
     <None Include="Internal\InjectedClasses\Engine\Latent\UUSharpOnlineBlueprintCallProxyBase.cs" />
     <None Include="Internal\InjectedClasses\Engine\Latent\BlueprintAsyncActionBase_Injected.cs" />
+    <Compile Include="Engine\Subsystems\FSubsystemCollection.cs" />
     <Compile Include="Engine\Subsystems\UGameInstanceSubsystem.cs" />
     <Compile Include="Engine\Subsystems\ULocalPlayerSubsystem.cs" />
     <Compile Include="Engine\Subsystems\USubsystem.cs" />
@@ -220,6 +221,7 @@
     <Compile Include="Internal\Native\Native_FGameplayResourceSet.cs" />
     <Compile Include="Internal\Native\Native_FLatentActionManager.cs" />
     <Compile Include="Internal\Native\Native_FLatentResponse.cs" />
+    <Compile Include="Internal\Native\Native_FSubsystemCollection.cs" />
     <Compile Include="Internal\Native\Native_FUSharpLatentAction.cs" />
     <Compile Include="Internal\Native\Native_IGameplayTaskOwnerInterface.cs" />
     <Compile Include="Internal\Native\Native_UActorComponent.cs" />
