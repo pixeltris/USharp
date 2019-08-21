@@ -1004,6 +1004,16 @@ namespace UnrealEngine.Runtime
                     functionInfo.Flags |= EFunctionFlags.MulticastDelegate;
                 }
 
+                var attributes = type.GetCustomAttributes<ManagedUnrealAttributeBase>(false);
+                if (attributes != null)
+                {
+                    foreach (ManagedUnrealAttributeBase attribute in attributes)
+                    {
+                        attribute.ProcessFunction(functionInfo);
+                        attribute.ProcessFunctionParams(functionInfo);
+                    }
+                }
+
                 functionInfo.Name = GetUniqueMemberName(typeInfo, functionInfo, method);
                 functionInfo.Path = typeInfo.Path + ":" + functionInfo.Name;
                 typeInfo.Functions.Add(functionInfo);

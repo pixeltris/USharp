@@ -37,6 +37,9 @@ namespace UnrealEngine.Runtime
             "/Script/Engine.HitResult:Component",
             "/Script/Engine.HitResult:BoneName",
             "/Script/Engine.HitResult:MyBoneName",
+
+            "/Script/Engine.GameModeBase:GameSession",
+            "/Script/Engine.GameModeBase:GameState",
         };
         private static HashSet<string> forceHideProperties = new HashSet<string>();
 

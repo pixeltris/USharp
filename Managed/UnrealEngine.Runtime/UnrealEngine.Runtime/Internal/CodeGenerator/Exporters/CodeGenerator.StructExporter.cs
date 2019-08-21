@@ -44,6 +44,8 @@ namespace UnrealEngine.Runtime
                 { "/Script/GameplayTasks.EGameplayTaskState", ProjectDefinedType.Enum },
                 { "/Script/GameplayTasks.ETaskResourceOverlapPolicy", ProjectDefinedType.Enum },
                 { "/Script/GameplayTasks.GameplayResourceSet", ProjectDefinedType.BlittableStruct },
+
+                { "/Script/OnlineSubsystemUtils.BlueprintSessionResult", ProjectDefinedType.Struct },
             };
 
             foreach (Type type in System.Reflection.Assembly.GetExecutingAssembly().GetTypes())

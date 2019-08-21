@@ -151,6 +151,13 @@
 #include "Export_IConsoleVariable.h"
 #include "Export_IConsoleManager.h"
 
+#include "Export_FVariantData.h"
+#include "Export_FOnlineSession.h"
+#include "Export_FOnlineSessionSearchResult.h"
+#include "Export_FOnlineSessionSetting.h"
+#include "Export_FOnlineSessionSettings.h"
+#include "Export_FSessionUtils.h"
+
 #include "Export_GCHelper.h"
 #include "Export_FModulePaths.h"
 #include "Export_SizeOfStruct.h"
@@ -313,6 +320,13 @@ CSEXPORT void CSCONV RegisterFunctions(RegisterFunc registerFunc)
 	Export_IConsoleCommand(registerFunc);
 	Export_IConsoleVariable(registerFunc);
 	Export_IConsoleManager(registerFunc);
+	
+	Export_FVariantData(registerFunc);
+	Export_FOnlineSession(registerFunc);
+	Export_FOnlineSessionSearchResult(registerFunc);
+	Export_FOnlineSessionSetting(registerFunc);
+	Export_FOnlineSessionSettings(registerFunc);
+	Export_FSessionUtils(registerFunc);
 	
 	Export_GCHelper(registerFunc);
 	Export_FModulePaths(registerFunc);

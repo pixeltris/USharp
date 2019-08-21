@@ -31,6 +31,7 @@ namespace UnrealBuildTool.Rules
                     "USharp/Private/ExportedFunctions/Properties",
                     "USharp/Private/ExportedFunctions/Internal",
                     "USharp/Private/ExportedFunctions/ConsoleManager",
+                    "USharp/Private/ExportedFunctions/Online",
                     // ... add other private include paths required here ...
                 }
                 );
@@ -45,7 +46,8 @@ namespace UnrealBuildTool.Rules
                     "Slate",
                     "Projects",
                     "UMG",
-                    "GameplayTasks"
+                    "GameplayTasks",
+                    "OnlineSubsystem"
                     // ... add other public dependencies that you statically link with here ...
                 }
                 );

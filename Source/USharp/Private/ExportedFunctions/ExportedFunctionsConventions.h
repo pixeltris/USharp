@@ -116,6 +116,9 @@ typedef int32 csbool;
 #include "DesktopPlatformModule.h"
 #endif
 
+// For online subsystem
+#include "Online.h"
+
 template<typename T, typename U> constexpr int32 OffsetOf(U T::*member)
 {
 	return (int32)((char*)&((T*)nullptr->*member) - (char*)nullptr);

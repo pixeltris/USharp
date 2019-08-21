@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>
@@ -237,6 +237,12 @@
     <Compile Include="Internal\Native\Internal\Native_USharpSettings.cs" />
     <Compile Include="Internal\Native\Native_UUserWidget.cs" />
     <Compile Include="Internal\Native\Internal\Native_UUSharpAsyncActionBase.cs" />
+    <Compile Include="Internal\Native\Online\Native_FOnlineSession.cs" />
+    <Compile Include="Internal\Native\Online\Native_FOnlineSessionSearchResult.cs" />
+    <Compile Include="Internal\Native\Online\Native_FOnlineSessionSetting.cs" />
+    <Compile Include="Internal\Native\Online\Native_FOnlineSessionSettings.cs" />
+    <Compile Include="Internal\Native\Online\Native_FSessionUtils.cs" />
+    <Compile Include="Internal\Native\Online\Native_FVariantData.cs" />
     <Compile Include="Internal\NonBlittableAttribute.cs" />
     <Compile Include="Internal\ScriptDisassembler.cs" />
     <Compile Include="Internal\StaticVar.cs" />
@@ -527,6 +533,13 @@
     <Compile Include="Internal\Native\Native_UUserDefinedStruct.cs" />
     <Compile Include="Internal\Native\Properties\Native_UNumericProperty.cs" />
     <Compile Include="Internal\Native\Native_UWorld.cs" />
+    <Compile Include="Online\OnlineSubsystem\EOnlineDataAdvertisementType.cs" />
+    <Compile Include="Online\OnlineSubsystem\EOnlineKeyValuePairDataType.cs" />
+    <Compile Include="Online\OnlineSubsystem\EOnlineSessionState.cs" />
+    <Compile Include="Online\OnlineSubsystem\FBlueprintSessionResult.cs" />
+    <Compile Include="Online\OnlineSubsystem\FOnlineSessionSetting.cs" />
+    <Compile Include="Online\OnlineSubsystem\FSessionUtils.cs" />
+    <Compile Include="Online\OnlineSubsystem\FVariantData.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Internal\Extensions.cs" />
     <Compile Include="Core\TArrayUnsafe.cs" />
