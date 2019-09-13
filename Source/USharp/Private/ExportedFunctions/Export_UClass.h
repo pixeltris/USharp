@@ -428,9 +428,9 @@ CSEXPORT UClass* CSCONV Export_UClass_FindCommonBaseMany(const TArray<UClass*>& 
 	return UClass::FindCommonBase(InClasses);
 }
 
-CSEXPORT csbool CSCONV Export_UClass_IsFunctionImplementedInBlueprint(UClass* instance, const FName& InFunctionName)
+CSEXPORT csbool CSCONV Export_UClass_IsFunctionImplementedInScript(UClass* instance, const FName& InFunctionName)
 {
-	return instance->IsFunctionImplementedInBlueprint(InFunctionName);
+	return instance->IsFunctionImplementedInScript(InFunctionName);
 }
 
 CSEXPORT csbool CSCONV Export_UClass_HasProperty(UClass* instance, UProperty* InProperty)
@@ -554,7 +554,7 @@ CSEXPORT void CSCONV Export_UClass(RegisterFunc registerFunc)
 	REGISTER_FUNC(Export_UClass_PurgeClass);
 	REGISTER_FUNC(Export_UClass_FindCommonBase);
 	REGISTER_FUNC(Export_UClass_FindCommonBaseMany);
-	REGISTER_FUNC(Export_UClass_IsFunctionImplementedInBlueprint);
+	REGISTER_FUNC(Export_UClass_IsFunctionImplementedInScript);
 	REGISTER_FUNC(Export_UClass_HasProperty);
 	REGISTER_FUNC(Export_UClass_FindArchetype);
 	REGISTER_FUNC(Export_UClass_GetArchetypeForCDO);

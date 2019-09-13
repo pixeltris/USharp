@@ -32,8 +32,9 @@ namespace UnrealEngine.Runtime.Native
         public delegate void Del_GetModuleFilename(IntPtr instance, ref FName moduleName, ref FScriptArray result);
         // Delegates
         public delegate void Del_ModulesChanged(ref FName moduleName, EModuleChangeReason reason);
+        public delegate void Del_ProcessLoadedObjectsHandler(ref FName package, csbool canProcessNewlyLoadedObjects);
         public delegate void Del_Reg_ModulesChanged(IntPtr instance, Del_ModulesChanged handler, ref FDelegateHandle handle, csbool enable);
-        public delegate void Del_Reg_ProcessLoadedObjectsHandler(IntPtr instance, FSimpleMulticastDelegate handler, ref FDelegateHandle handle, csbool enable);
+        public delegate void Del_Reg_ProcessLoadedObjectsHandler(IntPtr instance, Del_ProcessLoadedObjectsHandler handler, ref FDelegateHandle handle, csbool enable);
 
         public static Del_Get Get;
         public static Del_AbandonModule AbandonModule;

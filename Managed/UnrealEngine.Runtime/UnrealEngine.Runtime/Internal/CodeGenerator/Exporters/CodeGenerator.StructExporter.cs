@@ -36,6 +36,9 @@ namespace UnrealEngine.Runtime
                 // IUserListEntry is an interface which implements another interface. Currently the code generator is broken for
                 // these situations (the Impl class doesn't include the entire interface chain). Blacklist this interface for now.
                 { "/Script/UMG.UserListEntry", ProjectDefinedType.Class },
+                { "/Script/UMG.UserListEntryLibrary", ProjectDefinedType.Class },
+                { "/Script/UMG.UserObjectListEntry", ProjectDefinedType.Class },
+                { "/Script/UMG.UserObjectListEntryLibrary", ProjectDefinedType.Class },
 
                 { "/Script/Engine.ETickingGroup", ProjectDefinedType.Enum },
                 { "/Script/Engine.TickFunction", ProjectDefinedType.Struct },

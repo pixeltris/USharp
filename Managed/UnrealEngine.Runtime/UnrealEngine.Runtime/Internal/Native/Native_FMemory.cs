@@ -27,9 +27,6 @@ namespace UnrealEngine.Runtime.Native
         public delegate void Del_Trim();
         public delegate void Del_SetupTLSCachesOnCurrentThread();
         public delegate void Del_ClearAndDisableTLSCachesOnCurrentThread();
-        public delegate IntPtr Del_GPUMalloc(ulong count, uint alignment);
-        public delegate IntPtr Del_GPURealloc(IntPtr original, ulong size, uint alignment);
-        public delegate IntPtr Del_GPUFree(IntPtr original);
         public delegate void Del_TestMemory();
         public delegate void Del_EnablePurgatoryTests();
         public delegate csbool Del_PageProtect(IntPtr ptr, IntPtr size, csbool canRead, csbool canWrite);
@@ -54,9 +51,6 @@ namespace UnrealEngine.Runtime.Native
         public static Del_Trim Trim;
         public static Del_SetupTLSCachesOnCurrentThread SetupTLSCachesOnCurrentThread;
         public static Del_ClearAndDisableTLSCachesOnCurrentThread ClearAndDisableTLSCachesOnCurrentThread;
-        public static Del_GPUMalloc GPUMalloc;
-        public static Del_GPURealloc GPURealloc;
-        public static Del_GPUFree GPUFree;
         public static Del_TestMemory TestMemory;
         public static Del_EnablePurgatoryTests EnablePurgatoryTests;
         public static Del_PageProtect PageProtect;

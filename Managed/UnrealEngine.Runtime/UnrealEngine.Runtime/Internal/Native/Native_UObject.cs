@@ -100,7 +100,7 @@ namespace UnrealEngine.Runtime.Native
         public delegate void Del_GetArchetypeInstances(IntPtr instance, IntPtr instances);
         public delegate void Del_InstanceSubobjectTemplates(IntPtr instance, IntPtr instanceGraph);
         public delegate void Del_ProcessEvent(IntPtr instance, IntPtr function, IntPtr parms);
-        public delegate int Del_GetFunctionCallspace(IntPtr instance, IntPtr function, IntPtr parameters, IntPtr stack);
+        public delegate int Del_GetFunctionCallspace(IntPtr instance, IntPtr function, IntPtr stack);
         public delegate csbool Del_CallRemoteFunction(IntPtr instance, IntPtr function, IntPtr parms, IntPtr outParms, IntPtr stack);
         public delegate csbool Del_CallFunctionByNameWithArguments(IntPtr instance, ref FScriptArray cmd, IntPtr ar, IntPtr executor, csbool forceCallWithNonExec);
         public delegate void Del_CallFunction(IntPtr instance, IntPtr stack, IntPtr result, IntPtr function);

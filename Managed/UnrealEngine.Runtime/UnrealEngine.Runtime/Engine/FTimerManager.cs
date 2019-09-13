@@ -415,18 +415,6 @@ namespace UnrealEngine.Engine
             Native_FTimerManager.ListTimers(Address);
         }
 
-        // TODO: Change the parameter to use a concrete type UGameInstance
-        /// <summary>
-        /// Used by the UGameInstance constructor to set this manager's owning game instance.
-        /// </summary>
-        public void SetGameInstance(UObject gameInstance)
-        {
-            if (gameInstance != null && gameInstance.GetClass().Address == Classes.UGameInstance)
-            {
-                Native_FTimerManager.SetGameInstance(Address, gameInstance.Address);
-            }
-        }
-
         private static bool ValidateFunction(UObject obj, FName functionName)
         {
             // Same validation that is in UKismetSystemLibrary::K2_SetTimer

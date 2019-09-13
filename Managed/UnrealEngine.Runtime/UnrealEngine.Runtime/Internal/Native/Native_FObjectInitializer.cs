@@ -13,7 +13,7 @@ namespace UnrealEngine.Runtime.Native
         public delegate IntPtr Del_GetObj(IntPtr instance);
         public delegate IntPtr Del_GetClass(IntPtr instance);
         public delegate IntPtr Del_CreateEditorOnlyDefaultSubobject(IntPtr instance, IntPtr outer, ref FName subobjectName, IntPtr returnType, csbool transient);
-        public delegate IntPtr Del_CreateDefaultSubobject(IntPtr instance, IntPtr outer, ref FName subobjectFName, IntPtr returnType,  IntPtr classToCreateByDefault, csbool isRequired, csbool isAbstract, csbool isTransient);
+        public delegate IntPtr Del_CreateDefaultSubobject(IntPtr instance, IntPtr outer, ref FName subobjectFName, IntPtr returnType,  IntPtr classToCreateByDefault, csbool isRequired, csbool isTransient);
         public delegate IntPtr Del_DoNotCreateDefaultSubobject(IntPtr instance, ref FName subobjectName);
         public delegate IntPtr Del_DoNotCreateDefaultSubobjectStr(IntPtr instance, ref FScriptArray subobjectName);
         public delegate csbool Del_IslegalOverride(IntPtr instance, ref FName componentName, IntPtr derivedComponentClass, IntPtr baseComponentClass);

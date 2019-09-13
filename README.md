@@ -1,6 +1,6 @@
 # USharp
 
-USharp is a plugin for Unreal Engine (4.22) which allows for programming in C#.
+USharp is a plugin for Unreal Engine (4.23) which allows for programming in C#.
 
 This project adapts various parts of mono-ue https://mono-ue.github.io/ and is roughly similar but has support for Mono, .NET Framework and .NET Core. The C++ code used is mostly PInvoke methods and the equivalent mono-ue backend code is [mostly written in C#](https://github.com/pixeltris/USharp/tree/master/Managed/UnrealEngine.Runtime/UnrealEngine.Runtime/Internal).
 

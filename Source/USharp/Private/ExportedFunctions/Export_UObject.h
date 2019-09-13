@@ -468,9 +468,9 @@ CSEXPORT void CSCONV Export_UObject_ProcessEvent(UObject* instance, UFunction* F
 	instance->ProcessEvent(Function, Parms);
 }
 
-CSEXPORT int32 CSCONV Export_UObject_GetFunctionCallspace(UObject* instance, UFunction* Function, void* Parameters, FFrame* Stack)
+CSEXPORT int32 CSCONV Export_UObject_GetFunctionCallspace(UObject* instance, UFunction* Function, FFrame* Stack)
 {
-	return instance->GetFunctionCallspace(Function, Parameters, Stack);
+	return instance->GetFunctionCallspace(Function, Stack);
 }
 
 CSEXPORT csbool CSCONV Export_UObject_CallRemoteFunction(UObject* instance, UFunction* Function, void* Parms, struct FOutParmRec* OutParms, FFrame* Stack)

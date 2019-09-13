@@ -163,6 +163,11 @@ namespace UnrealEngine.Runtime
                 {
                     enumValue.Name = char.ToUpperInvariant(enumValue.Name[0]) + enumValue.Name.Substring(1);
                 }
+
+                if (char.IsDigit(enumValue.Name[0]))
+                {
+                    enumValue.Name = "_" + enumValue.Name;
+                }
             }
 
             // Update the enum prefix cache for lookup with default function params

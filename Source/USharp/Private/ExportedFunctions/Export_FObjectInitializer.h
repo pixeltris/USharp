@@ -18,9 +18,9 @@ CSEXPORT UObject* CSCONV Export_FObjectInitializer_CreateEditorOnlyDefaultSubobj
 	return instance->CreateEditorOnlyDefaultSubobject(Outer, SubobjectName, ReturnType, !!bTransient);
 }
 
-CSEXPORT UObject* CSCONV Export_FObjectInitializer_CreateDefaultSubobject(FObjectInitializer* instance, UObject* Outer, const FName& SubobjectFName, UClass* ReturnType, UClass* ClassToCreateByDefault, csbool bIsRequired, csbool bAbstract, csbool bIsTransient)
+CSEXPORT UObject* CSCONV Export_FObjectInitializer_CreateDefaultSubobject(FObjectInitializer* instance, UObject* Outer, const FName& SubobjectFName, UClass* ReturnType, UClass* ClassToCreateByDefault, csbool bIsRequired, csbool bIsTransient)
 {
-	return instance->CreateDefaultSubobject(Outer, SubobjectFName, ReturnType, ClassToCreateByDefault, !!bIsRequired, !!bAbstract, !!bIsTransient);
+	return instance->CreateDefaultSubobject(Outer, SubobjectFName, ReturnType, ClassToCreateByDefault, !!bIsRequired, !!bIsTransient);
 }
 
 CSEXPORT FObjectInitializer const& CSCONV Export_FObjectInitializer_DoNotCreateDefaultSubobject(FObjectInitializer* instance, const FName& SubobjectName)

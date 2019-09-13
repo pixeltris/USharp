@@ -93,7 +93,7 @@ namespace UnrealEngine.Runtime.Native
         public delegate void Del_PurgeClass(IntPtr instance, csbool recompilingOnLoad);
         public delegate IntPtr Del_FindCommonBase(IntPtr inClassA, IntPtr inClassB);
         public delegate IntPtr Del_FindCommonBaseMany(IntPtr inClasses);
-        public delegate csbool Del_IsFunctionImplementedInBlueprint(IntPtr instance, ref FName inFunctionName);
+        public delegate csbool Del_IsFunctionImplementedInScript(IntPtr instance, ref FName inFunctionName);
         public delegate csbool Del_HasProperty(IntPtr instance, IntPtr inProperty);
         public delegate IntPtr Del_FindArchetype(IntPtr instance, IntPtr archetypeClass, ref FName archetypeName);
         public delegate IntPtr Del_GetArchetypeForCDO(IntPtr instance);
@@ -185,7 +185,7 @@ namespace UnrealEngine.Runtime.Native
         public static Del_PurgeClass PurgeClass;
         public static Del_FindCommonBase FindCommonBase;
         public static Del_FindCommonBaseMany FindCommonBaseMany;
-        public static Del_IsFunctionImplementedInBlueprint IsFunctionImplementedInBlueprint;
+        public static Del_IsFunctionImplementedInScript IsFunctionImplementedInScript;
         public static Del_HasProperty HasProperty;
         public static Del_FindArchetype FindArchetype;
         public static Del_GetArchetypeForCDO GetArchetypeForCDO;

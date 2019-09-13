@@ -132,7 +132,7 @@ namespace UnrealEngine.Runtime
             where TClassToConstructByDefault : UObject
         {
             return CreateDefaultSubobject(outer, subobjectName, UClass.GetClass<TReturnType>(), 
-                UClass.GetClass<TClassToConstructByDefault>(), true, false, transient) as TReturnType;
+                UClass.GetClass<TClassToConstructByDefault>(), true, transient) as TReturnType;
         }
 
         /// <summary>
@@ -143,10 +143,9 @@ namespace UnrealEngine.Runtime
         /// <param name="returnType">class of return type, all overrides must be of this type</param>
         /// <param name="classToCreateByDefault">if the derived class has not overridden, create a component of this type (default is TReturnType)</param>
         /// <param name="isRequired">true if the component is required and will always be created even if DoNotCreateDefaultSubobject was sepcified.</param>
-        /// <param name="isAbstract"></param>
         /// <param name="isTransient">true if the component is being assigned to a transient property</param>
         /// <returns></returns>
-        public UObject CreateDefaultSubobject(UObject outer, FName subobjectFName, UClass returnType, UClass classToCreateByDefault, bool isRequired, bool isAbstract, bool isTransient)
+        public UObject CreateDefaultSubobject(UObject outer, FName subobjectFName, UClass returnType, UClass classToCreateByDefault, bool isRequired, bool isTransient)
         {
             return GCHelper.Find(Native_FObjectInitializer.CreateDefaultSubobject(NativeObjectInitializer,
                 outer == null ? IntPtr.Zero : outer.Address,
@@ -154,7 +153,6 @@ namespace UnrealEngine.Runtime
                 returnType == null ? IntPtr.Zero : returnType.Address,
                 classToCreateByDefault == null ? IntPtr.Zero : classToCreateByDefault.Address,
                 isRequired,
-                isAbstract,
                 isTransient));
         }
 

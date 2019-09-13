@@ -48,6 +48,8 @@ namespace UnrealEngine.Runtime.Native
         public static Del_StaticClass USoftObjectProperty;
         public static Del_StaticClass UDelegateProperty;
         public static Del_StaticClass UMulticastDelegateProperty;
+        public static Del_StaticClass UMulticastInlineDelegateProperty;
+        public static Del_StaticClass UMulticastSparseDelegateProperty;
         public static Del_StaticClass UArrayProperty;
         public static Del_StaticClass UMapProperty;
         public static Del_StaticClass USetProperty;

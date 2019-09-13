@@ -255,46 +255,6 @@ namespace UnrealEngine.Runtime
         }
 
         /// <summary>
-        /// Malloc for GPU mapped memory on UMA systems (XB1/PS4/etc)
-        /// It is expected that the RHI on platforms that use these knows what to 
-        /// do with the memory and avoids unnecessary copies into GPU resources, etc.
-        /// </summary>
-        public static IntPtr GPUMalloc(int count, uint alignment = DEFAULT_ALIGNMENT)
-        {
-            return Native_FMemory.GPUMalloc((ulong)count, alignment);
-        }
-
-        public static IntPtr GPUMalloc(uint count, uint alignment = DEFAULT_ALIGNMENT)
-        {
-            return Native_FMemory.GPUMalloc(count, alignment);
-        }
-
-        public static IntPtr GPUMalloc(ulong count, uint alignment = DEFAULT_ALIGNMENT)
-        {
-            return Native_FMemory.GPUMalloc(count, alignment);
-        }
-
-        public static IntPtr GPURealloc(IntPtr original, int size, uint alignment = DEFAULT_ALIGNMENT)
-        {
-            return Native_FMemory.GPURealloc(original, (ulong)size, alignment);
-        }
-
-        public static IntPtr GPURealloc(IntPtr original, uint size, uint alignment = DEFAULT_ALIGNMENT)
-        {
-            return Native_FMemory.GPURealloc(original, size, alignment);
-        }
-
-        public static IntPtr GPURealloc(IntPtr original, ulong size, uint alignment = DEFAULT_ALIGNMENT)
-        {
-            return Native_FMemory.GPURealloc(original, size, alignment);
-        }
-
-        public static IntPtr GPUFree(IntPtr original)
-        {
-            return Native_FMemory.GPUFree(original);
-        }
-
-        /// <summary>
         /// A helper function that will perform a series of random heap allocations to test
         /// the internal validity of the heap. Note, this function will "leak" memory, but another call
         /// will clean up previously allocated blocks before returning. This will help to A/B testing

@@ -27,7 +27,6 @@ namespace UnrealEngine.Runtime.Native
         public delegate csbool Del_HasBeenTickedThisFrame(IntPtr instance);
         public delegate void Del_K2_FindDynamicTimerHandle(IntPtr instance, ref FScriptDelegate dynamicDelegate, ref FTimerHandle result);
         public delegate void Del_ListTimers(IntPtr instance);
-        public delegate void Del_SetGameInstance(IntPtr instance, IntPtr gameInstance);
 
         public static Del_Tick Tick;
         public static Del_SetTimer SetTimer;
@@ -46,6 +45,5 @@ namespace UnrealEngine.Runtime.Native
         public static Del_HasBeenTickedThisFrame HasBeenTickedThisFrame;
         public static Del_K2_FindDynamicTimerHandle K2_FindDynamicTimerHandle;
         public static Del_ListTimers ListTimers;
-        public static Del_SetGameInstance SetGameInstance;
     }
 }

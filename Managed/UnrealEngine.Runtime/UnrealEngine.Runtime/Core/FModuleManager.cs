@@ -301,7 +301,25 @@ namespace UnrealEngine.Runtime
         /// Multicast delegate called to process any new loaded objects.
         /// </summary>
         public static ProcessLoadedObjectsHandler ProcessLoadedObjects = new ProcessLoadedObjectsHandler();
-        public class ProcessLoadedObjectsHandler : NativeSimpleMulticastDelegate<Native_FModuleManager.Del_Reg_ProcessLoadedObjectsHandler> { }
+        public class ProcessLoadedObjectsHandler : NativeMulticastDelegate<Native_FModuleManager.Del_ProcessLoadedObjectsHandler, Native_FModuleManager.Del_Reg_ProcessLoadedObjectsHandler, ProcessLoadedObjectsHandler.Signature>
+        {
+            public delegate void Signature(FName package, bool canProcessNewlyLoadedObjects);
+            private void NativeCallback(ref FName package, csbool canProcessNewlyLoadedObjects)
+            {
+                try
+                {
+                    var evnt = managed.Delegate;
+                    if (evnt != null)
+                    {
+                        evnt(package, canProcessNewlyLoadedObjects);
+                    }
+                }
+                catch (Exception e)
+                {
+                    FMessage.LogDelegateException(e);
+                }
+            }
+        }
     }
 
     /// <summary>

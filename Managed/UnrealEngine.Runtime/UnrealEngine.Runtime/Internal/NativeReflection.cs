@@ -1115,7 +1115,8 @@ namespace UnrealEngine.Runtime
                 case EPropertyType.SoftObject: return Classes.USoftObjectProperty;
 
                 case EPropertyType.Delegate: return Classes.UDelegateProperty;
-                case EPropertyType.MulticastDelegate: return Classes.UMulticastDelegateProperty;
+                //case EPropertyType.MulticastDelegate: return Classes.UMulticastDelegateProperty;
+                case EPropertyType.MulticastDelegate: return Classes.UMulticastInlineDelegateProperty;
 
                 case EPropertyType.Array: return Classes.UArrayProperty;
                 case EPropertyType.Map: return Classes.UMapProperty;

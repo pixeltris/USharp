@@ -183,6 +183,16 @@ CSEXPORT UClass* CSCONV Export_Classes_UMulticastDelegateProperty()
 	return UMulticastDelegateProperty::StaticClass();
 }
 
+CSEXPORT UClass* CSCONV Export_Classes_UMulticastInlineDelegateProperty()
+{
+	return UMulticastInlineDelegateProperty::StaticClass();
+}
+
+CSEXPORT UClass* CSCONV Export_Classes_UMulticastSparseDelegateProperty()
+{
+	return UMulticastSparseDelegateProperty::StaticClass();
+}
+
 CSEXPORT UClass* CSCONV Export_Classes_UArrayProperty()
 {
 	return UArrayProperty::StaticClass();
@@ -348,6 +358,8 @@ CSEXPORT void CSCONV Export_Classes(RegisterFunc registerFunc)
 	REGISTER_FUNC(Export_Classes_USoftObjectProperty);
 	REGISTER_FUNC(Export_Classes_UDelegateProperty);
 	REGISTER_FUNC(Export_Classes_UMulticastDelegateProperty);
+	REGISTER_FUNC(Export_Classes_UMulticastInlineDelegateProperty);
+	REGISTER_FUNC(Export_Classes_UMulticastSparseDelegateProperty);
 	REGISTER_FUNC(Export_Classes_UArrayProperty);
 	REGISTER_FUNC(Export_Classes_UMapProperty);
 	REGISTER_FUNC(Export_Classes_USetProperty);

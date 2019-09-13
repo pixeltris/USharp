@@ -362,11 +362,6 @@ CSEXPORT int32 CSCONV Export_SizeOfStruct_SizeOf_FEndPhysicsTickFunction()
 	return sizeof(FEndPhysicsTickFunction);
 }
 
-CSEXPORT int32 CSCONV Export_SizeOfStruct_SizeOf_FPrimitiveComponentPostPhysicsTickFunction()
-{
-	return sizeof(FPrimitiveComponentPostPhysicsTickFunction);
-}
-
 CSEXPORT int32 CSCONV Export_SizeOfStruct_SizeOf_FSkeletalMeshComponentClothTickFunction()
 {
 	return sizeof(FSkeletalMeshComponentClothTickFunction);
@@ -459,7 +454,6 @@ CSEXPORT void CSCONV Export_SizeOfStruct(RegisterFunc registerFunc)
 	REGISTER_FUNC(Export_SizeOfStruct_SizeOf_FActorTickFunction);
 	REGISTER_FUNC(Export_SizeOfStruct_SizeOf_FCharacterMovementComponentPostPhysicsTickFunction);
 	REGISTER_FUNC(Export_SizeOfStruct_SizeOf_FEndPhysicsTickFunction);
-	REGISTER_FUNC(Export_SizeOfStruct_SizeOf_FPrimitiveComponentPostPhysicsTickFunction);
 	REGISTER_FUNC(Export_SizeOfStruct_SizeOf_FSkeletalMeshComponentClothTickFunction);
 	REGISTER_FUNC(Export_SizeOfStruct_SizeOf_FSkeletalMeshComponentEndPhysicsTickFunction);
 	REGISTER_FUNC(Export_SizeOfStruct_SizeOf_FStartPhysicsTickFunction);

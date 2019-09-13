@@ -112,7 +112,6 @@ namespace UnrealEngine.Runtime
                 Native_SizeOfStruct.SizeOf_FActorTickFunction,
                 Native_SizeOfStruct.SizeOf_FCharacterMovementComponentPostPhysicsTickFunction,
                 Native_SizeOfStruct.SizeOf_FEndPhysicsTickFunction,
-                Native_SizeOfStruct.SizeOf_FPrimitiveComponentPostPhysicsTickFunction,
                 Native_SizeOfStruct.SizeOf_FSkeletalMeshComponentClothTickFunction,
                 Native_SizeOfStruct.SizeOf_FSkeletalMeshComponentEndPhysicsTickFunction,
                 Native_SizeOfStruct.SizeOf_FStartPhysicsTickFunction

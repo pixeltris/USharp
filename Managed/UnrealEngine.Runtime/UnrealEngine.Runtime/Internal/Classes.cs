@@ -54,6 +54,8 @@ namespace UnrealEngine.Runtime
         public static IntPtr USoftObjectProperty;
         public static IntPtr UDelegateProperty;
         public static IntPtr UMulticastDelegateProperty;
+        public static IntPtr UMulticastInlineDelegateProperty;
+        public static IntPtr UMulticastSparseDelegateProperty;
         public static IntPtr UArrayProperty;
         public static IntPtr UMapProperty;
         public static IntPtr USetProperty;
@@ -143,6 +145,8 @@ namespace UnrealEngine.Runtime
             USoftObjectProperty = Native_Classes.USoftObjectProperty();
             UDelegateProperty = Native_Classes.UDelegateProperty();
             UMulticastDelegateProperty = Native_Classes.UMulticastDelegateProperty();
+            UMulticastInlineDelegateProperty = Native_Classes.UMulticastInlineDelegateProperty();
+            UMulticastSparseDelegateProperty = Native_Classes.UMulticastSparseDelegateProperty();
             UArrayProperty = Native_Classes.UArrayProperty();
             UMapProperty = Native_Classes.UMapProperty();
             USetProperty = Native_Classes.USetProperty();

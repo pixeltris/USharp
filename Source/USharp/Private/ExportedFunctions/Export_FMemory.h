@@ -88,21 +88,6 @@ CSEXPORT void CSCONV Export_FMemory_ClearAndDisableTLSCachesOnCurrentThread()
 	FMemory::ClearAndDisableTLSCachesOnCurrentThread();
 }
 
-CSEXPORT void* CSCONV Export_FMemory_GPUMalloc(uint64 Count, uint32 Alignment)
-{	
-	return FMemory::GPUMalloc(Count, Alignment);
-}
-
-CSEXPORT void* CSCONV Export_FMemory_GPURealloc(void* Original, uint64 Count, uint32 Alignment)
-{
-	return FMemory::GPURealloc(Original, Count, Alignment);
-}
-
-CSEXPORT void CSCONV Export_FMemory_GPUFree(void* Original)
-{
-	FMemory::GPUFree(Original);
-}
-
 CSEXPORT void CSCONV Export_FMemory_TestMemory()
 {
 	FMemory::TestMemory();
@@ -150,9 +135,6 @@ CSEXPORT void CSCONV Export_FMemory(RegisterFunc registerFunc)
 	REGISTER_FUNC(Export_FMemory_Trim);
 	REGISTER_FUNC(Export_FMemory_SetupTLSCachesOnCurrentThread);
 	REGISTER_FUNC(Export_FMemory_ClearAndDisableTLSCachesOnCurrentThread);
-	REGISTER_FUNC(Export_FMemory_GPUMalloc);
-	REGISTER_FUNC(Export_FMemory_GPURealloc);
-	REGISTER_FUNC(Export_FMemory_GPUFree);
 	REGISTER_FUNC(Export_FMemory_TestMemory);
 	REGISTER_FUNC(Export_FMemory_EnablePurgatoryTests);
 	REGISTER_FUNC(Export_FMemory_PageProtect);

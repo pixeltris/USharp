@@ -225,13 +225,11 @@ namespace UnrealBuildTool.Rules
                     }
                 }
                 
-                switch (Target.Platform)
+                if (Target.Platform == UnrealTargetPlatform.Android)
                 {
-                    case UnrealTargetPlatform.Android:
-                        // Mono is currently the only supported runtime on Android. Ensure that it gets packaged.
-                        copyMono = true;
-                        copyCoreCLR = false;
-                        break;
+                    // Mono is currently the only supported runtime on Android. Ensure that it gets packaged.
+                    copyMono = true;
+                    copyCoreCLR = false;
                 }
                 
                 if (copyMono && !Directory.Exists(sourceMonoDir))

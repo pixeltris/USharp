@@ -134,10 +134,13 @@ CSEXPORT void CSCONV Export_FModuleManager_Reg_ModulesChanged(FModuleManager* in
 		});
 }
 
-CSEXPORT void CSCONV Export_FModuleManager_Reg_ProcessLoadedObjectsHandler(FModuleManager* instance, void(CSCONV *handler)(), FDelegateHandle* handle, csbool enable)
+CSEXPORT void CSCONV Export_FModuleManager_Reg_ProcessLoadedObjectsHandler(FModuleManager* instance, void(CSCONV *handler)(const FName&, csbool), FDelegateHandle* handle, csbool enable)
 {
-	//REGISTER_DELEGATE(FModuleManager::Get().OnProcessLoadedObjectsCallback());
-	REGISTER_LAMBDA_SIMPLE(FModuleManager::Get().OnProcessLoadedObjectsCallback());
+	REGISTER_LAMBDA(FModuleManager::Get().OnProcessLoadedObjectsCallback(),
+		[handler](FName Package, bool bCanProcessNewlyLoadedObjects)
+		{
+			handler(Package, bCanProcessNewlyLoadedObjects);
+		});
 }
 
 CSEXPORT void CSCONV Export_FModuleManager(RegisterFunc registerFunc)

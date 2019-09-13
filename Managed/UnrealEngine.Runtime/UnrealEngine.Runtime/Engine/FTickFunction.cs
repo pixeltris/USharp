@@ -421,7 +421,6 @@ namespace UnrealEngine.Engine
         FActorTickFunction,
         FCharacterMovementComponentPostPhysicsTickFunction,
         FEndPhysicsTickFunction,
-        FPrimitiveComponentPostPhysicsTickFunction,
         FSkeletalMeshComponentClothTickFunction,
         FSkeletalMeshComponentEndPhysicsTickFunction,
         FStartPhysicsTickFunction
