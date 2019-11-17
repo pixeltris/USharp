@@ -2,7 +2,7 @@ using UnrealEngine.Engine;
 using UnrealEngine.HeadMountedDisplay;
 using UnrealEngine.Runtime;
 
-namespace Project
+namespace TP_Puzzle
 {
     [UClass]
     class APuzzlePlayerCharacter : ACharacter
