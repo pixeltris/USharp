@@ -1,7 +1,7 @@
 using UnrealEngine.Runtime;
 using UnrealEngine.Engine;
 
-namespace Project
+namespace TP_Puzzle
 {
     [UClass]
     class APuzzleGameMode : AGameMode
