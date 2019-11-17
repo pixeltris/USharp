@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <RootNamespace>TP_Puzzle</RootNamespace>
-    <TargetFramework>net452</TargetFramework>
+    <TargetFramework>netcoreapp3.0</TargetFramework>
     <OutputPath>$(OutDir)</OutputPath>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
