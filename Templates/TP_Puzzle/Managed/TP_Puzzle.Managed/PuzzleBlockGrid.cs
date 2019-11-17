@@ -2,7 +2,7 @@ using System.Diagnostics;
 using UnrealEngine.Engine;
 using UnrealEngine.Runtime;
 
-namespace Project
+namespace TP_Puzzle
 {
     [UClass]
     class APuzzleBlockGrid : AActor
