@@ -2,7 +2,7 @@ using UnrealEngine.Engine;
 using UnrealEngine.InputCore;
 using UnrealEngine.Runtime;
 
-namespace Project
+namespace TP_Puzzle
 {
     [UClass]
     class APuzzleBlock : AActor
