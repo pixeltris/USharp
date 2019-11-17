@@ -1,13 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using UnrealEngine.Engine;
 using UnrealEngine.HeadMountedDisplay;
 using UnrealEngine.Runtime;
 
-namespace TP_Puzzle
+namespace Project
 {
     [UClass]
     class APuzzlePlayerCharacter : ACharacter
@@ -68,9 +63,9 @@ namespace TP_Puzzle
             playerInputComponent.BindAction("TriggerClick", EInputEvent.Pressed, OnTriggerClick);
         }
 
-        protected override void ReceiveTick_Implementation(float DeltaSeconds)
+        protected override void ReceiveTick_Implementation(float deltaSeconds)
         {
-            base.ReceiveTick_Implementation(DeltaSeconds);
+            base.ReceiveTick_Implementation(deltaSeconds);
 
             // Determine which Puzzle Block the player is looking at and highlight it.
             if (UHeadMountedDisplayFunctionLibrary.IsHeadMountedDisplayEnabled())
