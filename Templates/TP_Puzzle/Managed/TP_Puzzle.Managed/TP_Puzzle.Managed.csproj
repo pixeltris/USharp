@@ -1,6 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <RootNamespace>Project</RootNamespace>
+    <RootNamespace>TP_Puzzle</RootNamespace>
     <TargetFramework>net452</TargetFramework>
     <OutputPath>$(OutDir)</OutputPath>
   </PropertyGroup>
