@@ -1,8 +1,3 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using UnrealEngine.Engine;
 using UnrealEngine.InputCore;
 using UnrealEngine.Runtime;
@@ -14,8 +9,8 @@ namespace TP_Puzzle
     {
         // These are private fields. These aren't visible to UE4 in any way.
         // This may be undesirable; such as in cases where you may want to duplicate a block. These wouldn't get serialized.
-        private bool isActive;
-        private bool isHighlighted;
+        private bool _isActive;
+        private bool _isHighlighted;
 
         [UProperty, EditAnywhere, BlueprintReadWrite, ExposeOnSpawn]
         public APuzzleBlockGrid OwningGrid { get; set; }
@@ -61,15 +56,15 @@ namespace TP_Puzzle
             }
         }
 
-        protected override void ReceiveActorOnClicked_Implementation(FKey ButtonPressed)
+        protected override void ReceiveActorOnClicked_Implementation(FKey buttonPressed)
         {
-            base.ReceiveActorOnClicked_Implementation(ButtonPressed);
+            base.ReceiveActorOnClicked_Implementation(buttonPressed);
             HandleControllerClick();
         }
 
-        protected override void ReceiveActorOnInputTouchBegin_Implementation(ETouchIndex FingerIndex)
+        protected override void ReceiveActorOnInputTouchBegin_Implementation(ETouchIndex fingerIndex)
         {
-            base.ReceiveActorOnInputTouchBegin_Implementation(FingerIndex);
+            base.ReceiveActorOnInputTouchBegin_Implementation(fingerIndex);
             HandleControllerClick();
         }
 
@@ -91,9 +86,9 @@ namespace TP_Puzzle
         /// </summary>
         public void HandleControllerClick()
         {
-            if (!isActive)
+            if (!_isActive)
             {
-                isActive = true;
+                _isActive = true;
                 BlockMesh.SetMaterial(0, orangeMaterial.Value);
                 if (OwningGrid != null)
                 {
@@ -104,10 +99,10 @@ namespace TP_Puzzle
 
         public void DoHighlight(bool on)
         {
-            if (!isActive && isHighlighted != on)
+            if (!_isActive && _isHighlighted != on)
             {
-                isHighlighted = on;
-                BlockMesh.SetMaterial(0, isHighlighted ? baseMaterial.Value : blueMaterial.Value);
+                _isHighlighted = on;
+                BlockMesh.SetMaterial(0, _isHighlighted ? baseMaterial.Value : blueMaterial.Value);
             }
         }
     }
