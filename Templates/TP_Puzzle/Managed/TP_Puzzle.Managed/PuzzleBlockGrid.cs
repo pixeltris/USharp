@@ -1,13 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using UnrealEngine.Engine;
 using UnrealEngine.Runtime;
 
-namespace TP_Puzzle
+namespace Project
 {
     [UClass]
     class APuzzleBlockGrid : AActor
