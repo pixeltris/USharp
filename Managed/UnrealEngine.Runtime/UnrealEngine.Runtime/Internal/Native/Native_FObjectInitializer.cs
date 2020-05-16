@@ -16,7 +16,7 @@ namespace UnrealEngine.Runtime.Native
         public delegate IntPtr Del_CreateDefaultSubobject(IntPtr instance, IntPtr outer, ref FName subobjectFName, IntPtr returnType,  IntPtr classToCreateByDefault, csbool isRequired, csbool isTransient);
         public delegate IntPtr Del_DoNotCreateDefaultSubobject(IntPtr instance, ref FName subobjectName);
         public delegate IntPtr Del_DoNotCreateDefaultSubobjectStr(IntPtr instance, ref FScriptArray subobjectName);
-        public delegate csbool Del_IslegalOverride(IntPtr instance, ref FName componentName, IntPtr derivedComponentClass, IntPtr baseComponentClass);
+        //public delegate csbool Del_IslegalOverride(IntPtr instance, ref FName componentName, IntPtr derivedComponentClass, IntPtr baseComponentClass);
         public delegate void Del_FinalizeSubobjectClassInitialization(IntPtr instance);
         public delegate void Del_AssertIfInConstructor(IntPtr outer, ref FScriptArray errorMessage);
         public delegate IntPtr Del_Get();
@@ -28,7 +28,7 @@ namespace UnrealEngine.Runtime.Native
         public static Del_CreateDefaultSubobject CreateDefaultSubobject;
         public static Del_DoNotCreateDefaultSubobject DoNotCreateDefaultSubobject;
         public static Del_DoNotCreateDefaultSubobjectStr DoNotCreateDefaultSubobjectStr;
-        public static Del_IslegalOverride IslegalOverride;
+        //public static Del_IslegalOverride IslegalOverride;
         public static Del_FinalizeSubobjectClassInitialization FinalizeSubobjectClassInitialization;        
         public static Del_AssertIfInConstructor AssertIfInConstructor;
         public static Del_Get Get;        

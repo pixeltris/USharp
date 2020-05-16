@@ -182,12 +182,12 @@ namespace UnrealEngine.Runtime
         /// <summary>
         /// Internal use only, checks if the override is legal and if not deal with error messages
         /// </summary>
-        public bool IslegalOverride(FName componentName, UClass derivedComponentClass, UClass baseComponentClass)
-        {
-            return Native_FObjectInitializer.IslegalOverride(NativeObjectInitializer, ref componentName,
-                derivedComponentClass == null ? IntPtr.Zero : derivedComponentClass.Address,
-                baseComponentClass == null ? IntPtr.Zero : baseComponentClass.Address);
-        }
+        //public bool IslegalOverride(FName componentName, UClass derivedComponentClass, UClass baseComponentClass)
+        //{
+        //    return Native_FObjectInitializer.IslegalOverride(NativeObjectInitializer, ref componentName,
+        //        derivedComponentClass == null ? IntPtr.Zero : derivedComponentClass.Address,
+        //        baseComponentClass == null ? IntPtr.Zero : baseComponentClass.Address);
+        //}
 
         public void FinalizeSubobjectClassInitialization()
         {

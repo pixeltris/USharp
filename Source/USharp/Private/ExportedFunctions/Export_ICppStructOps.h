@@ -68,7 +68,7 @@ CSEXPORT csbool CSCONV Export_ICppStructOps_HasGetTypeHash(UScriptStruct::ICppSt
 
 CSEXPORT uint32 CSCONV Export_ICppStructOps_GetTypeHash(UScriptStruct::ICppStructOps* instance, const void* Src)
 {
-	return instance->GetTypeHash(Src);
+	return instance->GetStructTypeHash(Src);
 }
 
 CSEXPORT uint64 CSCONV Export_ICppStructOps_GetComputedPropertyFlags(UScriptStruct::ICppStructOps* instance)

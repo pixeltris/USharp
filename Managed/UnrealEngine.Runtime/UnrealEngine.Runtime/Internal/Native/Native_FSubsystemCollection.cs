@@ -9,7 +9,7 @@ namespace UnrealEngine.Runtime.Native
 {
     public static class Native_FSubsystemCollection
     {
-        public delegate void Del_Initialize(IntPtr instance);
+        public delegate void Del_Initialize(IntPtr instance, IntPtr NewOuter);
         public delegate void Del_Deinitialize(IntPtr instance);
         public delegate csbool Del_InitializeDependency(IntPtr instance, IntPtr subsystemClass);
         public delegate IntPtr Del_GetSubsystem(IntPtr instance, IntPtr subsystemClass);

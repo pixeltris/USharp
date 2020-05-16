@@ -11,12 +11,14 @@
 
 void USharpTemplateProjectDefs::RegisterTemplate()
 {
-	FGameProjectGenerationModule::Get().RegisterTemplateCategory(
-		TEXT("USharp"),
-		LOCTEXT("USharpCategory_Name", "C#"),
-		LOCTEXT("USharpCategory_Description", "C# (USharp)"),
-		FEditorStyle::GetBrush("GameProjectDialog.BlueprintIcon"),
-		FEditorStyle::GetBrush("GameProjectDialog.BlueprintImage"));
+	//Remove This Line For UE_4.24.
+	//Initialize Inside USharp/Templates/TemplateCategories.ini file instead.
+	//FGameProjectGenerationModule::Get().RegisterTemplateCategory(
+	//	TEXT("USharp"),
+	//	LOCTEXT("USharpCategory_Name", "C#"),
+	//	LOCTEXT("USharpCategory_Description", "C# (USharp)"),
+	//	FEditorStyle::GetBrush("GameProjectDialog.BlueprintIcon"),
+	//	FEditorStyle::GetBrush("GameProjectDialog.BlueprintImage"));
 	
 	// A seperate tab for "C#/C++" may be useful at a later date when there enough templates to demand it
 	/*FGameProjectGenerationModule::Get().RegisterTemplateCategory(

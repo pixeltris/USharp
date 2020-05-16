@@ -5,7 +5,7 @@ CSEXPORT void CSCONV Export_FApp_GetBranchName(FString& result)
 
 CSEXPORT int32/*EBuildConfigurations::Type*/ CSCONV Export_FApp_GetBuildConfiguration()
 {
-	return FApp::GetBuildConfiguration();
+	return (int32)FApp::GetBuildConfiguration();
 }
 
 CSEXPORT void CSCONV Export_FApp_GetBuildVersion(FString& result)

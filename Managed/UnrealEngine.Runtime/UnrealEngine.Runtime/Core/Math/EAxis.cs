@@ -8,7 +8,7 @@ namespace UnrealEngine.Runtime
     // Engine\Source\Runtime\Core\Public\Math\Axis.h
 
     /// <summary>Generic axis enum (mirrored for property use in Object.h)</summary>
-    [UEnum, UMetaPath("/Script/CoreUObject.EAxis")]
+    [UEnum, UMetaPath("/Script/CoreUObject.Axis")]
     public enum EAxis
     {
         None = 0,

@@ -22,9 +22,9 @@ namespace UnrealEngine.Runtime
         /// <summary>
         /// Initialize the collection of systems, systems will be created and initialized.
         /// </summary>
-        public void Initialize()
+        public void Initialize(UObject NewOuter)
         {
-            Native_FSubsystemCollection.Initialize(collectionAddress);
+            Native_FSubsystemCollection.Initialize(collectionAddress, NewOuter == null ? IntPtr.Zero : NewOuter.Address);
         }
 
         /// <summary>

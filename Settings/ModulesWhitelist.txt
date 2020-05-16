@@ -47,6 +47,7 @@ Sequencer
 Slate
 SlateCore
 SourceControl
+StaticMeshDescription
 TimeManagement
 UMG
 UMGEditor

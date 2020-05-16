@@ -464,6 +464,7 @@ void FSharpHotReloadClassReinstancer::CollectChangedProperties(FCDOPropertyConta
 				// Delegates
 				case (BaseCastFlags | CASTCLASS_UDelegateProperty):
 				case (BaseCastFlags | CASTCLASS_UMulticastDelegateProperty):
+				case (BaseCastFlags | CASTCLASS_UMulticastDelegateProperty | CASTCLASS_UMulticastSparseDelegateProperty):
 					{
 						void* OldValuePtr = OldProperty->ContainerPtrToValuePtr<void>(Container.OldPtr);
 						void* NewValuePtr = NewProperty->ContainerPtrToValuePtr<void>(Container.NewPtr);

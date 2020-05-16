@@ -1,6 +1,6 @@
-CSEXPORT void CSCONV Export_FSubsystemCollection_Initialize(FSubsystemCollectionBase& instance)
+CSEXPORT void CSCONV Export_FSubsystemCollection_Initialize(FSubsystemCollectionBase& instance, UObject* NewOuter)
 {
-	instance.Initialize();
+	instance.Initialize(NewOuter);
 }
 
 CSEXPORT void CSCONV Export_FSubsystemCollection_Deinitialize(FSubsystemCollectionBase& instance)

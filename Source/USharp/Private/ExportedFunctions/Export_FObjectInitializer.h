@@ -33,10 +33,10 @@ CSEXPORT FObjectInitializer const& CSCONV Export_FObjectInitializer_DoNotCreateD
 	return instance->DoNotCreateDefaultSubobject(*SubobjectName);
 }
 
-CSEXPORT csbool CSCONV Export_FObjectInitializer_IslegalOverride(FObjectInitializer* instance, const FName& InComponentName, class UClass *DerivedComponentClass, class UClass *BaseComponentClass)
-{
-	return instance->IslegalOverride(InComponentName, DerivedComponentClass, BaseComponentClass);
-}
+//CSEXPORT csbool CSCONV Export_FObjectInitializer_IslegalOverride(FObjectInitializer* instance, const FName& InComponentName, class UClass *DerivedComponentClass, class UClass *BaseComponentClass)
+//{
+//	return instance->IslegalOverride(InComponentName, DerivedComponentClass, BaseComponentClass);
+//}
 
 CSEXPORT void CSCONV Export_FObjectInitializer_FinalizeSubobjectClassInitialization(FObjectInitializer* instance)
 {
@@ -62,7 +62,7 @@ CSEXPORT void CSCONV Export_FObjectInitializer(RegisterFunc registerFunc)
 	REGISTER_FUNC(Export_FObjectInitializer_CreateDefaultSubobject);
 	REGISTER_FUNC(Export_FObjectInitializer_DoNotCreateDefaultSubobject);
 	REGISTER_FUNC(Export_FObjectInitializer_DoNotCreateDefaultSubobjectStr);
-	REGISTER_FUNC(Export_FObjectInitializer_IslegalOverride);
+	//REGISTER_FUNC(Export_FObjectInitializer_IslegalOverride);
 	REGISTER_FUNC(Export_FObjectInitializer_FinalizeSubobjectClassInitialization);
 	REGISTER_FUNC(Export_FObjectInitializer_AssertIfInConstructor);
 	REGISTER_FUNC(Export_FObjectInitializer_Get);

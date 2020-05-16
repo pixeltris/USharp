@@ -81,22 +81,22 @@ CSEXPORT csbool CSCONV Export_UField_GetBoolMetaDataF(UField* instance, const FN
 
 CSEXPORT int32 CSCONV Export_UField_GetINTMetaData(UField* instance, const FString& Key)
 {
-	return instance->GetINTMetaData(*Key);
+	return instance->GetIntMetaData(*Key);
 }
 
 CSEXPORT int32 CSCONV Export_UField_GetINTMetaDataF(UField* instance, const FName& Key)
 {
-	return instance->GetINTMetaData(Key);
+	return instance->GetIntMetaData(Key);
 }
 
 CSEXPORT float CSCONV Export_UField_GetFLOATMetaData(UField* instance, const FString& Key)
 {
-	return instance->GetFLOATMetaData(*Key);
+	return instance->GetFloatMetaData(*Key);
 }
 
 CSEXPORT float CSCONV Export_UField_GetFLOATMetaDataF(UField* instance, const FName& Key)
 {
-	return instance->GetFLOATMetaData(Key);
+	return instance->GetFloatMetaData(Key);
 }
 
 CSEXPORT UClass* CSCONV Export_UField_GetClassMetaData(UField* instance, const FString& Key)
